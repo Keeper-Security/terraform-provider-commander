@@ -6,7 +6,9 @@ package provider
 import (
 	"context"
 	"net/http"
+	"strings"
 
+	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/api"
 	"github.com/hashicorp/terraform-plugin-framework/action"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/ephemeral"
@@ -54,6 +56,7 @@ func (p *CommanderProvider) Schema(ctx context.Context, req provider.SchemaReque
 				MarkdownDescription: "The API key for the running Keeper Commander Service Mode, for more information see [Keeper Commander Service Mode](https://docs.keeper.io/en/keeperpam/commander-cli/service-mode-rest-api#keeper-commander-service-mode)",
 				Description:         "The API key for the running Keeper Commander Service Mode",
 				Required:            true,
+				Sensitive:           true,
 			},
 		},
 	}
@@ -81,15 +84,31 @@ func (p *CommanderProvider) Configure(ctx context.Context, req provider.Configur
 		return
 	}
 
-	// Example client configuration for data sources and resources
-	client := http.DefaultClient
-	resp.DataSourceData = client
-	resp.ResourceData = client
+	// Create HTTP Client
+	httpClient := &http.Client{}
+
+	// Normalize the Service Mode URL to always end with "/api/v2/"
+	serviceModeUrl := strings.TrimSuffix(data.ServiceModeUrl.ValueString(), "/")
+	if before, found := strings.CutSuffix(serviceModeUrl, "/api/v2"); found {
+		serviceModeUrl = before
+	}
+	processedServiceModeUrl := serviceModeUrl + "/api/v2"
+
+	// Create ApiManager with configuration
+	apiManager := &api.ApiManager{
+		ServiceModeUrl:    processedServiceModeUrl,
+		ServiceModeApiKey: data.ServiceModeApiKey.ValueString(),
+		HttpClient:        httpClient,
+	}
+
+	resp.DataSourceData = apiManager
+	resp.ResourceData = apiManager
 }
 
 func (p *CommanderProvider) Resources(ctx context.Context) []func() resource.Resource {
 	return []func() resource.Resource{
 		// Add your resources here
+		NewTestResource,
 	}
 }
 

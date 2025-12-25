@@ -28,7 +28,7 @@ func main() {
 	flag.Parse()
 
 	opts := providerserver.ServeOpts{
-		Address: "https://registry.terraform.io/providers/Keeper-Security/commander",
+		Address: "registry.terraform.io/Keeper-Security/commander",
 		Debug:   debug,
 	}
 
