@@ -265,6 +265,30 @@ func (a *ApiManager) RequestResult(ctx context.Context, requestId string) (*Requ
 	return &result, nil
 }
 
+// ExecuteCommand submits a command and polls for the result
+// This is a convenience function that combines SubmitRequest and PollRequestResult
+// It handles all error checking and returns the final result or an error
+func (a *ApiManager) ExecuteCommand(ctx context.Context, command string, errorSummary string) (*RequestResultResponse, error) {
+	// Submit the request
+	submitResp, err := a.SubmitRequest(ctx, command)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", errorSummary, err)
+	}
+
+	// Poll for the result
+	apiResp, err := a.PollRequestResult(ctx, submitResp.RequestId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", errorSummary, err)
+	}
+
+	// Check if the result status is success
+	if apiResp.Status != "success" {
+		return nil, fmt.Errorf("%s: %s", errorSummary, apiResp.Message)
+	}
+
+	return apiResp, nil
+}
+
 // PollRequestResult polls RequestResult directly until the request is completed
 // Uses exponential backoff for polling intervals
 // Default timeout is 10 seconds if not specified

@@ -231,6 +231,15 @@ type addOnsValidator struct{}
 
 var (
 	// Base add-ons (no number suffix)
+
+	/*
+		Note:
+		consumer_breach_watch - when we use this add-on we get error from commander cli
+		professional_services_silver_add_on - when we use this add-on it don't make any changes to the company.
+		gold_professional_services_add_on - when we use this add-on it don't make any changes to the company.
+		platinum_professional_services_add_on - when we use this add-on it don't make any changes to the company.
+
+	*/
 	baseAddOns = map[string]bool{
 		"chat":                           true,
 		"enterprise_audit_and_reporting": true,
@@ -238,7 +247,7 @@ var (
 		// "gold_professional_services_add_on":     true,
 		// "platinum_professional_services_add_on": true,
 		"msp_service_and_support": true,
-		// "consumer_breach_watch":                 true,
+		// "consumer_breach_watch":    true,
 		"enterprise_breach_watch":  true,
 		"compliance_report":        true,
 		"secrets_manager":          true,
@@ -434,11 +443,22 @@ func (r *ManageCompanyResource) Configure(ctx context.Context, req resource.Conf
 
 	apiManager, ok := req.ProviderData.(*api.ApiManager)
 	if !ok {
-		resp.Diagnostics.AddError("Unexpected Provider Data Type", fmt.Sprintf("Expected *api.ApiManager, got: %T", req.ProviderData))
+		resp.Diagnostics.AddError(
+			"Provider Configuration Error",
+			fmt.Sprintf("The provider was not configured correctly. Expected API manager, but got: %T. Please check your provider configuration.", req.ProviderData),
+		)
 		return
 	}
 
 	r.apiManager = apiManager
+}
+
+// ensureApiManager validates that apiManager is configured and returns an error if not
+func (r *ManageCompanyResource) ensureApiManager() error {
+	if r.apiManager == nil {
+		return fmt.Errorf("the Keeper Commander provider is not properly configured. Please ensure the provider is set up with valid service_mode_url and service_mode_api_key")
+	}
+	return nil
 }
 
 func (r *ManageCompanyResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
@@ -452,10 +472,10 @@ func (r *ManageCompanyResource) Create(ctx context.Context, req resource.CreateR
 	}
 
 	// Validate ApiManager is configured
-	if r.apiManager == nil {
+	if err := r.ensureApiManager(); err != nil {
 		resp.Diagnostics.AddError(
-			"ApiManager Not Configured",
-			"The ApiManager was not properly configured",
+			"Provider Configuration Error",
+			err.Error(),
 		)
 		return
 	}
@@ -463,28 +483,11 @@ func (r *ManageCompanyResource) Create(ctx context.Context, req resource.CreateR
 	// Build the Commander command string
 	command := buildManageCompanyAddCommand(data)
 
-	submitResp, err := r.apiManager.SubmitRequest(ctx, command)
+	apiResp, err := r.apiManager.ExecuteCommand(ctx, command, "Unable to create managed company")
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"API Request Failed",
-			fmt.Sprintf("Failed to create managed company: %s", err.Error()),
-		)
-		return
-	}
-
-	apiResp, err := r.apiManager.PollRequestResult(ctx, submitResp.RequestId)
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"API Request Failed",
-			fmt.Sprintf("Failed to create managed company: %s", err.Error()),
-		)
-		return
-	}
-
-	if apiResp.Status != "success" {
-		resp.Diagnostics.AddError(
-			"API Request Failed",
-			fmt.Sprintf("Failed to create managed company: %s", apiResp.Message),
+			"Create Managed Company Failed",
+			err.Error(),
 		)
 		return
 	}
@@ -505,36 +508,20 @@ func (r *ManageCompanyResource) Read(ctx context.Context, req resource.ReadReque
 	}
 
 	// Validate ApiManager is configured
-	if r.apiManager == nil {
+	if err := r.ensureApiManager(); err != nil {
 		resp.Diagnostics.AddError(
-			"ApiManager Not Configured",
-			"The ApiManager was not properly configured",
+			"Provider Configuration Error",
+			err.Error(),
 		)
 		return
 	}
 
-	mspDownSubmitResp, err := r.apiManager.SubmitRequest(ctx, "msp-down")
+	// Execute msp-down command (setup/initialization)
+	_, err := r.apiManager.ExecuteCommand(ctx, "msp-down", "Unable to initialize managed company service")
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"API Request Failed",
-			fmt.Sprintf("Failed to read managed company: %s", err.Error()),
-		)
-		return
-	}
-
-	mspDownApiResp, err := r.apiManager.PollRequestResult(ctx, mspDownSubmitResp.RequestId)
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"API Request Failed",
-			fmt.Sprintf("Failed to read managed company: %s", err.Error()),
-		)
-		return
-	}
-
-	if mspDownApiResp.Status != "success" {
-		resp.Diagnostics.AddError(
-			"API Request Failed",
-			fmt.Sprintf("Failed to read managed company: %s", mspDownApiResp.Message),
+			"Read Managed Company Failed",
+			err.Error(),
 		)
 		return
 	}
@@ -542,28 +529,11 @@ func (r *ManageCompanyResource) Read(ctx context.Context, req resource.ReadReque
 	// Build command to get all companies info
 	command := "msp-info --format json -v"
 
-	submitResp, err := r.apiManager.SubmitRequest(ctx, command)
+	apiResp, err := r.apiManager.ExecuteCommand(ctx, command, "Unable to retrieve managed company information")
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"API Request Failed",
-			fmt.Sprintf("Failed to read managed company: %s", err.Error()),
-		)
-		return
-	}
-
-	apiResp, err := r.apiManager.PollRequestResult(ctx, submitResp.RequestId)
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"API Request Failed",
-			fmt.Sprintf("Failed to read managed company: %s", err.Error()),
-		)
-		return
-	}
-
-	if apiResp.Status != "success" {
-		resp.Diagnostics.AddError(
-			"API Request Failed",
-			fmt.Sprintf("Failed to read managed company: %s", apiResp.Message),
+			"Read Managed Company Failed",
+			err.Error(),
 		)
 		return
 	}
@@ -583,16 +553,16 @@ func (r *ManageCompanyResource) Read(ctx context.Context, req resource.ReadReque
 	dataBytes, err := json.Marshal(apiResp.Data)
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Failed to Parse Response",
-			fmt.Sprintf("Failed to marshal response data: %s", err.Error()),
+			"Invalid API Response",
+			fmt.Sprintf("Unable to process the response from Keeper Commander API: %s", err.Error()),
 		)
 		return
 	}
 
 	if err := json.Unmarshal(dataBytes, &companies); err != nil {
 		resp.Diagnostics.AddError(
-			"Failed to Parse Response",
-			fmt.Sprintf("Failed to unmarshal companies list: %s", err.Error()),
+			"Invalid API Response",
+			fmt.Sprintf("Unable to parse managed companies list from API response: %s", err.Error()),
 		)
 		return
 	}
@@ -603,7 +573,7 @@ func (r *ManageCompanyResource) Read(ctx context.Context, req resource.ReadReque
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Invalid Company ID",
-			fmt.Sprintf("Failed to parse company ID from state: %s", err.Error()),
+			fmt.Sprintf("The company ID in the state is invalid: %s", err.Error()),
 		)
 		return
 	}
@@ -730,39 +700,22 @@ func (r *ManageCompanyResource) Update(ctx context.Context, req resource.UpdateR
 		return
 	}
 
-	// Validate ApiManager
-	if r.apiManager == nil {
+	// Validate ApiManager is configured
+	if err := r.ensureApiManager(); err != nil {
 		resp.Diagnostics.AddError(
-			"ApiManager Not Configured",
-			"The ApiManager was not properly configured",
+			"Provider Configuration Error",
+			err.Error(),
 		)
 		return
 	}
 
 	command := buildManageCompanyUpdateCommand(&plan, &state)
 
-	submitResp, err := r.apiManager.SubmitRequest(ctx, command)
+	_, err := r.apiManager.ExecuteCommand(ctx, command, "Unable to update managed company")
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"API Request Failed",
-			fmt.Sprintf("Failed to update managed company: %s", err.Error()),
-		)
-		return
-	}
-
-	apiResp, err := r.apiManager.PollRequestResult(ctx, submitResp.RequestId)
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"API Request Failed",
-			fmt.Sprintf("Failed to update managed company: %s", err.Error()),
-		)
-		return
-	}
-
-	if apiResp.Status != "success" {
-		resp.Diagnostics.AddError(
-			"API Request Failed",
-			fmt.Sprintf("Failed to update managed company: %s", apiResp.Message),
+			"Update Managed Company Failed",
+			err.Error(),
 		)
 		return
 	}
@@ -782,10 +735,10 @@ func (r *ManageCompanyResource) Delete(ctx context.Context, req resource.DeleteR
 	}
 
 	// Validate ApiManager is configured
-	if r.apiManager == nil {
+	if err := r.ensureApiManager(); err != nil {
 		resp.Diagnostics.AddError(
-			"ApiManager Not Configured",
-			"The ApiManager was not properly configured",
+			"Provider Configuration Error",
+			err.Error(),
 		)
 		return
 	}
@@ -793,29 +746,11 @@ func (r *ManageCompanyResource) Delete(ctx context.Context, req resource.DeleteR
 	// Build delete command
 	command := fmt.Sprintf("msp-remove '%s' -f", state.Id.ValueString())
 
-	// Submit and poll
-	submitResp, err := r.apiManager.SubmitRequest(ctx, command)
+	_, err := r.apiManager.ExecuteCommand(ctx, command, "Unable to delete managed company")
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"API Request Failed",
-			fmt.Sprintf("Failed to delete managed company: %s", err.Error()),
-		)
-		return
-	}
-
-	apiResp, err := r.apiManager.PollRequestResult(ctx, submitResp.RequestId)
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"API Request Failed",
-			fmt.Sprintf("Failed to delete managed company: %s", err.Error()),
-		)
-		return
-	}
-
-	if apiResp.Status != "success" {
-		resp.Diagnostics.AddError(
-			"API Request Failed",
-			fmt.Sprintf("Failed to delete managed company: %s", apiResp.Message),
+			"Delete Managed Company Failed",
+			err.Error(),
 		)
 		return
 	}

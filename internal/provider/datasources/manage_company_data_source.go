@@ -78,13 +78,21 @@ func (d *ManageCompanyDataSource) Configure(ctx context.Context, req datasource.
 	apiManager, ok := req.ProviderData.(*api.ApiManager)
 	if !ok {
 		resp.Diagnostics.AddError(
-			"Unexpected Provider Data Type",
-			fmt.Sprintf("Expected *api.ApiManager, got: %T", req.ProviderData),
+			"Provider Configuration Error",
+			fmt.Sprintf("The provider was not configured correctly. Expected API manager, but got: %T. Please check your provider configuration.", req.ProviderData),
 		)
 		return
 	}
 
 	d.apiManager = apiManager
+}
+
+// ensureApiManager validates that apiManager is configured and returns an error if not
+func (d *ManageCompanyDataSource) ensureApiManager() error {
+	if d.apiManager == nil {
+		return fmt.Errorf("the Keeper Commander provider is not properly configured. Please ensure the provider is set up with valid service_mode_url and service_mode_api_key")
+	}
+	return nil
 }
 
 func (d *ManageCompanyDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
@@ -106,10 +114,10 @@ func (d *ManageCompanyDataSource) Read(ctx context.Context, req datasource.ReadR
 	}
 
 	// Validate ApiManager is configured
-	if d.apiManager == nil {
+	if err := d.ensureApiManager(); err != nil {
 		resp.Diagnostics.AddError(
-			"ApiManager Not Configured",
-			"The ApiManager was not properly configured",
+			"Provider Configuration Error",
+			err.Error(),
 		)
 		return
 	}
@@ -117,28 +125,11 @@ func (d *ManageCompanyDataSource) Read(ctx context.Context, req datasource.ReadR
 	// Build command to get all companies info
 	command := "msp-info --format json -v"
 
-	submitResp, err := d.apiManager.SubmitRequest(ctx, command)
+	apiResp, err := d.apiManager.ExecuteCommand(ctx, command, "Unable to retrieve managed company information")
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"API Request Failed",
-			fmt.Sprintf("Failed to read managed company: %s", err.Error()),
-		)
-		return
-	}
-
-	apiResp, err := d.apiManager.PollRequestResult(ctx, submitResp.RequestId)
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"API Request Failed",
-			fmt.Sprintf("Failed to read managed company: %s", err.Error()),
-		)
-		return
-	}
-
-	if apiResp.Status != "success" {
-		resp.Diagnostics.AddError(
-			"API Request Failed",
-			fmt.Sprintf("Failed to read managed company: %s", apiResp.Message),
+			"Read Managed Company Failed",
+			err.Error(),
 		)
 		return
 	}
@@ -157,16 +148,16 @@ func (d *ManageCompanyDataSource) Read(ctx context.Context, req datasource.ReadR
 	dataBytes, err := json.Marshal(apiResp.Data)
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Failed to Parse Response",
-			fmt.Sprintf("Failed to marshal response data: %s", err.Error()),
+			"Invalid API Response",
+			fmt.Sprintf("Unable to process the response from Keeper Commander API: %s", err.Error()),
 		)
 		return
 	}
 
 	if err := json.Unmarshal(dataBytes, &companies); err != nil {
 		resp.Diagnostics.AddError(
-			"Failed to Parse Response",
-			fmt.Sprintf("Failed to unmarshal companies list: %s", err.Error()),
+			"Invalid API Response",
+			fmt.Sprintf("Unable to parse managed companies list from API response: %s", err.Error()),
 		)
 		return
 	}
@@ -214,8 +205,8 @@ func (d *ManageCompanyDataSource) Read(ctx context.Context, req datasource.ReadR
 			searchCriteria = fmt.Sprintf("with name '%s'", data.Name.ValueString())
 		}
 		resp.Diagnostics.AddError(
-			"Company Not Found",
-			fmt.Sprintf("Managed company %s not found", searchCriteria),
+			"Managed Company Not Found",
+			fmt.Sprintf("No managed company found %s. Please verify the ID or name and try again.", searchCriteria),
 		)
 		return
 	}
