@@ -9,6 +9,8 @@ import (
 	"strings"
 
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/api"
+	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources"
+	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources"
 	"github.com/hashicorp/terraform-plugin-framework/action"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/ephemeral"
@@ -108,7 +110,7 @@ func (p *CommanderProvider) Configure(ctx context.Context, req provider.Configur
 func (p *CommanderProvider) Resources(ctx context.Context) []func() resource.Resource {
 	return []func() resource.Resource{
 		// Add your resources here
-		NewTestResource,
+		resources.NewManageCompanyResource,
 	}
 }
 
@@ -119,6 +121,7 @@ func (p *CommanderProvider) EphemeralResources(ctx context.Context) []func() eph
 func (p *CommanderProvider) DataSources(ctx context.Context) []func() datasource.DataSource {
 	return []func() datasource.DataSource{
 		// Add your resources here
+		datasources.NewManageCompanyDataSource,
 	}
 }
 
