@@ -43,18 +43,35 @@ type RequestStatusResponse struct {
 
 // RequestResultResponse represents the response structure when we get the result of a request
 type RequestResultResponse struct {
-	Data   any    `json:"data"`
-	Status string `json:"status"`
+	Data    any    `json:"data"`
+	Status  string `json:"status"`
+	Message string `json:"message"`
+	Error   string `json:"error"`
 }
 
 // handleAPIErrorResponse checks HTTP status codes and handles error cases
 // For error status codes: reads body and returns error with body content
-// For success status codes (2xx): returns nil, nil (caller reads body)
+// For success status codes (2xx): return nil, nil (caller reads body)
 func handleAPIErrorResponse(resp *http.Response) ([]byte, error) {
 	// Check if it's an error status code first
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
 		// Read body only for error cases
 		bodyBytes, _ := io.ReadAll(resp.Body)
+
+		// Helper function to extract error message from JSON response
+		extractErrorMessage := func(body []byte) string {
+			var errorResp struct {
+				Error  string `json:"error"`
+				Status string `json:"status"`
+			}
+			if err := json.Unmarshal(body, &errorResp); err == nil && errorResp.Error != "" {
+				return errorResp.Error
+			}
+			// If parsing fails, return the raw body as string
+			return string(body)
+		}
+
+		errorMsg := extractErrorMessage(bodyBytes)
 
 		// Handle specific error status codes according to API documentation
 		switch resp.StatusCode {
@@ -68,15 +85,18 @@ func handleAPIErrorResponse(resp *http.Response) ([]byte, error) {
 			return bodyBytes, fmt.Errorf("request id not found (404)")
 
 		case http.StatusInternalServerError: // 500 - Command execution failed
-			return bodyBytes, fmt.Errorf("internal server error (500): command execution failed: %s", string(bodyBytes))
+			return bodyBytes, fmt.Errorf("internal server error (500): command execution failed: %s", errorMsg)
+
+		case http.StatusBadRequest: // 400 - Bad request
+			return bodyBytes, fmt.Errorf("bad request (400): %s", errorMsg)
 
 		default:
 			// For any other non-2xx status
-			return bodyBytes, fmt.Errorf("API request failed with status %d: %s", resp.StatusCode, string(bodyBytes))
+			return bodyBytes, fmt.Errorf("Keeper Security API request failed with status %d: %s", resp.StatusCode, errorMsg)
 		}
 	}
 
-	// For 2xx status codes, return nil, nil (success - caller will read body)
+	// For 2xx status codes, return nil, nil (success - caller reads body)
 	return nil, nil
 }
 
@@ -245,12 +265,36 @@ func (a *ApiManager) RequestResult(ctx context.Context, requestId string) (*Requ
 	return &result, nil
 }
 
+// ExecuteCommand submits a command and polls for the result
+// This is a convenience function that combines SubmitRequest and PollRequestResult
+// It handles all error checking and returns the final result or an error
+func (a *ApiManager) ExecuteCommand(ctx context.Context, command string, errorSummary string) (*RequestResultResponse, error) {
+	// Submit the request
+	submitResp, err := a.SubmitRequest(ctx, command)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", errorSummary, err)
+	}
+
+	// Poll for the result
+	apiResp, err := a.PollRequestResult(ctx, submitResp.RequestId)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", errorSummary, err)
+	}
+
+	// Check if the result status is success
+	if apiResp.Status != "success" {
+		return nil, fmt.Errorf("%s: %s", errorSummary, apiResp.Message)
+	}
+
+	return apiResp, nil
+}
+
 // PollRequestResult polls RequestResult directly until the request is completed
 // Uses exponential backoff for polling intervals
 // Default timeout is 10 seconds if not specified
 func (a *ApiManager) PollRequestResult(ctx context.Context, requestId string, timeout ...time.Duration) (*RequestResultResponse, error) {
 	// Set default timeout to 10 seconds
-	pollTimeout := 10 * time.Second
+	pollTimeout := 60 * time.Second
 	if len(timeout) > 0 && timeout[0] > 0 {
 		pollTimeout = timeout[0]
 	}
@@ -268,6 +312,11 @@ func (a *ApiManager) PollRequestResult(ctx context.Context, requestId string, ti
 	result, err := a.RequestResult(pollCtx, requestId)
 	if err == nil && result.Status == "success" {
 		return result, nil
+	}
+
+	// If first attempt returned an error that's not "still processing", return immediately
+	if err != nil && !strings.Contains(err.Error(), "still in queued/processing") {
+		return nil, err
 	}
 
 	// If first attempt failed, start polling with exponential backoff
@@ -293,7 +342,12 @@ func (a *ApiManager) PollRequestResult(ctx context.Context, requestId string, ti
 				if result.Status == "success" {
 					return result, nil
 				}
-
+			} else {
+				// If error is not "still processing", stop polling and return error immediately
+				if !strings.Contains(err.Error(), "still in queued/processing") {
+					return nil, err
+				}
+				// Otherwise, continue polling (it's still processing)
 			}
 
 			// Increase interval exponentially (but cap at maxInterval)
