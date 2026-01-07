@@ -1,7 +1,7 @@
 // Copyright (c) HashiCorp, Inc.
 // SPDX-License-Identifier: MPL-2.0
 
-package datasources
+package managecompany
 
 import (
 	"context"
@@ -43,28 +43,28 @@ func (d *ManageCompanyDataSource) Schema(ctx context.Context, req datasource.Sch
 		Attributes: map[string]schema.Attribute{
 			"id": schema.NumberAttribute{
 				Optional:            true,
-				Description:         "Managed Company ID.",
-				MarkdownDescription: "Managed Company ID.",
+				Description:         "Managed Company ID of selected managed company.",
+				MarkdownDescription: "Managed Company ID of selected managed company.",
 			},
 			"name": schema.StringAttribute{
 				Optional:            true,
-				Description:         "Managed Company Name.",
-				MarkdownDescription: "Managed Company Name.",
+				Description:         "Managed Company Name of selected managed company.",
+				MarkdownDescription: "Managed Company Name of selected managed company.",
 			},
 			"node": schema.StringAttribute{
 				Computed:            true,
-				Description:         "Managing Node name or ID.",
-				MarkdownDescription: "Managing Node name or ID.",
+				Description:         "Managing Node name or ID of selected managed company.",
+				MarkdownDescription: "Managing Node name or ID of selected managed company.",
 			},
 			"plan": schema.StringAttribute{
 				Computed:            true,
-				Description:         "Base plan.",
-				MarkdownDescription: "Base plan.",
+				Description:         "Base plan of selected managed company.",
+				MarkdownDescription: "Base plan of selected managed company.",
 			},
 			"file_plan": schema.StringAttribute{
 				Computed:            true,
-				Description:         "File storage plan.",
-				MarkdownDescription: "File storage plan.",
+				Description:         "File storage plan of selected managed company.",
+				MarkdownDescription: "File storage plan of selected managed company.",
 			},
 		},
 	}
