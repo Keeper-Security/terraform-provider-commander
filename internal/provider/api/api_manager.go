@@ -42,10 +42,10 @@ type RequestStatusResponse struct {
 }
 
 // FlexibleMessage is a type that can unmarshal both string and array from JSON
-// and always provides a string representation
+// and always provides a string representation.
 type FlexibleMessage string
 
-// UnmarshalJSON implements custom JSON unmarshaling to handle both string and array
+// UnmarshalJSON implements custom JSON unmarshaling to handle both string and array.
 func (fm *FlexibleMessage) UnmarshalJSON(data []byte) error {
 	// Try to unmarshal as string first
 	var str string
@@ -76,12 +76,12 @@ func (fm *FlexibleMessage) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
-// String returns the string representation
+// String returns the string representation.
 func (fm FlexibleMessage) String() string {
 	return string(fm)
 }
 
-// RequestResultResponse represents the response structure when we get the result of a request
+// RequestResultResponse represents the response structure when we get the result of a request.
 type RequestResultResponse struct {
 	Data    any             `json:"data"`
 	Status  string          `json:"status"`
