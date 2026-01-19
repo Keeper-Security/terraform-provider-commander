@@ -153,7 +153,7 @@ func (r *ManageCompanyResource) Create(ctx context.Context, req resource.CreateR
 		return
 	}
 
-	data.Id = types.StringValue(apiResp.Message)
+	data.Id = types.StringValue(apiResp.Message.String())
 
 	// Set the ID in the state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
