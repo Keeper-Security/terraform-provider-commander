@@ -11,6 +11,7 @@ import (
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/api"
 	managecompanydatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/manage_company"
 	enterprisenode "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/enterprise_node"
+	enterpriseteam "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/enterprise_team"
 	managecompany "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/manage_company"
 	"github.com/hashicorp/terraform-plugin-framework/action"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
@@ -113,6 +114,7 @@ func (p *CommanderProvider) Resources(ctx context.Context) []func() resource.Res
 		// Add your resources here
 		managecompany.NewManageCompanyResource,
 		enterprisenode.NewEnterpriseNodeResource,
+		enterpriseteam.NewEnterpriseTeamResource,
 	}
 }
 

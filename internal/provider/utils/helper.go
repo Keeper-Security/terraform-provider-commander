@@ -22,6 +22,13 @@ func SwitchToMsp(ctx context.Context, apiManager *api.ApiManager) error {
 	return err
 }
 
+// Perform enterprise down
+func EnterpriseDown(ctx context.Context, apiManager *api.ApiManager) error {
+	command := "enterprise-down"
+	_, err := apiManager.ExecuteCommand(ctx, command, "Unable to perform enterprise down")
+	return err
+}
+
 // ExecuteWithManagedCompanyContext executes a function with managed company context switching
 // If managedCompany is provided and not null, it switches to MC before execution and back to MSP after
 func ExecuteWithManagedCompanyContext(
@@ -29,8 +36,10 @@ func ExecuteWithManagedCompanyContext(
 	apiManager *api.ApiManager,
 	managedCompany types.String,
 	operation func() error,
-) error {
+) (err error) {
 	// If managed company is provided, switch to it before the operation
+	err = EnterpriseDown(ctx, apiManager)
+
 	if !managedCompany.IsNull() && !managedCompany.IsUnknown() {
 		if err := SwitchToManageCompany(ctx, apiManager, managedCompany.ValueString()); err != nil {
 			return fmt.Errorf("Failed to switch to managed company: %w", err)
@@ -39,13 +48,18 @@ func ExecuteWithManagedCompanyContext(
 		// Always switch back to MSP after the operation (even if it fails)
 		defer func() {
 			if switchErr := SwitchToMsp(ctx, apiManager); switchErr != nil {
-				// Log the error but don't override the original error
-				// In a real scenario, you might want to log this
-				_ = switchErr
+				if err != nil {
+					// Both operation and switch-back failed - combine errors so user knows about both
+					err = fmt.Errorf("operation failed: %w; also failed to switch back to MSP: %w", err, switchErr)
+				} else {
+					// Operation succeeded but switch-back failed - this is critical, user must know
+					err = fmt.Errorf("Failed to switch back to MSP: %w", switchErr)
+				}
 			}
 		}()
 	}
 
 	// Execute the actual operation
-	return operation()
+	err = operation()
+	return err
 }

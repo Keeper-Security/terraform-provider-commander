@@ -41,12 +41,52 @@ type RequestStatusResponse struct {
 	CompletedAt string `json:"completed_at"`
 }
 
-// RequestResultResponse represents the response structure when we get the result of a request
+// FlexibleMessage is a type that can unmarshal both string and array from JSON
+// and always provides a string representation.
+type FlexibleMessage string
+
+// UnmarshalJSON implements custom JSON unmarshaling to handle both string and array.
+func (fm *FlexibleMessage) UnmarshalJSON(data []byte) error {
+	// Try to unmarshal as string first
+	var str string
+	if err := json.Unmarshal(data, &str); err == nil {
+		*fm = FlexibleMessage(str)
+		return nil
+	}
+
+	// If not a string, try to unmarshal as array
+	var arr []interface{}
+	if err := json.Unmarshal(data, &arr); err == nil {
+		// Convert array to string representation
+		arrBytes, _ := json.Marshal(arr)
+		*fm = FlexibleMessage(string(arrBytes))
+		return nil
+	}
+
+	// If neither works, try as any and convert to string
+	var anyVal interface{}
+	if err := json.Unmarshal(data, &anyVal); err == nil {
+		anyBytes, _ := json.Marshal(anyVal)
+		*fm = FlexibleMessage(string(anyBytes))
+		return nil
+	}
+
+	// If all else fails, set empty string
+	*fm = FlexibleMessage("")
+	return nil
+}
+
+// String returns the string representation.
+func (fm FlexibleMessage) String() string {
+	return string(fm)
+}
+
+// RequestResultResponse represents the response structure when we get the result of a request.
 type RequestResultResponse struct {
-	Data    any    `json:"data"`
-	Status  string `json:"status"`
-	Message string `json:"message"`
-	Error   string `json:"error"`
+	Data    any             `json:"data"`
+	Status  string          `json:"status"`
+	Message FlexibleMessage `json:"message"`
+	Error   string          `json:"error"`
 }
 
 // handleAPIErrorResponse checks HTTP status codes and handles error cases
@@ -283,7 +323,7 @@ func (a *ApiManager) ExecuteCommand(ctx context.Context, command string, errorSu
 
 	// Check if the result status is success
 	if apiResp.Status != "success" {
-		return nil, fmt.Errorf("%s: %s", errorSummary, apiResp.Message)
+		return nil, fmt.Errorf("%s: %s", errorSummary, apiResp.Message.String())
 	}
 
 	return apiResp, nil
