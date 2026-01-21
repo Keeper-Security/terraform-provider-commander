@@ -430,15 +430,15 @@ func buildEnterpriseTeamAddCommand(data EnterpriseTeamResourceModel) string {
 	parts = append(parts, fmt.Sprintf("--add '%s'", data.Name.ValueString()))
 
 	// Optional parameters
-	if !data.RestrictEdit.IsNull() {
+	if !data.RestrictEdit.IsNull() && data.RestrictEdit.ValueBool() {
 		parts = append(parts, "--restrict-edit on")
 	}
 
-	if !data.RestrictShare.IsNull() {
+	if !data.RestrictShare.IsNull() && data.RestrictShare.ValueBool() {
 		parts = append(parts, "--restrict-share on")
 	}
 
-	if !data.RestrictView.IsNull() {
+	if !data.RestrictView.IsNull() && data.RestrictView.ValueBool() {
 		parts = append(parts, "--restrict-view on")
 	}
 
