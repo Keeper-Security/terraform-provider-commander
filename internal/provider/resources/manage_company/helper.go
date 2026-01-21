@@ -47,10 +47,9 @@ func buildManageCompanyUpdateCommand(plan *ManageCompanyResourceModel, state *Ma
 	parts = append(parts, "msp-update")
 	parts = append(parts, fmt.Sprintf("'%s'", state.Id.ValueString()))
 
-	// TODO: CHECK IN COMMANDER FOR UPDATING NAME - syntax
-	// if !state.Name.Equal(plan.Name) {
-	// 	parts = append(parts, fmt.Sprintf("--name '%s'", plan.Name.ValueString()))
-	// }
+	if !state.Name.Equal(plan.Name) {
+		parts = append(parts, fmt.Sprintf("--name '%s'", plan.Name.ValueString()))
+	}
 
 	// Required fields - no null check needed (validation ensures they exist)
 	if !state.Node.Equal(plan.Node) {
@@ -166,8 +165,8 @@ func buildManageCompanyUpdateCommand(plan *ManageCompanyResourceModel, state *Ma
 	return strings.Join(parts, " ")
 }
 
-// normalizeAddOns normalizes add-ons by adding :1 if missing for add-ons that support it
-func normalizeAddOns(addOns types.List) []string {
+// normalizeAddOns extracts add-ons from the Set (no normalization needed - validation ensures correct format)
+func normalizeAddOns(addOns types.Set) []string {
 	if addOns.IsNull() || addOns.IsUnknown() {
 		return nil
 	}
@@ -178,13 +177,18 @@ func normalizeAddOns(addOns types.List) []string {
 	for _, elem := range elements {
 		if strValue, ok := elem.(types.String); ok {
 			value := strValue.ValueString()
-			// Add :1 if missing for add-ons that support it
-			if addOnsWithNumber[value] && !strings.Contains(value, ":") {
-				value = value + ":1"
-			}
 			result = append(result, value)
 		}
 	}
 
 	return result
+}
+
+// Function to extract the node name from the input string like "Metronlabs\\Aditya Dev Inc" -> "Aditya Dev Inc"
+// msp-info retuns node_name as "Metronlabs\\Aditya Dev Inc" if present in child node or node_name as "Metronlabs" if present in root node
+func extractNodeName(input string) string {
+	if idx := strings.LastIndex(input, `\`); idx != -1 {
+		return input[idx+1:]
+	}
+	return input
 }

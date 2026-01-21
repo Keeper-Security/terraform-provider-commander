@@ -1,9 +1,13 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package enterprisenode
 
 import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"strconv"
 
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/api"
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/utils"
@@ -122,12 +126,20 @@ func (r *EnterpriseNodeResource) Create(ctx context.Context, req resource.Create
 		// Build the Commander command string
 		command := buildEnterpriseNodeAddCommand(data)
 
-		_, err := r.apiManager.ExecuteCommand(ctx, command, "Unable to create enterprise node")
+		createNodeResponse, err := r.apiManager.ExecuteCommand(ctx, command, "Unable to create enterprise node")
 		if err != nil {
 			return fmt.Errorf("create enterprise node failed: %w", err)
 		}
 
-		data.Id = types.StringValue(data.Name.ValueString())
+		nodeID, ok := utils.ExtractNodeIDFromCreateNodeResponse(string(createNodeResponse.Message))
+
+		idValue := data.Name.ValueString()
+
+		if ok {
+			idValue = nodeID
+		}
+
+		data.Id = types.StringValue(idValue)
 
 		// Set the ID in the state
 		resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
@@ -163,10 +175,6 @@ func (r *EnterpriseNodeResource) Read(ctx context.Context, req resource.ReadRequ
 	// Execute msp-down command (setup/initialization)
 	r.apiManager.ExecuteCommand(ctx, "msp-down", "Unable to msp down latest changes")
 
-	// /*
-	// 	TODO: We will pass the company id to the command to get the company info when that is implemente in commander cli
-	// */
-
 	// Execute with managed company context if provided
 	err := utils.ExecuteWithManagedCompanyContext(ctx, r.apiManager, state.ManagedCompany, func() error {
 		// Build the Commander command string
@@ -179,9 +187,10 @@ func (r *EnterpriseNodeResource) Read(ctx context.Context, req resource.ReadRequ
 
 		// Parse the JSON response - it's an array of node objects
 		var nodes []struct {
-			NodeId     int    `json:"node_id"`
-			Name       string `json:"name"`
-			ParentNode string `json:"parent_node"`
+			NodeId         int    `json:"node_id"`
+			Name           string `json:"name"`
+			ParentNodeName string `json:"parent_node"`
+			ParentNodeId   int    `json:"parent_id"`
 		}
 
 		// Convert apiResp.Data to JSON bytes and unmarshal
@@ -196,17 +205,15 @@ func (r *EnterpriseNodeResource) Read(ctx context.Context, req resource.ReadRequ
 
 		// Find the node matching state.Id (which is the node name)
 		var nodeInfo *struct {
-			NodeId     int    `json:"node_id"`
-			Name       string `json:"name"`
-			ParentNode string `json:"parent_node"`
+			NodeId         int    `json:"node_id"`
+			Name           string `json:"name"`
+			ParentNodeName string `json:"parent_node"`
+			ParentNodeId   int    `json:"parent_id"`
 		}
 
-		// CURRENT BLOCKER: CURRENTLY WE ARE STORING NAME IN state.Id while creating the node and commader not returning created node id, BUT NEED TO CHANGE TO NODE ID
-		// bec. node name can be changed outside of terraform. And we need to use node id to update the state
-
-		stateName := state.Id.ValueString()
+		stateId := state.Id.ValueString()
 		for i := range nodes {
-			if nodes[i].Name == stateName {
+			if strconv.Itoa(nodes[i].NodeId) == stateId {
 				nodeInfo = &nodes[i]
 				break
 			}
@@ -219,15 +226,12 @@ func (r *EnterpriseNodeResource) Read(ctx context.Context, req resource.ReadRequ
 		}
 
 		// Map the response to the state
-		state.Id = types.StringValue(nodeInfo.Name)
+		state.Id = types.StringValue(strconv.Itoa(nodeInfo.NodeId))
 		state.Name = types.StringValue(nodeInfo.Name)
 
-		// // Set parent if it exists in the response
-		// if nodeInfo.ParentNode != "" {
-		// 	state.Parent = types.StringValue(nodeInfo.ParentNode)
-		// } else {
-		// 	state.Parent = types.StringNull()
-		// }
+		// TODO: here we need to check with client if we need to set the parent node name or id bec previous state value is cant be accessed so we will not know if parent id is selecetd or name
+		// Set parent if it exists in the response
+		state.Parent = types.StringValue(nodeInfo.ParentNodeName)
 
 		// Set the updated state
 		resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)

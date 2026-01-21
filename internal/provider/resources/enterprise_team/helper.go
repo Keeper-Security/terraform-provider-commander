@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package enterpriseteam
 
 import (
@@ -8,6 +11,7 @@ import (
 	"strings"
 
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/api"
+	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/utils"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
@@ -740,6 +744,10 @@ func convertNodeToName(ctx context.Context, apiManager *api.ApiManager, nodeFrom
 	for _, node := range nodes {
 		if node.NodeId == nodeIdInt {
 			if node.Name != "" {
+				nodeName, ok := utils.ExtractNodeIDFromCreateNodeResponse(node.Name)
+				if ok {
+					return types.StringValue(nodeName), nil
+				}
 				return types.StringValue(node.Name), nil
 			}
 		}
@@ -789,6 +797,8 @@ func mapTeamReadResponseToModel(ctx context.Context, apiManager *api.ApiManager,
 
 	// Node: convert to name (API always returns node name, but user may provide name or ID)
 	// Always update from API response to detect external changes
+
+	// TODO: we are not getting node in respose
 	if teamResp.Node != "" {
 		nodeName, err := convertNodeToName(ctx, apiManager, teamResp.Node)
 		if err != nil {

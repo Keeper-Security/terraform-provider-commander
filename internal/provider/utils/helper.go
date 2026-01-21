@@ -1,8 +1,12 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package utils
 
 import (
 	"context"
 	"fmt"
+	"regexp"
 
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/api"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -19,6 +23,13 @@ func SwitchToManageCompany(ctx context.Context, apiManager *api.ApiManager, mana
 func SwitchToMsp(ctx context.Context, apiManager *api.ApiManager) error {
 	command := "switch-to-msp"
 	_, err := apiManager.ExecuteCommand(ctx, command, "Unable to switch to msp")
+	return err
+}
+
+// Perform msp down
+func MspDown(ctx context.Context, apiManager *api.ApiManager) error {
+	command := "msp-down"
+	_, err := apiManager.ExecuteCommand(ctx, command, "Unable to perform msp down")
 	return err
 }
 
@@ -62,4 +73,16 @@ func ExecuteWithManagedCompanyContext(
 	// Execute the actual operation
 	err = operation()
 	return err
+}
+
+// Note: After creating a node, service mode api returns message like: "Node is created with Node ID: 1169425105420462"
+// This function extracts the node id from the response
+func ExtractNodeIDFromCreateNodeResponse(s string) (string, bool) {
+	re := regexp.MustCompile(`Node ID:\s*(\d+)`)
+	match := re.FindStringSubmatch(s)
+
+	if len(match) < 2 {
+		return "", false
+	}
+	return match[1], true
 }

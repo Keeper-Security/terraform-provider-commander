@@ -17,11 +17,11 @@ description: |-
 
 ### Optional
 
-- `id` (Number) Managed Company ID.
-- `name` (String) Managed Company Name.
+- `id` (Number) Managed Company ID of selected managed company.
+- `name` (String) Managed Company Name of selected managed company.
 
 ### Read-Only
 
-- `file_plan` (String) File storage plan.
-- `node` (String) Managing Node name or ID.
-- `plan` (String) Base plan.
+- `file_plan` (String) File storage plan of selected managed company.
+- `node` (String) Managing Node name or ID of selected managed company.
+- `plan` (String) Base plan of selected managed company.

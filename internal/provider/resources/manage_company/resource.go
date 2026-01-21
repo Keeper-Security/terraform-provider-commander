@@ -11,6 +11,7 @@ import (
 	"strings"
 
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/api"
+	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/utils"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
@@ -31,7 +32,7 @@ type ManageCompanyResourceModel struct {
 	Plan     types.String `tfsdk:"plan"`
 	Seats    types.Int64  `tfsdk:"seats"`
 	FilePlan types.String `tfsdk:"file_plan"`
-	AddOns   types.List   `tfsdk:"add_ons"`
+	AddOns   types.Set    `tfsdk:"add_ons"`
 }
 
 func (r *ManageCompanyResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
@@ -73,21 +74,21 @@ func (r *ManageCompanyResource) Schema(ctx context.Context, req resource.SchemaR
 				Validators: []validator.String{
 					planValidator{},
 				},
-				Description:         "Base plan. Must be one of: " + strings.Join(planOptions, ", "),
-				MarkdownDescription: "Base plan. Must be one of: `" + strings.Join(planOptions, "`, `") + "`",
+				Description:         "Base plan. Must be one of: " + strings.Join(PlanOptions, ", "),
+				MarkdownDescription: "Base plan. Must be one of: `" + strings.Join(PlanOptions, "`, `") + "`",
 			},
 			"file_plan": schema.StringAttribute{
 				Optional: true,
 				Validators: []validator.String{
 					filePlanValidator{},
 				},
-				Description:         "File storage plan. Must be one of: " + strings.Join(filePlanOptions, ", "),
-				MarkdownDescription: "File storage plan. Must be one of: `" + strings.Join(filePlanOptions, "`, `") + "`",
+				Description:         "File storage plan. Must be one of: " + strings.Join(FilePlanOptions, ", "),
+				MarkdownDescription: "File storage plan. Must be one of: `" + strings.Join(FilePlanOptions, "`, `") + "`",
 			},
-			"add_ons": schema.ListAttribute{
+			"add_ons": schema.SetAttribute{
 				Optional:    true,
 				ElementType: types.StringType,
-				Validators: []validator.List{
+				Validators: []validator.Set{
 					addOnsValidator{},
 				},
 				Description:         "Secure Add-Ons to apply to the Managed Company. Must be one of: " + strings.Join(GetAllValidAddOns(), ", "),
@@ -144,6 +145,8 @@ func (r *ManageCompanyResource) Create(ctx context.Context, req resource.CreateR
 	// Build the Commander command string
 	command := buildManageCompanyAddCommand(data)
 
+	err := utils.SwitchToMsp(ctx, r.apiManager)
+
 	apiResp, err := r.apiManager.ExecuteCommand(ctx, command, "Unable to create managed company")
 	if err != nil {
 		resp.Diagnostics.AddError(
@@ -177,8 +180,10 @@ func (r *ManageCompanyResource) Read(ctx context.Context, req resource.ReadReque
 		return
 	}
 
+	err := utils.SwitchToMsp(ctx, r.apiManager)
+
 	// Execute msp-down command (setup/initialization)
-	_, err := r.apiManager.ExecuteCommand(ctx, "msp-down", "Unable to initialize managed company service")
+	_, err = r.apiManager.ExecuteCommand(ctx, "msp-down", "Unable to initialize managed company service")
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Read Managed Company Failed",
@@ -187,12 +192,8 @@ func (r *ManageCompanyResource) Read(ctx context.Context, req resource.ReadReque
 		return
 	}
 
-	/*
-		TODO: We will pass the company id to the command to get the company info when that is implemente in commander cli
-	*/
-
 	// Build command to get all companies info
-	command := "msp-info --format json -v"
+	command := fmt.Sprintf("msp-info -m '%s' --format json -v", state.Id.ValueString())
 
 	apiResp, err := r.apiManager.ExecuteCommand(ctx, command, "Unable to retrieve managed company information")
 	if err != nil {
@@ -208,6 +209,7 @@ func (r *ManageCompanyResource) Read(ctx context.Context, req resource.ReadReque
 		CompanyId   int      `json:"company_id"`
 		CompanyName string   `json:"company_name"`
 		Node        string   `json:"node"`
+		NodeName    string   `json:"node_name"`
 		Plan        string   `json:"plan"`
 		Storage     string   `json:"storage"`
 		Addons      []string `json:"addons"`
@@ -247,6 +249,7 @@ func (r *ManageCompanyResource) Read(ctx context.Context, req resource.ReadReque
 		CompanyId   int      `json:"company_id"`
 		CompanyName string   `json:"company_name"`
 		Node        string   `json:"node"`
+		NodeName    string   `json:"node_name"`
 		Plan        string   `json:"plan"`
 		Storage     string   `json:"storage"`
 		Addons      []string `json:"addons"`
@@ -271,10 +274,7 @@ func (r *ManageCompanyResource) Read(ctx context.Context, req resource.ReadReque
 	state.Id = types.StringValue(strconv.Itoa(companyInfo.CompanyId))
 	state.Name = types.StringValue(companyInfo.CompanyName)
 
-	/*
-		TODO: we will update node name when we get get in response from commander cli
-	*/
-	// Node: keep existing state value (skip for now as mentioned)
+	state.Node = types.StringValue(extractNodeName(companyInfo.NodeName))
 
 	state.Plan = types.StringValue(companyInfo.Plan)
 	state.Seats = types.Int64Value(int64(companyInfo.Allocated))
@@ -283,75 +283,17 @@ func (r *ManageCompanyResource) Read(ctx context.Context, req resource.ReadReque
 	storageLower := strings.ToLower(companyInfo.Storage)
 	state.FilePlan = types.StringValue(storageLower)
 
-	/*
-		TODO: we will update add-ons list when we get get in response from commander cli, we dont need below complete logic
-	*/
-	// Process addons: preserve number suffix from state and maintain state order
-	// Step 1: Create a map of state add-ons with their base names (without number suffix)
-	stateAddOnsMap := make(map[string]string) // base name -> full name with suffix
-	stateAddOnsOrder := make([]string, 0)     // preserve order of state add-ons
-	if !state.AddOns.IsNull() && !state.AddOns.IsUnknown() {
-		for _, elem := range state.AddOns.Elements() {
-			if strValue, ok := elem.(types.String); ok {
-				addonValue := strValue.ValueString()
-				// Extract base name (remove :N suffix if present)
-				baseName := addonValue
-				if matches := addOnWithNumberRegex.FindStringSubmatch(addonValue); matches != nil {
-					baseName = matches[1]
-				}
-				stateAddOnsMap[baseName] = addonValue
-				stateAddOnsOrder = append(stateAddOnsOrder, baseName)
-			}
-		}
-	}
-
-	// Step 2: Create a map of API add-ons (base name -> processed value with suffix)
-	apiAddOnsMap := make(map[string]string) // base name -> processed value
-	for _, addon := range companyInfo.Addons {
-		// Check if we have this add-on in state with a number suffix
-		if stateValue, exists := stateAddOnsMap[addon]; exists {
-			// Use the value from state (preserves the number suffix like :100)
-			apiAddOnsMap[addon] = stateValue
-		} else if addOnsWithNumber[addon] && !strings.Contains(addon, ":") {
-			// If add-on supports numbers and doesn't have a suffix, add ":1"
-			apiAddOnsMap[addon] = addon + ":1"
-		} else {
-			// Use as-is
-			apiAddOnsMap[addon] = addon
-		}
-	}
-
-	// Step 3: Build processed addons list maintaining state order, then append new ones
-	processedAddons := make([]string, 0)
-	processedSet := make(map[string]bool) // track which add-ons we've added
-
-	// First, add add-ons from state in state order (if they exist in API)
-	for _, baseName := range stateAddOnsOrder {
-		if processedValue, exists := apiAddOnsMap[baseName]; exists {
-			processedAddons = append(processedAddons, processedValue)
-			processedSet[baseName] = true
-		}
-		// If not in API, skip it (add-on was removed)
-	}
-
-	// Then, append any new add-ons from API that weren't in state
-	for _, addon := range companyInfo.Addons {
-		if !processedSet[addon] {
-			processedAddons = append(processedAddons, apiAddOnsMap[addon])
-		}
-	}
-
-	// Convert addons slice to types.List
-	addOnsElements := make([]types.String, len(processedAddons))
-	for i, addon := range processedAddons {
+	// Convert addons array of strings to types.Set
+	addOnsElements := make([]types.String, len(companyInfo.Addons))
+	for i, addon := range companyInfo.Addons {
 		addOnsElements[i] = types.StringValue(addon)
 	}
-	addOnsList, diags := types.ListValueFrom(ctx, types.StringType, addOnsElements)
+	addOnsSet, diags := types.SetValueFrom(ctx, types.StringType, addOnsElements)
 	if diags.HasError() {
 		resp.Diagnostics.Append(diags...)
 		return
 	}
-	state.AddOns = addOnsList
+	state.AddOns = addOnsSet
 
 	// Set the updated state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
@@ -383,7 +325,9 @@ func (r *ManageCompanyResource) Update(ctx context.Context, req resource.UpdateR
 
 	command := buildManageCompanyUpdateCommand(&plan, &state)
 
-	_, err := r.apiManager.ExecuteCommand(ctx, command, "Unable to update managed company")
+	err := utils.SwitchToMsp(ctx, r.apiManager)
+
+	_, err = r.apiManager.ExecuteCommand(ctx, command, "Unable to update managed company")
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Update Managed Company Failed",
@@ -418,7 +362,9 @@ func (r *ManageCompanyResource) Delete(ctx context.Context, req resource.DeleteR
 	// Build delete command
 	command := fmt.Sprintf("msp-remove '%s' -f", state.Id.ValueString())
 
-	_, err := r.apiManager.ExecuteCommand(ctx, command, "Unable to delete managed company")
+	err := utils.SwitchToMsp(ctx, r.apiManager)
+
+	_, err = r.apiManager.ExecuteCommand(ctx, command, "Unable to delete managed company")
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Delete Managed Company Failed",
