@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package enterprisenode
 
 import (
@@ -48,7 +51,6 @@ func buildEnterpriseNodeUpdateCommand(plan *EnterpriseNodeResourceModel, state *
 
 	parts = append(parts, "enterprise-node")
 
-	// TODO: CURRENTLY NOT WORKING IN COMMANDER CLI
 	if !state.Name.Equal(plan.Name) {
 		parts = append(parts, fmt.Sprintf("--name '%s'", plan.Name.ValueString()))
 	}

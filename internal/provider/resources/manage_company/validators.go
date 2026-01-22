@@ -68,21 +68,15 @@ func (v nodeValidator) ValidateString(ctx context.Context, req validator.StringR
 // ----- PLAN VALIDATOR --------------------------------
 type planValidator struct{}
 
-const (
-	PlanBusiness       = "business"
-	PlanBusinessPlus   = "businessPlus"
-	PlanEnterprise     = "enterprise"
-	PlanEnterprisePlus = "enterprisePlus"
-)
-
-var planOptions = []string{PlanBusiness, PlanBusinessPlus, PlanEnterprise, PlanEnterprisePlus}
+// PlanOptions contains all valid plan options
+var PlanOptions = []string{PlanBusiness, PlanBusinessPlus, PlanEnterprise, PlanEnterprisePlus}
 
 func (v planValidator) Description(ctx context.Context) string {
-	return "Must be one of: " + strings.Join(planOptions, ", ")
+	return "Must be one of: " + strings.Join(PlanOptions, ", ")
 }
 
 func (v planValidator) MarkdownDescription(ctx context.Context) string {
-	return "Must be one of: `" + strings.Join(planOptions, "`, `") + "`"
+	return "Must be one of: `" + strings.Join(PlanOptions, "`, `") + "`"
 }
 
 func (v planValidator) ValidateString(ctx context.Context, req validator.StringRequest, resp *validator.StringResponse) {
@@ -95,7 +89,7 @@ func (v planValidator) ValidateString(ctx context.Context, req validator.StringR
 	if value != PlanBusiness && value != PlanBusinessPlus && value != PlanEnterprise && value != PlanEnterprisePlus {
 		resp.Diagnostics.AddError(
 			"Invalid Plan Value",
-			fmt.Sprintf("Must be one of: `%s`. Got: %s", strings.Join(planOptions, "`, `"), value),
+			fmt.Sprintf("Must be one of: `%s`. Got: %s", strings.Join(PlanOptions, "`, `"), value),
 		)
 	}
 }
@@ -129,13 +123,6 @@ func (v seatsValidator) ValidateInt64(ctx context.Context, req validator.Int64Re
 // ----- FILE PLAN VALIDATOR --------------------------------
 type filePlanValidator struct{}
 
-const (
-	FilePlan100GB = "100gb"
-	FilePlan1TB   = "1tb"
-	FilePlan10TB  = "10tb"
-)
-
-// TODO: HERE WE NEED TO ADD PLAN BASED FILE PLAN OPTIONS BEC. DIFFERENT PLANS HAVE DIFFERENT FILE PLAN OPTIONS
 /*
 1. business plan - 100gb, 1tb, 10tb
 2. businessPlus plan - 1tb, 10tb
@@ -143,15 +130,18 @@ const (
 4. enterprisePlus plan - 1tb, 10tb
 */
 
-var filePlanOptions = []string{FilePlan100GB, FilePlan1TB, FilePlan10TB}
-var filePlanPlusOptions = []string{FilePlan1TB, FilePlan10TB}
+// FilePlanOptions contains all valid file plan options
+var FilePlanOptions = []string{FilePlan100GB, FilePlan1TB, FilePlan10TB}
+
+// FilePlanPlusOptions contains file plan options for plus plans (businessPlus, enterprisePlus)
+var FilePlanPlusOptions = []string{FilePlan1TB, FilePlan10TB}
 
 func (v filePlanValidator) Description(ctx context.Context) string {
-	return "Must be one of: " + strings.Join(filePlanOptions, ", ")
+	return "Must be one of: " + strings.Join(FilePlanOptions, ", ")
 }
 
 func (v filePlanValidator) MarkdownDescription(ctx context.Context) string {
-	return "Must be one of: `" + strings.Join(filePlanOptions, "`, `") + "`"
+	return "Must be one of: `" + strings.Join(FilePlanOptions, "`, `") + "`"
 }
 
 func (v filePlanValidator) ValidateString(ctx context.Context, req validator.StringRequest, resp *validator.StringResponse) {
@@ -178,12 +168,12 @@ func (v filePlanValidator) ValidateString(ctx context.Context, req validator.Str
 
 	// Plus plans (businessPlus, enterprisePlus) only allow 1tb and 10tb
 	if plan == PlanBusinessPlus || plan == PlanEnterprisePlus {
-		validOptions = filePlanPlusOptions
-		validOptionsStr = strings.Join(filePlanPlusOptions, "`, `")
+		validOptions = FilePlanPlusOptions
+		validOptionsStr = strings.Join(FilePlanPlusOptions, "`, `")
 	} else {
 		// Non-plus plans (business, enterprise) allow 100gb, 1tb, and 10tb
-		validOptions = filePlanOptions
-		validOptionsStr = strings.Join(filePlanOptions, "`, `")
+		validOptions = FilePlanOptions
+		validOptionsStr = strings.Join(FilePlanOptions, "`, `")
 	}
 
 	// Validate the value against the appropriate options
@@ -207,83 +197,73 @@ func (v filePlanValidator) ValidateString(ctx context.Context, req validator.Str
 type addOnsValidator struct{}
 
 var (
-	// Base add-ons (no number suffix)
-
-	// TODO: Need to update validation for keeper_endpoint_privilege_manager to validate number that is supported in admin console - this validation also needs to be done in commander cli
-	/*
-		Note:
-		consumer_breach_watch - when we use this add-on we get error from commander cli
-		professional_services_silver_add_on - when we use this add-on it don't make any changes to the company.
-		gold_professional_services_add_on - when we use this add-on it don't make any changes to the company.
-		platinum_professional_services_add_on - when we use this add-on it don't make any changes to the company.
-
-	*/
-	baseAddOns = map[string]bool{
-		"chat":                           true,
-		"enterprise_audit_and_reporting": true,
-		// "professional_services_silver_add_on":   true,
-		// "gold_professional_services_add_on":     true,
-		// "platinum_professional_services_add_on": true,
-		"msp_service_and_support": true,
-		// "consumer_breach_watch":    true,
-		"enterprise_breach_watch":  true,
-		"compliance_report":        true,
-		"secrets_manager":          true,
-		"password_rotation":        true,
-		"remote_browser_isolation": true,
-	}
-
-	// Add-ons that can have :N suffix
-	addOnsWithNumber = map[string]bool{
-		"connection_manager":                true,
-		"privileged_access_manager":         true,
-		"keeper_endpoint_privilege_manager": true,
-	}
-
 	// Regex to match add-on with number: "connection_manager:5"
 	addOnWithNumberRegex = regexp.MustCompile(`^([a-z_]+):(\d+)$`)
 )
 
-/*
-COMMANDER ADD-ONS TO KEEPER ADMIN CONSOLE NAMING MAPPING ---> FOR REFERENCE ONLY
+// Base add-ons (no number suffix)
+//
+// Note: these add-ons are not working in commander cli
+// consumer_breach_watch - when we use this add-on we get error from commander cli
+// professional_services_silver_add_on - when we use this add-on it don't make any changes to the company.
+// gold_professional_services_add_on - when we use this add-on it don't make any changes to the company.
+// platinum_professional_services_add_on - when we use this add-on it don't make any changes to the company.
+var BaseAddOns = map[string]bool{
+	AddOnChat:                        true,
+	AddOnEnterpriseAuditAndReporting: true,
+	// "professional_services_silver_add_on":   true,
+	// "gold_professional_services_add_on":     true,
+	// "platinum_professional_services_add_on": true,
+	AddOnMspServiceAndSupport: true,
+	// "consumer_breach_watch":    true,
+	AddOnEnterpriseBreachWatch:  true,
+	AddOnComplianceReport:       true,
+	AddOnSecretsManager:         true,
+	AddOnPasswordRotation:       true,
+	AddOnRemoteBrowserIsolation: true,
+}
 
-keeper_endpoint_privilege_manager -> Endpoint Manager
-
-enterprise_breach_watch -> Breach Watch
-compliance_report -> Compliance Reporting
-enterprise_audit_and_reporting -> Advanced Reporting & Alerts Module
-msp_service_and_support -> Dedicated Service & Support
-privileged_access_manager -> Privileged Access Manager
-secrets_manager -> Keeper Secrets Manager (KSM)
-connection_manager -> Keeper Connection Manager (On-Prem)
-remote_browser_isolation -> Remote Browser Isolation
-chat -> KeeperChat
-
-*/
+// AddOnsWithNumber are add-ons that can have :N suffix
+var AddOnsWithNumber = map[string]bool{
+	AddOnConnectionManager:              true,
+	AddOnPrivilegedAccessManager:        true,
+	AddOnKeeperEndpointPrivilegeManager: true,
+}
 
 func (v addOnsValidator) Description(ctx context.Context) string {
-	return "Each add-on must be a valid add-on name. Add-ons with :N suffix can include a number (defaults to 1 if omitted)."
+	return "Each add-on must be a valid add-on name. Add-ons that support numbers must include the :N suffix (e.g., connection_manager:3)."
 }
 
 func (v addOnsValidator) MarkdownDescription(ctx context.Context) string {
-	return "Each add-on must be a valid add-on name. Add-ons with `:N` suffix can include a number (defaults to 1 if omitted)."
+	return "Each add-on must be a valid add-on name. Add-ons that support numbers must include the `:N` suffix (e.g., `connection_manager:3`)."
 }
 
-func (v addOnsValidator) ValidateList(ctx context.Context, req validator.ListRequest, resp *validator.ListResponse) {
+func (v addOnsValidator) ValidateSet(ctx context.Context, req validator.SetRequest, resp *validator.SetResponse) {
 	// Skip validation if the value is null or unknown (optional field)
 	if req.ConfigValue.IsNull() || req.ConfigValue.IsUnknown() {
 		return
 	}
 
 	elements := req.ConfigValue.Elements()
-	for idx, elem := range elements {
-		elemPath := req.Path.AtListIndex(idx)
 
+	// Track addons with numbers for cross-validation
+	var privilegedAccessManagerNum *int
+	var connectionManagerNum *int
+
+	// Track required addons for privileged_access_manager dependency validation
+	hasPrivilegedAccessManager := false
+	hasSecretsManager := false
+	hasConnectionManager := false
+	hasRemoteBrowserIsolation := false
+
+	// validate individual addons and track presence
+	for _, elem := range elements {
 		// Get the string value
 		strValue, ok := elem.(types.String)
 		if !ok {
+			// This shouldn't happen if ElementType is correct, but handle it anyway
 			resp.Diagnostics.AddAttributeError(
-				elemPath,
+				req.Path,
 				"Invalid Secure Add-On Type",
 				fmt.Sprintf("Expected string, got: %T", elem),
 			)
@@ -292,8 +272,16 @@ func (v addOnsValidator) ValidateList(ctx context.Context, req validator.ListReq
 
 		value := strValue.ValueString()
 
+		// Track presence of specific addons for dependency validation
+		switch value {
+		case AddOnSecretsManager:
+			hasSecretsManager = true
+		case AddOnRemoteBrowserIsolation:
+			hasRemoteBrowserIsolation = true
+		}
+
 		// Check if it's a base add-on
-		if baseAddOns[value] {
+		if BaseAddOns[value] {
 			continue // Valid
 		}
 
@@ -303,9 +291,9 @@ func (v addOnsValidator) ValidateList(ctx context.Context, req validator.ListReq
 			numberStr := matches[2]
 
 			// Validate the add-on name
-			if !addOnsWithNumber[addOnName] {
+			if !AddOnsWithNumber[addOnName] {
 				resp.Diagnostics.AddAttributeError(
-					elemPath,
+					req.Path,
 					"Invalid Secure Add-On",
 					fmt.Sprintf("Secure Add-On '%s' does not support number suffix. Got: %s", addOnName, value),
 				)
@@ -316,36 +304,86 @@ func (v addOnsValidator) ValidateList(ctx context.Context, req validator.ListReq
 			number, err := strconv.Atoi(numberStr)
 			if err != nil || number < 1 {
 				resp.Diagnostics.AddAttributeError(
-					elemPath,
+					req.Path,
 					"Invalid Secure Add-On Number",
 					fmt.Sprintf("Number suffix must be a positive integer. Got: %s", value),
 				)
 				continue
 			}
 
+			// Track numbers for privileged_access_manager and connection_manager
+			switch addOnName {
+			case AddOnPrivilegedAccessManager:
+				privilegedAccessManagerNum = &number
+				hasPrivilegedAccessManager = true
+			case AddOnConnectionManager:
+				connectionManagerNum = &number
+				hasConnectionManager = true
+			}
+
 			continue // Valid
 		}
 
-		// Check if it's an add-on with number that's missing the suffix (e.g., "connection_manager")
-		// This is valid - will default to :1 in Create/Update
-		if addOnsWithNumber[value] {
-			continue // Valid - will be normalized to :1 later
+		// Check if it's an add-on that requires number suffix but doesn't have it
+		if AddOnsWithNumber[value] {
+			resp.Diagnostics.AddAttributeError(
+				req.Path,
+				"Missing Number Suffix",
+				fmt.Sprintf("Secure Add-On '%s' requires a number suffix in the format '%s:N' where N is a positive integer (e.g., '%s:3').", value, value, value),
+			)
+			continue
 		}
 
 		// Invalid add-on
 		validOptions := []string{}
-		for k := range baseAddOns {
+		for k := range BaseAddOns {
 			validOptions = append(validOptions, k)
 		}
-		for k := range addOnsWithNumber {
-			validOptions = append(validOptions, k, k+":N")
+		for k := range AddOnsWithNumber {
+			validOptions = append(validOptions, k+":N")
 		}
 
 		resp.Diagnostics.AddAttributeError(
-			elemPath,
+			req.Path,
 			"Invalid Secure Add-On",
 			fmt.Sprintf("Invalid Secure Add-On '%s'. Must be one of: %s", value, strings.Join(validOptions, ", ")),
 		)
+	}
+
+	// validate that privileged_access_manager and connection_manager have matching N values
+	if privilegedAccessManagerNum != nil && connectionManagerNum != nil {
+		if *privilegedAccessManagerNum != *connectionManagerNum {
+			resp.Diagnostics.AddAttributeError(
+				req.Path,
+				"Mismatched Add-On Numbers",
+				fmt.Sprintf("When both '%s' and '%s' are provided, their number suffixes must match. Got %s:%d and %s:%d", AddOnPrivilegedAccessManager, AddOnConnectionManager, AddOnPrivilegedAccessManager, *privilegedAccessManagerNum, AddOnConnectionManager, *connectionManagerNum),
+			)
+		}
+	}
+
+	// validate that if privileged_access_manager is present, required addons must also be present
+	if hasPrivilegedAccessManager {
+		var missingAddons []string
+
+		if !hasSecretsManager {
+			missingAddons = append(missingAddons, AddOnSecretsManager)
+		}
+
+		if !hasConnectionManager {
+			missingAddons = append(missingAddons, AddOnConnectionManager+":N (with matching N value)")
+		}
+
+		if !hasRemoteBrowserIsolation {
+			missingAddons = append(missingAddons, AddOnRemoteBrowserIsolation)
+		}
+
+		if len(missingAddons) > 0 {
+			resp.Diagnostics.AddAttributeError(
+				req.Path,
+				"Missing Required Add-Ons",
+				fmt.Sprintf("When '%s' is provided, the following add-ons are required: %s", AddOnPrivilegedAccessManager, strings.Join(missingAddons, ", ")),
+			)
+		}
 	}
 }
 
@@ -355,13 +393,13 @@ func GetAllValidAddOns() []string {
 	validOptions := []string{}
 
 	// Add base add-ons
-	for k := range baseAddOns {
+	for k := range BaseAddOns {
 		validOptions = append(validOptions, k)
 	}
 
-	// Add add-ons with number support (show both with and without :N format)
-	for k := range addOnsWithNumber {
-		validOptions = append(validOptions, k, k+":N")
+	// Add add-ons with number support (must include :N format)
+	for k := range AddOnsWithNumber {
+		validOptions = append(validOptions, k+":N")
 	}
 
 	return validOptions
