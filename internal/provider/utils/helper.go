@@ -163,3 +163,75 @@ func UnmarshalApiResponse(data interface{}, target interface{}) error {
 
 	return nil
 }
+
+// LookupMaps holds the mappings between identifiers (name/email) and IDs
+type LookupMaps struct {
+	IdentifierToId map[string]string // identifier (name/email) -> id
+	IdToIdentifier map[string]string // id -> identifier (name/email)
+}
+
+// ConvertItemsToIdMap is a generic function that converts a types.Set to a map of id -> original input
+// It works for roles, users, and teams by accepting lookup maps and validation functions
+func ConvertItemsToIdMap(
+	items types.Set,
+	lookup LookupMaps,
+	itemType string, // "role", "user", or "team"
+	validateItem func(string) (bool, string), // returns (isValid, errorMessage)
+) (map[string]string, error) {
+	result := make(map[string]string)
+
+	if items.IsNull() || items.IsUnknown() {
+		return result, nil
+	}
+
+	elements := items.Elements()
+	if len(elements) == 0 {
+		return result, nil
+	}
+
+	seenIds := make(map[string]string) // id -> original input
+
+	for _, itemElem := range elements {
+		itemStr := itemElem.(types.String)
+		userInput := itemStr.ValueString()
+
+		if userInput == "" {
+			continue
+		}
+
+		var itemId string
+		var itemIdentifier string
+
+		// Check if input is an id
+		if existingIdentifier, isId := lookup.IdToIdentifier[userInput]; isId {
+			itemId = userInput
+			itemIdentifier = existingIdentifier
+		} else if id, isIdentifier := lookup.IdentifierToId[userInput]; isIdentifier {
+			// Input is an identifier (name/email), convert to id
+			itemId = id
+			itemIdentifier = userInput
+		} else {
+			// Validate if item exists but has invalid id
+			isValid, errMsg := validateItem(userInput)
+			if !isValid {
+				return nil, fmt.Errorf("%s", errMsg)
+			}
+			return nil, fmt.Errorf("%s '%s' not found. Please provide a valid %s identifier or %s Id", itemType, userInput, itemType, itemType)
+		}
+
+		if itemId == "" {
+			return nil, fmt.Errorf("%s '%s' resulted in an empty %s_id. This should not happen - please report this issue", itemType, userInput, itemType)
+		}
+
+		// Check for duplicates
+		if originalInput, exists := seenIds[itemId]; exists {
+			return nil, fmt.Errorf("duplicate %s detected: '%s' and '%s' both map to the same %s Id '%s' (%s identifier: '%s')",
+				itemType, originalInput, userInput, itemType, itemId, itemType, itemIdentifier)
+		}
+
+		seenIds[itemId] = userInput
+		result[itemId] = userInput
+	}
+
+	return result, nil
+}

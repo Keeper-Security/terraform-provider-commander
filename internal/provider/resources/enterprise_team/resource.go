@@ -155,12 +155,12 @@ func (r *EnterpriseTeamResource) Create(ctx context.Context, req resource.Create
 	err := utils.ExecuteWithManagedCompanyContext(ctx, r.apiManager, data.ManagedCompany, func() error {
 
 		// For create, stateUsers and stateRoles are null/empty, only planUsers and planRoles have items to add
-		users, err := fetchAndProcessUsers(ctx, r.apiManager, types.SetNull(types.StringType), data.Users)
+		users, err := utils.FetchAndProcessUsers(ctx, r.apiManager, types.SetNull(types.StringType), data.Users)
 		if err != nil {
 			return err
 		}
 
-		roles, err := fetchAndProcessRoles(ctx, r.apiManager, types.SetNull(types.StringType), data.Roles)
+		roles, err := utils.FetchAndProcessRoles(ctx, r.apiManager, types.SetNull(types.StringType), data.Roles)
 		if err != nil {
 			return err
 		}

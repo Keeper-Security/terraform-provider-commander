@@ -31,26 +31,9 @@ type EnterpriseTeamReadResponse struct {
 	Roles     []string `json:"roles"`
 }
 
-type RoleInfo struct {
-	RoleId int    `json:"role_id"`
-	Name   string `json:"name"`
-}
-
-type UserInfo struct {
-	UserId int    `json:"user_id"`
-	Email  string `json:"email"`
-	Status string `json:"status"`
-}
-
 type NodeInfo struct {
 	NodeId int    `json:"node_id"`
 	Name   string `json:"name"`
-}
-
-// lookupMaps holds the mappings between identifiers (name/email) and IDs
-type lookupMaps struct {
-	identifierToId map[string]string // identifier (name/email) -> id
-	idToIdentifier map[string]string // id -> identifier (name/email)
 }
 
 // parseTeamsResponse parses the JSON response from enterprise-info -t command
@@ -94,36 +77,6 @@ func fetchTeamUidByName(ctx context.Context, apiManager *api.ApiManager, teamNam
 	return findTeamUidByName(teams, teamName)
 }
 
-func parseRolesResponse(data interface{}) ([]RoleInfo, error) {
-	var roles []RoleInfo
-
-	dataBytes, err := json.Marshal(data)
-	if err != nil {
-		return nil, fmt.Errorf("unable to process the response from Keeper Commander Service Mode API: %w", err)
-	}
-
-	if err := json.Unmarshal(dataBytes, &roles); err != nil {
-		return nil, fmt.Errorf("unable to parse enterprise roles list from Service Mode API response: %w", err)
-	}
-
-	return roles, nil
-}
-
-func parseUsersResponse(data interface{}) ([]UserInfo, error) {
-	var users []UserInfo
-
-	dataBytes, err := json.Marshal(data)
-	if err != nil {
-		return nil, fmt.Errorf("unable to process the response from Keeper Commander Service Mode API: %w", err)
-	}
-
-	if err := json.Unmarshal(dataBytes, &users); err != nil {
-		return nil, fmt.Errorf("unable to parse enterprise users list from Service Mode API response: %w", err)
-	}
-
-	return users, nil
-}
-
 func parseNodesResponse(data interface{}) ([]NodeInfo, error) {
 	var nodes []NodeInfo
 
@@ -137,288 +90,6 @@ func parseNodesResponse(data interface{}) ([]NodeInfo, error) {
 	}
 
 	return nodes, nil
-}
-
-// buildRoleLookupMaps creates lookup maps from API response
-func buildRoleLookupMaps(rolesRespData []RoleInfo) lookupMaps {
-	identifierToId := make(map[string]string)
-	idToIdentifier := make(map[string]string)
-
-	for _, role := range rolesRespData {
-		if role.RoleId > 0 && role.Name != "" {
-			roleIdStr := strconv.Itoa(role.RoleId)
-			identifierToId[role.Name] = roleIdStr
-			idToIdentifier[roleIdStr] = role.Name
-		}
-	}
-
-	return lookupMaps{
-		identifierToId: identifierToId,
-		idToIdentifier: idToIdentifier,
-	}
-}
-
-// buildUserLookupMaps creates lookup maps from API response
-func buildUserLookupMaps(usersRespData []UserInfo) lookupMaps {
-	identifierToId := make(map[string]string)
-	idToIdentifier := make(map[string]string)
-
-	for _, user := range usersRespData {
-		if user.UserId > 0 && user.Email != "" {
-			userIdStr := strconv.Itoa(user.UserId)
-			identifierToId[user.Email] = userIdStr
-			idToIdentifier[userIdStr] = user.Email
-		}
-	}
-
-	return lookupMaps{
-		identifierToId: identifierToId,
-		idToIdentifier: idToIdentifier,
-	}
-}
-
-// convertItemsToIdMap is a generic function that converts a types.Set to a map of id -> original input
-// It works for both roles and users by accepting lookup maps and validation functions
-func convertItemsToIdMap(
-	items types.Set,
-	lookup lookupMaps,
-	itemType string, // "role" or "user"
-	validateItem func(string) (bool, string), // returns (isValid, errorMessage)
-) (map[string]string, error) {
-	result := make(map[string]string)
-
-	if items.IsNull() || items.IsUnknown() {
-		return result, nil
-	}
-
-	elements := items.Elements()
-	if len(elements) == 0 {
-		return result, nil
-	}
-
-	seenIds := make(map[string]string) // id -> original input
-
-	for _, itemElem := range elements {
-		itemStr := itemElem.(types.String)
-		userInput := itemStr.ValueString()
-
-		if userInput == "" {
-			continue
-		}
-
-		var itemId string
-		var itemIdentifier string
-
-		// Check if input is an id
-		if existingIdentifier, isId := lookup.idToIdentifier[userInput]; isId {
-			itemId = userInput
-			itemIdentifier = existingIdentifier
-		} else if id, isIdentifier := lookup.identifierToId[userInput]; isIdentifier {
-			// Input is an identifier (name/email), convert to id
-			itemId = id
-			itemIdentifier = userInput
-		} else {
-			// Validate if item exists but has invalid id
-			isValid, errMsg := validateItem(userInput)
-			if !isValid {
-				return nil, fmt.Errorf("%s", errMsg)
-			}
-			return nil, fmt.Errorf("%s '%s' not found. Please provide a valid %s identifier or %s Id", itemType, userInput, itemType, itemType)
-		}
-
-		if itemId == "" {
-			return nil, fmt.Errorf("%s '%s' resulted in an empty %s_id. This should not happen - please report this issue", itemType, userInput, itemType)
-		}
-
-		// Check for duplicates
-		if originalInput, exists := seenIds[itemId]; exists {
-			return nil, fmt.Errorf("duplicate %s detected: '%s' and '%s' both map to the same %s Id '%s' (%s identifier: '%s')",
-				itemType, originalInput, userInput, itemType, itemId, itemType, itemIdentifier)
-		}
-
-		seenIds[itemId] = userInput
-		result[itemId] = userInput
-	}
-
-	return result, nil
-}
-
-// convertRolesToIdMap converts a types.Set of roles to a map of role_id -> original input
-func convertRolesToIdMap(roles types.Set, lookup lookupMaps, rolesRespData []RoleInfo) (map[string]string, error) {
-	validateRole := func(userInput string) (bool, string) {
-		for _, role := range rolesRespData {
-			if role.Name == userInput && role.RoleId <= 0 {
-				return false, "role '" + userInput + "' exists but has no valid role_id. This role cannot be used"
-			}
-		}
-		return true, ""
-	}
-
-	return convertItemsToIdMap(roles, lookup, "role", validateRole)
-}
-
-// convertUsersToIdMap converts a types.Set of users to a map of user_id -> original input
-func convertUsersToIdMap(users types.Set, lookup lookupMaps, usersRespData []UserInfo) (map[string]string, error) {
-	validateUser := func(userInput string) (bool, string) {
-		for _, user := range usersRespData {
-			if user.Email == userInput && user.UserId <= 0 {
-				return false, "user '" + userInput + "' exists but has no valid user_id. This user cannot be used"
-			}
-		}
-		return true, ""
-	}
-
-	return convertItemsToIdMap(users, lookup, "user", validateUser)
-}
-
-// fetchAndProcessRoles processes roles for both create and update operations
-// For create: stateRoles should be null/empty, planRoles contains roles to add
-// For update: compares stateRoles (old) with planRoles (new) to determine additions and removals
-// Returns a string with -ar "role_id" for additions and -rr "role_id" for removals
-func fetchAndProcessRoles(ctx context.Context, apiManager *api.ApiManager, stateRoles types.Set, planRoles types.Set) (string, error) {
-	// Early return if both are empty/null
-	if (stateRoles.IsNull() || len(stateRoles.Elements()) == 0) &&
-		(planRoles.IsNull() || len(planRoles.Elements()) == 0) {
-		return "", nil
-	}
-
-	// Fetch roles from API
-	rolesResp, err := apiManager.ExecuteCommand(ctx, "enterprise-info -r --format json", "Unable to fetch enterprise roles")
-	if err != nil {
-		return "", err
-	}
-
-	// Parse the roles response
-	rolesRespData, err := parseRolesResponse(rolesResp.Data)
-	if err != nil {
-		return "", err
-	}
-
-	// Build lookup maps
-	lookup := buildRoleLookupMaps(rolesRespData)
-
-	// Convert state roles to role_id map (old roles)
-	stateRoleIdMap, err := convertRolesToIdMap(stateRoles, lookup, rolesRespData)
-	if err != nil {
-		return "", err
-	}
-
-	// Convert plan roles to role_id map (new roles)
-	planRoleIdMap, err := convertRolesToIdMap(planRoles, lookup, rolesRespData)
-	if err != nil {
-		return "", err
-	}
-
-	// Early return if no changes
-	if len(stateRoleIdMap) == 0 && len(planRoleIdMap) == 0 {
-		return "", nil
-	}
-
-	// Find roles to add and remove
-	var parts []string
-
-	// Add roles that are in plan but not in state
-	for roleId := range planRoleIdMap {
-		if _, exists := stateRoleIdMap[roleId]; !exists {
-			parts = append(parts, fmt.Sprintf("-ar '%s'", roleId))
-		}
-	}
-
-	// Remove roles that are in state but not in plan
-	for roleId := range stateRoleIdMap {
-		if _, exists := planRoleIdMap[roleId]; !exists {
-			parts = append(parts, fmt.Sprintf("-rr '%s'", roleId))
-		}
-	}
-
-	if len(parts) == 0 {
-		return "", nil
-	}
-
-	return strings.Join(parts, " "), nil
-}
-
-// fetchAndProcessUsers processes users for both create and update operations
-// For create: stateUsers should be null/empty, planUsers contains users to add
-// For update: compares stateUsers (old) with planUsers (new) to determine additions and removals
-// Returns a string with -au "user_id" for additions and -ru "user_id" for removals
-func fetchAndProcessUsers(ctx context.Context, apiManager *api.ApiManager, stateUsers types.Set, planUsers types.Set) (string, error) {
-	// Early return if both are empty/null
-	if (stateUsers.IsNull() || len(stateUsers.Elements()) == 0) &&
-		(planUsers.IsNull() || len(planUsers.Elements()) == 0) {
-		return "", nil
-	}
-
-	// Fetch users from API
-	usersResp, err := apiManager.ExecuteCommand(ctx, "enterprise-info -u --format json", "Unable to fetch enterprise users")
-	if err != nil {
-		return "", err
-	}
-
-	// Parse the users response
-	usersRespData, err := parseUsersResponse(usersResp.Data)
-	if err != nil {
-		return "", err
-	}
-
-	// Build lookup maps
-	lookup := buildUserLookupMaps(usersRespData)
-
-	// Create a map of user_id -> UserInfo for status checking
-	userIdToUserInfo := make(map[string]UserInfo)
-	for _, user := range usersRespData {
-		if user.UserId > 0 {
-			userIdStr := strconv.Itoa(user.UserId)
-			userIdToUserInfo[userIdStr] = user
-		}
-	}
-
-	// Convert state users to user_id map (old users)
-	stateUserIdMap, err := convertUsersToIdMap(stateUsers, lookup, usersRespData)
-	if err != nil {
-		return "", err
-	}
-
-	// Convert plan users to user_id map (new users)
-	planUserIdMap, err := convertUsersToIdMap(planUsers, lookup, usersRespData)
-	if err != nil {
-		return "", err
-	}
-
-	// Early return if no changes
-	if len(stateUserIdMap) == 0 && len(planUserIdMap) == 0 {
-		return "", nil
-	}
-
-	// Find users to add and remove
-	var parts []string
-
-	// Add users that are in plan but not in state
-	for userId := range planUserIdMap {
-		if _, exists := stateUserIdMap[userId]; !exists {
-			// Check if user has "Invited" status
-			if userInfo, exists := userIdToUserInfo[userId]; exists {
-				if userInfo.Status == "Invited" {
-					userIdentifier := planUserIdMap[userId] // Get original input (email or user_id)
-					return "", fmt.Errorf("user '%s' has status 'Invited'. Users must accept invitation before being added to a team", userIdentifier)
-				}
-			}
-			parts = append(parts, fmt.Sprintf("-au '%s'", userId))
-		}
-	}
-
-	// Remove users that are in state but not in plan
-	for userId := range stateUserIdMap {
-		if _, exists := planUserIdMap[userId]; !exists {
-			parts = append(parts, fmt.Sprintf("-ru '%s'", userId))
-		}
-	}
-
-	if len(parts) == 0 {
-		return "", nil
-	}
-
-	return strings.Join(parts, " "), nil
 }
 
 func buildEnterpriseTeamAddCommand(data EnterpriseTeamResourceModel) string {
@@ -491,7 +162,7 @@ func buildEnterpriseTeamUpdateCommand(ctx context.Context, apiManager *api.ApiMa
 
 	// Process users and roles changes
 	if !state.Users.Equal(plan.Users) {
-		users, err := fetchAndProcessUsers(ctx, apiManager, state.Users, plan.Users)
+		users, err := utils.FetchAndProcessUsers(ctx, apiManager, state.Users, plan.Users)
 		if err != nil {
 			return "", err
 		}
@@ -501,7 +172,7 @@ func buildEnterpriseTeamUpdateCommand(ctx context.Context, apiManager *api.ApiMa
 	}
 
 	if !state.Roles.Equal(plan.Roles) {
-		roles, err := fetchAndProcessRoles(ctx, apiManager, state.Roles, plan.Roles)
+		roles, err := utils.FetchAndProcessRoles(ctx, apiManager, state.Roles, plan.Roles)
 		if err != nil {
 			return "", err
 		}
@@ -566,8 +237,8 @@ func convertApiIdentifiersToOriginalFormat(
 	currentState types.Set, // Current state (what user originally provided)
 	itemType string, // "role" or "user"
 	fetchCommand string, // "enterprise-info -r --format json" or "enterprise-info -u --format json"
-	parseFunc func(interface{}) (interface{}, error), // parseRolesResponse or parseUsersResponse
-	buildLookupFunc func(interface{}) lookupMaps, // buildRoleLookupMaps or buildUserLookupMaps
+	parseFunc func(interface{}) (interface{}, error), // utils.ParseRolesResponse or utils.ParseUsersResponse
+	buildLookupFunc func(interface{}) utils.LookupMaps, // utils.BuildRoleLookupMaps or utils.BuildUserLookupMaps
 ) (types.Set, error) {
 	// Handle empty/null cases
 	if len(apiIdentifiers) == 0 {
@@ -608,12 +279,12 @@ func convertApiIdentifiersToOriginalFormat(
 	// Build reverse maps: for each value in state, map its ID to the original value
 	for stateVal := range stateMap {
 		// Check if state value is an ID
-		if identifier, isId := lookup.idToIdentifier[stateVal]; isId {
+		if identifier, isId := lookup.IdToIdentifier[stateVal]; isId {
 			// State has ID, map ID -> original ID
 			stateIdToOriginal[stateVal] = stateVal
 			// Also map the identifier (name/email) -> original ID
 			stateIdentifierToOriginal[identifier] = stateVal
-		} else if id, isIdentifier := lookup.identifierToId[stateVal]; isIdentifier {
+		} else if id, isIdentifier := lookup.IdentifierToId[stateVal]; isIdentifier {
 			// State has name/email, map ID -> original name/email
 			stateIdToOriginal[id] = stateVal
 			// Also map identifier -> original identifier
@@ -633,10 +304,10 @@ func convertApiIdentifiersToOriginalFormat(
 
 		// Find the ID for this API identifier
 		var id string
-		if _, isId := lookup.idToIdentifier[apiIdentifier]; isId {
+		if _, isId := lookup.IdToIdentifier[apiIdentifier]; isId {
 			// API returned an ID (unlikely but handle it)
 			id = apiIdentifier
-		} else if foundId, isIdentifier := lookup.identifierToId[apiIdentifier]; isIdentifier {
+		} else if foundId, isIdentifier := lookup.IdentifierToId[apiIdentifier]; isIdentifier {
 			// API returned name/email, get its ID
 			id = foundId
 		} else {
@@ -691,8 +362,8 @@ func convertApiRolesToOriginalFormat(ctx context.Context, apiManager *api.ApiMan
 		currentState,
 		"role",
 		"enterprise-info -r --format json",
-		func(data interface{}) (interface{}, error) { return parseRolesResponse(data) },
-		func(data interface{}) lookupMaps { return buildRoleLookupMaps(data.([]RoleInfo)) },
+		func(data interface{}) (interface{}, error) { return utils.ParseRolesResponse(data) },
+		func(data interface{}) utils.LookupMaps { return utils.BuildRoleLookupMaps(data.([]utils.RoleInfo)) },
 	)
 }
 
@@ -705,8 +376,8 @@ func convertApiUsersToOriginalFormat(ctx context.Context, apiManager *api.ApiMan
 		currentState,
 		"user",
 		"enterprise-info -u --format json",
-		func(data interface{}) (interface{}, error) { return parseUsersResponse(data) },
-		func(data interface{}) lookupMaps { return buildUserLookupMaps(data.([]UserInfo)) },
+		func(data interface{}) (interface{}, error) { return utils.ParseUsersResponse(data) },
+		func(data interface{}) utils.LookupMaps { return utils.BuildUserLookupMaps(data.([]utils.UserInfo)) },
 	)
 }
 

@@ -103,6 +103,42 @@ func (r *EnterpriseRoleResource) Update(ctx context.Context, req resource.Update
 			}
 		}
 
+		// Update users if they have changed
+		// 1. Removed users -> remove via -ru
+		// 2. Added users -> add via -au
+		if !plan.Users.Equal(state.Users) {
+			users, err := utils.FetchAndProcessUsers(ctx, r.apiManager, state.Users, plan.Users)
+			if err != nil {
+				return fmt.Errorf("failed to process users: %w", err)
+			}
+
+			if users != "" {
+				command := fmt.Sprintf("enterprise-role '%s' -f %s", state.Id.ValueString(), users)
+				_, err = r.apiManager.ExecuteCommand(ctx, command, "Unable to update users/teams for the enterprise role")
+				if err != nil {
+					return fmt.Errorf("failed to update users and teams: %w", err)
+				}
+			}
+		}
+
+		// Update teams if they have changed
+		// 1. Removed teams -> remove via -rt
+		// 2. Added teams -> add via -at
+		if !plan.Teams.Equal(state.Teams) {
+			teams, err := utils.FetchAndProcessTeams(ctx, r.apiManager, state.Teams, plan.Teams)
+			if err != nil {
+				return fmt.Errorf("failed to process teams: %w", err)
+			}
+
+			if teams != "" {
+				command := fmt.Sprintf("enterprise-role '%s' -f %s", state.Id.ValueString(), teams)
+				_, err = r.apiManager.ExecuteCommand(ctx, command, "Unable to update teams for the enterprise role")
+				if err != nil {
+					return fmt.Errorf("failed to update teams: %w", err)
+				}
+			}
+		}
+
 		// Keep the same ID
 		plan.Id = state.Id
 		resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
