@@ -11,6 +11,7 @@ import (
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/api"
 	managecompanydatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/manage_company"
 	enterprisenode "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/enterprise_node"
+	enterpriserole "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/enterprise_role"
 	enterpriseteam "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/enterprise_team"
 	managecompany "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/manage_company"
 	"github.com/hashicorp/terraform-plugin-framework/action"
@@ -103,6 +104,14 @@ func (p *CommanderProvider) Configure(ctx context.Context, req provider.Configur
 		ServiceModeUrl:    processedServiceModeUrl,
 		ServiceModeApiKey: data.ServiceModeApiKey.ValueString(),
 		HttpClient:        httpClient,
+		IsMspAccount:      false,
+	}
+
+	// Detect account type during provider configuration
+	if err := apiManager.IsMspAccountType(ctx); err != nil {
+		// If detection fails, default to Enterprise account
+		// This prevents MSP commands from being called on Enterprise accounts
+		apiManager.IsMspAccount = false
 	}
 
 	resp.DataSourceData = apiManager
@@ -115,6 +124,7 @@ func (p *CommanderProvider) Resources(ctx context.Context) []func() resource.Res
 		managecompany.NewManageCompanyResource,
 		enterprisenode.NewEnterpriseNodeResource,
 		enterpriseteam.NewEnterpriseTeamResource,
+		enterpriserole.NewEnterpriseRoleResource,
 	}
 }
 

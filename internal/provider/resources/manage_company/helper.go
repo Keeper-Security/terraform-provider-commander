@@ -183,12 +183,3 @@ func normalizeAddOns(addOns types.Set) []string {
 
 	return result
 }
-
-// Function to extract the node name from the input string like "Metronlabs\\Aditya Dev Inc" -> "Aditya Dev Inc"
-// msp-info retuns node_name as "Metronlabs\\Aditya Dev Inc" if present in child node or node_name as "Metronlabs" if present in root node
-func extractNodeName(input string) string {
-	if idx := strings.LastIndex(input, `\`); idx != -1 {
-		return input[idx+1:]
-	}
-	return input
-}

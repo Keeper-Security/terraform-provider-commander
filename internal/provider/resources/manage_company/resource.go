@@ -145,7 +145,16 @@ func (r *ManageCompanyResource) Create(ctx context.Context, req resource.CreateR
 	// Build the Commander command string
 	command := buildManageCompanyAddCommand(data)
 
-	err := utils.SwitchToMsp(ctx, r.apiManager)
+	// Only switch to MSP if it's an MSP account
+	if r.apiManager.IsMspAccount {
+		if err := utils.SwitchToMsp(ctx, r.apiManager); err != nil {
+			resp.Diagnostics.AddError(
+				"Create Managed Company Failed",
+				fmt.Sprintf("Failed to switch to MSP context: %s", err.Error()),
+			)
+			return
+		}
+	}
 
 	apiResp, err := r.apiManager.ExecuteCommand(ctx, command, "Unable to create managed company")
 	if err != nil {
@@ -180,10 +189,19 @@ func (r *ManageCompanyResource) Read(ctx context.Context, req resource.ReadReque
 		return
 	}
 
-	err := utils.SwitchToMsp(ctx, r.apiManager)
+	// Only switch to MSP if it's an MSP account
+	if r.apiManager.IsMspAccount {
+		if err := utils.SwitchToMsp(ctx, r.apiManager); err != nil {
+			resp.Diagnostics.AddError(
+				"Read Managed Company Failed",
+				fmt.Sprintf("Failed to switch to MSP context: %s", err.Error()),
+			)
+			return
+		}
+	}
 
 	// Execute msp-down command (setup/initialization)
-	_, err = r.apiManager.ExecuteCommand(ctx, "msp-down", "Unable to initialize managed company service")
+	_, err := r.apiManager.ExecuteCommand(ctx, "msp-down", "Unable to initialize managed company service")
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Read Managed Company Failed",
@@ -274,7 +292,7 @@ func (r *ManageCompanyResource) Read(ctx context.Context, req resource.ReadReque
 	state.Id = types.StringValue(strconv.Itoa(companyInfo.CompanyId))
 	state.Name = types.StringValue(companyInfo.CompanyName)
 
-	state.Node = types.StringValue(extractNodeName(companyInfo.NodeName))
+	state.Node = types.StringValue(utils.ExtractNodeName(companyInfo.NodeName))
 
 	state.Plan = types.StringValue(companyInfo.Plan)
 	state.Seats = types.Int64Value(int64(companyInfo.Allocated))
@@ -325,9 +343,18 @@ func (r *ManageCompanyResource) Update(ctx context.Context, req resource.UpdateR
 
 	command := buildManageCompanyUpdateCommand(&plan, &state)
 
-	err := utils.SwitchToMsp(ctx, r.apiManager)
+	// Only switch to MSP if it's an MSP account
+	if r.apiManager.IsMspAccount {
+		if err := utils.SwitchToMsp(ctx, r.apiManager); err != nil {
+			resp.Diagnostics.AddError(
+				"Update Managed Company Failed",
+				fmt.Sprintf("Failed to switch to MSP context: %s", err.Error()),
+			)
+			return
+		}
+	}
 
-	_, err = r.apiManager.ExecuteCommand(ctx, command, "Unable to update managed company")
+	_, err := r.apiManager.ExecuteCommand(ctx, command, "Unable to update managed company")
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Update Managed Company Failed",
@@ -362,9 +389,18 @@ func (r *ManageCompanyResource) Delete(ctx context.Context, req resource.DeleteR
 	// Build delete command
 	command := fmt.Sprintf("msp-remove '%s' -f", state.Id.ValueString())
 
-	err := utils.SwitchToMsp(ctx, r.apiManager)
+	// Only switch to MSP if it's an MSP account
+	if r.apiManager.IsMspAccount {
+		if err := utils.SwitchToMsp(ctx, r.apiManager); err != nil {
+			resp.Diagnostics.AddError(
+				"Delete Managed Company Failed",
+				fmt.Sprintf("Failed to switch to MSP context: %s", err.Error()),
+			)
+			return
+		}
+	}
 
-	_, err = r.apiManager.ExecuteCommand(ctx, command, "Unable to delete managed company")
+	_, err := r.apiManager.ExecuteCommand(ctx, command, "Unable to delete managed company")
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Delete Managed Company Failed",

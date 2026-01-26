@@ -799,17 +799,8 @@ func mapTeamReadResponseToModel(ctx context.Context, apiManager *api.ApiManager,
 	// Always update from API response to detect external changes
 
 	// TODO: we are not getting node in respose
-	if teamResp.Node != "" {
-		nodeName, err := convertNodeToName(ctx, apiManager, teamResp.Node)
-		if err != nil {
-			return fmt.Errorf("failed to convert node to name: %w", err)
-		}
-		// Update state with node name from API (always a name, not ID)
-		state.Node = nodeName
-	} else {
-		// API returned empty node - set to null (team has no node assigned)
-		state.Node = types.StringNull()
-	}
+	// Update state with node name from API (always a name, not ID)
+	state.Node = types.StringValue(utils.ExtractNodeName(teamResp.Node))
 
 	return nil
 }
