@@ -3,7 +3,9 @@ package enterpriserole
 import (
 	"context"
 	"fmt"
+	"strings"
 
+	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/api"
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/utils"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -50,11 +52,8 @@ func (r *EnterpriseRoleResource) Create(ctx context.Context, req resource.Create
 		}
 
 		// Step 2: Build and execute the command to create the role
-		command := buildEnterpriseRoleAddCommand(data)
-
-		_, err = r.apiManager.ExecuteCommand(ctx, command, "Unable to create enterprise role")
-		if err != nil {
-			return fmt.Errorf("create enterprise role failed: %w", err)
+		if err := addRoleBasicAttributes(ctx, r.apiManager, data); err != nil {
+			return err
 		}
 
 		// Set the role ID (using name as ID)
@@ -86,14 +85,14 @@ func (r *EnterpriseRoleResource) Create(ctx context.Context, req resource.Create
 
 		// Step 6: Add users and teams to the recently created role
 		if users != "" {
-			command = fmt.Sprintf("enterprise-role '%s' -f %s", roleId, users)
+			command := fmt.Sprintf("enterprise-role '%s' -f %s", roleId, users)
 			_, err = r.apiManager.ExecuteCommand(ctx, command, "Unable to add users to the enterprise role")
 			if err != nil {
 				return err
 			}
 		}
 		if teams != "" {
-			command = fmt.Sprintf("enterprise-role '%s' -f %s", roleId, teams)
+			command := fmt.Sprintf("enterprise-role '%s' -f %s", roleId, teams)
 			_, err = r.apiManager.ExecuteCommand(ctx, command, "Unable to add teams to the enterprise role")
 			if err != nil {
 				return err
@@ -113,4 +112,27 @@ func (r *EnterpriseRoleResource) Create(ctx context.Context, req resource.Create
 
 	// Set the ID in the state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+}
+
+func addRoleBasicAttributes(ctx context.Context, apiManager *api.ApiManager, data EnterpriseRoleResourceModel) error {
+	var parts []string
+
+	parts = append(parts, "enterprise-role")
+
+	// Required parameters
+	parts = append(parts, fmt.Sprintf("--add '%s'", data.Name.ValueString()))
+
+	// Optional parameters
+	if !data.Node.IsNull() {
+		parts = append(parts, fmt.Sprintf("--node '%s'", data.Node.ValueString()))
+	}
+
+	command := strings.Join(parts, " ")
+
+	_, err := apiManager.ExecuteCommand(ctx, command, "Unable to add basic role attributes to the enterprise role")
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
