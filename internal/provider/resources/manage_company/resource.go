@@ -201,7 +201,7 @@ func (r *ManageCompanyResource) Read(ctx context.Context, req resource.ReadReque
 	}
 
 	// Execute msp-down command (setup/initialization)
-	_, err = r.apiManager.ExecuteCommand(ctx, "msp-down", "Unable to initialize managed company service")
+	_, err := r.apiManager.ExecuteCommand(ctx, "msp-down", "Unable to initialize managed company service")
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Read Managed Company Failed",

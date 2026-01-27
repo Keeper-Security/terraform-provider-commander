@@ -40,13 +40,6 @@ func MspDown(ctx context.Context, apiManager *api.ApiManager) error {
 	return err
 }
 
-// Perform msp down
-func MspDown(ctx context.Context, apiManager *api.ApiManager) error {
-	command := "msp-down"
-	_, err := apiManager.ExecuteCommand(ctx, command, "Unable to perform msp down")
-	return err
-}
-
 // Perform enterprise down
 func EnterpriseDown(ctx context.Context, apiManager *api.ApiManager) error {
 	command := "enterprise-down"
