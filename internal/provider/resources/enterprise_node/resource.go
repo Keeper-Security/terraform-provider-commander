@@ -119,9 +119,8 @@ func (r *EnterpriseNodeResource) Create(ctx context.Context, req resource.Create
 		return
 	}
 
-	r.apiManager.ExecuteCommand(ctx, "msp-down", "Unable to msp down latest changes")
-
 	// Execute with managed company context if provided
+	// ExecuteWithManagedCompanyContext handles context switching and enterprise-down internally
 	err := utils.ExecuteWithManagedCompanyContext(ctx, r.apiManager, data.ManagedCompany, func() error {
 		// Build the Commander command string
 		command := buildEnterpriseNodeAddCommand(data)
@@ -172,10 +171,8 @@ func (r *EnterpriseNodeResource) Read(ctx context.Context, req resource.ReadRequ
 		return
 	}
 
-	// Execute msp-down command (setup/initialization)
-	r.apiManager.ExecuteCommand(ctx, "msp-down", "Unable to msp down latest changes")
-
 	// Execute with managed company context if provided
+	// ExecuteWithManagedCompanyContext handles context switching and enterprise-down internally
 	err := utils.ExecuteWithManagedCompanyContext(ctx, r.apiManager, state.ManagedCompany, func() error {
 		// Build the Commander command string
 		command := fmt.Sprintf("enterprise-info -n -v --format json --node '%s'", state.Id.ValueString())
@@ -267,6 +264,15 @@ func (r *EnterpriseNodeResource) Update(ctx context.Context, req resource.Update
 		resp.Diagnostics.AddError(
 			"Provider Configuration Error",
 			err.Error(),
+		)
+		return
+	}
+
+	// NOTE: We should not allow user to update managed company, bec. once node is created in managed company, if we allow user to update managed company then switching to that MC we will not able to find that node, so command will fail.
+	if !plan.ManagedCompany.Equal(state.ManagedCompany) {
+		resp.Diagnostics.AddError(
+			"Managed Company Cannot Be Updated",
+			"Cannot update the managed_company field. Once an enterprise node is created in a managed company, the managed company cannot be changed.",
 		)
 		return
 	}

@@ -20,6 +20,7 @@ type ApiManager struct {
 	ServiceModeUrl    string
 	ServiceModeApiKey string
 	HttpClient        *http.Client
+	IsMspAccount      bool // true for MSP accounts, false for Enterprise accounts
 }
 
 // SubmitRequestResponse represents the response structure when we submit new requests
@@ -394,4 +395,35 @@ func (a *ApiManager) PollRequestResult(ctx context.Context, requestId string, ti
 			currentInterval = min(time.Duration(float64(currentInterval)*1.5), maxInterval)
 		}
 	}
+}
+
+// DetectAccountType detects whether the account is MSP or Enterprise
+func (a *ApiManager) IsMspAccountType(ctx context.Context) error {
+	// Try a lightweight MSP command to detect account type
+	// If it succeeds, it's an MSP account; if it fails, it's Enterprise
+	apiResp, err := a.ExecuteCommand(ctx, "switch-to-msp", "Account type detection")
+
+	if err != nil {
+		// Check if error is specifically about MSP not being available
+		errMsg := strings.ToLower(err.Error())
+		if strings.Contains(errMsg, "already msp") ||
+			strings.Contains(errMsg, "already") {
+			a.IsMspAccount = true
+			return nil
+		}
+
+		if strings.Contains(errMsg, "restricted") {
+			a.IsMspAccount = false
+		}
+
+		return nil
+	}
+
+	if strings.Contains(apiResp.Message.String(), "restricted") {
+		a.IsMspAccount = false
+	}
+
+	// Command succeeded - it's an MSP account
+	a.IsMspAccount = true
+	return nil
 }

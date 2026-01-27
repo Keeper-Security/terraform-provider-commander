@@ -5,8 +5,10 @@ package utils
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"regexp"
+	"strings"
 
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/api"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -23,6 +25,18 @@ func SwitchToManageCompany(ctx context.Context, apiManager *api.ApiManager, mana
 func SwitchToMsp(ctx context.Context, apiManager *api.ApiManager) error {
 	command := "switch-to-msp"
 	_, err := apiManager.ExecuteCommand(ctx, command, "Unable to switch to msp")
+
+	// NOTE: For now we are commenting bec commander cli sending 500 status code
+	if err != nil && strings.Contains(err.Error(), "Already MSP") {
+		return nil
+	}
+	return err
+}
+
+// Perform msp down
+func MspDown(ctx context.Context, apiManager *api.ApiManager) error {
+	command := "msp-down"
+	_, err := apiManager.ExecuteCommand(ctx, command, "Unable to perform msp down")
 	return err
 }
 
@@ -42,33 +56,65 @@ func EnterpriseDown(ctx context.Context, apiManager *api.ApiManager) error {
 
 // ExecuteWithManagedCompanyContext executes a function with managed company context switching
 // If managedCompany is provided and not null, it switches to MC before execution and back to MSP after
+// If managedCompany is not provided, it ensures we're in the correct base context (MSP for MSP accounts, Enterprise for Enterprise)
+// This prevents race conditions when Terraform runs resources in parallel or different orders
 func ExecuteWithManagedCompanyContext(
 	ctx context.Context,
 	apiManager *api.ApiManager,
 	managedCompany types.String,
 	operation func() error,
 ) (err error) {
-	// If managed company is provided, switch to it before the operation
-	err = EnterpriseDown(ctx, apiManager)
+	// Track whether we switched to MC so we know to switch back
+	switchedToMC := false
 
 	if !managedCompany.IsNull() && !managedCompany.IsUnknown() {
+		// Has managed_company - switch to it
+		// Sync enterprise data first
+		if err := EnterpriseDown(ctx, apiManager); err != nil {
+			return fmt.Errorf("Failed to sync enterprise data: %w", err)
+		}
+
+		// Switch to managed company
 		if err := SwitchToManageCompany(ctx, apiManager, managedCompany.ValueString()); err != nil {
 			return fmt.Errorf("Failed to switch to managed company: %w", err)
 		}
+		switchedToMC = true
+	} else {
+		// No managed_company provided - ensure we're in the correct base context
+		// This prevents race conditions where another resource might have switched to MC
+		// For MSP accounts: switch to MSP context
+		// For Enterprise accounts: just sync data (already in Enterprise context)
+		if apiManager.IsMspAccount {
+			// MSP account - explicitly switch to MSP to ensure clean state
+			if err := SwitchToMsp(ctx, apiManager); err != nil {
+				return fmt.Errorf("Failed to switch to MSP context: %w", err)
+			}
+		}
+		// For both MSP and Enterprise accounts, sync enterprise data
+		if err := EnterpriseDown(ctx, apiManager); err != nil {
+			return fmt.Errorf("Failed to sync enterprise data: %w", err)
+		}
+	}
 
-		// Always switch back to MSP after the operation (even if it fails)
-		defer func() {
-			if switchErr := SwitchToMsp(ctx, apiManager); switchErr != nil {
-				if err != nil {
-					// Both operation and switch-back failed - combine errors so user knows about both
-					err = fmt.Errorf("operation failed: %w; also failed to switch back to MSP: %w", err, switchErr)
-				} else {
-					// Operation succeeded but switch-back failed - this is critical, user must know
-					err = fmt.Errorf("Failed to switch back to MSP: %w", switchErr)
+	// Always switch back to MSP after the operation if we switched to MC
+	// This ensures clean state for subsequent operations
+	defer func() {
+		if switchedToMC {
+			// Only switch back to MSP if it's an MSP account
+			if apiManager.IsMspAccount {
+				if switchErr := SwitchToMsp(ctx, apiManager); switchErr != nil {
+					if err != nil {
+						// Both operation and switch-back failed - combine errors
+						err = fmt.Errorf("operation failed: %w; also failed to switch back to MSP: %w", err, switchErr)
+					} else {
+						// Operation succeeded but switch-back failed - this is critical
+						err = fmt.Errorf("Failed to switch back to MSP: %w", switchErr)
+					}
 				}
 			}
-		}()
-	}
+		}
+
+	}()
 
 	// Execute the actual operation
 	err = operation()
@@ -85,4 +131,271 @@ func ExtractNodeIDFromCreateNodeResponse(s string) (string, bool) {
 		return "", false
 	}
 	return match[1], true
+}
+
+// Function to extract the node name from the input string like "Metronlabs\\Aditya Dev Inc" -> "Aditya Dev Inc"
+// msp-info retuns node_name as "Metronlabs\\Aditya Dev Inc" if present in child node or node_name as "Metronlabs" if present in root node
+func ExtractNodeName(input string) string {
+	if idx := strings.LastIndex(input, `\`); idx != -1 {
+		return input[idx+1:]
+	}
+	return input
+}
+
+// UnmarshalApiResponse unmarshals API response data into a target struct.
+// It handles the common pattern of marshaling interface{} to JSON bytes and then unmarshaling into the target type.
+// Parameters:
+//   - data: The API response data (typically apiResp.Data from ExecuteCommand)
+//   - target: A pointer to the struct/slice that should receive the unmarshaled data
+//
+// Returns an error if marshaling or unmarshaling fails.
+//
+// Example usage:
+//
+//	var roles []RoleInfo
+//	if err := utils.UnmarshalApiResponse(apiResp.Data, &roles); err != nil {
+//	    return fmt.Errorf("failed to parse roles: %w", err)
+//	}
+func UnmarshalApiResponse(data interface{}, target interface{}) error {
+	// Convert apiResp.Data to JSON bytes
+	dataBytes, err := json.Marshal(data)
+	if err != nil {
+		return fmt.Errorf("unable to process the response from Keeper Commander API: %w", err)
+	}
+
+	// Unmarshal JSON bytes into target struct
+	if err := json.Unmarshal(dataBytes, target); err != nil {
+		return fmt.Errorf("unable to parse API response: %w", err)
+	}
+
+	return nil
+}
+
+// LookupMaps holds the mappings between identifiers (name/email) and IDs
+type LookupMaps struct {
+	IdentifierToId map[string]string // identifier (name/email) -> id
+	IdToIdentifier map[string]string // id -> identifier (name/email)
+}
+
+// ConvertItemsToIdMap is a generic function that converts a types.Set to a map of id -> original input
+// It works for roles, users, and teams by accepting lookup maps and validation functions
+func ConvertItemsToIdMap(
+	items types.Set,
+	lookup LookupMaps,
+	itemType string, // "role", "user", or "team"
+	validateItem func(string) (bool, string), // returns (isValid, errorMessage)
+) (map[string]string, error) {
+	result := make(map[string]string)
+
+	if items.IsNull() || items.IsUnknown() {
+		return result, nil
+	}
+
+	elements := items.Elements()
+	if len(elements) == 0 {
+		return result, nil
+	}
+
+	seenIds := make(map[string]string) // id -> original input
+
+	for _, itemElem := range elements {
+		itemStr := itemElem.(types.String)
+		userInput := itemStr.ValueString()
+
+		if userInput == "" {
+			continue
+		}
+
+		var itemId string
+		var itemIdentifier string
+
+		// Check if input is an id
+		if existingIdentifier, isId := lookup.IdToIdentifier[userInput]; isId {
+			itemId = userInput
+			itemIdentifier = existingIdentifier
+		} else if id, isIdentifier := lookup.IdentifierToId[userInput]; isIdentifier {
+			// Input is an identifier (name/email), convert to id
+			itemId = id
+			itemIdentifier = userInput
+		} else {
+			// Validate if item exists but has invalid id
+			isValid, errMsg := validateItem(userInput)
+			if !isValid {
+				return nil, fmt.Errorf("%s", errMsg)
+			}
+			return nil, fmt.Errorf("%s '%s' not found. Please provide a valid %s identifier or %s Id", itemType, userInput, itemType, itemType)
+		}
+
+		if itemId == "" {
+			return nil, fmt.Errorf("%s '%s' resulted in an empty %s_id. This should not happen - please report this issue", itemType, userInput, itemType)
+		}
+
+		// Check for duplicates
+		if originalInput, exists := seenIds[itemId]; exists {
+			return nil, fmt.Errorf("duplicate %s detected: '%s' and '%s' both map to the same %s Id '%s' (%s identifier: '%s')",
+				itemType, originalInput, userInput, itemType, itemId, itemType, itemIdentifier)
+		}
+
+		seenIds[itemId] = userInput
+		result[itemId] = userInput
+	}
+
+	return result, nil
+}
+
+// RestoreUserInputFormatFromApiResponse converts API response identifiers back to the format
+// that the user originally provided in their Terraform configuration.
+//
+// This function is critical for preventing false diffs in Terraform plans. When users provide
+// identifiers in different formats (e.g., IDs vs names/emails), the API typically returns
+// a standardized format (usually names/emails). This function ensures the Terraform state
+// preserves the original user input format, preventing unnecessary plan changes.
+//
+// How it works:
+//  1. Takes API response identifiers (typically names/emails) and current Terraform state
+//  2. Builds lookup maps to convert between IDs and identifiers (names/emails)
+//  3. For each API identifier, finds the corresponding ID
+//  4. Looks up the original format from state (what user originally provided)
+//  5. Returns a Set preserving the original format (IDs or names/emails)
+//
+// Examples:
+//   - User provided user_id "123" → API returns "user@example.com" → Function returns "123"
+//   - User provided email "user@example.com" → API returns "user@example.com" → Function returns "user@example.com"
+//   - New item added outside Terraform → Function returns the API identifier (name/email)
+//
+// This is a generic function that works for roles, users, and teams. Type-specific wrappers
+// are provided in process_roles.go, process_users.go, and process_teams.go.
+//
+// Parameters:
+//   - apiIdentifiers: Identifiers returned by the API (typically names/emails)
+//   - currentState: Current Terraform state (what user originally provided)
+//   - itemType: Type of item ("role", "user", or "team") - used for error messages
+//   - fetchCommand: Commander CLI command to fetch all items for lookup map building
+//   - parseFunc: Function to parse the API response into the appropriate type
+//   - buildLookupFunc: Function to build lookup maps from parsed data
+//
+// Returns:
+//   - types.Set: Set of identifiers in the original user input format
+//   - error: Error if fetching or parsing fails
+func RestoreUserInputFormatFromApiResponse(
+	ctx context.Context,
+	apiManager *api.ApiManager,
+	apiIdentifiers []string, // Names/emails from API response
+	currentState types.Set, // Current state (what user originally provided)
+	itemType string, // "role", "user", or "team"
+	fetchCommand string, // "enterprise-info -r --format json" or "enterprise-info -u --format json" or "enterprise-info -t --format json"
+	parseFunc func(interface{}) (interface{}, error), // ParseRolesResponse, ParseUsersResponse, or ParseTeamsResponse
+	buildLookupFunc func(interface{}) LookupMaps, // BuildRoleLookupMaps, BuildUserLookupMaps, or BuildTeamLookupMaps
+) (types.Set, error) {
+	// Handle empty/null cases
+	if len(apiIdentifiers) == 0 {
+		return types.SetNull(types.StringType), nil
+	}
+
+	// Build a map of current state values for quick lookup
+	stateMap := make(map[string]bool)
+	stateIdToOriginal := make(map[string]string)         // ID -> original value from state
+	stateIdentifierToOriginal := make(map[string]string) // name/email -> original value from state
+
+	if !currentState.IsNull() {
+		var stateValues []string
+		currentState.ElementsAs(ctx, &stateValues, false)
+		for _, val := range stateValues {
+			val = strings.TrimSpace(val)
+			if val != "" {
+				stateMap[val] = true
+			}
+		}
+	}
+
+	// Fetch all items to build lookup maps
+	itemsResp, err := apiManager.ExecuteCommand(ctx, fetchCommand, fmt.Sprintf("Unable to fetch enterprise %ss", itemType))
+	if err != nil {
+		return types.SetNull(types.StringType), fmt.Errorf("failed to fetch %ss: %w", itemType, err)
+	}
+
+	// Parse the response
+	itemsData, err := parseFunc(itemsResp.Data)
+	if err != nil {
+		return types.SetNull(types.StringType), fmt.Errorf("failed to parse %ss: %w", itemType, err)
+	}
+
+	// Build lookup maps
+	lookup := buildLookupFunc(itemsData)
+
+	// Build reverse maps: for each value in state, map its ID to the original value
+	for stateVal := range stateMap {
+		// Check if state value is an ID
+		if identifier, isId := lookup.IdToIdentifier[stateVal]; isId {
+			// State has ID, map ID -> original ID
+			stateIdToOriginal[stateVal] = stateVal
+			// Also map the identifier (name/email) -> original ID
+			stateIdentifierToOriginal[identifier] = stateVal
+		} else if id, isIdentifier := lookup.IdentifierToId[stateVal]; isIdentifier {
+			// State has name/email, map ID -> original name/email
+			stateIdToOriginal[id] = stateVal
+			// Also map identifier -> original identifier
+			stateIdentifierToOriginal[stateVal] = stateVal
+		}
+	}
+
+	// Convert API identifiers to original format
+	var resultStrings []string
+	seen := make(map[string]bool)
+
+	for _, apiIdentifier := range apiIdentifiers {
+		apiIdentifier = strings.TrimSpace(apiIdentifier)
+		if apiIdentifier == "" {
+			continue
+		}
+
+		// Find the ID for this API identifier
+		var id string
+		if _, isId := lookup.IdToIdentifier[apiIdentifier]; isId {
+			// API returned an ID (unlikely but handle it)
+			id = apiIdentifier
+		} else if foundId, isIdentifier := lookup.IdentifierToId[apiIdentifier]; isIdentifier {
+			// API returned name/email, get its ID
+			id = foundId
+		} else {
+			// Not found - item might have been deleted, skip it
+			continue
+		}
+
+		// Find the original format from state
+		var originalValue string
+		if original, found := stateIdToOriginal[id]; found {
+			// State had this ID, use the original format (could be ID or name/email)
+			originalValue = original
+		} else if original, found := stateIdentifierToOriginal[apiIdentifier]; found {
+			// State had this name/email, use it
+			originalValue = original
+		} else {
+			// New item added outside Terraform - use the identifier from API (name/email)
+			originalValue = apiIdentifier
+		}
+
+		// Avoid duplicates
+		if !seen[originalValue] {
+			resultStrings = append(resultStrings, originalValue)
+			seen[originalValue] = true
+		}
+	}
+
+	// Convert to types.Set
+	if len(resultStrings) == 0 {
+		return types.SetNull(types.StringType), nil
+	}
+
+	resultElements := make([]types.String, len(resultStrings))
+	for i, val := range resultStrings {
+		resultElements[i] = types.StringValue(val)
+	}
+
+	resultSet, diags := types.SetValueFrom(ctx, types.StringType, resultElements)
+	if diags.HasError() {
+		return types.SetNull(types.StringType), fmt.Errorf("failed to create set: %v", diags)
+	}
+
+	return resultSet, nil
 }
