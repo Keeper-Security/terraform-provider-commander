@@ -152,3 +152,35 @@ func FetchAndProcessUsers(ctx context.Context, apiManager *api.ApiManager, state
 
 	return strings.Join(parts, " "), nil
 }
+
+// RestoreUserInputFormatForUsers converts user emails from API response back to the format
+// that the user originally provided in their Terraform configuration.
+//
+// This function preserves the original user input format to prevent false diffs in Terraform plans.
+// If a user specified users by ID (e.g., "123"), the function will return IDs. If they specified
+// by email (e.g., "user@example.com"), it will return emails.
+//
+// Parameters:
+//   - userEmails: User emails returned by the API (from enterprise-info command)
+//   - currentState: Current Terraform state containing users (what user originally provided)
+//
+// Returns:
+//   - types.Set: Set of users in the original user input format (emails or user IDs)
+//   - error: Error if fetching users or building lookup maps fails
+//
+// Example:
+//   User config: users = ["123", "456"]
+//   API returns: ["user1@example.com", "user2@example.com"]
+//   Function returns: ["123", "456"] (preserves original IDs)
+func RestoreUserInputFormatForUsers(ctx context.Context, apiManager *api.ApiManager, userEmails []string, currentState types.Set) (types.Set, error) {
+	return RestoreUserInputFormatFromApiResponse(
+		ctx,
+		apiManager,
+		userEmails,
+		currentState,
+		"user",
+		"enterprise-info -u --format json",
+		func(data interface{}) (interface{}, error) { return ParseUsersResponse(data) },
+		func(data interface{}) LookupMaps { return BuildUserLookupMaps(data.([]UserInfo)) },
+	)
+}

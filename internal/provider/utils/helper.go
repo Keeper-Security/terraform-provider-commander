@@ -235,3 +235,160 @@ func ConvertItemsToIdMap(
 
 	return result, nil
 }
+
+// RestoreUserInputFormatFromApiResponse converts API response identifiers back to the format
+// that the user originally provided in their Terraform configuration.
+//
+// This function is critical for preventing false diffs in Terraform plans. When users provide
+// identifiers in different formats (e.g., IDs vs names/emails), the API typically returns
+// a standardized format (usually names/emails). This function ensures the Terraform state
+// preserves the original user input format, preventing unnecessary plan changes.
+//
+// How it works:
+//  1. Takes API response identifiers (typically names/emails) and current Terraform state
+//  2. Builds lookup maps to convert between IDs and identifiers (names/emails)
+//  3. For each API identifier, finds the corresponding ID
+//  4. Looks up the original format from state (what user originally provided)
+//  5. Returns a Set preserving the original format (IDs or names/emails)
+//
+// Examples:
+//   - User provided user_id "123" → API returns "user@example.com" → Function returns "123"
+//   - User provided email "user@example.com" → API returns "user@example.com" → Function returns "user@example.com"
+//   - New item added outside Terraform → Function returns the API identifier (name/email)
+//
+// This is a generic function that works for roles, users, and teams. Type-specific wrappers
+// are provided in process_roles.go, process_users.go, and process_teams.go.
+//
+// Parameters:
+//   - apiIdentifiers: Identifiers returned by the API (typically names/emails)
+//   - currentState: Current Terraform state (what user originally provided)
+//   - itemType: Type of item ("role", "user", or "team") - used for error messages
+//   - fetchCommand: Commander CLI command to fetch all items for lookup map building
+//   - parseFunc: Function to parse the API response into the appropriate type
+//   - buildLookupFunc: Function to build lookup maps from parsed data
+//
+// Returns:
+//   - types.Set: Set of identifiers in the original user input format
+//   - error: Error if fetching or parsing fails
+func RestoreUserInputFormatFromApiResponse(
+	ctx context.Context,
+	apiManager *api.ApiManager,
+	apiIdentifiers []string, // Names/emails from API response
+	currentState types.Set, // Current state (what user originally provided)
+	itemType string, // "role", "user", or "team"
+	fetchCommand string, // "enterprise-info -r --format json" or "enterprise-info -u --format json" or "enterprise-info -t --format json"
+	parseFunc func(interface{}) (interface{}, error), // ParseRolesResponse, ParseUsersResponse, or ParseTeamsResponse
+	buildLookupFunc func(interface{}) LookupMaps, // BuildRoleLookupMaps, BuildUserLookupMaps, or BuildTeamLookupMaps
+) (types.Set, error) {
+	// Handle empty/null cases
+	if len(apiIdentifiers) == 0 {
+		return types.SetNull(types.StringType), nil
+	}
+
+	// Build a map of current state values for quick lookup
+	stateMap := make(map[string]bool)
+	stateIdToOriginal := make(map[string]string)         // ID -> original value from state
+	stateIdentifierToOriginal := make(map[string]string) // name/email -> original value from state
+
+	if !currentState.IsNull() {
+		var stateValues []string
+		currentState.ElementsAs(ctx, &stateValues, false)
+		for _, val := range stateValues {
+			val = strings.TrimSpace(val)
+			if val != "" {
+				stateMap[val] = true
+			}
+		}
+	}
+
+	// Fetch all items to build lookup maps
+	itemsResp, err := apiManager.ExecuteCommand(ctx, fetchCommand, fmt.Sprintf("Unable to fetch enterprise %ss", itemType))
+	if err != nil {
+		return types.SetNull(types.StringType), fmt.Errorf("failed to fetch %ss: %w", itemType, err)
+	}
+
+	// Parse the response
+	itemsData, err := parseFunc(itemsResp.Data)
+	if err != nil {
+		return types.SetNull(types.StringType), fmt.Errorf("failed to parse %ss: %w", itemType, err)
+	}
+
+	// Build lookup maps
+	lookup := buildLookupFunc(itemsData)
+
+	// Build reverse maps: for each value in state, map its ID to the original value
+	for stateVal := range stateMap {
+		// Check if state value is an ID
+		if identifier, isId := lookup.IdToIdentifier[stateVal]; isId {
+			// State has ID, map ID -> original ID
+			stateIdToOriginal[stateVal] = stateVal
+			// Also map the identifier (name/email) -> original ID
+			stateIdentifierToOriginal[identifier] = stateVal
+		} else if id, isIdentifier := lookup.IdentifierToId[stateVal]; isIdentifier {
+			// State has name/email, map ID -> original name/email
+			stateIdToOriginal[id] = stateVal
+			// Also map identifier -> original identifier
+			stateIdentifierToOriginal[stateVal] = stateVal
+		}
+	}
+
+	// Convert API identifiers to original format
+	var resultStrings []string
+	seen := make(map[string]bool)
+
+	for _, apiIdentifier := range apiIdentifiers {
+		apiIdentifier = strings.TrimSpace(apiIdentifier)
+		if apiIdentifier == "" {
+			continue
+		}
+
+		// Find the ID for this API identifier
+		var id string
+		if _, isId := lookup.IdToIdentifier[apiIdentifier]; isId {
+			// API returned an ID (unlikely but handle it)
+			id = apiIdentifier
+		} else if foundId, isIdentifier := lookup.IdentifierToId[apiIdentifier]; isIdentifier {
+			// API returned name/email, get its ID
+			id = foundId
+		} else {
+			// Not found - item might have been deleted, skip it
+			continue
+		}
+
+		// Find the original format from state
+		var originalValue string
+		if original, found := stateIdToOriginal[id]; found {
+			// State had this ID, use the original format (could be ID or name/email)
+			originalValue = original
+		} else if original, found := stateIdentifierToOriginal[apiIdentifier]; found {
+			// State had this name/email, use it
+			originalValue = original
+		} else {
+			// New item added outside Terraform - use the identifier from API (name/email)
+			originalValue = apiIdentifier
+		}
+
+		// Avoid duplicates
+		if !seen[originalValue] {
+			resultStrings = append(resultStrings, originalValue)
+			seen[originalValue] = true
+		}
+	}
+
+	// Convert to types.Set
+	if len(resultStrings) == 0 {
+		return types.SetNull(types.StringType), nil
+	}
+
+	resultElements := make([]types.String, len(resultStrings))
+	for i, val := range resultStrings {
+		resultElements[i] = types.StringValue(val)
+	}
+
+	resultSet, diags := types.SetValueFrom(ctx, types.StringType, resultElements)
+	if diags.HasError() {
+		return types.SetNull(types.StringType), fmt.Errorf("failed to create set: %v", diags)
+	}
+
+	return resultSet, nil
+}

@@ -135,3 +135,35 @@ func FetchAndProcessRoles(ctx context.Context, apiManager *api.ApiManager, state
 
 	return strings.Join(parts, " "), nil
 }
+
+// RestoreUserInputFormatForRoles converts role names from API response back to the format
+// that the user originally provided in their Terraform configuration.
+//
+// This function preserves the original user input format to prevent false diffs in Terraform plans.
+// If a user specified roles by ID (e.g., "123"), the function will return IDs. If they specified
+// by name (e.g., "Admin Role"), it will return names.
+//
+// Parameters:
+//   - roleNames: Role names returned by the API (from enterprise-info command)
+//   - currentState: Current Terraform state containing roles (what user originally provided)
+//
+// Returns:
+//   - types.Set: Set of roles in the original user input format (names or role IDs)
+//   - error: Error if fetching roles or building lookup maps fails
+//
+// Example:
+//   User config: roles = ["123", "456"]
+//   API returns: ["Admin Role", "User Role"]
+//   Function returns: ["123", "456"] (preserves original IDs)
+func RestoreUserInputFormatForRoles(ctx context.Context, apiManager *api.ApiManager, roleNames []string, currentState types.Set) (types.Set, error) {
+	return RestoreUserInputFormatFromApiResponse(
+		ctx,
+		apiManager,
+		roleNames,
+		currentState,
+		"role",
+		"enterprise-info -r --format json",
+		func(data interface{}) (interface{}, error) { return ParseRolesResponse(data) },
+		func(data interface{}) LookupMaps { return BuildRoleLookupMaps(data.([]RoleInfo)) },
+	)
+}

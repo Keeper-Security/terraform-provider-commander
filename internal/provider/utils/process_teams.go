@@ -133,3 +133,35 @@ func FetchAndProcessTeams(ctx context.Context, apiManager *api.ApiManager, state
 
 	return strings.Join(parts, " "), nil
 }
+
+// RestoreUserInputFormatForTeams converts team names from API response back to the format
+// that the user originally provided in their Terraform configuration.
+//
+// This function preserves the original user input format to prevent false diffs in Terraform plans.
+// If a user specified teams by team_uid (e.g., "abc123xyz"), the function will return team_uids.
+// If they specified by name (e.g., "Dev Team"), it will return names.
+//
+// Parameters:
+//   - teamNames: Team names returned by the API (from enterprise-info command)
+//   - currentState: Current Terraform state containing teams (what user originally provided)
+//
+// Returns:
+//   - types.Set: Set of teams in the original user input format (names or team_uids)
+//   - error: Error if fetching teams or building lookup maps fails
+//
+// Example:
+//   User config: teams = ["abc123xyz", "def456uvw"]
+//   API returns: ["Dev Team", "QA Team"]
+//   Function returns: ["abc123xyz", "def456uvw"] (preserves original team_uids)
+func RestoreUserInputFormatForTeams(ctx context.Context, apiManager *api.ApiManager, teamNames []string, currentState types.Set) (types.Set, error) {
+	return RestoreUserInputFormatFromApiResponse(
+		ctx,
+		apiManager,
+		teamNames,
+		currentState,
+		"team",
+		"enterprise-info -t --format json",
+		func(data interface{}) (interface{}, error) { return ParseTeamsResponse(data) },
+		func(data interface{}) LookupMaps { return BuildTeamLookupMaps(data.([]TeamInfo)) },
+	)
+}

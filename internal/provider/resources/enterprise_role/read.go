@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strconv"
 
+	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/api"
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/utils"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -62,15 +63,10 @@ func (r *EnterpriseRoleResource) Read(ctx context.Context, req resource.ReadRequ
 			return nil
 		}
 
-		// Map the response to the state
-		state.Id = types.StringValue(stateId)
-		state.Name = types.StringValue(roleInfo.Name)
-		state.Node = types.StringValue(utils.ExtractNodeName(roleInfo.Node))
+		if err := mapRoleReadResponseToModel(ctx, r.apiManager, *roleInfo, &state, stateId); err != nil {
+			return fmt.Errorf("failed to map role response to model: %w", err)
+		}
 
-		// TODO: Later we will add users, teams, enforcement policies, managing nodes to state
-
-		// Set the updated state
-		resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
 		return nil
 	})
 
@@ -81,4 +77,42 @@ func (r *EnterpriseRoleResource) Read(ctx context.Context, req resource.ReadRequ
 		)
 		return
 	}
+
+	// Set the updated state
+	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
+}
+
+// Note: We will remove stateId from the function parameters in the future, when we will have role_id in the response while creating the role.
+func mapRoleReadResponseToModel(ctx context.Context, apiManager *api.ApiManager, roleInfo RoleResponse, state *EnterpriseRoleResourceModel, stateId string) error {
+	// Map the response to the state
+	state.Id = types.StringValue(stateId)
+	state.Name = types.StringValue(roleInfo.Name)
+	state.Node = types.StringValue(utils.ExtractNodeName(roleInfo.Node))
+
+	// Convert API response identifiers back to original format from state
+	// Users: preserve original format (email or ID) as user provided
+	if len(roleInfo.Users) > 0 {
+		usersSet, err := utils.RestoreUserInputFormatForUsers(ctx, apiManager, roleInfo.Users, state.Users)
+		if err != nil {
+			return fmt.Errorf("failed to convert users to original format: %w", err)
+		}
+		state.Users = usersSet
+	} else {
+		state.Users = types.SetNull(types.StringType)
+	}
+
+	// Teams: preserve original format (name or team_uid) as user provided
+	if len(roleInfo.Teams) > 0 {
+		teamsSet, err := utils.RestoreUserInputFormatForTeams(ctx, apiManager, roleInfo.Teams, state.Teams)
+		if err != nil {
+			return fmt.Errorf("failed to convert teams to original format: %w", err)
+		}
+		state.Teams = teamsSet
+	} else {
+		state.Teams = types.SetNull(types.StringType)
+	}
+
+	// TODO: Later we will add logic for enforcement policies, managing nodes to state when it is implemented in commander cli
+
+	return nil
 }

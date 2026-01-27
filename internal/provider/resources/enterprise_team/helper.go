@@ -228,159 +228,6 @@ func parseRestrictsString(restricts string) (restrictEdit, restrictShare, restri
 	return restrictEdit, restrictShare, restrictView
 }
 
-// convertApiIdentifiersToOriginalFormat converts API response identifiers (names/emails)
-// back to the original format from state (preserves IDs or names/emails as user provided)
-func convertApiIdentifiersToOriginalFormat(
-	ctx context.Context,
-	apiManager *api.ApiManager,
-	apiIdentifiers []string, // Names/emails from API response
-	currentState types.Set, // Current state (what user originally provided)
-	itemType string, // "role" or "user"
-	fetchCommand string, // "enterprise-info -r --format json" or "enterprise-info -u --format json"
-	parseFunc func(interface{}) (interface{}, error), // utils.ParseRolesResponse or utils.ParseUsersResponse
-	buildLookupFunc func(interface{}) utils.LookupMaps, // utils.BuildRoleLookupMaps or utils.BuildUserLookupMaps
-) (types.Set, error) {
-	// Handle empty/null cases
-	if len(apiIdentifiers) == 0 {
-		return types.SetNull(types.StringType), nil
-	}
-
-	// Build a map of current state values for quick lookup
-	stateMap := make(map[string]bool)
-	stateIdToOriginal := make(map[string]string)         // ID -> original value from state
-	stateIdentifierToOriginal := make(map[string]string) // name/email -> original value from state
-
-	if !currentState.IsNull() {
-		var stateValues []string
-		currentState.ElementsAs(ctx, &stateValues, false)
-		for _, val := range stateValues {
-			val = strings.TrimSpace(val)
-			if val != "" {
-				stateMap[val] = true
-			}
-		}
-	}
-
-	// Fetch all items to build lookup maps
-	itemsResp, err := apiManager.ExecuteCommand(ctx, fetchCommand, fmt.Sprintf("Unable to fetch enterprise %ss", itemType))
-	if err != nil {
-		return types.SetNull(types.StringType), fmt.Errorf("failed to fetch %ss: %w", itemType, err)
-	}
-
-	// Parse the response
-	itemsData, err := parseFunc(itemsResp.Data)
-	if err != nil {
-		return types.SetNull(types.StringType), fmt.Errorf("failed to parse %ss: %w", itemType, err)
-	}
-
-	// Build lookup maps
-	lookup := buildLookupFunc(itemsData)
-
-	// Build reverse maps: for each value in state, map its ID to the original value
-	for stateVal := range stateMap {
-		// Check if state value is an ID
-		if identifier, isId := lookup.IdToIdentifier[stateVal]; isId {
-			// State has ID, map ID -> original ID
-			stateIdToOriginal[stateVal] = stateVal
-			// Also map the identifier (name/email) -> original ID
-			stateIdentifierToOriginal[identifier] = stateVal
-		} else if id, isIdentifier := lookup.IdentifierToId[stateVal]; isIdentifier {
-			// State has name/email, map ID -> original name/email
-			stateIdToOriginal[id] = stateVal
-			// Also map identifier -> original identifier
-			stateIdentifierToOriginal[stateVal] = stateVal
-		}
-	}
-
-	// Convert API identifiers to original format
-	var resultStrings []string
-	seen := make(map[string]bool)
-
-	for _, apiIdentifier := range apiIdentifiers {
-		apiIdentifier = strings.TrimSpace(apiIdentifier)
-		if apiIdentifier == "" {
-			continue
-		}
-
-		// Find the ID for this API identifier
-		var id string
-		if _, isId := lookup.IdToIdentifier[apiIdentifier]; isId {
-			// API returned an ID (unlikely but handle it)
-			id = apiIdentifier
-		} else if foundId, isIdentifier := lookup.IdentifierToId[apiIdentifier]; isIdentifier {
-			// API returned name/email, get its ID
-			id = foundId
-		} else {
-			// Not found - item might have been deleted, skip it
-			continue
-		}
-
-		// Find the original format from state
-		var originalValue string
-		if original, found := stateIdToOriginal[id]; found {
-			// State had this ID, use the original format (could be ID or name/email)
-			originalValue = original
-		} else if original, found := stateIdentifierToOriginal[apiIdentifier]; found {
-			// State had this name/email, use it
-			originalValue = original
-		} else {
-			// New item added outside Terraform - use the identifier from API (name/email)
-			originalValue = apiIdentifier
-		}
-
-		// Avoid duplicates
-		if !seen[originalValue] {
-			resultStrings = append(resultStrings, originalValue)
-			seen[originalValue] = true
-		}
-	}
-
-	// Convert to types.Set
-	if len(resultStrings) == 0 {
-		return types.SetNull(types.StringType), nil
-	}
-
-	resultElements := make([]types.String, len(resultStrings))
-	for i, val := range resultStrings {
-		resultElements[i] = types.StringValue(val)
-	}
-
-	resultSet, diags := types.SetValueFrom(ctx, types.StringType, resultElements)
-	if diags.HasError() {
-		return types.SetNull(types.StringType), fmt.Errorf("failed to create set: %v", diags)
-	}
-
-	return resultSet, nil
-}
-
-// convertApiRolesToOriginalFormat converts role names from API back to original format from state
-func convertApiRolesToOriginalFormat(ctx context.Context, apiManager *api.ApiManager, roleNames []string, currentState types.Set) (types.Set, error) {
-	return convertApiIdentifiersToOriginalFormat(
-		ctx,
-		apiManager,
-		roleNames,
-		currentState,
-		"role",
-		"enterprise-info -r --format json",
-		func(data interface{}) (interface{}, error) { return utils.ParseRolesResponse(data) },
-		func(data interface{}) utils.LookupMaps { return utils.BuildRoleLookupMaps(data.([]utils.RoleInfo)) },
-	)
-}
-
-// convertApiUsersToOriginalFormat converts user emails from API back to original format from state
-func convertApiUsersToOriginalFormat(ctx context.Context, apiManager *api.ApiManager, userEmails []string, currentState types.Set) (types.Set, error) {
-	return convertApiIdentifiersToOriginalFormat(
-		ctx,
-		apiManager,
-		userEmails,
-		currentState,
-		"user",
-		"enterprise-info -u --format json",
-		func(data interface{}) (interface{}, error) { return utils.ParseUsersResponse(data) },
-		func(data interface{}) utils.LookupMaps { return utils.BuildUserLookupMaps(data.([]utils.UserInfo)) },
-	)
-}
-
 // convertNodeToName converts node from API response to node name
 // API may return node as name or ID. If it's an ID, we fetch nodes and convert to name.
 // Final state always stores node name (not ID).
@@ -446,7 +293,7 @@ func mapTeamReadResponseToModel(ctx context.Context, apiManager *api.ApiManager,
 	// Convert API response identifiers back to original format from state
 	// Roles: preserve original format (name or ID) as user provided
 	if len(teamResp.Roles) > 0 {
-		rolesSet, err := convertApiRolesToOriginalFormat(ctx, apiManager, teamResp.Roles, state.Roles)
+		rolesSet, err := utils.RestoreUserInputFormatForRoles(ctx, apiManager, teamResp.Roles, state.Roles)
 		if err != nil {
 			return fmt.Errorf("failed to convert roles to original format: %w", err)
 		}
@@ -457,7 +304,7 @@ func mapTeamReadResponseToModel(ctx context.Context, apiManager *api.ApiManager,
 
 	// Users: preserve original format (email or ID) as user provided
 	if len(teamResp.Users) > 0 {
-		usersSet, err := convertApiUsersToOriginalFormat(ctx, apiManager, teamResp.Users, state.Users)
+		usersSet, err := utils.RestoreUserInputFormatForUsers(ctx, apiManager, teamResp.Users, state.Users)
 		if err != nil {
 			return fmt.Errorf("failed to convert users to original format: %w", err)
 		}

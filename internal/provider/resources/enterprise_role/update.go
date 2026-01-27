@@ -71,7 +71,6 @@ func (r *EnterpriseRoleResource) Update(ctx context.Context, req resource.Update
 		// 2. Added nodes -> add via -aa with privileges and cascade
 		// 3. Changed cascade -> update via -aa with --cascade
 		// 4. Changed privileges -> update via --node with -ap flags
-		// Note: Changing managing node names is not allowed - users must remove old and add new separately
 		if !plan.ManagingNodes.Equal(state.ManagingNodes) {
 			/* NOTE: currently we dont need this logic bec when node name changes terraform will remove old managing node and add new managing node separately with its privileges and cascade option*/
 			// Validate that no managing node names have been changed
@@ -141,7 +140,7 @@ func (r *EnterpriseRoleResource) Update(ctx context.Context, req resource.Update
 
 		// Keep the same ID
 		plan.Id = state.Id
-		resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
+
 		return nil
 	})
 
@@ -152,4 +151,6 @@ func (r *EnterpriseRoleResource) Update(ctx context.Context, req resource.Update
 		)
 		return
 	}
+
+	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }
