@@ -152,9 +152,10 @@ func FetchAndProcessRoles(ctx context.Context, apiManager *api.ApiManager, state
 //   - error: Error if fetching roles or building lookup maps fails
 //
 // Example:
-//   User config: roles = ["123", "456"]
-//   API returns: ["Admin Role", "User Role"]
-//   Function returns: ["123", "456"] (preserves original IDs)
+//
+//	User config: roles = ["123", "456"]
+//	API returns: ["Admin Role", "User Role"]
+//	Function returns: ["123", "456"] (preserves original IDs)
 func RestoreUserInputFormatForRoles(ctx context.Context, apiManager *api.ApiManager, roleNames []string, currentState types.Set) (types.Set, error) {
 	return RestoreUserInputFormatFromApiResponse(
 		ctx,

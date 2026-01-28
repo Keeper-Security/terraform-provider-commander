@@ -169,9 +169,10 @@ func FetchAndProcessUsers(ctx context.Context, apiManager *api.ApiManager, state
 //   - error: Error if fetching users or building lookup maps fails
 //
 // Example:
-//   User config: users = ["123", "456"]
-//   API returns: ["user1@example.com", "user2@example.com"]
-//   Function returns: ["123", "456"] (preserves original IDs)
+//
+//	User config: users = ["123", "456"]
+//	API returns: ["user1@example.com", "user2@example.com"]
+//	Function returns: ["123", "456"] (preserves original IDs)
 func RestoreUserInputFormatForUsers(ctx context.Context, apiManager *api.ApiManager, userEmails []string, currentState types.Set) (types.Set, error) {
 	return RestoreUserInputFormatFromApiResponse(
 		ctx,

@@ -2,6 +2,7 @@ package enterpriserole
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strconv"
 
@@ -60,7 +61,7 @@ func (r *EnterpriseRoleResource) Read(ctx context.Context, req resource.ReadRequ
 		if roleInfo == nil {
 			// Resource not found - remove from state
 			resp.State.RemoveResource(ctx)
-			return nil
+			return utils.ErrResourceRemoved
 		}
 
 		if err := mapRoleReadResponseToModel(ctx, r.apiManager, *roleInfo, &state, stateId); err != nil {
@@ -71,6 +72,9 @@ func (r *EnterpriseRoleResource) Read(ctx context.Context, req resource.ReadRequ
 	})
 
 	if err != nil {
+		if errors.Is(err, utils.ErrResourceRemoved) {
+			return
+		}
 		resp.Diagnostics.AddError(
 			"Read Enterprise Role Failed",
 			err.Error(),

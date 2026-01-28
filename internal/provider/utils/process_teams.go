@@ -150,9 +150,10 @@ func FetchAndProcessTeams(ctx context.Context, apiManager *api.ApiManager, state
 //   - error: Error if fetching teams or building lookup maps fails
 //
 // Example:
-//   User config: teams = ["abc123xyz", "def456uvw"]
-//   API returns: ["Dev Team", "QA Team"]
-//   Function returns: ["abc123xyz", "def456uvw"] (preserves original team_uids)
+//
+//	User config: teams = ["abc123xyz", "def456uvw"]
+//	API returns: ["Dev Team", "QA Team"]
+//	Function returns: ["abc123xyz", "def456uvw"] (preserves original team_uids)
 func RestoreUserInputFormatForTeams(ctx context.Context, apiManager *api.ApiManager, teamNames []string, currentState types.Set) (types.Set, error) {
 	return RestoreUserInputFormatFromApiResponse(
 		ctx,

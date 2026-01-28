@@ -1,0 +1,106 @@
+package enterprisenode
+
+import (
+	"context"
+	"errors"
+	"fmt"
+	"strconv"
+
+	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/api"
+	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/utils"
+	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/hashicorp/terraform-plugin-framework/types"
+)
+
+func (r *EnterpriseNodeResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+	var state EnterpriseNodeResourceModel
+
+	// Get current state (old values)
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	// Validate ApiManager is configured
+	if err := r.ensureApiManager(); err != nil {
+		resp.Diagnostics.AddError(
+			"Provider Configuration Error",
+			err.Error(),
+		)
+		return
+	}
+
+	// Execute with managed company context if provided
+	// ExecuteWithManagedCompanyContext handles context switching and enterprise-down internally
+	err := utils.ExecuteWithManagedCompanyContext(ctx, r.apiManager, state.ManagedCompany, func() error {
+
+		nodeInfo, err := fetchEnterpriseNodeById(ctx, r.apiManager, state.Id.ValueString())
+		if err != nil {
+			return err
+		}
+
+		if nodeInfo == nil {
+			// Resource not found - remove from state
+			resp.State.RemoveResource(ctx)
+			return utils.ErrResourceRemoved
+		}
+
+		// Map the response to the state
+		state.Id = types.StringValue(strconv.Itoa(nodeInfo.NodeId))
+		state.Name = types.StringValue(nodeInfo.Name)
+
+		// TODO: here we need to check with client if we need to set the parent node name or id bec previous state value is cant be accessed so we will not know if parent id is selecetd or name
+		// Set parent if it exists in the response
+		state.Parent = types.StringValue(nodeInfo.ParentNodeName)
+
+		return nil
+	})
+
+	if err != nil {
+		if errors.Is(err, utils.ErrResourceRemoved) {
+			return
+		}
+		resp.Diagnostics.AddError(
+			"Read Enterprise Node Failed",
+			err.Error(),
+		)
+		return
+	}
+
+	// Set the updated state
+	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
+}
+
+func fetchEnterpriseNodeById(ctx context.Context, apiManager *api.ApiManager, id string) (*utils.NodeInfo, error) {
+
+	// Build the Commander command string
+	command := fmt.Sprintf("enterprise-info -n -v --format json --node '%s'", id)
+
+	apiResp, err := apiManager.ExecuteCommand(ctx, command, "Unable to read enterprise node")
+	if err != nil {
+		return nil, err
+	}
+
+	// Parse the JSON response - it's an array of node objects
+	var nodes []utils.NodeInfo
+
+	if err := utils.UnmarshalApiResponse(apiResp.Data, &nodes); err != nil {
+		return nil, fmt.Errorf("unable to parse enterprise nodes list from API response: %w", err)
+	}
+
+	// Find the node matching state.Id (which is the node name)
+	var nodeInfo *utils.NodeInfo
+
+	for i := range nodes {
+		if strconv.Itoa(nodes[i].NodeId) == id {
+			nodeInfo = &nodes[i]
+			break
+		}
+	}
+
+	if nodeInfo == nil {
+		return nil, fmt.Errorf("Enterprise node not found for id: %s", id)
+	}
+
+	return nodeInfo, nil
+}

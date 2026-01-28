@@ -11,6 +11,7 @@ import (
 	"strings"
 
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/api"
+	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/utils"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
@@ -317,7 +318,7 @@ func validateManagingNodes(ctx context.Context, managingNodesMap types.Map, apiR
 		return fmt.Errorf("unable to process the response from Keeper Commander API: %w", err)
 	}
 
-	var availableNodes []NodeInfo
+	var availableNodes []utils.NodeInfo
 	if err := json.Unmarshal(dataBytes, &availableNodes); err != nil {
 		return fmt.Errorf("unable to parse nodes list from API response: %w", err)
 	}
