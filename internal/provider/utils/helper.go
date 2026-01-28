@@ -6,6 +6,7 @@ package utils
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"regexp"
 	"strings"
@@ -13,6 +14,10 @@ import (
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/api"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
+
+// ErrResourceRemoved is returned by Read callbacks when the resource was not found
+// and has been removed from state. The caller should return without calling State.Set.
+var ErrResourceRemoved = errors.New("resource removed from state")
 
 // SwitchToManageCompany switches to the specified managed company
 func SwitchToManageCompany(ctx context.Context, apiManager *api.ApiManager, manageCompany string) error {
