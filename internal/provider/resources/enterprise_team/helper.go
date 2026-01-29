@@ -15,8 +15,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
-func parseNodesResponse(data interface{}) ([]utils.NodeInfo, error) {
-	var nodes []utils.NodeInfo
+func parseNodesResponse(data interface{}) ([]utils.EnterpriseNodeResponse, error) {
+	var nodes []utils.EnterpriseNodeResponse
 
 	dataBytes, err := json.Marshal(data)
 	if err != nil {

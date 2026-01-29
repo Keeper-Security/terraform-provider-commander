@@ -130,8 +130,8 @@ func addTeamBasicAttributes(ctx context.Context, apiManager *api.ApiManager, dat
 }
 
 // parseTeamsResponse parses the JSON response from enterprise-info -t command
-func parseTeamsResponse(data interface{}) ([]TeamInfo, error) {
-	var teams []TeamInfo
+func parseTeamsResponse(data interface{}) ([]utils.EnterpriseTeamResponse, error) {
+	var teams []utils.EnterpriseTeamResponse
 
 	dataBytes, err := json.Marshal(data)
 	if err != nil {
@@ -146,7 +146,7 @@ func parseTeamsResponse(data interface{}) ([]TeamInfo, error) {
 }
 
 // findTeamUidByName finds a team UID by name from the teams list
-func findTeamUidByName(teams []TeamInfo, teamName string) (string, error) {
+func findTeamUidByName(teams []utils.EnterpriseTeamResponse, teamName string) (string, error) {
 	for _, team := range teams {
 		if team.Name == teamName {
 			return team.TeamUid, nil

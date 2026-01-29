@@ -41,7 +41,7 @@ func (r *EnterpriseRoleResource) Read(ctx context.Context, req resource.ReadRequ
 		}
 
 		// Parse the JSON response - it's an array of role objects
-		var roles []RoleResponse
+		var roles []utils.EnterpriseRoleResponse
 
 		// Unmarshal API response into roles struct
 		if err := utils.UnmarshalApiResponse(apiResp.Data, &roles); err != nil {
@@ -49,7 +49,7 @@ func (r *EnterpriseRoleResource) Read(ctx context.Context, req resource.ReadRequ
 		}
 
 		// Find the role matching state.Id
-		var roleInfo *RoleResponse
+		var roleInfo *utils.EnterpriseRoleResponse
 		stateId := state.Id.ValueString()
 		for i := range roles {
 			if strconv.Itoa(roles[i].RoleId) == stateId || roles[i].Name == stateId {
@@ -87,7 +87,7 @@ func (r *EnterpriseRoleResource) Read(ctx context.Context, req resource.ReadRequ
 }
 
 // Note: We will remove stateId from the function parameters in the future, when we will have role_id in the response while creating the role.
-func mapRoleReadResponseToModel(ctx context.Context, apiManager *api.ApiManager, roleInfo RoleResponse, state *EnterpriseRoleResourceModel, stateId string) error {
+func mapRoleReadResponseToModel(ctx context.Context, apiManager *api.ApiManager, roleInfo utils.EnterpriseRoleResponse, state *EnterpriseRoleResourceModel, stateId string) error {
 	// Map the response to the state
 	state.Id = types.StringValue(stateId)
 	state.Name = types.StringValue(roleInfo.Name)

@@ -13,15 +13,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
-// TeamInfo represents a team from the API response
-type TeamInfo struct {
-	TeamUid string `json:"team_uid"`
-	Name    string `json:"name"`
-}
-
 // ParseTeamsResponse parses the JSON response from enterprise-info -t command
-func ParseTeamsResponse(data interface{}) ([]TeamInfo, error) {
-	var teams []TeamInfo
+func ParseTeamsResponse(data interface{}) ([]EnterpriseTeamResponse, error) {
+	var teams []EnterpriseTeamResponse
 
 	dataBytes, err := json.Marshal(data)
 	if err != nil {
@@ -36,7 +30,7 @@ func ParseTeamsResponse(data interface{}) ([]TeamInfo, error) {
 }
 
 // BuildTeamLookupMaps creates lookup maps from API response
-func BuildTeamLookupMaps(teamsRespData []TeamInfo) LookupMaps {
+func BuildTeamLookupMaps(teamsRespData []EnterpriseTeamResponse) LookupMaps {
 	identifierToId := make(map[string]string)
 	idToIdentifier := make(map[string]string)
 
@@ -54,7 +48,7 @@ func BuildTeamLookupMaps(teamsRespData []TeamInfo) LookupMaps {
 }
 
 // ConvertTeamsToIdMap converts a types.Set of teams to a map of team_uid -> original input
-func ConvertTeamsToIdMap(teams types.Set, lookup LookupMaps, teamsRespData []TeamInfo) (map[string]string, error) {
+func ConvertTeamsToIdMap(teams types.Set, lookup LookupMaps, teamsRespData []EnterpriseTeamResponse) (map[string]string, error) {
 	validateTeam := func(userInput string) (bool, string) {
 		for _, team := range teamsRespData {
 			if team.Name == userInput && team.TeamUid == "" {
@@ -163,6 +157,6 @@ func RestoreUserInputFormatForTeams(ctx context.Context, apiManager *api.ApiMana
 		"team",
 		"enterprise-info -t --format json",
 		func(data interface{}) (interface{}, error) { return ParseTeamsResponse(data) },
-		func(data interface{}) LookupMaps { return BuildTeamLookupMaps(data.([]TeamInfo)) },
+		func(data interface{}) LookupMaps { return BuildTeamLookupMaps(data.([]EnterpriseTeamResponse)) },
 	)
 }

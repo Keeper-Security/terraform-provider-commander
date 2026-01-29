@@ -71,7 +71,7 @@ func (r *EnterpriseNodeResource) Read(ctx context.Context, req resource.ReadRequ
 	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
 }
 
-func fetchEnterpriseNodeById(ctx context.Context, apiManager *api.ApiManager, id string) (*utils.NodeInfo, error) {
+func fetchEnterpriseNodeById(ctx context.Context, apiManager *api.ApiManager, id string) (*utils.EnterpriseNodeResponse, error) {
 
 	// Build the Commander command string
 	command := fmt.Sprintf("enterprise-info -n -v --format json --node '%s'", id)
@@ -82,14 +82,14 @@ func fetchEnterpriseNodeById(ctx context.Context, apiManager *api.ApiManager, id
 	}
 
 	// Parse the JSON response - it's an array of node objects
-	var nodes []utils.NodeInfo
+	var nodes []utils.EnterpriseNodeResponse
 
 	if err := utils.UnmarshalApiResponse(apiResp.Data, &nodes); err != nil {
 		return nil, fmt.Errorf("unable to parse enterprise nodes list from API response: %w", err)
 	}
 
 	// Find the node matching state.Id (which is the node name)
-	var nodeInfo *utils.NodeInfo
+	var nodeInfo *utils.EnterpriseNodeResponse
 
 	for i := range nodes {
 		if strconv.Itoa(nodes[i].NodeId) == id {
@@ -98,8 +98,10 @@ func fetchEnterpriseNodeById(ctx context.Context, apiManager *api.ApiManager, id
 		}
 	}
 
+	// Node not in list - resource was likely deleted outside Terraform.
+	// Return (nil, nil) so Read can remove it from state instead of erroring.
 	if nodeInfo == nil {
-		return nil, fmt.Errorf("Enterprise node not found for id: %s", id)
+		return nil, nil
 	}
 
 	return nodeInfo, nil

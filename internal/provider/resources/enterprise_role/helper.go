@@ -318,7 +318,7 @@ func validateManagingNodes(ctx context.Context, managingNodesMap types.Map, apiR
 		return fmt.Errorf("unable to process the response from Keeper Commander API: %w", err)
 	}
 
-	var availableNodes []utils.NodeInfo
+	var availableNodes []utils.EnterpriseNodeResponse
 	if err := json.Unmarshal(dataBytes, &availableNodes); err != nil {
 		return fmt.Errorf("unable to parse nodes list from API response: %w", err)
 	}

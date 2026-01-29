@@ -14,16 +14,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
-// UserInfo represents a user from the API response
-type UserInfo struct {
-	UserId int    `json:"user_id"`
-	Email  string `json:"email"`
-	Status string `json:"status"`
-}
-
 // ParseUsersResponse parses the JSON response from enterprise-info -u command
-func ParseUsersResponse(data interface{}) ([]UserInfo, error) {
-	var users []UserInfo
+func ParseUsersResponse(data interface{}) ([]EnterpriseUserResponse, error) {
+	var users []EnterpriseUserResponse
 
 	dataBytes, err := json.Marshal(data)
 	if err != nil {
@@ -38,7 +31,7 @@ func ParseUsersResponse(data interface{}) ([]UserInfo, error) {
 }
 
 // BuildUserLookupMaps creates lookup maps from API response
-func BuildUserLookupMaps(usersRespData []UserInfo) LookupMaps {
+func BuildUserLookupMaps(usersRespData []EnterpriseUserResponse) LookupMaps {
 	identifierToId := make(map[string]string)
 	idToIdentifier := make(map[string]string)
 
@@ -57,7 +50,7 @@ func BuildUserLookupMaps(usersRespData []UserInfo) LookupMaps {
 }
 
 // ConvertUsersToIdMap converts a types.Set of users to a map of user_id -> original input
-func ConvertUsersToIdMap(users types.Set, lookup LookupMaps, usersRespData []UserInfo) (map[string]string, error) {
+func ConvertUsersToIdMap(users types.Set, lookup LookupMaps, usersRespData []EnterpriseUserResponse) (map[string]string, error) {
 	validateUser := func(userInput string) (bool, string) {
 		for _, user := range usersRespData {
 			if user.Email == userInput && user.UserId <= 0 {
@@ -96,8 +89,8 @@ func FetchAndProcessUsers(ctx context.Context, apiManager *api.ApiManager, state
 	// Build lookup maps
 	lookup := BuildUserLookupMaps(usersRespData)
 
-	// Create a map of user_id -> UserInfo for status checking
-	userIdToUserInfo := make(map[string]UserInfo)
+	// Create a map of user_id -> EnterpriseUserResponse for status checking
+	userIdToUserInfo := make(map[string]EnterpriseUserResponse)
 	for _, user := range usersRespData {
 		if user.UserId > 0 {
 			userIdStr := strconv.Itoa(user.UserId)
@@ -182,6 +175,6 @@ func RestoreUserInputFormatForUsers(ctx context.Context, apiManager *api.ApiMana
 		"user",
 		"enterprise-info -u --format json",
 		func(data interface{}) (interface{}, error) { return ParseUsersResponse(data) },
-		func(data interface{}) LookupMaps { return BuildUserLookupMaps(data.([]UserInfo)) },
+		func(data interface{}) LookupMaps { return BuildUserLookupMaps(data.([]EnterpriseUserResponse)) },
 	)
 }
