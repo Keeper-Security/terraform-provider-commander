@@ -14,15 +14,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
-// RoleInfo represents a role from the API response
-type RoleInfo struct {
-	RoleId int    `json:"role_id"`
-	Name   string `json:"name"`
-}
-
 // ParseRolesResponse parses the JSON response from enterprise-info -r command
-func ParseRolesResponse(data interface{}) ([]RoleInfo, error) {
-	var roles []RoleInfo
+func ParseRolesResponse(data interface{}) ([]EnterpriseRoleResponse, error) {
+	var roles []EnterpriseRoleResponse
 
 	dataBytes, err := json.Marshal(data)
 	if err != nil {
@@ -37,7 +31,7 @@ func ParseRolesResponse(data interface{}) ([]RoleInfo, error) {
 }
 
 // BuildRoleLookupMaps creates lookup maps from API response
-func BuildRoleLookupMaps(rolesRespData []RoleInfo) LookupMaps {
+func BuildRoleLookupMaps(rolesRespData []EnterpriseRoleResponse) LookupMaps {
 	identifierToId := make(map[string]string)
 	idToIdentifier := make(map[string]string)
 
@@ -56,7 +50,7 @@ func BuildRoleLookupMaps(rolesRespData []RoleInfo) LookupMaps {
 }
 
 // ConvertRolesToIdMap converts a types.Set of roles to a map of role_id -> original input
-func ConvertRolesToIdMap(roles types.Set, lookup LookupMaps, rolesRespData []RoleInfo) (map[string]string, error) {
+func ConvertRolesToIdMap(roles types.Set, lookup LookupMaps, rolesRespData []EnterpriseRoleResponse) (map[string]string, error) {
 	validateRole := func(userInput string) (bool, string) {
 		for _, role := range rolesRespData {
 			if role.Name == userInput && role.RoleId <= 0 {
@@ -165,6 +159,6 @@ func RestoreUserInputFormatForRoles(ctx context.Context, apiManager *api.ApiMana
 		"role",
 		"enterprise-info -r --format json",
 		func(data interface{}) (interface{}, error) { return ParseRolesResponse(data) },
-		func(data interface{}) LookupMaps { return BuildRoleLookupMaps(data.([]RoleInfo)) },
+		func(data interface{}) LookupMaps { return BuildRoleLookupMaps(data.([]EnterpriseRoleResponse)) },
 	)
 }

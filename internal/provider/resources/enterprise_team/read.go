@@ -52,7 +52,7 @@ func (r *EnterpriseTeamResource) Read(ctx context.Context, req resource.ReadRequ
 		}
 
 		// Find the team matching the ID
-		var teamInfo *EnterpriseTeamReadResponse
+		var teamInfo *utils.EnterpriseTeamResponse
 		for i := range teams {
 			if teams[i].TeamUid == state.Id.ValueString() {
 				teamInfo = &teams[i]
@@ -90,8 +90,8 @@ func (r *EnterpriseTeamResource) Read(ctx context.Context, req resource.ReadRequ
 }
 
 // parseEnterpriseTeamReadResponse parses the JSON response from enterprise-info -t command
-func parseEnterpriseTeamReadResponse(data interface{}) ([]EnterpriseTeamReadResponse, error) {
-	var teams []EnterpriseTeamReadResponse
+func parseEnterpriseTeamReadResponse(data interface{}) ([]utils.EnterpriseTeamResponse, error) {
+	var teams []utils.EnterpriseTeamResponse
 
 	dataBytes, err := json.Marshal(data)
 	if err != nil {
@@ -132,7 +132,7 @@ func parseRestrictsString(restricts string) (restrictEdit, restrictShare, restri
 }
 
 // mapTeamReadResponseToModel maps the API response to the resource model
-func mapTeamReadResponseToModel(ctx context.Context, apiManager *api.ApiManager, teamResp EnterpriseTeamReadResponse, state *EnterpriseTeamResourceModel) error {
+func mapTeamReadResponseToModel(ctx context.Context, apiManager *api.ApiManager, teamResp utils.EnterpriseTeamResponse, state *EnterpriseTeamResourceModel) error {
 	// Map ID
 	state.Id = types.StringValue(teamResp.TeamUid)
 

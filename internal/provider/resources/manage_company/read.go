@@ -95,7 +95,7 @@ func (r *ManageCompanyResource) Read(ctx context.Context, req resource.ReadReque
 	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
 }
 
-func fetchManageCompanyById(ctx context.Context, apiManager *api.ApiManager, id string) (*ManageCompanyResponse, error) {
+func fetchManageCompanyById(ctx context.Context, apiManager *api.ApiManager, id string) (*utils.ManageCompanyResponse, error) {
 	// Build command to get all companies info
 	command := fmt.Sprintf("msp-info -m '%s' --format json -v", id)
 
@@ -105,7 +105,7 @@ func fetchManageCompanyById(ctx context.Context, apiManager *api.ApiManager, id 
 	}
 
 	// Parse the JSON response - it's an array of company objects
-	var companies []ManageCompanyResponse
+	var companies []utils.ManageCompanyResponse
 
 	if err := utils.UnmarshalApiResponse(apiResp.Data, &companies); err != nil {
 		return nil, fmt.Errorf("Parsing managed company response failed: %w", err)
@@ -117,7 +117,7 @@ func fetchManageCompanyById(ctx context.Context, apiManager *api.ApiManager, id 
 		return nil, fmt.Errorf("Invalid company ID: %w", err)
 	}
 
-	var companyInfo *ManageCompanyResponse
+	var companyInfo *utils.ManageCompanyResponse
 
 	for i := range companies {
 		if companies[i].CompanyId == stateIdInt {
