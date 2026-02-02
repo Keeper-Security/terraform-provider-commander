@@ -3,6 +3,7 @@ package enterpriserole
 import (
 	"context"
 	"fmt"
+	"strconv"
 	"strings"
 
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/api"
@@ -52,14 +53,9 @@ func (r *EnterpriseRoleResource) Create(ctx context.Context, req resource.Create
 		}
 
 		// Step 2: Build and execute the command to create the role
-		if err := addRoleBasicAttributes(ctx, r.apiManager, data); err != nil {
+		if err := addRoleBasicAttributes(ctx, r.apiManager, &data); err != nil {
 			return err
 		}
-
-		// Set the role ID (using name as ID)
-		// TODO: Get the role ID from the response when Commander CLI command is updated
-		roleId := data.Name.ValueString()
-		data.Id = types.StringValue(roleId)
 
 		// Step 3: Validate managing nodes before processing
 		// Fetch all available nodes for current scope
@@ -74,25 +70,25 @@ func (r *EnterpriseRoleResource) Create(ctx context.Context, req resource.Create
 		}
 
 		// Step 4: Process managing nodes if provided
-		if err := processManagingNodes(ctx, r.apiManager, roleId, data.ManagingNodes); err != nil {
+		if err := processManagingNodes(ctx, r.apiManager, data.Id.ValueInt64(), data.ManagingNodes); err != nil {
 			return err
 		}
 
 		// Step 5: Process enforcement policies if provided
-		if err := processEnforcementPolicies(ctx, r.apiManager, roleId, data.EnforcementPolicies); err != nil {
+		if err := processEnforcementPolicies(ctx, r.apiManager, data.Id.ValueInt64(), data.EnforcementPolicies); err != nil {
 			return err
 		}
 
 		// Step 6: Add users and teams to the recently created role
 		if users != "" {
-			command := fmt.Sprintf("enterprise-role '%s' -f %s", roleId, users)
+			command := fmt.Sprintf("enterprise-role '%d' -f %s", data.Id.ValueInt64(), users)
 			_, err = r.apiManager.ExecuteCommand(ctx, command, "Unable to add users to the enterprise role")
 			if err != nil {
 				return err
 			}
 		}
 		if teams != "" {
-			command := fmt.Sprintf("enterprise-role '%s' -f %s", roleId, teams)
+			command := fmt.Sprintf("enterprise-role '%d' -f %s", data.Id.ValueInt64(), teams)
 			_, err = r.apiManager.ExecuteCommand(ctx, command, "Unable to add teams to the enterprise role")
 			if err != nil {
 				return err
@@ -114,7 +110,7 @@ func (r *EnterpriseRoleResource) Create(ctx context.Context, req resource.Create
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
 
-func addRoleBasicAttributes(ctx context.Context, apiManager *api.ApiManager, data EnterpriseRoleResourceModel) error {
+func addRoleBasicAttributes(ctx context.Context, apiManager *api.ApiManager, data *EnterpriseRoleResourceModel) error {
 	var parts []string
 
 	parts = append(parts, "enterprise-role")
@@ -129,9 +125,21 @@ func addRoleBasicAttributes(ctx context.Context, apiManager *api.ApiManager, dat
 
 	command := strings.Join(parts, " ")
 
-	_, err := apiManager.ExecuteCommand(ctx, command, "Unable to add basic role attributes to the enterprise role")
+	createdRoleResponse, err := apiManager.ExecuteCommand(ctx, command, "Unable to add basic role attributes to the enterprise role")
 	if err != nil {
 		return err
+	}
+
+	createdRoleId, isCreatedRoleIdExtracted := extractRoleIdFromCreateRoleResponse(string(createdRoleResponse.Message))
+
+	if isCreatedRoleIdExtracted {
+		createdRoleIdInt, err := strconv.Atoi(createdRoleId)
+		if err != nil {
+			return fmt.Errorf("failed to convert created role id to int: %w", err)
+		}
+		data.Id = types.Int64Value(int64(createdRoleIdInt))
+	} else {
+		return fmt.Errorf("failed to extract role id from create role response: %s", string(createdRoleResponse.Message))
 	}
 
 	return nil

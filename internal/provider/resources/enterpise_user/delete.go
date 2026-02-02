@@ -1,4 +1,4 @@
-package enterpriserole
+package enterpiseuser
 
 import (
 	"context"
@@ -8,8 +8,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 )
 
-func (r *EnterpriseRoleResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-	var state EnterpriseRoleResourceModel
+func (r *EnterpriseUserResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+	var state EnterpriseUserResourceModel
 
 	// Get state from Terraform
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
@@ -28,19 +28,17 @@ func (r *EnterpriseRoleResource) Delete(ctx context.Context, req resource.Delete
 
 	// Execute with managed company context if provided
 	err := utils.ExecuteWithManagedCompanyContext(ctx, r.apiManager, state.ManagedCompany, func() error {
-
-		command := fmt.Sprintf("enterprise-role --delete '%d'", state.Id.ValueInt64())
-
-		_, err := r.apiManager.ExecuteCommand(ctx, command, "Unable to delete enterprise role")
+		command := fmt.Sprintf("enterprise-user --delete '%s' -f", state.Id.ValueString())
+		_, err := r.apiManager.ExecuteCommand(ctx, command, "Unable to delete enterprise user")
 		if err != nil {
-			return fmt.Errorf("Delete Enterprise Role Failed: %w", err)
+			return err
 		}
 		return nil
 	})
 
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Delete Enterprise Role Failed",
+			"Delete Enterprise User Failed",
 			err.Error(),
 		)
 		return

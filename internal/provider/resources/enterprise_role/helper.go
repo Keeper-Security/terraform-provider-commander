@@ -7,6 +7,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"regexp"
 	"sort"
 	"strings"
 
@@ -55,7 +56,7 @@ func extractEnforcementPolicies(ctx context.Context, enforcementPoliciesMap type
 // Note: This function only supports setting/updating enforcement policies present in the input.
 // If a key is removed from Terraform config, there is currently no known Commander CLI "unset" flag,
 // so removals are treated as "stop managing" rather than actively unsetting on the remote side.
-func buildUpdateEnforcementPoliciesCommand(roleId string, policies map[string]types.String) (string, error) {
+func buildUpdateEnforcementPoliciesCommand(roleId int64, policies map[string]types.String) (string, error) {
 	if len(policies) == 0 {
 		return "", nil
 	}
@@ -67,7 +68,7 @@ func buildUpdateEnforcementPoliciesCommand(roleId string, policies map[string]ty
 	sort.Strings(keys)
 
 	var parts []string
-	parts = append(parts, fmt.Sprintf("enterprise-role '%s'", roleId))
+	parts = append(parts, fmt.Sprintf("enterprise-role '%d'", roleId))
 
 	for _, key := range keys {
 		v := policies[key]
@@ -85,10 +86,10 @@ func buildUpdateEnforcementPoliciesCommand(roleId string, policies map[string]ty
 
 // buildAddManagingNodeCommand builds the command to add a managing node to a role
 // Format: enterprise-role "Role ID/Name" -aa 'Managing Node Name' --cascade on/off
-func buildAddManagingNodeCommand(roleId, managingNodeName string, cascade bool) string {
+func buildAddManagingNodeCommand(roleId int64, managingNodeName string, cascade bool) string {
 	var parts []string
 
-	parts = append(parts, fmt.Sprintf("enterprise-role '%s' -aa '%s'", roleId, managingNodeName))
+	parts = append(parts, fmt.Sprintf("enterprise-role '%d' -aa '%s'", roleId, managingNodeName))
 
 	if cascade {
 		parts = append(parts, "--cascade on")
@@ -101,10 +102,10 @@ func buildAddManagingNodeCommand(roleId, managingNodeName string, cascade bool) 
 
 // buildAddRemoveManagingNodePrivilegesCommand builds the command to add/remove privileges for a managing node.
 // Format: enterprise-role 'Role ID/Name' --node 'Managing Node Name' -ap 'priv1' -ap 'priv2' -rp 'priv3' -rp 'priv4' ...
-func buildAddRemoveManagingNodePrivilegesCommand(roleId, managingNodeName string, addPrivileges []string, removePrivileges []string) string {
+func buildAddRemoveManagingNodePrivilegesCommand(roleId int64, managingNodeName string, addPrivileges []string, removePrivileges []string) string {
 	var parts []string
 
-	parts = append(parts, fmt.Sprintf("enterprise-role '%s' --node '%s'", roleId, managingNodeName))
+	parts = append(parts, fmt.Sprintf("enterprise-role '%d' --node '%s'", roleId, managingNodeName))
 
 	// Add privileges with -ap
 	for _, privilege := range addPrivileges {
@@ -156,7 +157,7 @@ func getCascadeValue(node ManagingNodeModel) bool {
 
 // addManagingNodeWithPrivileges adds a managing node to a role and sets its privileges
 // managingNodeName is the node name/ID (map key)
-func addManagingNodeWithPrivileges(ctx context.Context, apiManager *api.ApiManager, roleId string, managingNodeName string, node ManagingNodeModel) error {
+func addManagingNodeWithPrivileges(ctx context.Context, apiManager *api.ApiManager, roleId int64, managingNodeName string, node ManagingNodeModel) error {
 	if managingNodeName == "" {
 		return fmt.Errorf("managing node name cannot be empty")
 	}
@@ -190,7 +191,7 @@ func addManagingNodeWithPrivileges(ctx context.Context, apiManager *api.ApiManag
 // processManagingNodes processes all managing nodes for a role (for CREATE operation)
 // 1. Adding each managing node to the role with cascade option
 // 2. Adding privileges to each managing node
-func processManagingNodes(ctx context.Context, apiManager *api.ApiManager, roleId string, managingNodesMap types.Map) error {
+func processManagingNodes(ctx context.Context, apiManager *api.ApiManager, roleId int64, managingNodesMap types.Map) error {
 	if managingNodesMap.IsNull() || managingNodesMap.IsUnknown() {
 		return nil
 	}
@@ -212,7 +213,7 @@ func processManagingNodes(ctx context.Context, apiManager *api.ApiManager, roleI
 
 // processEnforcementPolicies sets enforcement policies on a role (for CREATE operation).
 // This will set all policies present in the config on the role.
-func processEnforcementPolicies(ctx context.Context, apiManager *api.ApiManager, roleId string, enforcementPoliciesMap types.Map) error {
+func processEnforcementPolicies(ctx context.Context, apiManager *api.ApiManager, roleId int64, enforcementPoliciesMap types.Map) error {
 	policies, err := extractEnforcementPolicies(ctx, enforcementPoliciesMap)
 	if err != nil {
 		return err
@@ -232,7 +233,7 @@ func processEnforcementPolicies(ctx context.Context, apiManager *api.ApiManager,
 
 	_, err = apiManager.ExecuteCommand(ctx, cmd, "Unable to set enforcement policies for role")
 	if err != nil {
-		return fmt.Errorf("failed to set enforcement policies for role '%s': %w", roleId, err)
+		return fmt.Errorf("failed to set enforcement policies for role '%d': %w", roleId, err)
 	}
 
 	return nil
@@ -343,4 +344,15 @@ func validateManagingNodes(ctx context.Context, managingNodesMap types.Map, apiR
 	}
 
 	return nil
+}
+
+// extractRoleIdFromCreateRoleResponse extracts the role id from the response
+func extractRoleIdFromCreateRoleResponse(s string) (string, bool) {
+	re := regexp.MustCompile(`Role ID :\s*(\d+)`)
+	match := re.FindStringSubmatch(s)
+
+	if len(match) < 2 {
+		return "", false
+	}
+	return match[1], true
 }

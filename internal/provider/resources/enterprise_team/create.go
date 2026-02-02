@@ -2,7 +2,6 @@ package enterpriseteam
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"strings"
 
@@ -44,23 +43,14 @@ func (r *EnterpriseTeamResource) Create(ctx context.Context, req resource.Create
 			return err
 		}
 
-		if err := addTeamBasicAttributes(ctx, r.apiManager, data); err != nil {
+		if err := addTeamBasicAttributes(ctx, r.apiManager, &data); err != nil {
 			return err
 		}
-
-		// TODO: WE WILL REMOVE THIS fetchTeamUidByName FUNCTION AFTER WE ARE RECIEVING TEAM UID IN THE RESPONSE IN COMMANDER CLI
-		// Fetch the team UID by name
-		teamUid, err := fetchTeamUidByName(ctx, r.apiManager, data.Name.ValueString())
-		if err != nil {
-			return err
-		}
-
-		data.Id = types.StringValue(teamUid)
 
 		// Combine users and roles flags
 		if users != "" {
 			// Add Users and Roles to the recently created team
-			command := fmt.Sprintf("enterprise-team '%s' %s -v", teamUid, users)
+			command := fmt.Sprintf("enterprise-team '%s' %s -v", data.Id.ValueString(), users)
 
 			_, err = r.apiManager.ExecuteCommand(ctx, command, "Unable to add users to the enterprise team")
 			if err != nil {
@@ -69,7 +59,7 @@ func (r *EnterpriseTeamResource) Create(ctx context.Context, req resource.Create
 		}
 		if roles != "" {
 			// Add Users and Roles to the recently created team
-			command := fmt.Sprintf("enterprise-team '%s' %s -v", teamUid, roles)
+			command := fmt.Sprintf("enterprise-team '%s' %s -v", data.Id.ValueString(), roles)
 
 			_, err = r.apiManager.ExecuteCommand(ctx, command, "Unable to add roles to the enterprise team")
 			if err != nil {
@@ -94,7 +84,7 @@ func (r *EnterpriseTeamResource) Create(ctx context.Context, req resource.Create
 
 }
 
-func addTeamBasicAttributes(ctx context.Context, apiManager *api.ApiManager, data EnterpriseTeamResourceModel) error {
+func addTeamBasicAttributes(ctx context.Context, apiManager *api.ApiManager, data *EnterpriseTeamResourceModel) error {
 	var parts []string
 
 	parts = append(parts, "enterprise-team")
@@ -121,51 +111,18 @@ func addTeamBasicAttributes(ctx context.Context, apiManager *api.ApiManager, dat
 
 	command := strings.Join(parts, " ")
 
-	_, err := apiManager.ExecuteCommand(ctx, command, "Unable to create enterprise team")
+	createdTeamResponse, err := apiManager.ExecuteCommand(ctx, command, "Unable to create enterprise team")
 	if err != nil {
 		return err
 	}
 
+	createdTeamUid, isTeamIdExtracted := extractTeamIdFromCreateTeamResponse(string(createdTeamResponse.Message))
+
+	if isTeamIdExtracted {
+		data.Id = types.StringValue(createdTeamUid)
+	} else {
+		return fmt.Errorf("failed to extract team id from create team response: %s", string(createdTeamResponse.Message))
+	}
+
 	return nil
-}
-
-// parseTeamsResponse parses the JSON response from enterprise-info -t command
-func parseTeamsResponse(data interface{}) ([]utils.EnterpriseTeamResponse, error) {
-	var teams []utils.EnterpriseTeamResponse
-
-	dataBytes, err := json.Marshal(data)
-	if err != nil {
-		return nil, fmt.Errorf("unable to process the response from Keeper Commander Service Mode API: %w", err)
-	}
-
-	if err := json.Unmarshal(dataBytes, &teams); err != nil {
-		return nil, fmt.Errorf("unable to parse enterprise teams list from Service Mode API response: %w", err)
-	}
-
-	return teams, nil
-}
-
-// findTeamUidByName finds a team UID by name from the teams list
-func findTeamUidByName(teams []utils.EnterpriseTeamResponse, teamName string) (string, error) {
-	for _, team := range teams {
-		if team.Name == teamName {
-			return team.TeamUid, nil
-		}
-	}
-	return "", fmt.Errorf("enterprise team with name '%s' not found in the response", teamName)
-}
-
-// fetchTeamUidByName fetches the team UID by name using the API
-func fetchTeamUidByName(ctx context.Context, apiManager *api.ApiManager, teamName string) (string, error) {
-	teamsResp, err := apiManager.ExecuteCommand(ctx, fmt.Sprintf("enterprise-info -t --format json -q '%s'", teamName), "Unable to fetch enterprise team ID")
-	if err != nil {
-		return "", err
-	}
-
-	teams, err := parseTeamsResponse(teamsResp.Data)
-	if err != nil {
-		return "", err
-	}
-
-	return findTeamUidByName(teams, teamName)
 }

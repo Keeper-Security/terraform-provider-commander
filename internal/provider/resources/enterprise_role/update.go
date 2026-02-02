@@ -63,7 +63,7 @@ func (r *EnterpriseRoleResource) Update(ctx context.Context, req resource.Update
 
 	// Execute with managed company context if provided
 	err := utils.ExecuteWithManagedCompanyContext(ctx, r.apiManager, managedCompany, func() error {
-		roleId := state.Id.ValueString()
+		roleId := state.Id.ValueInt64()
 
 		// Step 1: Update basic role attributes (name, node, etc.)
 		if err := updateRoleBasicAttributes(ctx, r.apiManager, &plan, &state); err != nil {
@@ -158,7 +158,7 @@ func updateRoleBasicAttributes(ctx context.Context, apiManager *api.ApiManager, 
 	}
 
 	// Role to update
-	parts = append(parts, fmt.Sprintf("'%s'", state.Id.ValueString()))
+	parts = append(parts, fmt.Sprintf("'%d'", state.Id.ValueInt64()))
 
 	command := strings.Join(parts, " ")
 
@@ -174,7 +174,7 @@ func updateRoleBasicAttributes(ctx context.Context, apiManager *api.ApiManager, 
 // 2. Added nodes -> add via -aa with privileges and cascade
 // 3. Changed cascade -> update via -aa with --cascade
 // 4. Changed privileges -> update via --node with -ap flags
-func updateRoleManagingNodes(ctx context.Context, apiManager *api.ApiManager, roleId string, plan, state *EnterpriseRoleResourceModel) error {
+func updateRoleManagingNodes(ctx context.Context, apiManager *api.ApiManager, roleId int64, plan, state *EnterpriseRoleResourceModel) error {
 	/* NOTE: currently we dont need this logic bec when node name changes terraform will remove old managing node and add new managing node separately with its privileges and cascade option*/
 	// TODO: Validate that no managing node names have been changed
 	// if err := validateManagingNodeNamesUnchanged(ctx, plan.ManagingNodes, state.ManagingNodes); err != nil {
@@ -203,7 +203,7 @@ func updateRoleManagingNodes(ctx context.Context, apiManager *api.ApiManager, ro
 // updateRoleUsers updates users for a role
 // 1. Removed users -> remove via -ru
 // 2. Added users -> add via -au
-func updateRoleUsers(ctx context.Context, apiManager *api.ApiManager, roleId string, plan, state *EnterpriseRoleResourceModel) error {
+func updateRoleUsers(ctx context.Context, apiManager *api.ApiManager, roleId int64, plan, state *EnterpriseRoleResourceModel) error {
 	if plan.Users.Equal(state.Users) {
 		return nil // No change
 	}
@@ -214,7 +214,7 @@ func updateRoleUsers(ctx context.Context, apiManager *api.ApiManager, roleId str
 	}
 
 	if users != "" {
-		command := fmt.Sprintf("enterprise-role '%s' -f %s", roleId, users)
+		command := fmt.Sprintf("enterprise-role '%d' -f %s", roleId, users)
 		_, err = apiManager.ExecuteCommand(ctx, command, "Unable to update users for the enterprise role")
 		if err != nil {
 			return fmt.Errorf("failed to update users: %w", err)
@@ -227,7 +227,7 @@ func updateRoleUsers(ctx context.Context, apiManager *api.ApiManager, roleId str
 // updateRoleTeams updates teams for a role
 // 1. Removed teams -> remove via -rt
 // 2. Added teams -> add via -at
-func updateRoleTeams(ctx context.Context, apiManager *api.ApiManager, roleId string, plan, state *EnterpriseRoleResourceModel) error {
+func updateRoleTeams(ctx context.Context, apiManager *api.ApiManager, roleId int64, plan, state *EnterpriseRoleResourceModel) error {
 	if plan.Teams.Equal(state.Teams) {
 		return nil // No change
 	}
@@ -238,7 +238,7 @@ func updateRoleTeams(ctx context.Context, apiManager *api.ApiManager, roleId str
 	}
 
 	if teams != "" {
-		command := fmt.Sprintf("enterprise-role '%s' -f %s", roleId, teams)
+		command := fmt.Sprintf("enterprise-role '%d' -f %s", roleId, teams)
 		_, err = apiManager.ExecuteCommand(ctx, command, "Unable to update teams for the enterprise role")
 		if err != nil {
 			return fmt.Errorf("failed to update teams: %w", err)
@@ -250,13 +250,13 @@ func updateRoleTeams(ctx context.Context, apiManager *api.ApiManager, roleId str
 
 // buildRemoveManagingNodeCommand builds the command to remove multiple managing nodes from a role in a single call
 // Format: enterprise-role "Role ID/Name" -ra "Node1" -ra "Node2" -ra "Node3" ...
-func buildRemoveManagingNodeCommand(roleId string, managingNodeNames []string) string {
+func buildRemoveManagingNodeCommand(roleId int64, managingNodeNames []string) string {
 	if len(managingNodeNames) == 0 {
 		return ""
 	}
 
 	var parts []string
-	parts = append(parts, fmt.Sprintf("enterprise-role '%s'", roleId))
+	parts = append(parts, fmt.Sprintf("enterprise-role '%d'", roleId))
 
 	// Add each -ra flag for each node to remove
 	for _, nodeName := range managingNodeNames {
@@ -268,10 +268,10 @@ func buildRemoveManagingNodeCommand(roleId string, managingNodeNames []string) s
 
 // buildUpdateManagingNodeCascadeCommand builds the command to update cascade option for a managing node
 // Format: enterprise-role "Role ID/Name" -aa "Managing Node Name" --cascade on/off
-func buildUpdateManagingNodeCascadeCommand(roleId, managingNodeName string, cascade bool) string {
+func buildUpdateManagingNodeCascadeCommand(roleId int64, managingNodeName string, cascade bool) string {
 	var parts []string
 
-	parts = append(parts, fmt.Sprintf("enterprise-role '%s' -aa '%s'", roleId, managingNodeName))
+	parts = append(parts, fmt.Sprintf("enterprise-role '%d' -aa '%s'", roleId, managingNodeName))
 
 	if cascade {
 		parts = append(parts, "--cascade on")
@@ -318,7 +318,7 @@ func privilegesEqual(privs1, privs2 []string) bool {
 // 2. Added nodes -> add via -aa with privileges and cascade
 // 3. Changed cascade -> update via -aa with --cascade
 // 4. Changed privileges -> update via --node with -ap flags
-func processManagingNodesUpdate(ctx context.Context, apiManager *api.ApiManager, roleId string, planNodesMap, stateNodesMap types.Map) error {
+func processManagingNodesUpdate(ctx context.Context, apiManager *api.ApiManager, roleId int64, planNodesMap, stateNodesMap types.Map) error {
 	// Extract managing nodes from plan and state maps
 	planNodesMapValue, err := extractManagingNodes(ctx, planNodesMap)
 	if err != nil {
@@ -426,7 +426,7 @@ func processManagingNodesUpdate(ctx context.Context, apiManager *api.ApiManager,
 
 // processEnforcementPoliciesUpdate sets/updates enforcement policy values for keys present in the plan (for UPDATE operation).
 // It sends a single command containing all changed/added enforcement policies.
-func processEnforcementPoliciesUpdate(ctx context.Context, apiManager *api.ApiManager, roleId string, planPoliciesMap, statePoliciesMap types.Map) error {
+func processEnforcementPoliciesUpdate(ctx context.Context, apiManager *api.ApiManager, roleId int64, planPoliciesMap, statePoliciesMap types.Map) error {
 	planPolicies, err := extractEnforcementPolicies(ctx, planPoliciesMap)
 	if err != nil {
 		return err
@@ -456,7 +456,7 @@ func processEnforcementPoliciesUpdate(ctx context.Context, apiManager *api.ApiMa
 
 	_, err = apiManager.ExecuteCommand(ctx, cmd, "Unable to update enforcement policies for role")
 	if err != nil {
-		return fmt.Errorf("failed to update enforcement policies for role '%s': %w", roleId, err)
+		return fmt.Errorf("failed to update enforcement policies for role '%d': %w", roleId, err)
 	}
 
 	return nil

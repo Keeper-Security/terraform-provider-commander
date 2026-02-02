@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"strconv"
 
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/api"
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/utils"
@@ -33,7 +32,7 @@ func (r *EnterpriseRoleResource) Read(ctx context.Context, req resource.ReadRequ
 	// Execute with managed company context if provided
 	err := utils.ExecuteWithManagedCompanyContext(ctx, r.apiManager, state.ManagedCompany, func() error {
 		// Build the Commander command string
-		command := fmt.Sprintf("enterprise-info '%s' -r --format json --columns='visible_below,default_role,admin,node,user_count,users,team_count,teams' -q", state.Id.ValueString())
+		command := fmt.Sprintf("enterprise-info '%d' -r --format json --columns='visible_below,default_role,admin,node,user_count,users,team_count,teams' -q", state.Id.ValueInt64())
 
 		apiResp, err := r.apiManager.ExecuteCommand(ctx, command, "Unable to read enterprise role")
 		if err != nil {
@@ -50,9 +49,9 @@ func (r *EnterpriseRoleResource) Read(ctx context.Context, req resource.ReadRequ
 
 		// Find the role matching state.Id
 		var roleInfo *utils.EnterpriseRoleResponse
-		stateId := state.Id.ValueString()
+		stateId := state.Id.ValueInt64()
 		for i := range roles {
-			if strconv.Itoa(roles[i].RoleId) == stateId || roles[i].Name == stateId {
+			if int(roles[i].RoleId) == int(stateId) {
 				roleInfo = &roles[i]
 				break
 			}
@@ -87,9 +86,9 @@ func (r *EnterpriseRoleResource) Read(ctx context.Context, req resource.ReadRequ
 }
 
 // Note: We will remove stateId from the function parameters in the future, when we will have role_id in the response while creating the role.
-func mapRoleReadResponseToModel(ctx context.Context, apiManager *api.ApiManager, roleInfo utils.EnterpriseRoleResponse, state *EnterpriseRoleResourceModel, stateId string) error {
+func mapRoleReadResponseToModel(ctx context.Context, apiManager *api.ApiManager, roleInfo utils.EnterpriseRoleResponse, state *EnterpriseRoleResourceModel, stateId int64) error {
 	// Map the response to the state
-	state.Id = types.StringValue(stateId)
+	state.Id = types.Int64Value(stateId)
 	state.Name = types.StringValue(roleInfo.Name)
 	state.Node = types.StringValue(utils.ExtractNodeName(roleInfo.Node))
 
