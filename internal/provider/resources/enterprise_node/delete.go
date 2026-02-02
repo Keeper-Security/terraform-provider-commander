@@ -29,7 +29,7 @@ func (r *EnterpriseNodeResource) Delete(ctx context.Context, req resource.Delete
 	// Execute with managed company context if provided
 	err := utils.ExecuteWithManagedCompanyContext(ctx, r.apiManager, state.ManagedCompany, func() error {
 		// Build delete command
-		command := fmt.Sprintf("enterprise-node --delete '%s'", state.Id.ValueString())
+		command := fmt.Sprintf("enterprise-node --delete '%d'", state.Id.ValueInt64())
 
 		_, err := r.apiManager.ExecuteCommand(ctx, command, "Unable to delete enterprise node")
 		if err != nil {

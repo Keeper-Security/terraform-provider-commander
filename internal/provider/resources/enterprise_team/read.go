@@ -171,8 +171,7 @@ func mapTeamReadResponseToModel(ctx context.Context, apiManager *api.ApiManager,
 	// Node: convert to name (API always returns node name, but user may provide name or ID)
 	// Always update from API response to detect external changes
 
-	// TODO: we are not getting node in respose
-	// Update state with node name from API (always a name, not ID)
+	// TODO: Update state with node name/ID what user provided based on that,
 	state.Node = types.StringValue(utils.ExtractNodeName(teamResp.Node))
 
 	return nil

@@ -106,7 +106,7 @@ func updateEnterpriseNode(ctx context.Context, apiManager *api.ApiManager, plan 
 	// }
 
 	// Node to update
-	parts = append(parts, fmt.Sprintf("'%s'", state.Id.ValueString()))
+	parts = append(parts, fmt.Sprintf("'%d'", state.Id.ValueInt64()))
 
 	command := strings.Join(parts, " ")
 

@@ -3,6 +3,7 @@ package enterprisenode
 import (
 	"context"
 	"fmt"
+	"strconv"
 	"strings"
 
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/api"
@@ -93,17 +94,16 @@ func addNodeBasicAttributes(ctx context.Context, apiManager *api.ApiManager, dat
 		return fmt.Errorf("create enterprise node failed: %w", err)
 	}
 
-	nodeID, isNodeIDExtracted := utils.ExtractNodeIDFromCreateNodeResponse(string(createNodeResponse.Message))
+	createdNodeId, isCreatedNodeIdExtracted := utils.ExtractNodeIDFromCreateNodeResponse(string(createNodeResponse.Message))
 
-	// Initially set the id to the node name
-	idValue := data.Name.ValueString()
-
-	if isNodeIDExtracted {
-		// If the node id is extracted, set the id to the node id
-		idValue = nodeID
+	if isCreatedNodeIdExtracted {
+		createdNodeIdInt, err := strconv.Atoi(createdNodeId)
+		if err != nil {
+			return fmt.Errorf("failed to convert created node id string to int: %w", err)
+		}
+		data.Id = types.Int64Value(int64(createdNodeIdInt))
+	} else {
+		return fmt.Errorf("failed to extract node id from create node response: %s", string(createNodeResponse.Message))
 	}
-
-	data.Id = types.StringValue(idValue)
-
 	return nil
 }

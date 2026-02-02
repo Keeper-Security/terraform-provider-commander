@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"strconv"
 
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/api"
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/utils"
@@ -34,7 +33,7 @@ func (r *EnterpriseNodeResource) Read(ctx context.Context, req resource.ReadRequ
 	// ExecuteWithManagedCompanyContext handles context switching and enterprise-down internally
 	err := utils.ExecuteWithManagedCompanyContext(ctx, r.apiManager, state.ManagedCompany, func() error {
 
-		nodeInfo, err := fetchEnterpriseNodeById(ctx, r.apiManager, state.Id.ValueString())
+		nodeInfo, err := fetchEnterpriseNodeById(ctx, r.apiManager, state.Id.ValueInt64())
 		if err != nil {
 			return err
 		}
@@ -46,12 +45,12 @@ func (r *EnterpriseNodeResource) Read(ctx context.Context, req resource.ReadRequ
 		}
 
 		// Map the response to the state
-		state.Id = types.StringValue(strconv.Itoa(nodeInfo.NodeId))
+		state.Id = types.Int64Value(int64(nodeInfo.NodeId))
 		state.Name = types.StringValue(nodeInfo.Name)
 
 		// TODO: here we need to check with client if we need to set the parent node name or id bec previous state value is cant be accessed so we will not know if parent id is selecetd or name
 		// Set parent if it exists in the response
-		state.Parent = types.StringValue(nodeInfo.ParentNodeName)
+		state.Parent = types.StringValue(utils.ExtractNodeName(nodeInfo.ParentNodeName))
 
 		return nil
 	})
@@ -71,10 +70,10 @@ func (r *EnterpriseNodeResource) Read(ctx context.Context, req resource.ReadRequ
 	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
 }
 
-func fetchEnterpriseNodeById(ctx context.Context, apiManager *api.ApiManager, id string) (*utils.EnterpriseNodeResponse, error) {
+func fetchEnterpriseNodeById(ctx context.Context, apiManager *api.ApiManager, id int64) (*utils.EnterpriseNodeResponse, error) {
 
 	// Build the Commander command string
-	command := fmt.Sprintf("enterprise-info -n -v --format json --node '%s'", id)
+	command := fmt.Sprintf("enterprise-info -n -v --format json --node '%d'", id)
 
 	apiResp, err := apiManager.ExecuteCommand(ctx, command, "Unable to read enterprise node")
 	if err != nil {
@@ -92,7 +91,7 @@ func fetchEnterpriseNodeById(ctx context.Context, apiManager *api.ApiManager, id
 	var nodeInfo *utils.EnterpriseNodeResponse
 
 	for i := range nodes {
-		if strconv.Itoa(nodes[i].NodeId) == id {
+		if int(nodes[i].NodeId) == int(id) {
 			nodeInfo = &nodes[i]
 			break
 		}

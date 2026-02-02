@@ -59,7 +59,7 @@ func (r *EnterpriseTeamResource) Schema(ctx context.Context, req resource.Schema
 				MarkdownDescription: "Set of roles in the enterprise team. Duplicate values are automatically prevented. Empty strings are not allowed.",
 			},
 			"node": schema.StringAttribute{
-				Optional:            true,
+				Required:            true,
 				Description:         "Managing Node name or ID.",
 				MarkdownDescription: "Managing Node name or ID.",
 				Validators: []validator.String{

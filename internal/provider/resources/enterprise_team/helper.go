@@ -77,3 +77,17 @@ func convertNodeToName(ctx context.Context, apiManager *api.ApiManager, nodeFrom
 	// This handles edge case where node was deleted but team still references it
 	return types.StringNull(), nil
 }
+
+// Note: After creating a node, service mode api returns message like: "Node is created with Node ID: 1169425105420462"
+// This function extracts the node id from the response
+func extractTeamIdFromCreateTeamResponse(s string) (string, bool) {
+	_, after, ok := strings.Cut(s, "Team ID:")
+	if !ok {
+		return "", false
+	}
+	id := strings.TrimSpace(after)
+	if id == "" {
+		return "", false
+	}
+	return id, true
+}

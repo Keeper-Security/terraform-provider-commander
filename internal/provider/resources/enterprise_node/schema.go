@@ -11,7 +11,7 @@ import (
 func (r *EnterpriseNodeResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
-			"id": schema.StringAttribute{
+			"id": schema.Int64Attribute{
 				Computed: true,
 			},
 			"name": schema.StringAttribute{
@@ -21,7 +21,7 @@ func (r *EnterpriseNodeResource) Schema(ctx context.Context, req resource.Schema
 				},
 			},
 			"parent": schema.StringAttribute{
-				Optional: true,
+				Required: true,
 				Validators: []validator.String{
 					parentValidator{},
 				},
