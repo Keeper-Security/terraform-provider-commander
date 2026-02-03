@@ -66,8 +66,18 @@ func ConvertRolesToIdMap(roles types.Set, lookup LookupMaps, rolesRespData []Ent
 // FetchAndProcessRoles processes roles for both create and update operations
 // For create: stateRoles should be null/empty, planRoles contains roles to add
 // For update: compares stateRoles (old) with planRoles (new) to determine additions and removals
-// Returns a string with -ar "role_id" for additions and -rr "role_id" for removals
-func FetchAndProcessRoles(ctx context.Context, apiManager *api.ApiManager, stateRoles types.Set, planRoles types.Set) (string, error) {
+// Optional variadic flags: pass addRoleFlagName, removeRoleFlagName to override; when omitted or empty, "-ar" and "-rr" are used.
+// Returns a string with add flag "role_id" for additions and remove flag "role_id" for removals
+func FetchAndProcessRoles(ctx context.Context, apiManager *api.ApiManager, stateRoles types.Set, planRoles types.Set, optionalFlags ...string) (string, error) {
+	addRoleFlagName := "-ar"
+	removeRoleFlagName := "-rr"
+	if len(optionalFlags) >= 1 && optionalFlags[0] != "" {
+		addRoleFlagName = optionalFlags[0]
+	}
+	if len(optionalFlags) >= 2 && optionalFlags[1] != "" {
+		removeRoleFlagName = optionalFlags[1]
+	}
+
 	// Early return if both are empty/null
 	if (stateRoles.IsNull() || len(stateRoles.Elements()) == 0) &&
 		(planRoles.IsNull() || len(planRoles.Elements()) == 0) {
@@ -112,14 +122,14 @@ func FetchAndProcessRoles(ctx context.Context, apiManager *api.ApiManager, state
 	// Add roles that are in plan but not in state
 	for roleId := range planRoleIdMap {
 		if _, exists := stateRoleIdMap[roleId]; !exists {
-			parts = append(parts, fmt.Sprintf("-ar '%s'", roleId))
+			parts = append(parts, fmt.Sprintf("%s '%s'", addRoleFlagName, roleId))
 		}
 	}
 
 	// Remove roles that are in state but not in plan
 	for roleId := range stateRoleIdMap {
 		if _, exists := planRoleIdMap[roleId]; !exists {
-			parts = append(parts, fmt.Sprintf("-rr '%s'", roleId))
+			parts = append(parts, fmt.Sprintf("%s '%s'", removeRoleFlagName, roleId))
 		}
 	}
 

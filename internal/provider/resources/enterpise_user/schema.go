@@ -74,6 +74,11 @@ func (r *EnterpriseUserResource) Schema(ctx context.Context, req resource.Schema
 					utils.ManagedCompanyValidator{},
 				},
 			},
+			"status": schema.StringAttribute{
+				Computed:            true,
+				Description:         "User status (e.g. Active, Inactive). Set by the provider from the API; do not set in configuration.",
+				MarkdownDescription: "User status (e.g. Active, Inactive). Set by the provider from the API; do not set in configuration.",
+			},
 		},
 	}
 }

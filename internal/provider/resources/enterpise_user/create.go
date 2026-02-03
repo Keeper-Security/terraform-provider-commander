@@ -8,6 +8,7 @@ import (
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/api"
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/utils"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
 func (r *EnterpriseUserResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
@@ -32,9 +33,30 @@ func (r *EnterpriseUserResource) Create(ctx context.Context, req resource.Create
 	// Execute with managed company context if provided
 	// ExecuteWithManagedCompanyContext handles context switching and enterprise-down internally
 	err := utils.ExecuteWithManagedCompanyContext(ctx, r.apiManager, data.ManagedCompany, func() error {
+
+		if !data.Teams.IsNull() && len(data.Teams.Elements()) > 0 {
+			return fmt.Errorf("teams cannot be set when creating an enterprise user; add teams after the user is created via update")
+		}
+
+		roles, err := utils.FetchAndProcessRoles(ctx, r.apiManager, types.SetNull(types.StringType), data.Roles, "--add-role", "--remove-role")
+		if err != nil {
+			return err
+		}
 		if err := addUserBasicAttributes(ctx, r.apiManager, &data); err != nil {
 			return err
 		}
+
+		if roles != "" {
+			// Add Users and Roles to the recently created team
+			command := fmt.Sprintf("enterprise-user '%s' %s -v", data.Id.ValueString(), roles)
+
+			_, err = r.apiManager.ExecuteCommand(ctx, command, "Unable to add roles to the enterprise team")
+			if err != nil {
+				return err
+			}
+		}
+
+		data.Status = types.StringValue(UserInvitedStatus)
 
 		return nil
 	})

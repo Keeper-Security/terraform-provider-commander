@@ -1,5 +1,8 @@
 package enterpiseuser
 
 const (
-	EmailRegex = `^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$`
+	EmailRegex        = `^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$`
+	UserActiveStatus  = "Active"
+	UserInvitedStatus = "Invited"
+	UserLockedStatus  = "Locked"
 )
