@@ -67,11 +67,20 @@ func ConvertUsersToIdMap(users types.Set, lookup LookupMaps, usersRespData []Ent
 // For create: stateUsers should be null/empty, planUsers contains users to add
 // For update: compares stateUsers (old) with planUsers (new) to determine additions and removals
 // Returns a string with -au "user_id" for additions and -ru "user_id" for removals
-func FetchAndProcessUsers(ctx context.Context, apiManager *api.ApiManager, stateUsers types.Set, planUsers types.Set) (string, error) {
+func FetchAndProcessUsers(ctx context.Context, apiManager *api.ApiManager, stateUsers types.Set, planUsers types.Set, optionalFlags ...string) (string, error) {
 	// Early return if both are empty/null
 	if (stateUsers.IsNull() || len(stateUsers.Elements()) == 0) &&
 		(planUsers.IsNull() || len(planUsers.Elements()) == 0) {
 		return "", nil
+	}
+
+	addUserFlagName := "-au"
+	removeUserFlagName := "-ru"
+	if len(optionalFlags) >= 1 && optionalFlags[0] != "" {
+		addUserFlagName = optionalFlags[0]
+	}
+	if len(optionalFlags) >= 2 && optionalFlags[1] != "" {
+		removeUserFlagName = optionalFlags[1]
 	}
 
 	// Fetch users from API
@@ -128,14 +137,14 @@ func FetchAndProcessUsers(ctx context.Context, apiManager *api.ApiManager, state
 					return "", fmt.Errorf("user '%s' has status 'Invited'. Users must accept invitation before being added", userIdentifier)
 				}
 			}
-			parts = append(parts, fmt.Sprintf("-au '%s'", userId))
+			parts = append(parts, fmt.Sprintf("%s '%s'", addUserFlagName, userId))
 		}
 	}
 
 	// Remove users that are in state but not in plan
 	for userId := range stateUserIdMap {
 		if _, exists := planUserIdMap[userId]; !exists {
-			parts = append(parts, fmt.Sprintf("-ru '%s'", userId))
+			parts = append(parts, fmt.Sprintf("%s '%s'", removeUserFlagName, userId))
 		}
 	}
 

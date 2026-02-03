@@ -45,7 +45,12 @@ type EnterpriseRoleResponse struct {
 
 // EnterpriseUserResponse represents a user from the API response
 type EnterpriseUserResponse struct {
-	UserId int    `json:"user_id"`
-	Email  string `json:"email"`
-	Status string `json:"status"`
+	UserId   int      `json:"user_id"`
+	Email    string   `json:"email"`
+	Status   string   `json:"status"`
+	Name     string   `json:"name"`
+	JobTitle string   `json:"job_title"`
+	Roles    []string `json:"roles"`
+	Teams    []string `json:"teams"`
+	Node     string   `json:"node"`
 }

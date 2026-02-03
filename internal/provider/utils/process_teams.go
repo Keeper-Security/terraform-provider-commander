@@ -65,11 +65,19 @@ func ConvertTeamsToIdMap(teams types.Set, lookup LookupMaps, teamsRespData []Ent
 // For create: stateTeams should be null/empty, planTeams contains teams to add
 // For update: compares stateTeams (old) with planTeams (new) to determine additions and removals
 // Returns a string with -at "team_uid" for additions and -rt "team_uid" for removals
-func FetchAndProcessTeams(ctx context.Context, apiManager *api.ApiManager, stateTeams types.Set, planTeams types.Set) (string, error) {
+func FetchAndProcessTeams(ctx context.Context, apiManager *api.ApiManager, stateTeams types.Set, planTeams types.Set, optionalFlags ...string) (string, error) {
 	// Early return if both are empty/null
 	if (stateTeams.IsNull() || len(stateTeams.Elements()) == 0) &&
 		(planTeams.IsNull() || len(planTeams.Elements()) == 0) {
 		return "", nil
+	}
+	addTeamFlagName := "-at"
+	removeTeamFlagName := "-rt"
+	if len(optionalFlags) >= 1 && optionalFlags[0] != "" {
+		addTeamFlagName = optionalFlags[0]
+	}
+	if len(optionalFlags) >= 2 && optionalFlags[1] != "" {
+		removeTeamFlagName = optionalFlags[1]
 	}
 
 	// Fetch teams from API
@@ -110,14 +118,14 @@ func FetchAndProcessTeams(ctx context.Context, apiManager *api.ApiManager, state
 	// Add teams that are in plan but not in state
 	for teamId := range planTeamIdMap {
 		if _, exists := stateTeamIdMap[teamId]; !exists {
-			parts = append(parts, fmt.Sprintf("-at '%s'", teamId))
+			parts = append(parts, fmt.Sprintf("%s '%s'", addTeamFlagName, teamId))
 		}
 	}
 
 	// Remove teams that are in state but not in plan
 	for teamId := range stateTeamIdMap {
 		if _, exists := planTeamIdMap[teamId]; !exists {
-			parts = append(parts, fmt.Sprintf("-rt '%s'", teamId))
+			parts = append(parts, fmt.Sprintf("%s '%s'", removeTeamFlagName, teamId))
 		}
 	}
 

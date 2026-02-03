@@ -7,6 +7,7 @@ import (
 	"context"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/api"
 	managecompanydatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/manage_company"
@@ -90,8 +91,10 @@ func (p *CommanderProvider) Configure(ctx context.Context, req provider.Configur
 		return
 	}
 
-	// Create HTTP Client
-	httpClient := &http.Client{}
+	// Create HTTP Client with request timeout
+	httpClient := &http.Client{
+		Timeout: 60 * time.Second,
+	}
 
 	// Normalize the Service Mode URL to always end with "/api/v2/"
 	serviceModeUrl := strings.TrimSuffix(data.ServiceModeUrl.ValueString(), "/")
