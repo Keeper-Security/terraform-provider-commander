@@ -18,12 +18,12 @@ description: |-
 ### Required
 
 - `name` (String) Enterprise Team Name.
+- `node` (String) Managing Node name or ID.
 
 ### Optional
 
 - `enable_privacy_screen` (Boolean) Enable privacy screen.
 - `managed_company` (String) Managed Company name or ID.
-- `node` (String) Managing Node name or ID.
 - `restrict_record_edit` (Boolean) Restrict record editing.
 - `restrict_record_re_share` (Boolean) Restrict record re-sharing.
 - `roles` (Set of String) Set of roles in the enterprise team. Duplicate values are automatically prevented. Empty strings are not allowed.

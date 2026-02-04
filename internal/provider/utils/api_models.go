@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package utils
 
 // NodeInfo represents a node from the enterprise-info API response

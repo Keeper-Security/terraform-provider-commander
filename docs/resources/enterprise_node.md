@@ -18,11 +18,11 @@ description: |-
 ### Required
 
 - `name` (String)
+- `parent` (String)
 
 ### Optional
 
 - `managed_company` (String)
-- `parent` (String)
 - `toggle_isolated` (Boolean)
 - `wipe_out` (Boolean)
 
