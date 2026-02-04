@@ -111,16 +111,10 @@ func fetchManageCompanyById(ctx context.Context, apiManager *api.ApiManager, id 
 		return nil, fmt.Errorf("Parsing managed company response failed: %w", err)
 	}
 
-	// Find the company matching state.Id
-	stateIdInt, err := strconv.Atoi(id)
-	if err != nil {
-		return nil, fmt.Errorf("Invalid company ID: %w", err)
-	}
-
 	var companyInfo *utils.ManageCompanyResponse
 
 	for i := range companies {
-		if companies[i].CompanyId == stateIdInt {
+		if strconv.Itoa(companies[i].CompanyId) == id || companies[i].CompanyName == id {
 			companyInfo = &companies[i]
 			break
 		}

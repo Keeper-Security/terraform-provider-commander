@@ -29,7 +29,7 @@ func (r *EnterpriseRoleResource) Delete(ctx context.Context, req resource.Delete
 	// Execute with managed company context if provided
 	err := utils.ExecuteWithManagedCompanyContext(ctx, r.apiManager, state.ManagedCompany, func() error {
 
-		command := fmt.Sprintf("enterprise-role --delete '%d'", state.Id.ValueInt64())
+		command := fmt.Sprintf("enterprise-role --delete '%s'", state.Id.ValueString())
 
 		_, err := r.apiManager.ExecuteCommand(ctx, command, "Unable to delete enterprise role")
 		if err != nil {

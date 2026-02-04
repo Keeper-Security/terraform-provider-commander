@@ -15,7 +15,7 @@ type ManagingNodeModel struct {
 }
 
 type EnterpriseRoleResourceModel struct {
-	Id                  types.Int64  `tfsdk:"id"`
+	Id                  types.String `tfsdk:"id"`
 	Name                types.String `tfsdk:"name"`
 	Node                types.String `tfsdk:"node"`
 	Users               types.Set    `tfsdk:"users"`

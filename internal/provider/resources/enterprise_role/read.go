@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strconv"
 
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/api"
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/utils"
@@ -32,7 +33,7 @@ func (r *EnterpriseRoleResource) Read(ctx context.Context, req resource.ReadRequ
 	// Execute with managed company context if provided
 	err := utils.ExecuteWithManagedCompanyContext(ctx, r.apiManager, state.ManagedCompany, func() error {
 		// Build the Commander command string
-		command := fmt.Sprintf("enterprise-info '%d' -r --format json --columns='visible_below,default_role,admin,node,user_count,users,team_count,teams' -q", state.Id.ValueInt64())
+		command := fmt.Sprintf("enterprise-info '%s' -r --format json --columns='visible_below,default_role,admin,node,user_count,users,team_count,teams' -q", state.Id.ValueString())
 
 		apiResp, err := r.apiManager.ExecuteCommand(ctx, command, "Unable to read enterprise role")
 		if err != nil {
@@ -49,9 +50,9 @@ func (r *EnterpriseRoleResource) Read(ctx context.Context, req resource.ReadRequ
 
 		// Find the role matching state.Id
 		var roleInfo *utils.EnterpriseRoleResponse
-		stateId := state.Id.ValueInt64()
+		stateId := state.Id.ValueString()
 		for i := range roles {
-			if int(roles[i].RoleId) == int(stateId) {
+			if strconv.Itoa(roles[i].RoleId) == stateId || roles[i].Name == stateId {
 				roleInfo = &roles[i]
 				break
 			}
@@ -63,7 +64,7 @@ func (r *EnterpriseRoleResource) Read(ctx context.Context, req resource.ReadRequ
 			return utils.ErrResourceRemoved
 		}
 
-		if err := mapRoleReadResponseToModel(ctx, r.apiManager, *roleInfo, &state, stateId); err != nil {
+		if err := mapRoleReadResponseToModel(ctx, r.apiManager, *roleInfo, &state); err != nil {
 			return fmt.Errorf("failed to map role response to model: %w", err)
 		}
 
@@ -86,9 +87,9 @@ func (r *EnterpriseRoleResource) Read(ctx context.Context, req resource.ReadRequ
 }
 
 // Note: We will remove stateId from the function parameters in the future, when we will have role_id in the response while creating the role.
-func mapRoleReadResponseToModel(ctx context.Context, apiManager *api.ApiManager, roleInfo utils.EnterpriseRoleResponse, state *EnterpriseRoleResourceModel, stateId int64) error {
+func mapRoleReadResponseToModel(ctx context.Context, apiManager *api.ApiManager, roleInfo utils.EnterpriseRoleResponse, state *EnterpriseRoleResourceModel) error {
 	// Map the response to the state
-	state.Id = types.Int64Value(stateId)
+	state.Id = types.StringValue(strconv.Itoa(roleInfo.RoleId))
 	state.Name = types.StringValue(roleInfo.Name)
 	state.Node = types.StringValue(utils.ExtractNodeName(roleInfo.Node))
 

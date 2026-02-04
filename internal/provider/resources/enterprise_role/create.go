@@ -3,7 +3,6 @@ package enterpriserole
 import (
 	"context"
 	"fmt"
-	"strconv"
 	"strings"
 
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/api"
@@ -70,25 +69,25 @@ func (r *EnterpriseRoleResource) Create(ctx context.Context, req resource.Create
 		}
 
 		// Step 4: Process managing nodes if provided
-		if err := processManagingNodes(ctx, r.apiManager, data.Id.ValueInt64(), data.ManagingNodes); err != nil {
+		if err := processManagingNodes(ctx, r.apiManager, data.Id.ValueString(), data.ManagingNodes); err != nil {
 			return err
 		}
 
 		// Step 5: Process enforcement policies if provided
-		if err := processEnforcementPolicies(ctx, r.apiManager, data.Id.ValueInt64(), data.EnforcementPolicies); err != nil {
+		if err := processEnforcementPolicies(ctx, r.apiManager, data.Id.ValueString(), data.EnforcementPolicies); err != nil {
 			return err
 		}
 
 		// Step 6: Add users and teams to the recently created role
 		if users != "" {
-			command := fmt.Sprintf("enterprise-role '%d' -f %s", data.Id.ValueInt64(), users)
+			command := fmt.Sprintf("enterprise-role '%s' -f %s", data.Id.ValueString(), users)
 			_, err = r.apiManager.ExecuteCommand(ctx, command, "Unable to add users to the enterprise role")
 			if err != nil {
 				return err
 			}
 		}
 		if teams != "" {
-			command := fmt.Sprintf("enterprise-role '%d' -f %s", data.Id.ValueInt64(), teams)
+			command := fmt.Sprintf("enterprise-role '%s' -f %s", data.Id.ValueString(), teams)
 			_, err = r.apiManager.ExecuteCommand(ctx, command, "Unable to add teams to the enterprise role")
 			if err != nil {
 				return err
@@ -133,11 +132,7 @@ func addRoleBasicAttributes(ctx context.Context, apiManager *api.ApiManager, dat
 	createdRoleId, isCreatedRoleIdExtracted := extractRoleIdFromCreateRoleResponse(string(createdRoleResponse.Message))
 
 	if isCreatedRoleIdExtracted {
-		createdRoleIdInt, err := strconv.Atoi(createdRoleId)
-		if err != nil {
-			return fmt.Errorf("failed to convert created role id to int: %w", err)
-		}
-		data.Id = types.Int64Value(int64(createdRoleIdInt))
+		data.Id = types.StringValue(createdRoleId)
 	} else {
 		return fmt.Errorf("failed to extract role id from create role response: %s", string(createdRoleResponse.Message))
 	}
