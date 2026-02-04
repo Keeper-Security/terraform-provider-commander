@@ -54,7 +54,7 @@ func (r *EnterpriseTeamResource) Read(ctx context.Context, req resource.ReadRequ
 		// Find the team matching the ID
 		var teamInfo *utils.EnterpriseTeamResponse
 		for i := range teams {
-			if teams[i].TeamUid == state.Id.ValueString() {
+			if teams[i].TeamUid == state.Id.ValueString() || teams[i].Name == state.Id.ValueString() {
 				teamInfo = &teams[i]
 				break
 			}

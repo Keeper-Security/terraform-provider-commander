@@ -3,7 +3,7 @@ package enterprisenode
 import "github.com/hashicorp/terraform-plugin-framework/types"
 
 type EnterpriseNodeResourceModel struct {
-	Id             types.Int64  `tfsdk:"id"`
+	Id             types.String `tfsdk:"id"`
 	Name           types.String `tfsdk:"name"`
 	Parent         types.String `tfsdk:"parent"`
 	WipeOut        types.Bool   `tfsdk:"wipe_out"`

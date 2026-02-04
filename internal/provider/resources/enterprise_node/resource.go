@@ -13,6 +13,7 @@ import (
 
 var _ resource.Resource = &EnterpriseNodeResource{}
 var _ resource.ResourceWithConfigure = &EnterpriseNodeResource{}
+var _ resource.ResourceWithImportState = &EnterpriseNodeResource{}
 
 type EnterpriseNodeResource struct {
 	apiManager *api.ApiManager

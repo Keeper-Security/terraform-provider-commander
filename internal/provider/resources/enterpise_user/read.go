@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strconv"
 
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/api"
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/utils"
@@ -52,7 +53,7 @@ func (r *EnterpriseUserResource) Read(ctx context.Context, req resource.ReadRequ
 		stateId := state.Id.ValueString()
 		for i := range users {
 			// TODO: Later will check user_id instead of email
-			if users[i].Email == stateId {
+			if users[i].Email == stateId || strconv.Itoa(users[i].UserId) == stateId {
 				userInfo = &users[i]
 				break
 			}
@@ -88,7 +89,8 @@ func (r *EnterpriseUserResource) Read(ctx context.Context, req resource.ReadRequ
 
 func mapUserReadResponseToModel(ctx context.Context, apiManager *api.ApiManager, userInfo utils.EnterpriseUserResponse, state *EnterpriseUserResourceModel) error {
 	// Map the response to the state
-	state.Id = types.StringValue(userInfo.Email) // NOTE: For now we are using email as id, once we get user_id in commander cli response while creating user we will change to Int64 type
+	state.Id = types.StringValue(strconv.Itoa(userInfo.UserId)) // NOTE: For now we are using email as id, once we get user_id in commander cli response while creating user we will change to Int64 type
+	state.Email = types.StringValue(userInfo.Email)
 	state.Name = types.StringValue(userInfo.Name)
 	state.JobTitle = types.StringValue(userInfo.JobTitle)
 	state.Node = types.StringValue(utils.ExtractNodeName(userInfo.Node))

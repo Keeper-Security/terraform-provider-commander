@@ -10,6 +10,7 @@ import (
 
 var _ resource.Resource = &EnterpriseUserResource{}
 var _ resource.ResourceWithConfigure = &EnterpriseUserResource{}
+var _ resource.ResourceWithImportState = &EnterpriseUserResource{}
 
 type EnterpriseUserResource struct {
 	apiManager *api.ApiManager
