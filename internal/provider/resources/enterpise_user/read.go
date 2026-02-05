@@ -96,7 +96,11 @@ func mapUserReadResponseToModel(ctx context.Context, apiManager *api.ApiManager,
 	state.Email = types.StringValue(userInfo.Email)
 	state.Name = types.StringValue(userInfo.Name)
 	state.JobTitle = types.StringValue(userInfo.JobTitle)
-	state.Node = types.StringValue(utils.ExtractNodeName(userInfo.Node))
+	nodeVal, err := utils.RestoreUserInputFormatForNode(ctx, apiManager, userInfo.Node, state.Node)
+	if err != nil {
+		return fmt.Errorf("failed to convert node to original format: %w", err)
+	}
+	state.Node = nodeVal
 
 	switch userInfo.Status {
 	case UserInvitedStatus:

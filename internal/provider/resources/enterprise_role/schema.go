@@ -57,8 +57,8 @@ func (r *EnterpriseRoleResource) Schema(ctx context.Context, req resource.Schema
 							Validators: []validator.Set{
 								privilegesValidator{},
 							},
-							Description:         "Set of privileges to grant for this managing node. Valid values: manage_nodes, manage_user, manage_roles, manage_teams, run_reports, manage_bridge, approve_device, manage_record_types, run_compliance_reports, transfer_account, sharing_administrator",
-							MarkdownDescription: "Set of privileges to grant for this managing node. Valid values: `manage_nodes`, `manage_user`, `manage_roles`, `manage_teams`, `run_reports`, `manage_bridge`, `approve_device`, `manage_record_types`, `run_compliance_reports`, `transfer_account`, `sharing_administrator`",
+							Description:         "Set of privileges to grant for this managing node. Valid values: manage_nodes, manage_user, manage_roles, manage_teams, run_reports, manage_bridge, approve_device, manage_record_types, run_compliance_reports, transfer_account, sharing_administrator, manage_companies",
+							MarkdownDescription: "Set of privileges to grant for this managing node. Valid values: `manage_nodes`, `manage_user`, `manage_roles`, `manage_teams`, `run_reports`, `manage_bridge`, `approve_device`, `manage_record_types`, `run_compliance_reports`, `transfer_account`, `sharing_administrator`, `manage_companies`",
 						},
 						"cascade": schema.BoolAttribute{
 							Optional:            true,

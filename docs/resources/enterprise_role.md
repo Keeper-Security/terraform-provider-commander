@@ -38,4 +38,4 @@ description: |-
 Optional:
 
 - `cascade` (Boolean) Whether to cascade privileges to child nodes.
-- `privileges` (Set of String) Set of privileges to grant for this managing node. Valid values: `manage_nodes`, `manage_user`, `manage_roles`, `manage_teams`, `run_reports`, `manage_bridge`, `approve_device`, `manage_record_types`, `run_compliance_reports`, `transfer_account`, `sharing_administrator`
+- `privileges` (Set of String) Set of privileges to grant for this managing node. Valid values: `manage_nodes`, `manage_user`, `manage_roles`, `manage_teams`, `run_reports`, `manage_bridge`, `approve_device`, `manage_record_types`, `run_compliance_reports`, `transfer_account`, `sharing_administrator`, `manage_companies`

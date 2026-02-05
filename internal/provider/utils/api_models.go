@@ -32,18 +32,26 @@ type EnterpriseTeamResponse struct {
 	Roles     []string `json:"roles"`
 }
 
+// ManagedNodePermission represents one entry in the managed_nodes_permissions array from the API.
+type ManagedNodePermission struct {
+	NodeName   string   `json:"node_name"`
+	NodeId     int64    `json:"node_id"`
+	Cascade    bool     `json:"cascade"`
+	Privileges []string `json:"privileges"`
+}
+
 // EnterpriseRoleResponse represents a role from the enterprise-info API response
 type EnterpriseRoleResponse struct {
-	RoleId       int      `json:"role_id"`
-	Name         string   `json:"name"`
-	Node         string   `json:"node"`
-	VisibleBelow bool     `json:"visible_below"`
-	DefaultRole  bool     `json:"default_role"`
-	Admin        bool     `json:"admin"`
-	UserCount    int      `json:"user_count"`
-	Users        []string `json:"users"`
-	TeamCount    int      `json:"team_count"`
-	Teams        []string `json:"teams"`
+	RoleId                  int                     `json:"role_id"`
+	Name                    string                  `json:"name"`
+	Node                    string                  `json:"node"`
+	VisibleBelow            bool                    `json:"visible_below"`
+	DefaultRole             bool                    `json:"default_role"`
+	Admin                   bool                    `json:"admin"`
+	Users                   []string                `json:"users"`
+	Teams                   []string                `json:"teams"`
+	Enforcements            []string                `json:"enforcements"`
+	ManagedNodesPermissions []ManagedNodePermission `json:"managed_nodes_permissions"`
 }
 
 // EnterpriseUserResponse represents a user from the API response
