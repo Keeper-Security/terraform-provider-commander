@@ -52,9 +52,11 @@ func (r *EnterpriseNodeResource) Read(ctx context.Context, req resource.ReadRequ
 		state.Id = types.StringValue(strconv.Itoa(nodeInfo.NodeId))
 		state.Name = types.StringValue(nodeInfo.Name)
 
-		// TODO: here we need to check with client if we need to set the parent node name or id bec previous state value is cant be accessed so we will not know if parent id is selecetd or name
-		// Set parent if it exists in the response
-		state.Parent = types.StringValue(utils.ExtractNodeName(nodeInfo.ParentNodeName))
+		parentNodeVal, err := utils.RestoreUserInputFormatForNode(ctx, r.apiManager, nodeInfo.ParentNodeName, state.Parent)
+		if err != nil {
+			return fmt.Errorf("failed to convert parent node to original format: %w", err)
+		}
+		state.Parent = parentNodeVal
 
 		return nil
 	})

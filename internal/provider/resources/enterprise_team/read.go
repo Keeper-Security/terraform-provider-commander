@@ -171,11 +171,12 @@ func mapTeamReadResponseToModel(ctx context.Context, apiManager *api.ApiManager,
 		state.Users = types.SetNull(types.StringType)
 	}
 
-	// Node: convert to name (API always returns node name, but user may provide name or ID)
-	// Always update from API response to detect external changes
-
-	// TODO: Update state with node name/ID what user provided based on that,
-	state.Node = types.StringValue(utils.ExtractNodeName(teamResp.Node))
+	// Node: preserve original format (name or ID) as user provided
+	nodeVal, err := utils.RestoreUserInputFormatForNode(ctx, apiManager, teamResp.Node, state.Node)
+	if err != nil {
+		return fmt.Errorf("failed to convert node to original format: %w", err)
+	}
+	state.Node = nodeVal
 
 	return nil
 }

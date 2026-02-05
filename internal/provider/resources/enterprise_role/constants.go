@@ -155,6 +155,7 @@ const (
 	PrivilegeRunComplianceReports = "run_compliance_reports"
 	PrivilegeTransferAccount      = "transfer_account"
 	PrivilegeSharingAdministrator = "sharing_administrator"
+	PrivilegeManageCompanies      = "manage_companies"
 )
 
 // ValidPrivileges contains all valid privilege values as a slice
@@ -170,6 +171,7 @@ var ValidPrivileges = []string{
 	PrivilegeRunComplianceReports,
 	PrivilegeTransferAccount,
 	PrivilegeSharingAdministrator,
+	PrivilegeManageCompanies,
 }
 
 // ValidEnforcementPolicyKeys contains all valid enforcement policy keys as a slice
