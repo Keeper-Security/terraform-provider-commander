@@ -9,6 +9,7 @@ import (
 	"errors"
 	"fmt"
 	"regexp"
+	"strconv"
 	"strings"
 
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/api"
@@ -396,4 +397,41 @@ func RestoreUserInputFormatFromApiResponse(
 	}
 
 	return resultSet, nil
+}
+
+func FetchEnterpriseNodeByNameOrId(ctx context.Context, apiManager *api.ApiManager, nodeNameOrId string) (*EnterpriseNodeResponse, error) {
+	// node can be id or name
+
+	command := fmt.Sprintf("enterprise-info -n -v --format json --node '%s'", nodeNameOrId)
+
+	apiResp, err := apiManager.ExecuteCommand(ctx, command, "Failed to retrieve enterprise node information")
+	if err != nil {
+		return nil, err
+	}
+
+	// Parse the JSON response - it's an array of node objects
+	var nodes []EnterpriseNodeResponse
+
+	if err := UnmarshalApiResponse(apiResp.Data, &nodes); err != nil {
+		return nil, fmt.Errorf("unable to parse enterprise nodes list from API response: %w", err)
+	}
+
+	// Find the node matching state.Id (which is the node name)
+	var nodeInfo *EnterpriseNodeResponse
+
+	for i := range nodes {
+		// convert node id to string to compare with id
+		if strconv.Itoa(nodes[i].NodeId) == nodeNameOrId || nodes[i].Name == nodeNameOrId {
+			nodeInfo = &nodes[i]
+			break
+		}
+	}
+
+	// Node not in list - resource was likely deleted outside Terraform.
+	// Return (nil, nil) so Read can remove it from state instead of erroring.
+	if nodeInfo == nil {
+		return nil, nil
+	}
+
+	return nodeInfo, nil
 }
