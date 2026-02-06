@@ -29,9 +29,7 @@ func (r *EnterpriseNodeResource) Schema(ctx context.Context, req resource.Schema
 					parentValidator{},
 				},
 			},
-			"wipe_out": schema.BoolAttribute{
-				Optional: true,
-			},
+			// "wipe_out": schema.BoolAttribute{ Optional: true }, // not needed currently
 			"toggle_isolated": schema.BoolAttribute{
 				Optional: true,
 			},

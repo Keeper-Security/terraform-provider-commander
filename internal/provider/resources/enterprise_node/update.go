@@ -100,9 +100,14 @@ func updateEnterpriseNode(ctx context.Context, apiManager *api.ApiManager, plan 
 	// 	parts = append(parts, "--wipe-out")
 	// }
 
-	// if !state.ToggleIsolated.Equal(plan.ToggleIsolated) {
-	// 	parts = append(parts, "--toggle-isolated")
-	// }
+	// --toggle-isolated toggles current state; it does not accept true/false.
+	// Only append when the effective "on" state changed. Treat null and false as "off" so
+	// false→null does not send the flag (would incorrectly turn isolated on).
+	stateIsolatedOn := !state.ToggleIsolated.IsNull() && state.ToggleIsolated.ValueBool()
+	planIsolatedOn := !plan.ToggleIsolated.IsNull() && plan.ToggleIsolated.ValueBool()
+	if stateIsolatedOn != planIsolatedOn {
+		parts = append(parts, "--toggle-isolated")
+	}
 
 	// if !state.LogoFile.Equal(plan.LogoFile) {
 	// 	parts = append(parts, fmt.Sprintf("--logo-file '%s'", plan.LogoFile.ValueString()))

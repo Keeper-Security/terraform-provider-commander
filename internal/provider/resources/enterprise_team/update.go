@@ -110,10 +110,6 @@ func updateEnterpriseTeam(ctx context.Context, apiManager *api.ApiManager, plan 
 		}
 	}
 
-	// Node: convert to name (API always returns node name, but user may provide name or ID)
-	// Always update from API response to detect external changes
-
-	// TODO: Update state with node name/ID what user provided based on that,
 	if !state.Node.Equal(plan.Node) {
 		parts = append(parts, fmt.Sprintf("--node '%s'", plan.Node.ValueString()))
 	}
