@@ -13,30 +13,35 @@ import (
 func (d *ManageCompanyDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
-			"id": schema.NumberAttribute{
-				Optional:            true,
-				Description:         "Managed Company ID of selected managed company.",
-				MarkdownDescription: "Managed Company ID of selected managed company.",
+			"managed_company": schema.StringAttribute{
+				Required:            true,
+				Description:         "Managed Company Name or ID to find the company.",
+				MarkdownDescription: "Managed Company Name or ID to find the company.",
+			},
+			"id": schema.StringAttribute{
+				Computed:            true,
+				Description:         "ID of the found managed company.",
+				MarkdownDescription: "ID of the found managed company.",
 			},
 			"name": schema.StringAttribute{
-				Optional:            true,
-				Description:         "Managed Company Name of selected managed company.",
-				MarkdownDescription: "Managed Company Name of selected managed company.",
+				Computed:            true,
+				Description:         "Name of the found managed company.",
+				MarkdownDescription: "Name of the found managed company.",
 			},
 			"node": schema.StringAttribute{
 				Computed:            true,
-				Description:         "Managing Node name or ID of selected managed company.",
-				MarkdownDescription: "Managing Node name or ID of selected managed company.",
+				Description:         "Node of the found managed company.",
+				MarkdownDescription: "Node of the found managed company.",
 			},
 			"plan": schema.StringAttribute{
 				Computed:            true,
-				Description:         "Base plan of selected managed company.",
-				MarkdownDescription: "Base plan of selected managed company.",
+				Description:         "Base plan of the found managed company.",
+				MarkdownDescription: "Base plan of the found managed company.",
 			},
 			"file_plan": schema.StringAttribute{
 				Computed:            true,
-				Description:         "File storage plan of selected managed company.",
-				MarkdownDescription: "File storage plan of selected managed company.",
+				Description:         "File storage plan of the found managed company.",
+				MarkdownDescription: "File storage plan of the found managed company.",
 			},
 		},
 	}

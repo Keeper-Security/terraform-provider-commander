@@ -1,17 +1,16 @@
-package enterprisenode
+package enterpriseteam
 
 import (
 	"context"
 	"fmt"
-	"strconv"
 
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/utils"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
-func (d *EnterpriseNodesDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-	var data EnterpriseNodesDataSourceModel
+func (d *EnterpriseTeamDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
+	var data EnterpriseTeamDataSourceModel
 
 	// Get configuration data
 	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
@@ -29,23 +28,35 @@ func (d *EnterpriseNodesDataSource) Read(ctx context.Context, req datasource.Rea
 	}
 
 	err := utils.ExecuteWithManagedCompanyContext(ctx, d.apiManager, data.ManagedCompany, func() error {
-		nodeInfo, err := utils.FetchEnterpriseNodeByNameOrId(ctx, d.apiManager, data.Node.ValueString())
+		teamInfo, err := utils.FetchEnterpriseTeamByNameOrId(ctx, d.apiManager, data.Team.ValueString())
 		if err != nil {
 			return err
 		}
-		if nodeInfo == nil {
-			return fmt.Errorf("Enterprise node: '%s' not found", data.Node.ValueString())
+		if teamInfo == nil {
+			return fmt.Errorf("Enterprise team: '%s' not found", data.Team.ValueString())
 		}
-		data.Id = types.StringValue(strconv.Itoa(nodeInfo.NodeId))
-		data.Name = types.StringValue(nodeInfo.Name)
-		data.Parent = types.StringValue(nodeInfo.ParentNodeName)
-		data.ParentId = types.StringValue(strconv.Itoa(nodeInfo.ParentNodeId))
+		data.Id = types.StringValue(teamInfo.TeamUid)
+		data.Name = types.StringValue(teamInfo.Name)
+
+		users, usersDiags := types.SetValueFrom(ctx, types.StringType, teamInfo.Users)
+		if usersDiags.HasError() {
+			return fmt.Errorf("failed to create users set: %v", usersDiags.Errors())
+		}
+		data.Users = users
+
+		roles, rolesDiags := types.SetValueFrom(ctx, types.StringType, teamInfo.Roles)
+		if rolesDiags.HasError() {
+			return fmt.Errorf("failed to create roles set: %v", rolesDiags.Errors())
+		}
+		data.Roles = roles
+
 		data.ManagedCompany = types.StringNull() // Bec we dotn want to return the managed company in the result
+
 		return nil
 	})
 	if err != nil {
 		resp.Diagnostics.AddError(
-			"Read Enterprise Node Failed",
+			"Read Enterprise Team Failed",
 			err.Error(),
 		)
 		return

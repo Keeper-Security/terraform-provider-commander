@@ -9,7 +9,6 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/api"
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/utils"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -53,7 +52,7 @@ func (r *ManageCompanyResource) Read(ctx context.Context, req resource.ReadReque
 		return
 	}
 
-	companyInfo, err := fetchManageCompanyById(ctx, r.apiManager, state.Id.ValueString())
+	companyInfo, err := utils.FetchManageCompanyByNameOrId(ctx, r.apiManager, state.Id.ValueString())
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Read Managed Company Failed",
@@ -96,36 +95,4 @@ func (r *ManageCompanyResource) Read(ctx context.Context, req resource.ReadReque
 
 	// Set the updated state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
-}
-
-func fetchManageCompanyById(ctx context.Context, apiManager *api.ApiManager, id string) (*utils.ManageCompanyResponse, error) {
-	// Build command to get all companies info
-	command := fmt.Sprintf("msp-info -m '%s' --format json -v", id)
-
-	apiResp, err := apiManager.ExecuteCommand(ctx, command, "Unable to retrieve managed company information")
-	if err != nil {
-		return nil, err
-	}
-
-	// Parse the JSON response - it's an array of company objects
-	var companies []utils.ManageCompanyResponse
-
-	if err := utils.UnmarshalApiResponse(apiResp.Data, &companies); err != nil {
-		return nil, fmt.Errorf("Parsing managed company response failed: %w", err)
-	}
-
-	var companyInfo *utils.ManageCompanyResponse
-
-	for i := range companies {
-		if strconv.Itoa(companies[i].CompanyId) == id || companies[i].CompanyName == id {
-			companyInfo = &companies[i]
-			break
-		}
-	}
-
-	if companyInfo == nil {
-		return nil, fmt.Errorf("Managed company not found")
-	}
-
-	return companyInfo, nil
 }

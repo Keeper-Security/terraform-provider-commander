@@ -11,6 +11,9 @@ import (
 
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/api"
 	enterprisenodedatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/enterprise_node"
+	enterpriseroledatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/enterprise_role"
+	enterpriseteamdatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/enterprise_team"
+	enterpriseuserdatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/enterprise_user"
 	managecompanydatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/manage_company"
 	enterpiseuser "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/enterpise_user"
 	enterprisenode "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/enterprise_node"
@@ -143,6 +146,9 @@ func (p *CommanderProvider) DataSources(ctx context.Context) []func() datasource
 		// Add your data sources here
 		managecompanydatasource.NewManageCompanyDataSource,
 		enterprisenodedatasource.NewEnterpriseNodesDataSource,
+		enterpriseroledatasource.NewEnterpriseRoleDataSource,
+		enterpriseteamdatasource.NewEnterpriseTeamDataSource,
+		enterpriseuserdatasource.NewEnterpriseUserDataSource,
 	}
 }
 

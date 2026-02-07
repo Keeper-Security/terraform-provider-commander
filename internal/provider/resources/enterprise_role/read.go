@@ -37,30 +37,9 @@ func (r *EnterpriseRoleResource) Read(ctx context.Context, req resource.ReadRequ
 
 	// Execute with managed company context if provided
 	err := utils.ExecuteWithManagedCompanyContext(ctx, r.apiManager, state.ManagedCompany, func() error {
-		// Build the Commander command string
-		command := fmt.Sprintf("enterprise-info '%s' -r --format json --columns='visible_below,default_role,admin,node,users,teams,managed_nodes_permissions,enforcements' -q", state.Id.ValueString())
-
-		apiResp, err := r.apiManager.ExecuteCommand(ctx, command, "Unable to read enterprise role")
+		roleInfo, err := utils.FetchEnterpriseRoleByNameOrId(ctx, r.apiManager, state.Id.ValueString())
 		if err != nil {
-			return fmt.Errorf("Read Enterprise Role Failed: %w", err)
-		}
-
-		// Parse the JSON response - it's an array of role objects
-		var roles []utils.EnterpriseRoleResponse
-
-		// Unmarshal API response into roles struct
-		if err := utils.UnmarshalApiResponse(apiResp.Data, &roles); err != nil {
-			return fmt.Errorf("unable to parse enterprise roles list from API response: %w", err)
-		}
-
-		// Find the role matching state.Id
-		var roleInfo *utils.EnterpriseRoleResponse
-		stateId := state.Id.ValueString()
-		for i := range roles {
-			if strconv.Itoa(roles[i].RoleId) == stateId || roles[i].Name == stateId {
-				roleInfo = &roles[i]
-				break
-			}
+			return err
 		}
 
 		if roleInfo == nil {
