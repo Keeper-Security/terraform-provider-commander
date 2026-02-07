@@ -35,31 +35,9 @@ func (r *EnterpriseUserResource) Read(ctx context.Context, req resource.ReadRequ
 
 	// Execute with managed company context if provided
 	err := utils.ExecuteWithManagedCompanyContext(ctx, r.apiManager, state.ManagedCompany, func() error {
-		// Build the Commander command string
-		command := fmt.Sprintf("enterprise-info '%s' -u --format json --columns='name,status,node,teams,roles,alias' -q", state.Id.ValueString())
-
-		apiResp, err := r.apiManager.ExecuteCommand(ctx, command, "Unable to read enterprise user")
+		userInfo, err := utils.FetchEnterpriseUserByEmailOrId(ctx, r.apiManager, state.Id.ValueString())
 		if err != nil {
-			return fmt.Errorf("Read Enterprise User Failed: %w", err)
-		}
-
-		// Parse the JSON response - it's an array of user objects
-		var users []utils.EnterpriseUserResponse
-
-		// Unmarshal API response into users struct
-		if err := utils.UnmarshalApiResponse(apiResp.Data, &users); err != nil {
-			return fmt.Errorf("unable to parse enterprise users list from API response: %w", err)
-		}
-
-		// Find the user matching state.Id
-		var userInfo *utils.EnterpriseUserResponse
-		stateId := state.Id.ValueString()
-		for i := range users {
-			// TODO: Later will check user_id instead of email
-			if users[i].Email == stateId || strconv.Itoa(users[i].UserId) == stateId {
-				userInfo = &users[i]
-				break
-			}
+			return err
 		}
 
 		if userInfo == nil {

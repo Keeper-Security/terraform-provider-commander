@@ -79,8 +79,9 @@ func addNodeBasicAttributes(ctx context.Context, apiManager *api.ApiManager, dat
 	// 	parts = append(parts, "--wipe-out")
 	// }
 
-	// TODO: NEED TO CHECK IF THIS FLAG IS REQUIRED / usecase CHECK?
-	if !data.ToggleIsolated.IsNull() {
+	// --toggle-isolated does not accept true/false; the flag toggles the node's isolated state.
+	// Only append when user explicitly sets toggle_isolated = true (to turn isolated on for new node).
+	if !data.ToggleIsolated.IsNull() && data.ToggleIsolated.ValueBool() {
 		parts = append(parts, "--toggle-isolated")
 	}
 

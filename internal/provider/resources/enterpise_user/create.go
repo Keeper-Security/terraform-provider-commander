@@ -102,6 +102,7 @@ func addUserBasicAttributes(ctx context.Context, apiManager *api.ApiManager, dat
 		return err
 	}
 
+	// TODO: later user created users_id in date.id
 	data.Id = data.Email
 
 	return nil

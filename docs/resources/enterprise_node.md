@@ -24,7 +24,6 @@ description: |-
 
 - `managed_company` (String)
 - `toggle_isolated` (Boolean)
-- `wipe_out` (Boolean)
 
 ### Read-Only
 

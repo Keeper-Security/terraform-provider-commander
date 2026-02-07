@@ -51,10 +51,10 @@ func (r *EnterpriseNodeResource) ImportState(ctx context.Context, req resource.I
 	}
 
 	state := EnterpriseNodeResourceModel{
-		Id:             types.StringValue(resourceIdentifier),
-		Name:           types.StringNull(),
-		Parent:         types.StringNull(),
-		WipeOut:        types.BoolNull(),
+		Id:     types.StringValue(resourceIdentifier),
+		Name:   types.StringNull(),
+		Parent: types.StringNull(),
+		// WipeOut:        types.BoolNull(),
 		ToggleIsolated: types.BoolNull(),
 		ManagedCompany: types.StringNull(),
 	}

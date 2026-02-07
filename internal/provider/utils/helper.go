@@ -9,6 +9,7 @@ import (
 	"errors"
 	"fmt"
 	"regexp"
+	"strconv"
 	"strings"
 
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/api"
@@ -396,4 +397,173 @@ func RestoreUserInputFormatFromApiResponse(
 	}
 
 	return resultSet, nil
+}
+
+func FetchEnterpriseNodeByNameOrId(ctx context.Context, apiManager *api.ApiManager, nodeNameOrId string) (*EnterpriseNodeResponse, error) {
+	// node can be id or name
+
+	command := fmt.Sprintf("enterprise-info -n -v --format json --node '%s'", nodeNameOrId)
+
+	apiResp, err := apiManager.ExecuteCommand(ctx, command, "Failed to retrieve enterprise node information")
+	if err != nil {
+		return nil, err
+	}
+
+	// Parse the JSON response - it's an array of node objects
+	var nodes []EnterpriseNodeResponse
+
+	if err := UnmarshalApiResponse(apiResp.Data, &nodes); err != nil {
+		return nil, fmt.Errorf("unable to parse enterprise nodes list from API response: %w", err)
+	}
+
+	// Find the node matching state.Id (which is the node name)
+	var nodeInfo *EnterpriseNodeResponse
+
+	for i := range nodes {
+		// convert node id to string to compare with id
+		if strconv.Itoa(nodes[i].NodeId) == nodeNameOrId || nodes[i].Name == nodeNameOrId {
+			nodeInfo = &nodes[i]
+			break
+		}
+	}
+
+	// Node not in list - resource was likely deleted outside Terraform.
+	// Return (nil, nil) so Read can remove it from state instead of erroring.
+	if nodeInfo == nil {
+		return nil, nil
+	}
+
+	return nodeInfo, nil
+}
+
+func FetchEnterpriseRoleByNameOrId(ctx context.Context, apiManager *api.ApiManager, roleNameOrId string) (*EnterpriseRoleResponse, error) {
+	// Build the Commander command string
+	command := fmt.Sprintf("enterprise-info '%s' -r --format json --columns='visible_below,default_role,admin,node,users,teams,managed_nodes_permissions,enforcements' -q", roleNameOrId)
+
+	apiResp, err := apiManager.ExecuteCommand(ctx, command, "Failed to retrieve enterprise role information")
+	if err != nil {
+		return nil, err
+	}
+
+	// Parse the JSON response - it's an array of role objects
+	var roles []EnterpriseRoleResponse
+
+	// Unmarshal API response into roles struct
+	if err := UnmarshalApiResponse(apiResp.Data, &roles); err != nil {
+		return nil, fmt.Errorf("unable to parse enterprise roles list from API response: %w", err)
+	}
+
+	// Find the role matching roleNameOrId (by ID or name)
+	var roleInfo *EnterpriseRoleResponse
+	for i := range roles {
+		if strconv.Itoa(roles[i].RoleId) == roleNameOrId || roles[i].Name == roleNameOrId {
+			roleInfo = &roles[i]
+			break
+		}
+	}
+
+	if roleInfo == nil {
+		return nil, nil
+	}
+
+	return roleInfo, nil
+}
+
+func FetchEnterpriseTeamByNameOrId(ctx context.Context, apiManager *api.ApiManager, teamNameOrId string) (*EnterpriseTeamResponse, error) {
+	// Build command to get enterprise team info
+	command := fmt.Sprintf("enterprise-info '%s' -t --format json --columns='users,roles,restricts,node' -q", teamNameOrId)
+
+	// Execute the command
+	apiResp, err := apiManager.ExecuteCommand(ctx, command, "Failed to retrieve enterprise team information")
+	if err != nil {
+		return nil, err
+	}
+
+	// Parse the JSON response - it's an array of team objects
+	var teams []EnterpriseTeamResponse
+
+	// Unmarshal API response into teams struct
+	if err := UnmarshalApiResponse(apiResp.Data, &teams); err != nil {
+		return nil, fmt.Errorf("unable to parse enterprise teams list from API response: %w", err)
+	}
+
+	// Find the team matching teamNameOrId (by ID or name)
+	var teamInfo *EnterpriseTeamResponse
+	for i := range teams {
+		if teams[i].TeamUid == teamNameOrId || teams[i].Name == teamNameOrId {
+			teamInfo = &teams[i]
+			break
+		}
+	}
+
+	if teamInfo == nil {
+		return nil, nil
+	}
+
+	return teamInfo, nil
+}
+
+func FetchEnterpriseUserByEmailOrId(ctx context.Context, apiManager *api.ApiManager, emailOrId string) (*EnterpriseUserResponse, error) {
+	// Build the Commander command string
+	command := fmt.Sprintf("enterprise-info '%s' -u --format json --columns='name,status,node,teams,roles,alias' -q", emailOrId)
+
+	apiResp, err := apiManager.ExecuteCommand(ctx, command, "Failed to retrieve enterprise user information")
+	if err != nil {
+		return nil, err
+	}
+
+	// Parse the JSON response - it's an array of user objects
+	var users []EnterpriseUserResponse
+
+	// Unmarshal API response into users struct
+	if err := UnmarshalApiResponse(apiResp.Data, &users); err != nil {
+		return nil, fmt.Errorf("unable to parse enterprise users list from API response: %w", err)
+	}
+
+	// Find the user matching state.Id
+	var userInfo *EnterpriseUserResponse
+	for i := range users {
+		if strconv.Itoa(users[i].UserId) == emailOrId || users[i].Email == emailOrId {
+			userInfo = &users[i]
+			break
+		}
+	}
+
+	if userInfo == nil {
+		return nil, nil
+	}
+
+	return userInfo, nil
+}
+
+func FetchManageCompanyByNameOrId(ctx context.Context, apiManager *api.ApiManager, nameOrId string) (*ManageCompanyResponse, error) {
+	// Build command to get all companies info
+	command := fmt.Sprintf("msp-info -m '%s' --format json -v", nameOrId)
+
+	apiResp, err := apiManager.ExecuteCommand(ctx, command, "Failed to retrieve managed company information")
+	if err != nil {
+		return nil, err
+	}
+
+	// Parse the JSON response - it's an array of company objects
+	var companies []ManageCompanyResponse
+
+	if err := UnmarshalApiResponse(apiResp.Data, &companies); err != nil {
+		return nil, fmt.Errorf("unable to parse managed companies list from API response: %w", err)
+	}
+
+	var companyInfo *ManageCompanyResponse
+
+	for i := range companies {
+		if strconv.Itoa(companies[i].CompanyId) == nameOrId || companies[i].CompanyName == nameOrId {
+			companyInfo = &companies[i]
+			break
+		}
+	}
+
+	if companyInfo == nil {
+		return nil, nil
+	}
+
+	return companyInfo, nil
 }

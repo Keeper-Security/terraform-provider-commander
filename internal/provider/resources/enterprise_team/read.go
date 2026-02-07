@@ -5,7 +5,6 @@ package enterpriseteam
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"strings"
@@ -39,28 +38,9 @@ func (r *EnterpriseTeamResource) Read(ctx context.Context, req resource.ReadRequ
 
 	// Execute with managed company context if provided
 	err := utils.ExecuteWithManagedCompanyContext(ctx, r.apiManager, managedCompany, func() error {
-		// Build command to get enterprise team info
-		command := fmt.Sprintf("enterprise-info '%s' -t --format json --columns='users,roles,restricts,node' -q", state.Id.ValueString())
-
-		// Execute the command
-		apiResp, err := r.apiManager.ExecuteCommand(ctx, command, "Unable to retrieve enterprise team information")
+		teamInfo, err := utils.FetchEnterpriseTeamByNameOrId(ctx, r.apiManager, state.Id.ValueString())
 		if err != nil {
-			return fmt.Errorf("Read Enterprise Team Failed: %w", err)
-		}
-
-		// Parse the response
-		teams, err := parseEnterpriseTeamReadResponse(apiResp.Data)
-		if err != nil {
-			return fmt.Errorf("Failed to parse team response: %w", err)
-		}
-
-		// Find the team matching the ID
-		var teamInfo *utils.EnterpriseTeamResponse
-		for i := range teams {
-			if teams[i].TeamUid == state.Id.ValueString() || teams[i].Name == state.Id.ValueString() {
-				teamInfo = &teams[i]
-				break
-			}
+			return err
 		}
 
 		if teamInfo == nil {
@@ -90,22 +70,6 @@ func (r *EnterpriseTeamResource) Read(ctx context.Context, req resource.ReadRequ
 
 	// Set the updated state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
-}
-
-// parseEnterpriseTeamReadResponse parses the JSON response from enterprise-info -t command
-func parseEnterpriseTeamReadResponse(data interface{}) ([]utils.EnterpriseTeamResponse, error) {
-	var teams []utils.EnterpriseTeamResponse
-
-	dataBytes, err := json.Marshal(data)
-	if err != nil {
-		return nil, fmt.Errorf("unable to process the response from Keeper Commander Service Mode API: %w", err)
-	}
-
-	if err := json.Unmarshal(dataBytes, &teams); err != nil {
-		return nil, fmt.Errorf("unable to parse enterprise team information from Service Mode API response: %w", err)
-	}
-
-	return teams, nil
 }
 
 // parseRestrictsString parses the restricts string (e.g., "R W S") and returns boolean values
