@@ -12,6 +12,7 @@ import (
 
 func (d *ManageCompanyDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
+		Description: "Use this data source to look up a managed company by name or ID. Returns the company's ID, name, node, base plan, and file storage plan so you can reference them in other resources.",
 		Attributes: map[string]schema.Attribute{
 			"managed_company": schema.StringAttribute{
 				Required:            true,

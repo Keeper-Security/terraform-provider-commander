@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package enterpriseteam
 
 import (
@@ -10,6 +13,7 @@ import (
 
 func (d *EnterpriseTeamDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
+		Description: "Use this data source to look up an enterprise team by name or ID. Returns the team's ID, name, users, and roles so you can reference them in other resources.",
 		Attributes: map[string]schema.Attribute{
 			"team": schema.StringAttribute{
 				Required:            true,

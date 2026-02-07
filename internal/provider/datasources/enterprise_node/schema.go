@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package enterprisenode
 
 import (
@@ -9,6 +12,7 @@ import (
 
 func (d *EnterpriseNodesDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
+		Description: "Use this data source to look up an enterprise node by name or ID. Returns the node's ID, name, parent, and parent ID so you can reference them in other resources.",
 		Attributes: map[string]schema.Attribute{
 			"node": schema.StringAttribute{
 				Required:            true,
