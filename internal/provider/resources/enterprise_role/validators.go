@@ -154,6 +154,11 @@ func (v usersValidator) ValidateSet(ctx context.Context, req validator.SetReques
 			continue
 		}
 
+		// Skip unknown values (e.g. from data source references not yet evaluated at plan time)
+		if strValue.IsUnknown() {
+			continue
+		}
+
 		value := strValue.ValueString()
 
 		// Check for empty strings
@@ -194,6 +199,11 @@ func (v teamsValidator) ValidateSet(ctx context.Context, req validator.SetReques
 				"Invalid Team Type",
 				fmt.Sprintf("Expected string, got: %T", elem),
 			)
+			continue
+		}
+
+		// Skip unknown values (e.g. from data source references not yet evaluated at plan time)
+		if strValue.IsUnknown() {
 			continue
 		}
 
@@ -354,6 +364,11 @@ func (v privilegesValidator) ValidateSet(ctx context.Context, req validator.SetR
 				"Invalid Privilege Type",
 				fmt.Sprintf("Expected string, got: %T", elem),
 			)
+			continue
+		}
+
+		// Skip unknown values (e.g. from data source references not yet evaluated at plan time)
+		if strValue.IsUnknown() {
 			continue
 		}
 

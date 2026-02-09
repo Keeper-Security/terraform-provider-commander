@@ -7,7 +7,6 @@ import (
 	"context"
 	"net/http"
 	"strings"
-	"time"
 
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/api"
 	enterprisenodedatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/enterprise_node"
@@ -97,7 +96,7 @@ func (p *CommanderProvider) Configure(ctx context.Context, req provider.Configur
 
 	// Create HTTP Client with request timeout
 	httpClient := &http.Client{
-		Timeout: 60 * time.Second,
+		// Timeout: 60 * time.Second,
 	}
 
 	// Normalize the Service Mode URL to always end with "/api/v2/"
