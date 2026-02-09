@@ -191,7 +191,7 @@ func normalizeCommandForShell(command string) string {
 	return b.String()
 }
 
-// SubmitRequest creates a new API request and returns the parsed response
+// SubmitRequest creates a new API request and returns the parsed response.
 func (a *ApiManager) SubmitRequest(ctx context.Context, command string) (*SubmitRequestResponse, error) {
 	// Normalize command so single-quoted arguments with apostrophes are valid in shell
 	command = normalizeCommandForShell(command)
