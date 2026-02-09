@@ -270,6 +270,11 @@ func (v addOnsValidator) ValidateSet(ctx context.Context, req validator.SetReque
 			continue
 		}
 
+		// Skip unknown values (e.g. from variable or data source reference not yet evaluated at plan time)
+		if strValue.IsUnknown() {
+			continue
+		}
+
 		value := strValue.ValueString()
 
 		// Track presence of specific addons for dependency validation

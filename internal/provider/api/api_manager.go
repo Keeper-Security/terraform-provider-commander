@@ -141,8 +141,60 @@ func handleAPIErrorResponse(resp *http.Response) ([]byte, error) {
 	return nil, nil
 }
 
-// SubmitRequest creates a new API request and returns the parsed response
+// normalizeCommandForShell doubles single quotes in the command so the Commander
+// backend can parse it; ” inside single-quoted strings is one literal quote.
+// Replaces every ' with ” so apostrophes in names (e.g. O'Brien) are valid.
+func normalizeCommandForShell(command string) string {
+	var b strings.Builder
+	b.Grow(len(command) + 16)
+	i := 0
+	for i < len(command) {
+		c := command[i]
+		if c != '\'' {
+			b.WriteByte(c)
+			i++
+			continue
+		}
+		// Start of single-quoted span: find content and closing quote
+		start := i + 1
+		end := start
+		for end < len(command) {
+			if command[end] == '\'' {
+				// Closing delimiter if followed by space/punctuation/end; else apostrophe
+				if end+1 >= len(command) || command[end+1] == ' ' || command[end+1] == '\'' ||
+					(command[end+1] < 'a' || command[end+1] > 'z') && (command[end+1] < 'A' || command[end+1] > 'Z') && (command[end+1] < '0' || command[end+1] > '9') {
+					break
+				}
+			}
+			end++
+		}
+		content := command[start:end]
+		hasApostrophe := strings.ContainsRune(content, '\'')
+		if hasApostrophe {
+			// Output as double-quoted; escape any " in content as \"
+			b.WriteByte('"')
+			for _, r := range content {
+				if r == '"' {
+					b.WriteString(`\"`)
+				} else {
+					b.WriteRune(r)
+				}
+			}
+			b.WriteByte('"')
+		} else {
+			b.WriteByte('\'')
+			b.WriteString(content)
+			b.WriteByte('\'')
+		}
+		i = end + 1
+	}
+	return b.String()
+}
+
+// SubmitRequest creates a new API request and returns the parsed response.
 func (a *ApiManager) SubmitRequest(ctx context.Context, command string) (*SubmitRequestResponse, error) {
+	// Normalize command so single-quoted arguments with apostrophes are valid in shell
+	command = normalizeCommandForShell(command)
 	// Create and convert the body to JSON bytes
 	reqBody := map[string]string{
 		"command": command,
