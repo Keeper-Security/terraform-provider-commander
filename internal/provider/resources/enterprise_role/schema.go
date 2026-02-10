@@ -6,6 +6,7 @@ package enterpriserole
 import (
 	"context"
 
+	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/utils"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
@@ -21,33 +22,33 @@ func (r *EnterpriseRoleResource) Schema(ctx context.Context, req resource.Schema
 			"name": schema.StringAttribute{
 				Required: true,
 				Validators: []validator.String{
-					nameValidator{},
+					utils.StringMinLengthValidator("Enterprise Role Name", 1, false),
 				},
 			},
 			"node": schema.StringAttribute{
 				Required: true,
 				Validators: []validator.String{
-					nodeValidator{},
+					utils.StringMinLengthValidator("Node", 1, true),
 				},
 			},
 			"users": schema.SetAttribute{
 				Optional:    true,
 				ElementType: types.StringType,
 				Validators: []validator.Set{
-					usersValidator{},
+					utils.SetNoEmptyStringsValidator("User"),
 				},
 			},
 			"teams": schema.SetAttribute{
 				Optional:    true,
 				ElementType: types.StringType,
 				Validators: []validator.Set{
-					teamsValidator{},
+					utils.TeamsValidator,
 				},
 			},
 			"managing_nodes": schema.MapNestedAttribute{
 				Optional: true,
 				Validators: []validator.Map{
-					managingNodesMapValidator{},
+					utils.MapKeysMinLengthValidator("managing node name", 1),
 				},
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
@@ -82,7 +83,7 @@ func (r *EnterpriseRoleResource) Schema(ctx context.Context, req resource.Schema
 			"managed_company": schema.StringAttribute{
 				Optional: true,
 				Validators: []validator.String{
-					managedCompanyValidator{},
+					utils.ManagedCompanyValidator,
 				},
 			},
 		},

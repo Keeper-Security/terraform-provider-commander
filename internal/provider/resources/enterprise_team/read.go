@@ -25,7 +25,7 @@ func (r *EnterpriseTeamResource) Read(ctx context.Context, req resource.ReadRequ
 	}
 
 	// Validate ApiManager is configured
-	if err := r.ensureApiManager(); err != nil {
+	if err := r.EnsureApiManager(); err != nil {
 		resp.Diagnostics.AddError(
 			"Provider Configuration Error",
 			err.Error(),
@@ -33,38 +33,25 @@ func (r *EnterpriseTeamResource) Read(ctx context.Context, req resource.ReadRequ
 		return
 	}
 
-	// Use managed company from state if provided
 	managedCompany := state.ManagedCompany
-
-	// Execute with managed company context if provided
-	err := utils.ExecuteWithManagedCompanyContext(ctx, r.apiManager, managedCompany, func() error {
-		teamInfo, err := utils.FetchEnterpriseTeamByNameOrId(ctx, r.apiManager, state.Id.ValueString())
+	err := utils.RunWithManagedCompanyContext(ctx, r.ApiManager, managedCompany, func() error {
+		teamInfo, err := utils.FetchEnterpriseTeamByNameOrId(ctx, r.ApiManager, state.Id.ValueString())
 		if err != nil {
 			return err
 		}
-
 		if teamInfo == nil {
-			// Resource not found - remove from state
 			resp.State.RemoveResource(ctx)
 			return utils.ErrResourceRemoved
 		}
-
-		// Map the response to the model
-		if err := mapTeamReadResponseToModel(ctx, r.apiManager, *teamInfo, &state); err != nil {
+		if err := mapTeamReadResponseToModel(ctx, r.ApiManager, *teamInfo, &state); err != nil {
 			return fmt.Errorf("Failed to map team response to model: %w", err)
 		}
-
 		return nil
-	})
-
-	if err != nil {
-		if errors.Is(err, utils.ErrResourceRemoved) {
-			return
-		}
-		resp.Diagnostics.AddError(
-			"Read Enterprise Team Failed",
-			err.Error(),
-		)
+	}, "Read Enterprise Team Failed", &resp.Diagnostics)
+	if err != nil && errors.Is(err, utils.ErrResourceRemoved) {
+		return
+	}
+	if resp.Diagnostics.HasError() {
 		return
 	}
 

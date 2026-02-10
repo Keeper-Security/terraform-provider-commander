@@ -31,7 +31,7 @@ func (r *EnterpriseUserResource) Update(ctx context.Context, req resource.Update
 	}
 
 	// Validate ApiManager is configured
-	if err := r.ensureApiManager(); err != nil {
+	if err := r.EnsureApiManager(); err != nil {
 		resp.Diagnostics.AddError(
 			"Provider Configuration Error",
 			err.Error(),
@@ -54,32 +54,23 @@ func (r *EnterpriseUserResource) Update(ctx context.Context, req resource.Update
 		managedCompany = state.ManagedCompany
 	}
 
-	// Execute with managed company context if provided
-	err := utils.ExecuteWithManagedCompanyContext(ctx, r.apiManager, managedCompany, func() error {
-		// Teams cannot be updated when user status is Invited
+	if err := utils.RunWithManagedCompanyContext(ctx, r.ApiManager, managedCompany, func() error {
 		if !state.Status.IsNull() && !state.Status.IsUnknown() &&
 			state.Status.ValueString() == UserInvitedStatus && !state.Teams.Equal(plan.Teams) {
 			return fmt.Errorf("User with 'Invited' status cannot be added to teams.")
 		}
-
 		if !state.Email.Equal(plan.Email) {
 			return fmt.Errorf("Email can not be changed.")
 		}
-
-		if err := updateUserAttributes(ctx, r.apiManager, &plan, &state); err != nil {
+		if err := updateUserAttributes(ctx, r.ApiManager, &plan, &state); err != nil {
 			return err
 		}
-
-		// Keep the same ID
 		plan.Id = state.Id
-
 		return nil
-	})
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"Update Enterprise User Failed",
-			err.Error(),
-		)
+	}, "Update Enterprise User Failed", &resp.Diagnostics); err != nil {
+		return
+	}
+	if resp.Diagnostics.HasError() {
 		return
 	}
 

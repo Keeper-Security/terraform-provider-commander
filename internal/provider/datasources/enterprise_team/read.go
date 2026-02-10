@@ -22,7 +22,7 @@ func (d *EnterpriseTeamDataSource) Read(ctx context.Context, req datasource.Read
 	}
 
 	// Validate ApiManager is configured
-	if err := d.ensureApiManager(); err != nil {
+	if err := d.EnsureApiManager(); err != nil {
 		resp.Diagnostics.AddError(
 			"Provider Configuration Error",
 			err.Error(),
@@ -30,8 +30,8 @@ func (d *EnterpriseTeamDataSource) Read(ctx context.Context, req datasource.Read
 		return
 	}
 
-	err := utils.ExecuteWithManagedCompanyContext(ctx, d.apiManager, data.ManagedCompany, func() error {
-		teamInfo, err := utils.FetchEnterpriseTeamByNameOrId(ctx, d.apiManager, data.Team.ValueString())
+	if err := utils.RunWithManagedCompanyContext(ctx, d.ApiManager, data.ManagedCompany, func() error {
+		teamInfo, err := utils.FetchEnterpriseTeamByNameOrId(ctx, d.ApiManager, data.Team.ValueString())
 		if err != nil {
 			return err
 		}
@@ -40,28 +40,22 @@ func (d *EnterpriseTeamDataSource) Read(ctx context.Context, req datasource.Read
 		}
 		data.Id = types.StringValue(teamInfo.TeamUid)
 		data.Name = types.StringValue(teamInfo.Name)
-
 		users, usersDiags := types.SetValueFrom(ctx, types.StringType, teamInfo.Users)
 		if usersDiags.HasError() {
 			return fmt.Errorf("failed to create users set: %v", usersDiags.Errors())
 		}
 		data.Users = users
-
 		roles, rolesDiags := types.SetValueFrom(ctx, types.StringType, teamInfo.Roles)
 		if rolesDiags.HasError() {
 			return fmt.Errorf("failed to create roles set: %v", rolesDiags.Errors())
 		}
 		data.Roles = roles
-
-		data.ManagedCompany = types.StringNull() // Bec we dotn want to return the managed company in the result
-
+		data.ManagedCompany = types.StringNull()
 		return nil
-	})
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"Read Enterprise Team Failed",
-			err.Error(),
-		)
+	}, "Read Enterprise Team Failed", &resp.Diagnostics); err != nil {
+		return
+	}
+	if resp.Diagnostics.HasError() {
 		return
 	}
 

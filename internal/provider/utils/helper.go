@@ -13,6 +13,7 @@ import (
 	"strings"
 
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/api"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
@@ -566,4 +567,35 @@ func FetchManageCompanyByNameOrId(ctx context.Context, apiManager *api.ApiManage
 	}
 
 	return companyInfo, nil
+}
+
+// ParseManagedCompanyImportID parses an import ID that may be "resource_id" or "managed_company,resource_id".
+// resourceName is used in error messages (e.g. "node" or "role").
+// Returns resourceID, managedCompany (empty if not in ID), and any diagnostics.
+func ParseManagedCompanyImportID(importID string, resourceName string) (resourceID, managedCompany string, diags diag.Diagnostics) {
+	importID = strings.TrimSpace(importID)
+	if importID == "" {
+		diags = append(diags, diag.NewErrorDiagnostic(
+			"Invalid Import ID",
+			"Import ID cannot be empty. Use: (1) "+resourceName+" name or "+resourceName+" ID alone; or (2) for a "+resourceName+" in a managed company, use \"managed_company_name_or_id,"+resourceName+"_name_or_id\" (comma-separated).",
+		))
+		return "", "", diags
+	}
+
+	if parts := strings.SplitN(importID, ",", 2); len(parts) == 2 {
+		managedCompany = strings.TrimSpace(parts[0])
+		resourceID = strings.TrimSpace(parts[1])
+	} else {
+		resourceID = importID
+	}
+
+	if resourceID == "" {
+		diags = append(diags, diag.NewErrorDiagnostic(
+			"Invalid Import ID",
+			"When using managed company format \"managed_company_name_or_id,"+resourceName+"\", the "+resourceName+" part cannot be empty.",
+		))
+		return "", "", diags
+	}
+
+	return resourceID, managedCompany, diags
 }

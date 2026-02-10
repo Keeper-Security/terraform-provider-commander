@@ -24,7 +24,7 @@ func (r *EnterpriseTeamResource) Create(ctx context.Context, req resource.Create
 	}
 
 	// Validate ApiManager is configured
-	if err := r.ensureApiManager(); err != nil {
+	if err := r.EnsureApiManager(); err != nil {
 		resp.Diagnostics.AddError(
 			"Provider Configuration Error",
 			err.Error(),
@@ -32,53 +32,35 @@ func (r *EnterpriseTeamResource) Create(ctx context.Context, req resource.Create
 		return
 	}
 
-	// Execute with managed company context if provided
-	err := utils.ExecuteWithManagedCompanyContext(ctx, r.apiManager, data.ManagedCompany, func() error {
-		// Fetch and process users/teams before creating the role
-		// For create, stateUsers and stateRoles are null/empty, only planUsers and planRoles have items to add
-		users, err := utils.FetchAndProcessUsers(ctx, r.apiManager, types.SetNull(types.StringType), data.Users)
+	if err := utils.RunWithManagedCompanyContext(ctx, r.ApiManager, data.ManagedCompany, func() error {
+		users, err := utils.FetchAndProcessUsers(ctx, r.ApiManager, types.SetNull(types.StringType), data.Users)
 		if err != nil {
 			return err
 		}
-
-		roles, err := utils.FetchAndProcessRoles(ctx, r.apiManager, types.SetNull(types.StringType), data.Roles)
+		roles, err := utils.FetchAndProcessRoles(ctx, r.ApiManager, types.SetNull(types.StringType), data.Roles)
 		if err != nil {
 			return err
 		}
-
-		if err := addTeamBasicAttributes(ctx, r.apiManager, &data); err != nil {
+		if err := addTeamBasicAttributes(ctx, r.ApiManager, &data); err != nil {
 			return err
 		}
-
-		// Combine users and roles flags
 		if users != "" {
-			// Add Users and Roles to the recently created team
 			command := fmt.Sprintf("enterprise-team '%s' %s -v", data.Id.ValueString(), users)
-
-			_, err = r.apiManager.ExecuteCommand(ctx, command, "Unable to add users to the enterprise team")
-			if err != nil {
+			if _, err = r.ApiManager.ExecuteCommand(ctx, command, "Unable to add users to the enterprise team"); err != nil {
 				return err
 			}
 		}
 		if roles != "" {
-			// Add Users and Roles to the recently created team
 			command := fmt.Sprintf("enterprise-team '%s' %s -v", data.Id.ValueString(), roles)
-
-			_, err = r.apiManager.ExecuteCommand(ctx, command, "Unable to add roles to the enterprise team")
-			if err != nil {
+			if _, err = r.ApiManager.ExecuteCommand(ctx, command, "Unable to add roles to the enterprise team"); err != nil {
 				return err
 			}
 		}
-
 		return nil
-
-	})
-
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"Create Enterprise Team Failed",
-			err.Error(),
-		)
+	}, "Create Enterprise Team Failed", &resp.Diagnostics); err != nil {
+		return
+	}
+	if resp.Diagnostics.HasError() {
 		return
 	}
 

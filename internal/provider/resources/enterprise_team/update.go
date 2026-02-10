@@ -30,7 +30,7 @@ func (r *EnterpriseTeamResource) Update(ctx context.Context, req resource.Update
 	}
 
 	// Validate ApiManager is configured
-	if err := r.ensureApiManager(); err != nil {
+	if err := r.EnsureApiManager(); err != nil {
 		resp.Diagnostics.AddError(
 			"Provider Configuration Error",
 			err.Error(),
@@ -53,22 +53,16 @@ func (r *EnterpriseTeamResource) Update(ctx context.Context, req resource.Update
 		managedCompany = state.ManagedCompany
 	}
 
-	// Execute with managed company context if provided
-	err := utils.ExecuteWithManagedCompanyContext(ctx, r.apiManager, managedCompany, func() error {
-		if err := updateEnterpriseTeam(ctx, r.apiManager, &plan, &state); err != nil {
+	if err := utils.RunWithManagedCompanyContext(ctx, r.ApiManager, managedCompany, func() error {
+		if err := updateEnterpriseTeam(ctx, r.ApiManager, &plan, &state); err != nil {
 			return err
 		}
-
 		plan.Id = state.Id
-
 		return nil
-	})
-
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"Update Enterprise Team Failed",
-			err.Error(),
-		)
+	}, "Update Enterprise Team Failed", &resp.Diagnostics); err != nil {
+		return
+	}
+	if resp.Diagnostics.HasError() {
 		return
 	}
 
@@ -86,28 +80,30 @@ func updateEnterpriseTeam(ctx context.Context, apiManager *api.ApiManager, plan 
 	}
 
 	// Optional parameters
-	if !state.RestrictEdit.Equal(plan.RestrictEdit) {
-		if !plan.RestrictEdit.IsNull() && plan.RestrictEdit.ValueBool() {
-			parts = append(parts, "--restrict-edit on")
-		} else {
-			parts = append(parts, "--restrict-edit off")
-		}
+	// Restrict flags: send off when user had it on and then removed or turned it off
+	stateRestrictEditOn := !state.RestrictEdit.IsNull() && state.RestrictEdit.ValueBool()
+	planRestrictEditOn := !plan.RestrictEdit.IsNull() && plan.RestrictEdit.ValueBool()
+	if planRestrictEditOn && !stateRestrictEditOn {
+		parts = append(parts, "--restrict-edit on")
+	} else if stateRestrictEditOn && !planRestrictEditOn {
+		parts = append(parts, "--restrict-edit off")
 	}
 
-	if !state.RestrictShare.Equal(plan.RestrictShare) {
-		if !plan.RestrictShare.IsNull() && plan.RestrictShare.ValueBool() {
-			parts = append(parts, "--restrict-share on")
-		} else {
-			parts = append(parts, "--restrict-share off")
-		}
+	stateRestrictShareOn := !state.RestrictShare.IsNull() && state.RestrictShare.ValueBool()
+	planRestrictShareOn := !plan.RestrictShare.IsNull() && plan.RestrictShare.ValueBool()
+	if planRestrictShareOn && !stateRestrictShareOn {
+		parts = append(parts, "--restrict-share on")
+	} else if stateRestrictShareOn && !planRestrictShareOn {
+		parts = append(parts, "--restrict-share off")
 	}
 
-	if !state.RestrictView.Equal(plan.RestrictView) {
-		if !plan.RestrictView.IsNull() && plan.RestrictView.ValueBool() {
-			parts = append(parts, "--restrict-view on")
-		} else {
-			parts = append(parts, "--restrict-view off")
-		}
+	// Send --restrict-view when value changed; explicitly send off when user had it on and then removed or turned it off
+	stateRestrictViewOn := !state.RestrictView.IsNull() && state.RestrictView.ValueBool()
+	planRestrictViewOn := !plan.RestrictView.IsNull() && plan.RestrictView.ValueBool()
+	if planRestrictViewOn && !stateRestrictViewOn {
+		parts = append(parts, "--restrict-view on")
+	} else if stateRestrictViewOn && !planRestrictViewOn {
+		parts = append(parts, "--restrict-view off")
 	}
 
 	if !state.Node.Equal(plan.Node) {

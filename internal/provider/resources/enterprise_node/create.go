@@ -24,7 +24,7 @@ func (r *EnterpriseNodeResource) Create(ctx context.Context, req resource.Create
 	}
 
 	// Validate ApiManager is configured
-	if err := r.ensureApiManager(); err != nil {
+	if err := r.EnsureApiManager(); err != nil {
 		resp.Diagnostics.AddError(
 			"Provider Configuration Error",
 			err.Error(),
@@ -33,20 +33,12 @@ func (r *EnterpriseNodeResource) Create(ctx context.Context, req resource.Create
 	}
 
 	// Execute with managed company context if provided
-	// ExecuteWithManagedCompanyContext handles context switching and enterprise-down internally
-	err := utils.ExecuteWithManagedCompanyContext(ctx, r.apiManager, data.ManagedCompany, func() error {
-		if err := addNodeBasicAttributes(ctx, r.apiManager, &data); err != nil {
-			return err
-		}
-
-		return nil
-	})
-
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"Create Enterprise Node Failed",
-			err.Error(),
-		)
+	if err := utils.RunWithManagedCompanyContext(ctx, r.ApiManager, data.ManagedCompany, func() error {
+		return addNodeBasicAttributes(ctx, r.ApiManager, &data)
+	}, "Create Enterprise Node Failed", &resp.Diagnostics); err != nil {
+		return
+	}
+	if resp.Diagnostics.HasError() {
 		return
 	}
 

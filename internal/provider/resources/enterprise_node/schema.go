@@ -6,6 +6,7 @@ package enterprisenode
 import (
 	"context"
 
+	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/utils"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
@@ -20,26 +21,22 @@ func (r *EnterpriseNodeResource) Schema(ctx context.Context, req resource.Schema
 			"name": schema.StringAttribute{
 				Required: true,
 				Validators: []validator.String{
-					nameValidator{},
+					utils.StringMinLengthValidator("Enterprise Node Name", 1, false),
 				},
 			},
 			"parent": schema.StringAttribute{
 				Required: true,
 				Validators: []validator.String{
-					parentValidator{},
+					utils.StringMinLengthValidator("Enterprise Node Parent Name", 1, true),
 				},
 			},
-			// "wipe_out": schema.BoolAttribute{ Optional: true }, // not needed currently
 			"toggle_isolated": schema.BoolAttribute{
 				Optional: true,
 			},
-			// "logo_file": schema.StringAttribute{
-			// 	Optional: true,
-			// },
 			"managed_company": schema.StringAttribute{
-				Optional:   true,
+				Optional: true,
 				Validators: []validator.String{
-					// managedCompanyValidator{},
+					utils.ManagedCompanyValidator,
 				},
 			},
 		},

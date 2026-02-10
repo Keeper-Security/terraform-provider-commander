@@ -24,7 +24,7 @@ func (r *EnterpriseNodeResource) Read(ctx context.Context, req resource.ReadRequ
 	}
 
 	// Validate ApiManager is configured
-	if err := r.ensureApiManager(); err != nil {
+	if err := r.EnsureApiManager(); err != nil {
 		resp.Diagnostics.AddError(
 			"Provider Configuration Error",
 			err.Error(),
@@ -33,43 +33,31 @@ func (r *EnterpriseNodeResource) Read(ctx context.Context, req resource.ReadRequ
 	}
 
 	// Execute with managed company context if provided
-	// ExecuteWithManagedCompanyContext handles context switching and enterprise-down internally
-	err := utils.ExecuteWithManagedCompanyContext(ctx, r.apiManager, state.ManagedCompany, func() error {
-
-		nodeInfo, err := utils.FetchEnterpriseNodeByNameOrId(ctx, r.apiManager, state.Id.ValueString())
+	err := utils.RunWithManagedCompanyContext(ctx, r.ApiManager, state.ManagedCompany, func() error {
+		nodeInfo, err := utils.FetchEnterpriseNodeByNameOrId(ctx, r.ApiManager, state.Id.ValueString())
 		if err != nil {
 			return err
 		}
-
 		if nodeInfo == nil {
-			// Resource not found - remove from state
 			resp.State.RemoveResource(ctx)
 			return utils.ErrResourceRemoved
 		}
-
-		// Map the response to the state
 		state.Id = types.StringValue(strconv.Itoa(nodeInfo.NodeId))
 		state.Name = types.StringValue(nodeInfo.Name)
 
 		// TODO: later we need to add the toggle_isolated state from the api response
 
-		parentNodeVal, err := utils.RestoreUserInputFormatForNode(ctx, r.apiManager, nodeInfo.ParentNodeName, state.Parent)
+		parentNodeVal, err := utils.RestoreUserInputFormatForNode(ctx, r.ApiManager, nodeInfo.ParentNodeName, state.Parent)
 		if err != nil {
 			return fmt.Errorf("failed to convert parent node to original format: %w", err)
 		}
 		state.Parent = parentNodeVal
-
 		return nil
-	})
-
-	if err != nil {
-		if errors.Is(err, utils.ErrResourceRemoved) {
-			return
-		}
-		resp.Diagnostics.AddError(
-			"Read Enterprise Node Failed",
-			err.Error(),
-		)
+	}, "Read Enterprise Node Failed", &resp.Diagnostics)
+	if err != nil && errors.Is(err, utils.ErrResourceRemoved) {
+		return
+	}
+	if resp.Diagnostics.HasError() {
 		return
 	}
 

@@ -25,7 +25,7 @@ func (r *EnterpriseUserResource) Create(ctx context.Context, req resource.Create
 	}
 
 	// Validate ApiManager is configured
-	if err := r.ensureApiManager(); err != nil {
+	if err := r.EnsureApiManager(); err != nil {
 		resp.Diagnostics.AddError(
 			"Provider Configuration Error",
 			err.Error(),
@@ -33,42 +33,29 @@ func (r *EnterpriseUserResource) Create(ctx context.Context, req resource.Create
 		return
 	}
 
-	// Execute with managed company context if provided
-	// ExecuteWithManagedCompanyContext handles context switching and enterprise-down internally
-	err := utils.ExecuteWithManagedCompanyContext(ctx, r.apiManager, data.ManagedCompany, func() error {
-
+	if err := utils.RunWithManagedCompanyContext(ctx, r.ApiManager, data.ManagedCompany, func() error {
 		if !data.Teams.IsNull() && len(data.Teams.Elements()) > 0 {
 			return fmt.Errorf("teams cannot be set when creating an enterprise user; add teams after the user is created via update")
 		}
-
-		roles, err := utils.FetchAndProcessRoles(ctx, r.apiManager, types.SetNull(types.StringType), data.Roles, "--add-role", "--remove-role")
+		roles, err := utils.FetchAndProcessRoles(ctx, r.ApiManager, types.SetNull(types.StringType), data.Roles, "--add-role", "--remove-role")
 		if err != nil {
 			return err
 		}
-		if err := addUserBasicAttributes(ctx, r.apiManager, &data); err != nil {
+		if err := addUserBasicAttributes(ctx, r.ApiManager, &data); err != nil {
 			return err
 		}
-
 		if roles != "" {
-			// Add Users and Roles to the recently created team
 			command := fmt.Sprintf("enterprise-user '%s' %s -v", data.Id.ValueString(), roles)
-
-			_, err = r.apiManager.ExecuteCommand(ctx, command, "Unable to add roles to the enterprise team")
-			if err != nil {
+			if _, err = r.ApiManager.ExecuteCommand(ctx, command, "Unable to add roles to the enterprise team"); err != nil {
 				return err
 			}
 		}
-
 		data.Status = types.StringValue(UserInvitedStatus)
-
 		return nil
-	})
-
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"Create Enterprise User Failed",
-			err.Error(),
-		)
+	}, "Create Enterprise User Failed", &resp.Diagnostics); err != nil {
+		return
+	}
+	if resp.Diagnostics.HasError() {
 		return
 	}
 

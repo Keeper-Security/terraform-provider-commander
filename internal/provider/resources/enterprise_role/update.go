@@ -41,7 +41,7 @@ func (r *EnterpriseRoleResource) Update(ctx context.Context, req resource.Update
 	}
 
 	// Validate ApiManager is configured
-	if err := r.ensureApiManager(); err != nil {
+	if err := r.EnsureApiManager(); err != nil {
 		resp.Diagnostics.AddError(
 			"Provider Configuration Error",
 			err.Error(),
@@ -64,58 +64,42 @@ func (r *EnterpriseRoleResource) Update(ctx context.Context, req resource.Update
 		managedCompany = state.ManagedCompany
 	}
 
-	// Execute with managed company context if provided
-	err := utils.ExecuteWithManagedCompanyContext(ctx, r.apiManager, managedCompany, func() error {
+	if err := utils.RunWithManagedCompanyContext(ctx, r.ApiManager, managedCompany, func() error {
 		roleId := state.Id.ValueString()
-
-		// Step 1: Update basic role attributes (name, node, etc.)
-		if err := updateRoleBasicAttributes(ctx, r.apiManager, &plan, &state); err != nil {
+		if err := updateRoleBasicAttributes(ctx, r.ApiManager, &plan, &state); err != nil {
+			return err
+		}
+		// Removed users -> remove via -ru
+		// Added users -> add via -au
+		if err := updateRoleUsers(ctx, r.ApiManager, roleId, &plan, &state); err != nil {
+			return err
+		}
+		// Removed teams -> remove via -rt
+		// Added teams -> add via -at
+		if err := updateRoleTeams(ctx, r.ApiManager, roleId, &plan, &state); err != nil {
 			return err
 		}
 
-		// Step 2: Update users if changed
-		// 1. Removed users -> remove via -ru
-		// 2. Added users -> add via -au
-		if err := updateRoleUsers(ctx, r.apiManager, roleId, &plan, &state); err != nil {
-			return err
-		}
-
-		// Step 3: Update teams if changed
-		// 1. Removed teams -> remove via -rt
-		// 2. Added teams -> add via -at
-		if err := updateRoleTeams(ctx, r.apiManager, roleId, &plan, &state); err != nil {
-			return err
-		}
-
-		// Step 4: Update managing nodes if changed
-		// 1. Removed nodes -> remove via -ra
-		// 2. Added nodes -> add via -aa with privileges and cascade
-		// 3. Changed cascade -> update via -aa with --cascade
-		// 4. Changed privileges -> update via --node with -ap flags
+		// Removed nodes -> remove via -ra
+		// Added nodes -> add via -aa with privileges and cascade
+		// Changed cascade -> update via -aa with --cascade
+		// Changed privileges -> update via --node with -ap flags
 		if !plan.ManagingNodes.Equal(state.ManagingNodes) {
-			if err := updateRoleManagingNodes(ctx, r.apiManager, roleId, &plan, &state); err != nil {
+			if err := updateRoleManagingNodes(ctx, r.ApiManager, roleId, &plan, &state); err != nil {
 				return err
 			}
 		}
-
-		// Step 5: Update enforcement policies if changed
 		if !plan.EnforcementPolicies.Equal(state.EnforcementPolicies) {
-			if err := processEnforcementPoliciesUpdate(ctx, r.apiManager, roleId, plan.EnforcementPolicies, state.EnforcementPolicies); err != nil {
+			if err := processEnforcementPoliciesUpdate(ctx, r.ApiManager, roleId, plan.EnforcementPolicies, state.EnforcementPolicies); err != nil {
 				return fmt.Errorf("failed to update enforcement policies: %w", err)
 			}
 		}
-
-		// Keep the same ID
 		plan.Id = state.Id
-
 		return nil
-	})
-
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"Update Enterprise Role Failed",
-			err.Error(),
-		)
+	}, "Update Enterprise Role Failed", &resp.Diagnostics); err != nil {
+		return
+	}
+	if resp.Diagnostics.HasError() {
 		return
 	}
 

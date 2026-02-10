@@ -23,7 +23,7 @@ func (d *EnterpriseUserDataSource) Read(ctx context.Context, req datasource.Read
 	}
 
 	// Validate ApiManager is configured
-	if err := d.ensureApiManager(); err != nil {
+	if err := d.EnsureApiManager(); err != nil {
 		resp.Diagnostics.AddError(
 			"Provider Configuration Error",
 			err.Error(),
@@ -31,43 +31,35 @@ func (d *EnterpriseUserDataSource) Read(ctx context.Context, req datasource.Read
 		return
 	}
 
-	err := utils.ExecuteWithManagedCompanyContext(ctx, d.apiManager, data.ManagedCompany, func() error {
-		userInfo, err := utils.FetchEnterpriseUserByEmailOrId(ctx, d.apiManager, data.User.ValueString())
-
+	if err := utils.RunWithManagedCompanyContext(ctx, d.ApiManager, data.ManagedCompany, func() error {
+		userInfo, err := utils.FetchEnterpriseUserByEmailOrId(ctx, d.ApiManager, data.User.ValueString())
 		if err != nil {
 			return err
 		}
 		if userInfo == nil {
 			return fmt.Errorf("Enterprise user: '%s' not found", data.User.ValueString())
 		}
-
 		data.Id = types.StringValue(strconv.Itoa(userInfo.UserId))
 		data.Name = types.StringValue(userInfo.Name)
 		data.Email = types.StringValue(userInfo.Email)
 		data.JobTitle = types.StringValue(userInfo.JobTitle)
-
 		roles, rolesDiags := types.SetValueFrom(ctx, types.StringType, userInfo.Roles)
 		if rolesDiags.HasError() {
 			return fmt.Errorf("failed to create roles set: %v", rolesDiags.Errors())
 		}
 		data.Roles = roles
-
 		teams, teamsDiags := types.SetValueFrom(ctx, types.StringType, userInfo.Teams)
 		if teamsDiags.HasError() {
 			return fmt.Errorf("failed to create teams set: %v", teamsDiags.Errors())
 		}
 		data.Teams = teams
-
 		data.Status = types.StringValue(userInfo.Status)
-		data.ManagedCompany = types.StringNull() // Bec we dotn want to return the managed company in the result
-
+		data.ManagedCompany = types.StringNull()
 		return nil
-	})
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"Read Enterprise User Failed",
-			err.Error(),
-		)
+	}, "Read Enterprise User Failed", &resp.Diagnostics); err != nil {
+		return
+	}
+	if resp.Diagnostics.HasError() {
 		return
 	}
 

@@ -21,7 +21,7 @@ func (r *EnterpriseTeamResource) Delete(ctx context.Context, req resource.Delete
 	}
 
 	// Validate ApiManager is configured
-	if err := r.ensureApiManager(); err != nil {
+	if err := r.EnsureApiManager(); err != nil {
 		resp.Diagnostics.AddError(
 			"Provider Configuration Error",
 			err.Error(),
@@ -29,23 +29,14 @@ func (r *EnterpriseTeamResource) Delete(ctx context.Context, req resource.Delete
 		return
 	}
 
-	// Execute with managed company context if provided
-	err := utils.ExecuteWithManagedCompanyContext(ctx, r.apiManager, state.ManagedCompany, func() error {
-		// Build delete command
+	if err := utils.RunWithManagedCompanyContext(ctx, r.ApiManager, state.ManagedCompany, func() error {
 		command := fmt.Sprintf("enterprise-team --delete --force '%s'", state.Id.ValueString())
-
-		_, err := r.apiManager.ExecuteCommand(ctx, command, "Unable to delete enterprise team")
-		if err != nil {
-			return err
-		}
-		return nil
-	})
-
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"Delete Enterprise Team Failed",
-			err.Error(),
-		)
+		_, err := r.ApiManager.ExecuteCommand(ctx, command, "Unable to delete enterprise team")
+		return err
+	}, "Delete Enterprise Team Failed", &resp.Diagnostics); err != nil {
+		return
+	}
+	if resp.Diagnostics.HasError() {
 		return
 	}
 }
