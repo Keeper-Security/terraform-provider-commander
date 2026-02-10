@@ -6,6 +6,7 @@ package enterpriseteam
 import (
 	"context"
 
+	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/utils"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
@@ -25,7 +26,7 @@ func (r *EnterpriseTeamResource) Schema(ctx context.Context, req resource.Schema
 				Description:         "Enterprise Team Name.",
 				MarkdownDescription: "Enterprise Team Name.",
 				Validators: []validator.String{
-					nameValidator{},
+					utils.StringMinLengthValidator("Enterprise Team Name", 1, false),
 				},
 			},
 			"restrict_record_edit": schema.BoolAttribute{
@@ -47,7 +48,7 @@ func (r *EnterpriseTeamResource) Schema(ctx context.Context, req resource.Schema
 				Optional:    true,
 				ElementType: types.StringType,
 				Validators: []validator.Set{
-					usersValidator{},
+					utils.SetNoEmptyStringsValidator("User"),
 				},
 				Description:         "Set of users in the enterprise team. Duplicate values are automatically prevented. Empty strings are not allowed.",
 				MarkdownDescription: "Set of users in the enterprise team. Duplicate values are automatically prevented. Empty strings are not allowed.",
@@ -56,7 +57,7 @@ func (r *EnterpriseTeamResource) Schema(ctx context.Context, req resource.Schema
 				Optional:    true,
 				ElementType: types.StringType,
 				Validators: []validator.Set{
-					rolesValidator{},
+					utils.RolesValidator,
 				},
 				Description:         "Set of roles in the enterprise team. Duplicate values are automatically prevented. Empty strings are not allowed.",
 				MarkdownDescription: "Set of roles in the enterprise team. Duplicate values are automatically prevented. Empty strings are not allowed.",
@@ -66,7 +67,7 @@ func (r *EnterpriseTeamResource) Schema(ctx context.Context, req resource.Schema
 				Description:         "Managing Node name or ID.",
 				MarkdownDescription: "Managing Node name or ID.",
 				Validators: []validator.String{
-					nodeValidator{},
+					utils.NodeValidator,
 				},
 			},
 			"managed_company": schema.StringAttribute{
@@ -74,7 +75,7 @@ func (r *EnterpriseTeamResource) Schema(ctx context.Context, req resource.Schema
 				Description:         "Managed Company name or ID.",
 				MarkdownDescription: "Managed Company name or ID.",
 				Validators: []validator.String{
-					managedCompanyValidator{},
+					utils.ManagedCompanyValidator,
 				},
 			},
 		},

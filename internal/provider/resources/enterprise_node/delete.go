@@ -21,7 +21,7 @@ func (r *EnterpriseNodeResource) Delete(ctx context.Context, req resource.Delete
 	}
 
 	// Validate ApiManager is configured
-	if err := r.ensureApiManager(); err != nil {
+	if err := r.EnsureApiManager(); err != nil {
 		resp.Diagnostics.AddError(
 			"Provider Configuration Error",
 			err.Error(),
@@ -30,22 +30,16 @@ func (r *EnterpriseNodeResource) Delete(ctx context.Context, req resource.Delete
 	}
 
 	// Execute with managed company context if provided
-	err := utils.ExecuteWithManagedCompanyContext(ctx, r.apiManager, state.ManagedCompany, func() error {
-		// Build delete command
+	if err := utils.RunWithManagedCompanyContext(ctx, r.ApiManager, state.ManagedCompany, func() error {
 		command := fmt.Sprintf("enterprise-node --delete '%s'", state.Id.ValueString())
-
-		_, err := r.apiManager.ExecuteCommand(ctx, command, "Unable to delete enterprise node")
-		if err != nil {
-			return fmt.Errorf("Delete Enterprise Node Failed: %w", err)
+		if _, err := r.ApiManager.ExecuteCommand(ctx, command, "Unable to delete enterprise node"); err != nil {
+			return err
 		}
 		return nil
-	})
-
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"Delete Enterprise Node Failed",
-			err.Error(),
-		)
+	}, "Delete Enterprise Node Failed", &resp.Diagnostics); err != nil {
+		return
+	}
+	if resp.Diagnostics.HasError() {
 		return
 	}
 }

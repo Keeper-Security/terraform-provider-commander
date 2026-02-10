@@ -30,7 +30,7 @@ func (r *EnterpriseNodeResource) Update(ctx context.Context, req resource.Update
 	}
 
 	// Validate ApiManager is configured
-	if err := r.ensureApiManager(); err != nil {
+	if err := r.EnsureApiManager(); err != nil {
 		resp.Diagnostics.AddError(
 			"Provider Configuration Error",
 			err.Error(),
@@ -54,23 +54,16 @@ func (r *EnterpriseNodeResource) Update(ctx context.Context, req resource.Update
 	}
 
 	// Execute with managed company context if provided
-	err := utils.ExecuteWithManagedCompanyContext(ctx, r.apiManager, managedCompany, func() error {
-
-		if err := updateEnterpriseNode(ctx, r.apiManager, &plan, &state); err != nil {
+	if err := utils.RunWithManagedCompanyContext(ctx, r.ApiManager, managedCompany, func() error {
+		if err := updateEnterpriseNode(ctx, r.ApiManager, &plan, &state); err != nil {
 			return err
 		}
-
-		// Keep the same ID
 		plan.Id = state.Id
-
 		return nil
-	})
-
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"Update Enterprise Node Failed",
-			err.Error(),
-		)
+	}, "Update Enterprise Node Failed", &resp.Diagnostics); err != nil {
+		return
+	}
+	if resp.Diagnostics.HasError() {
 		return
 	}
 

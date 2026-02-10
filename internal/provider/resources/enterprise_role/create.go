@@ -33,7 +33,7 @@ func (r *EnterpriseRoleResource) Create(ctx context.Context, req resource.Create
 	}
 
 	// Validate ApiManager is configured
-	if err := r.ensureApiManager(); err != nil {
+	if err := r.EnsureApiManager(); err != nil {
 		resp.Diagnostics.AddError(
 			"Provider Configuration Error",
 			err.Error(),
@@ -41,70 +41,48 @@ func (r *EnterpriseRoleResource) Create(ctx context.Context, req resource.Create
 		return
 	}
 
-	err := utils.ExecuteWithManagedCompanyContext(ctx, r.apiManager, data.ManagedCompany, func() error {
-		// Step 1: Fetch and process users/teams before creating the role
-		// For create, stateUsers and stateTeams are null/empty, only planUsers and planTeams have items to add
-		users, err := utils.FetchAndProcessUsers(ctx, r.apiManager, types.SetNull(types.StringType), data.Users)
+	if err := utils.RunWithManagedCompanyContext(ctx, r.ApiManager, data.ManagedCompany, func() error {
+		users, err := utils.FetchAndProcessUsers(ctx, r.ApiManager, types.SetNull(types.StringType), data.Users)
 		if err != nil {
 			return err
 		}
-
-		teams, err := utils.FetchAndProcessTeams(ctx, r.apiManager, types.SetNull(types.StringType), data.Teams)
+		teams, err := utils.FetchAndProcessTeams(ctx, r.ApiManager, types.SetNull(types.StringType), data.Teams)
 		if err != nil {
 			return err
 		}
-
-		// Step 2: Build and execute the command to create the role
-		if err := addRoleBasicAttributes(ctx, r.apiManager, &data); err != nil {
+		if err := addRoleBasicAttributes(ctx, r.ApiManager, &data); err != nil {
 			return err
 		}
-
-		// Step 3: Validate managing nodes before processing
-		// Fetch all available nodes for current scope
-		currentScopeNodes, err := r.apiManager.ExecuteCommand(ctx, "enterprise-info -n --format json", "Unable to fetch enterprise nodes for the managed company")
+		currentScopeNodes, err := r.ApiManager.ExecuteCommand(ctx, "enterprise-info -n --format json", "Unable to fetch enterprise nodes for the managed company")
 		if err != nil {
 			return err
 		}
-
-		// Validate that all managing nodes exist in the available nodes
 		if err := validateManagingNodes(ctx, data.ManagingNodes, currentScopeNodes.Data); err != nil {
 			return fmt.Errorf("managing nodes validation failed: %w", err)
 		}
-
-		// Step 4: Process managing nodes if provided
-		if err := processManagingNodes(ctx, r.apiManager, data.Id.ValueString(), data.ManagingNodes); err != nil {
+		if err := processManagingNodes(ctx, r.ApiManager, data.Id.ValueString(), data.ManagingNodes); err != nil {
 			return err
 		}
-
-		// Step 5: Process enforcement policies if provided
-		if err := processEnforcementPolicies(ctx, r.apiManager, data.Id.ValueString(), data.EnforcementPolicies); err != nil {
+		if err := processEnforcementPolicies(ctx, r.ApiManager, data.Id.ValueString(), data.EnforcementPolicies); err != nil {
 			return err
 		}
-
-		// Step 6: Add users and teams to the recently created role
 		if users != "" {
 			command := fmt.Sprintf("enterprise-role '%s' -f %s", data.Id.ValueString(), users)
-			_, err = r.apiManager.ExecuteCommand(ctx, command, "Unable to add users to the enterprise role")
-			if err != nil {
+			if _, err = r.ApiManager.ExecuteCommand(ctx, command, "Unable to add users to the enterprise role"); err != nil {
 				return err
 			}
 		}
 		if teams != "" {
 			command := fmt.Sprintf("enterprise-role '%s' -f %s", data.Id.ValueString(), teams)
-			_, err = r.apiManager.ExecuteCommand(ctx, command, "Unable to add teams to the enterprise role")
-			if err != nil {
+			if _, err = r.ApiManager.ExecuteCommand(ctx, command, "Unable to add teams to the enterprise role"); err != nil {
 				return err
 			}
 		}
-
 		return nil
-	})
-
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"Create Enterprise Role Failed",
-			err.Error(),
-		)
+	}, "Create Enterprise Role Failed", &resp.Diagnostics); err != nil {
+		return
+	}
+	if resp.Diagnostics.HasError() {
 		return
 	}
 

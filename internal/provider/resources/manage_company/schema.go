@@ -7,6 +7,7 @@ import (
 	"context"
 	"strings"
 
+	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/utils"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
@@ -22,7 +23,7 @@ func (r *ManageCompanyResource) Schema(ctx context.Context, req resource.SchemaR
 			"name": schema.StringAttribute{
 				Required: true,
 				Validators: []validator.String{
-					nameValidator{},
+					utils.StringMinLengthValidator("Managed Company Name", 1, false),
 				},
 				Description:         "Managed Company Name.",
 				MarkdownDescription: "Managed Company Name.",
@@ -30,7 +31,7 @@ func (r *ManageCompanyResource) Schema(ctx context.Context, req resource.SchemaR
 			"node": schema.StringAttribute{
 				Required: true,
 				Validators: []validator.String{
-					nodeValidator{},
+					utils.NodeValidator,
 				},
 				Description:         "Managing Node name or ID.",
 				MarkdownDescription: "Managing Node name or ID.",

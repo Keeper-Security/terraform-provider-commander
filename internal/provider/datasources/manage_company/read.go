@@ -24,7 +24,7 @@ func (d *ManageCompanyDataSource) Read(ctx context.Context, req datasource.ReadR
 	}
 
 	// Validate ApiManager is configured
-	if err := d.ensureApiManager(); err != nil {
+	if err := d.EnsureApiManager(); err != nil {
 		resp.Diagnostics.AddError(
 			"Provider Configuration Error",
 			err.Error(),
@@ -32,52 +32,29 @@ func (d *ManageCompanyDataSource) Read(ctx context.Context, req datasource.ReadR
 		return
 	}
 
-	// For MSP accounts, ensure we are in MSP context before running msp-info
-	if d.apiManager.IsMspAccount {
-		if err := utils.SwitchToMsp(ctx, d.apiManager); err != nil {
-			resp.Diagnostics.AddError(
-				"Read Managed Company Failed",
-				fmt.Sprintf("Failed to switch to MSP context: %s", err.Error()),
-			)
-			return
+	if err := utils.RunWithMspContext(ctx, d.ApiManager, func() error {
+		if err := utils.MspDown(ctx, d.ApiManager); err != nil {
+			return err
 		}
-	}
-
-	if err := utils.MspDown(ctx, d.apiManager); err != nil {
-		resp.Diagnostics.AddError(
-			"Read Managed Company Failed",
-			err.Error(),
-		)
+		companyInfo, err := utils.FetchManageCompanyByNameOrId(ctx, d.ApiManager, data.ManagedCompany.ValueString())
+		if err != nil {
+			return err
+		}
+		if companyInfo == nil {
+			return fmt.Errorf("managed company: '%s' not found", data.ManagedCompany.ValueString())
+		}
+		data.Id = types.StringValue(strconv.Itoa(companyInfo.CompanyId))
+		data.Name = types.StringValue(companyInfo.CompanyName)
+		data.Node = types.StringValue(companyInfo.Node)
+		data.Plan = types.StringValue(companyInfo.Plan)
+		storageLower := strings.ToLower(companyInfo.Storage)
+		data.FilePlan = types.StringValue(storageLower)
+		return nil
+	}, "Read Managed Company Failed", &resp.Diagnostics); err != nil {
 		return
 	}
-
-	companyInfo, err := utils.FetchManageCompanyByNameOrId(ctx, d.apiManager, data.ManagedCompany.ValueString())
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"Read Managed Company Failed",
-			err.Error(),
-		)
+	if resp.Diagnostics.HasError() {
 		return
 	}
-
-	if companyInfo == nil {
-		resp.Diagnostics.AddError(
-			"Managed Company Not Found",
-			fmt.Sprintf("managed company: '%s' not found", data.ManagedCompany.ValueString()),
-		)
-		return
-	}
-
-	// Map the response to the model
-	data.Id = types.StringValue(strconv.Itoa(companyInfo.CompanyId))
-	data.Name = types.StringValue(companyInfo.CompanyName)
-	data.Node = types.StringValue(companyInfo.Node)
-	data.Plan = types.StringValue(companyInfo.Plan)
-
-	// Convert storage format: "100GB" -> "100gb", "1TB" -> "1tb", "10TB" -> "10tb"
-	storageLower := strings.ToLower(companyInfo.Storage)
-	data.FilePlan = types.StringValue(storageLower)
-
-	// Set the data
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }

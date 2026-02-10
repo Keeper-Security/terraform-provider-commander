@@ -5,6 +5,7 @@ package managecompany
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strconv"
 	"strings"
@@ -24,7 +25,7 @@ func (r *ManageCompanyResource) Read(ctx context.Context, req resource.ReadReque
 	}
 
 	// Validate ApiManager is configured
-	if err := r.ensureApiManager(); err != nil {
+	if err := r.EnsureApiManager(); err != nil {
 		resp.Diagnostics.AddError(
 			"Provider Configuration Error",
 			err.Error(),
@@ -32,67 +33,44 @@ func (r *ManageCompanyResource) Read(ctx context.Context, req resource.ReadReque
 		return
 	}
 
-	// Only switch to MSP if it's an MSP account
-	if r.apiManager.IsMspAccount {
-		if err := utils.SwitchToMsp(ctx, r.apiManager); err != nil {
-			resp.Diagnostics.AddError(
-				"Read Managed Company Failed",
-				fmt.Sprintf("Failed to switch to MSP context: %s", err.Error()),
-			)
-			return
+	err := utils.RunWithMspContext(ctx, r.ApiManager, func() error {
+		if err := utils.MspDown(ctx, r.ApiManager); err != nil {
+			return err
 		}
-	}
+		companyInfo, err := utils.FetchManageCompanyByNameOrId(ctx, r.ApiManager, state.Id.ValueString())
+		if err != nil {
+			return err
+		}
+		if companyInfo == nil {
+			resp.State.RemoveResource(ctx)
+			return utils.ErrResourceRemoved
+		}
+		state.Id = types.StringValue(strconv.Itoa(companyInfo.CompanyId))
+		state.Name = types.StringValue(companyInfo.CompanyName)
+		state.Node = types.StringValue(utils.ExtractNodeName(companyInfo.NodeName))
+		state.Plan = types.StringValue(companyInfo.Plan)
+		state.Seats = types.Int64Value(int64(companyInfo.Allocated))
+		// Convert storage format: "100GB" -> "100gb", "1TB" -> "1tb", "10TB" -> "10tb"
+		storageLower := strings.ToLower(companyInfo.Storage)
+		state.FilePlan = types.StringValue(storageLower)
 
-	// Execute msp-down command (setup/initialization)
-	if err := utils.MspDown(ctx, r.apiManager); err != nil {
-		resp.Diagnostics.AddError(
-			"Read Managed Company Failed",
-			err.Error(),
-		)
+		// Convert addons array of strings to types.Set
+		addOnsElements := make([]types.String, len(companyInfo.Addons))
+		for i, addon := range companyInfo.Addons {
+			addOnsElements[i] = types.StringValue(addon)
+		}
+		addOnsSet, diags := types.SetValueFrom(ctx, types.StringType, addOnsElements)
+		if diags.HasError() {
+			return fmt.Errorf("failed to build add_ons set: %v", diags.Errors())
+		}
+		state.AddOns = addOnsSet
+		return nil
+	}, "Read Managed Company Failed", &resp.Diagnostics)
+	if err != nil && errors.Is(err, utils.ErrResourceRemoved) {
 		return
 	}
-
-	companyInfo, err := utils.FetchManageCompanyByNameOrId(ctx, r.apiManager, state.Id.ValueString())
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"Read Managed Company Failed",
-			err.Error(),
-		)
+	if resp.Diagnostics.HasError() {
 		return
 	}
-
-	if companyInfo == nil {
-		// Resource not found - remove from state
-		// Terraform will detect this and mark the resource for destruction
-		resp.State.RemoveResource(ctx)
-		return
-	}
-
-	// Map the response to the model
-	state.Id = types.StringValue(strconv.Itoa(companyInfo.CompanyId))
-	state.Name = types.StringValue(companyInfo.CompanyName)
-
-	state.Node = types.StringValue(utils.ExtractNodeName(companyInfo.NodeName))
-
-	state.Plan = types.StringValue(companyInfo.Plan)
-	state.Seats = types.Int64Value(int64(companyInfo.Allocated))
-
-	// Convert storage format: "100GB" -> "100gb", "1TB" -> "1tb", "10TB" -> "10tb"
-	storageLower := strings.ToLower(companyInfo.Storage)
-	state.FilePlan = types.StringValue(storageLower)
-
-	// Convert addons array of strings to types.Set
-	addOnsElements := make([]types.String, len(companyInfo.Addons))
-	for i, addon := range companyInfo.Addons {
-		addOnsElements[i] = types.StringValue(addon)
-	}
-	addOnsSet, diags := types.SetValueFrom(ctx, types.StringType, addOnsElements)
-	if diags.HasError() {
-		resp.Diagnostics.Append(diags...)
-		return
-	}
-	state.AddOns = addOnsSet
-
-	// Set the updated state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
 }

@@ -25,7 +25,7 @@ func (r *EnterpriseUserResource) Read(ctx context.Context, req resource.ReadRequ
 	}
 
 	// Validate ApiManager is configured
-	if err := r.ensureApiManager(); err != nil {
+	if err := r.EnsureApiManager(); err != nil {
 		resp.Diagnostics.AddError(
 			"Provider Configuration Error",
 			err.Error(),
@@ -33,34 +33,24 @@ func (r *EnterpriseUserResource) Read(ctx context.Context, req resource.ReadRequ
 		return
 	}
 
-	// Execute with managed company context if provided
-	err := utils.ExecuteWithManagedCompanyContext(ctx, r.apiManager, state.ManagedCompany, func() error {
-		userInfo, err := utils.FetchEnterpriseUserByEmailOrId(ctx, r.apiManager, state.Id.ValueString())
+	err := utils.RunWithManagedCompanyContext(ctx, r.ApiManager, state.ManagedCompany, func() error {
+		userInfo, err := utils.FetchEnterpriseUserByEmailOrId(ctx, r.ApiManager, state.Id.ValueString())
 		if err != nil {
 			return err
 		}
-
 		if userInfo == nil {
-			// Resource not found - remove from state
 			resp.State.RemoveResource(ctx)
 			return utils.ErrResourceRemoved
 		}
-
-		if err := mapUserReadResponseToModel(ctx, r.apiManager, *userInfo, &state); err != nil {
+		if err := mapUserReadResponseToModel(ctx, r.ApiManager, *userInfo, &state); err != nil {
 			return fmt.Errorf("failed to map user response to model: %w", err)
 		}
-
 		return nil
-	})
-
-	if err != nil {
-		if errors.Is(err, utils.ErrResourceRemoved) {
-			return
-		}
-		resp.Diagnostics.AddError(
-			"Read Enterprise User Failed",
-			err.Error(),
-		)
+	}, "Read Enterprise User Failed", &resp.Diagnostics)
+	if err != nil && errors.Is(err, utils.ErrResourceRemoved) {
+		return
+	}
+	if resp.Diagnostics.HasError() {
 		return
 	}
 

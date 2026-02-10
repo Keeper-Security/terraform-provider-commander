@@ -35,7 +35,7 @@ func (r *EnterpriseUserResource) Schema(ctx context.Context, req resource.Schema
 				Description:         "Name.",
 				MarkdownDescription: "Name.",
 				Validators: []validator.String{
-					nameValidator{},
+					utils.StringMinLengthValidator("Name", 1, true),
 				},
 			},
 			"job_title": schema.StringAttribute{
@@ -43,21 +43,21 @@ func (r *EnterpriseUserResource) Schema(ctx context.Context, req resource.Schema
 				Description:         "Job title.",
 				MarkdownDescription: "Job title.",
 				Validators: []validator.String{
-					jobTitleValidator{},
+					utils.StringMinLengthValidator("Job title", 1, true),
 				},
 			},
 			"roles": schema.SetAttribute{
 				Optional:    true,
 				ElementType: types.StringType,
 				Validators: []validator.Set{
-					utils.RolesValidator{},
+					utils.RolesValidator,
 				},
 			},
 			"teams": schema.SetAttribute{
 				Optional:    true,
 				ElementType: types.StringType,
 				Validators: []validator.Set{
-					utils.TeamsValidator{},
+					utils.TeamsValidator,
 				},
 			},
 			"node": schema.StringAttribute{
@@ -65,7 +65,7 @@ func (r *EnterpriseUserResource) Schema(ctx context.Context, req resource.Schema
 				Description:         "Managing Node name or ID.",
 				MarkdownDescription: "Managing Node name or ID.",
 				Validators: []validator.String{
-					utils.NodeValidator{},
+					utils.NodeValidator,
 				},
 			},
 
@@ -74,7 +74,7 @@ func (r *EnterpriseUserResource) Schema(ctx context.Context, req resource.Schema
 				Description:         "Managed Company name or ID.",
 				MarkdownDescription: "Managed Company name or ID.",
 				Validators: []validator.String{
-					utils.ManagedCompanyValidator{},
+					utils.ManagedCompanyValidator,
 				},
 			},
 			"status": schema.StringAttribute{

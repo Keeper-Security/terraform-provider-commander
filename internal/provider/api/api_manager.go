@@ -101,14 +101,15 @@ func handleAPIErrorResponse(resp *http.Response) ([]byte, error) {
 
 		// Helper function to extract error message from JSON response
 		extractErrorMessage := func(body []byte) string {
-			var errorResp struct {
-				Error  string `json:"error"`
-				Status string `json:"status"`
+			var errorResp RequestResultResponse
+			if err := json.Unmarshal(body, &errorResp); err == nil {
+				if string(errorResp.Message) != "" {
+					return string(errorResp.Message)
+				}
+				if errorResp.Error != "" {
+					return errorResp.Error
+				}
 			}
-			if err := json.Unmarshal(body, &errorResp); err == nil && errorResp.Error != "" {
-				return errorResp.Error
-			}
-			// If parsing fails, return the raw body as string
 			return string(body)
 		}
 
@@ -126,7 +127,7 @@ func handleAPIErrorResponse(resp *http.Response) ([]byte, error) {
 			return bodyBytes, fmt.Errorf("request id not found (404)")
 
 		case http.StatusInternalServerError: // 500 - Command execution failed
-			return bodyBytes, fmt.Errorf("internal server error (500): command execution failed: %s", errorMsg)
+			return bodyBytes, fmt.Errorf("internal server error (500): %s", errorMsg)
 
 		case http.StatusBadRequest: // 400 - Bad request
 			return bodyBytes, fmt.Errorf("bad request (400): %s", errorMsg)

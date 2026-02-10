@@ -27,7 +27,7 @@ func (r *EnterpriseRoleResource) Read(ctx context.Context, req resource.ReadRequ
 	}
 
 	// Validate ApiManager is configured
-	if err := r.ensureApiManager(); err != nil {
+	if err := r.EnsureApiManager(); err != nil {
 		resp.Diagnostics.AddError(
 			"Provider Configuration Error",
 			err.Error(),
@@ -35,34 +35,24 @@ func (r *EnterpriseRoleResource) Read(ctx context.Context, req resource.ReadRequ
 		return
 	}
 
-	// Execute with managed company context if provided
-	err := utils.ExecuteWithManagedCompanyContext(ctx, r.apiManager, state.ManagedCompany, func() error {
-		roleInfo, err := utils.FetchEnterpriseRoleByNameOrId(ctx, r.apiManager, state.Id.ValueString())
+	err := utils.RunWithManagedCompanyContext(ctx, r.ApiManager, state.ManagedCompany, func() error {
+		roleInfo, err := utils.FetchEnterpriseRoleByNameOrId(ctx, r.ApiManager, state.Id.ValueString())
 		if err != nil {
 			return err
 		}
-
 		if roleInfo == nil {
-			// Resource not found - remove from state
 			resp.State.RemoveResource(ctx)
 			return utils.ErrResourceRemoved
 		}
-
-		if err := mapRoleReadResponseToModel(ctx, r.apiManager, *roleInfo, &state); err != nil {
+		if err := mapRoleReadResponseToModel(ctx, r.ApiManager, *roleInfo, &state); err != nil {
 			return fmt.Errorf("failed to map role response to model: %w", err)
 		}
-
 		return nil
-	})
-
-	if err != nil {
-		if errors.Is(err, utils.ErrResourceRemoved) {
-			return
-		}
-		resp.Diagnostics.AddError(
-			"Read Enterprise Role Failed",
-			err.Error(),
-		)
+	}, "Read Enterprise Role Failed", &resp.Diagnostics)
+	if err != nil && errors.Is(err, utils.ErrResourceRemoved) {
+		return
+	}
+	if resp.Diagnostics.HasError() {
 		return
 	}
 

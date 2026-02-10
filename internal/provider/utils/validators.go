@@ -6,153 +6,136 @@ package utils
 import (
 	"context"
 	"fmt"
+	"strconv"
 
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
-// ----- Node VALIDATOR --------------------------------
-type NodeValidator struct{}
-
-func (v NodeValidator) Description(ctx context.Context) string {
-	return "Node must be at least 1 character long."
+// ----- GENERIC: STRING MIN LENGTH --------------------------------
+// StringMinLengthValidator validates that a string has at least MinLen characters.
+// DisplayName is used in error messages (e.g. "Enterprise Node Name").
+// AllowNull: if true, null values are skipped (for optional attributes); if false, null is treated as empty.
+func StringMinLengthValidator(displayName string, minLen int, allowNull bool) stringMinLengthValidator {
+	return stringMinLengthValidator{DisplayName: displayName, MinLen: minLen, AllowNull: allowNull}
 }
 
-func (v NodeValidator) MarkdownDescription(ctx context.Context) string {
-	return "Node must be at least 1 character long."
+type stringMinLengthValidator struct {
+	DisplayName string
+	MinLen      int
+	AllowNull   bool
 }
 
-func (v NodeValidator) ValidateString(ctx context.Context, req validator.StringRequest, resp *validator.StringResponse) {
-	// Skip validation if the value is unknown (e.g., from data source during plan)
-	// or null (optional field not provided)
-	if req.ConfigValue.IsUnknown() || req.ConfigValue.IsNull() {
+func (v stringMinLengthValidator) Description(ctx context.Context) string {
+	return v.DisplayName + " must be at least " + strconv.Itoa(v.MinLen) + " character(s) long."
+}
+
+func (v stringMinLengthValidator) MarkdownDescription(ctx context.Context) string {
+	return v.Description(ctx)
+}
+
+func (v stringMinLengthValidator) ValidateString(ctx context.Context, req validator.StringRequest, resp *validator.StringResponse) {
+	if req.ConfigValue.IsUnknown() {
 		return
 	}
-
-	value := req.ConfigValue.ValueString()
-	if len(value) < 1 {
-		resp.Diagnostics.AddError(
-			"Invalid Node Name",
-			"Node must be at least 1 character long.")
-	}
-}
-
-// ----- MANAGED COMPANY VALIDATOR --------------------------------
-type ManagedCompanyValidator struct{}
-
-func (v ManagedCompanyValidator) Description(ctx context.Context) string {
-	return "Managed Company Name must be at least 1 character long."
-}
-
-func (v ManagedCompanyValidator) MarkdownDescription(ctx context.Context) string {
-	return "Managed Company Name must be at least 1 character long."
-}
-
-func (v ManagedCompanyValidator) ValidateString(ctx context.Context, req validator.StringRequest, resp *validator.StringResponse) {
-	// Skip validation if the value is unknown (e.g., from data source during plan)
-	// or null (optional field not provided)
-	if req.ConfigValue.IsUnknown() || req.ConfigValue.IsNull() {
+	if v.AllowNull && req.ConfigValue.IsNull() {
 		return
 	}
-
 	value := req.ConfigValue.ValueString()
-	if len(value) < 1 {
+	if len(value) < v.MinLen {
 		resp.Diagnostics.AddError(
-			"Invalid Managed Company Name",
-			"Managed Company Name must be at least 1 character long.")
+			"Invalid "+v.DisplayName,
+			v.DisplayName+" must be at least "+strconv.Itoa(v.MinLen)+" character(s) long.",
+		)
 	}
 }
 
-// ----- TEAMS SET VALIDATOR --------------------------------
-
-type TeamsValidator struct{}
-
-func (v TeamsValidator) Description(ctx context.Context) string {
-	return "Teams set must not contain empty strings."
+// ----- GENERIC: SET NO EMPTY STRINGS --------------------------------
+// SetNoEmptyStringsValidator validates that a set of strings contains no empty strings.
+// DisplayName is used in error messages (e.g. "Team", "User", "Role").
+func SetNoEmptyStringsValidator(displayName string) setNoEmptyStringsValidator {
+	return setNoEmptyStringsValidator{DisplayName: displayName}
 }
 
-func (v TeamsValidator) MarkdownDescription(ctx context.Context) string {
-	return "Teams set must not contain empty strings."
+type setNoEmptyStringsValidator struct {
+	DisplayName string
 }
 
-func (v TeamsValidator) ValidateSet(ctx context.Context, req validator.SetRequest, resp *validator.SetResponse) {
-	// Skip validation if the value is null or unknown (optional field)
+func (v setNoEmptyStringsValidator) Description(ctx context.Context) string {
+	return v.DisplayName + " set must not contain empty strings."
+}
+
+func (v setNoEmptyStringsValidator) MarkdownDescription(ctx context.Context) string {
+	return v.Description(ctx)
+}
+
+func (v setNoEmptyStringsValidator) ValidateSet(ctx context.Context, req validator.SetRequest, resp *validator.SetResponse) {
 	if req.ConfigValue.IsNull() || req.ConfigValue.IsUnknown() {
 		return
 	}
-
-	elements := req.ConfigValue.Elements()
-	for _, elem := range elements {
-		// Get the string value
+	for _, elem := range req.ConfigValue.Elements() {
 		strValue, ok := elem.(types.String)
 		if !ok {
-			// This shouldn't happen if ElementType is correct, but handle it anyway
 			resp.Diagnostics.AddError(
-				"Invalid Team Type",
+				"Invalid "+v.DisplayName+" Type",
 				fmt.Sprintf("Expected string, got: %T", elem),
 			)
 			continue
 		}
-
-		// Skip unknown values (e.g. from data source references not yet evaluated at plan time)
 		if strValue.IsUnknown() {
 			continue
 		}
-
-		value := strValue.ValueString()
-
-		// Check for empty strings
-		if value == "" {
+		if strValue.ValueString() == "" {
 			resp.Diagnostics.AddError(
-				"Empty Team String",
-				"Teams set cannot contain empty strings. Each team must be a non-empty string.",
+				"Empty "+v.DisplayName+" String",
+				v.DisplayName+" set cannot contain empty strings. Each "+v.DisplayName+" must be a non-empty string.",
 			)
 		}
 	}
 }
 
-// ----- ROLES SET VALIDATOR --------------------------------
-type RolesValidator struct{}
+// ----- CONVENIENCE: NODE (optional string) --------------------------------
+var NodeValidator = stringMinLengthValidator{DisplayName: "Node Name", MinLen: 1, AllowNull: true}
 
-func (v RolesValidator) Description(ctx context.Context) string {
-	return "Roles set must not contain empty strings."
+// ----- CONVENIENCE: MANAGED COMPANY (optional string) --------------------------------
+var ManagedCompanyValidator = stringMinLengthValidator{DisplayName: "Managed Company Name", MinLen: 1, AllowNull: true}
+
+// ----- CONVENIENCE: TEAMS SET --------------------------------
+var TeamsValidator = setNoEmptyStringsValidator{DisplayName: "Team"}
+
+// ----- CONVENIENCE: ROLES SET --------------------------------
+var RolesValidator = setNoEmptyStringsValidator{DisplayName: "Role"}
+
+// ----- GENERIC: MAP KEYS MIN LENGTH --------------------------------
+// MapKeysMinLengthValidator validates that all keys in a map have at least MinLen characters.
+// Used for map attributes where keys are identifiers (e.g. managing node names).
+func MapKeysMinLengthValidator(displayName string, minLen int) mapKeysMinLengthValidator {
+	return mapKeysMinLengthValidator{DisplayName: displayName, MinLen: minLen}
 }
 
-func (v RolesValidator) MarkdownDescription(ctx context.Context) string {
-	return "Roles set must not contain empty strings."
+type mapKeysMinLengthValidator struct {
+	DisplayName string
+	MinLen      int
 }
 
-func (v RolesValidator) ValidateSet(ctx context.Context, req validator.SetRequest, resp *validator.SetResponse) {
-	// Skip validation if the value is null or unknown (optional field)
+func (v mapKeysMinLengthValidator) Description(ctx context.Context) string {
+	return "All " + v.DisplayName + " (map keys) must be at least " + strconv.Itoa(v.MinLen) + " character(s) long."
+}
+
+func (v mapKeysMinLengthValidator) MarkdownDescription(ctx context.Context) string {
+	return v.Description(ctx)
+}
+
+func (v mapKeysMinLengthValidator) ValidateMap(ctx context.Context, req validator.MapRequest, resp *validator.MapResponse) {
 	if req.ConfigValue.IsNull() || req.ConfigValue.IsUnknown() {
 		return
 	}
-
-	elements := req.ConfigValue.Elements()
-	for _, elem := range elements {
-		// Get the string value
-		strValue, ok := elem.(types.String)
-		if !ok {
-			// This shouldn't happen if ElementType is correct, but handle it anyway
-			resp.Diagnostics.AddError(
-				"Invalid Role Type",
-				fmt.Sprintf("Expected string, got: %T", elem),
-			)
-			continue
-		}
-
-		// Skip unknown values (e.g. from data source references not yet evaluated at plan time)
-		if strValue.IsUnknown() {
-			continue
-		}
-
-		value := strValue.ValueString()
-
-		// Check for empty strings
-		if value == "" {
-			resp.Diagnostics.AddError(
-				"Empty Role String",
-				"Roles set cannot contain empty strings. Each role must be a non-empty string.",
+	for key := range req.ConfigValue.Elements() {
+		if len(key) < v.MinLen {
+			resp.Diagnostics.AddAttributeError(
+				req.Path.AtMapKey(key),
+				"Invalid "+v.DisplayName,
+				v.DisplayName+" (map key) must be at least "+strconv.Itoa(v.MinLen)+" character(s) long.",
 			)
 		}
 	}

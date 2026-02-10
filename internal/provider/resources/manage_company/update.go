@@ -30,7 +30,7 @@ func (r *ManageCompanyResource) Update(ctx context.Context, req resource.UpdateR
 	}
 
 	// Validate ApiManager is configured
-	if err := r.ensureApiManager(); err != nil {
+	if err := r.EnsureApiManager(); err != nil {
 		resp.Diagnostics.AddError(
 			"Provider Configuration Error",
 			err.Error(),
@@ -38,22 +38,12 @@ func (r *ManageCompanyResource) Update(ctx context.Context, req resource.UpdateR
 		return
 	}
 
-	// Only switch to MSP if it's an MSP account
-	if r.apiManager.IsMspAccount {
-		if err := utils.SwitchToMsp(ctx, r.apiManager); err != nil {
-			resp.Diagnostics.AddError(
-				"Update Managed Company Failed",
-				fmt.Sprintf("Failed to switch to MSP context: %s", err.Error()),
-			)
-			return
-		}
+	if err := utils.RunWithMspContext(ctx, r.ApiManager, func() error {
+		return updateManageCompany(ctx, r.ApiManager, &plan, &state)
+	}, "Update Managed Company Failed", &resp.Diagnostics); err != nil {
+		return
 	}
-
-	if err := updateManageCompany(ctx, r.apiManager, &plan, &state); err != nil {
-		resp.Diagnostics.AddError(
-			"Update Managed Company Failed",
-			err.Error(),
-		)
+	if resp.Diagnostics.HasError() {
 		return
 	}
 

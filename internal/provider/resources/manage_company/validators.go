@@ -14,57 +14,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
-// ----- NAME VALIDATOR --------------------------------
-type nameValidator struct{}
-
-func (v nameValidator) Description(ctx context.Context) string {
-	return "Managed Company Name must be at least 1 character long."
-}
-
-func (v nameValidator) MarkdownDescription(ctx context.Context) string {
-	return "Managed Company Name must be at least 1 character long."
-}
-
-func (v nameValidator) ValidateString(ctx context.Context, req validator.StringRequest, resp *validator.StringResponse) {
-	// Skip validation if the value is unknown (e.g., from data source during plan)
-	// But still validate null and empty strings from user input
-	if req.ConfigValue.IsUnknown() {
-		return
-	}
-
-	value := req.ConfigValue.ValueString()
-	if len(value) < 1 {
-		resp.Diagnostics.AddError(
-			"Invalid Managed Company Name",
-			"Managed Company Name must be at least 1 character long.")
-	}
-}
-
-// ----- NODE VALIDATOR --------------------------------
-type nodeValidator struct{}
-
-func (v nodeValidator) Description(ctx context.Context) string {
-	return "Managing Node name or ID."
-}
-
-func (v nodeValidator) MarkdownDescription(ctx context.Context) string {
-	return "Managing Node name or ID."
-}
-
-func (v nodeValidator) ValidateString(ctx context.Context, req validator.StringRequest, resp *validator.StringResponse) {
-	// Skip validation if the value is unknown (e.g., from data source during plan)
-	if req.ConfigValue.IsUnknown() {
-		return
-	}
-
-	value := req.ConfigValue.ValueString()
-	if len(value) < 1 {
-		resp.Diagnostics.AddError(
-			"Invalid Managing Node Name or ID",
-			"Managing Node name or ID must be at least 1 character long.")
-	}
-}
-
 // ----- PLAN VALIDATOR --------------------------------
 type planValidator struct{}
 

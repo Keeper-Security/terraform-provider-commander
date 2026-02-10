@@ -16,7 +16,7 @@ import (
 //
 // Managed companies are listed in MSP context. After import, Terraform runs Read to refresh state from the API.
 func (r *ManageCompanyResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-	if err := r.ensureApiManager(); err != nil {
+	if err := r.EnsureApiManager(); err != nil {
 		resp.Diagnostics.AddError(
 			"Provider Configuration Error",
 			err.Error(),

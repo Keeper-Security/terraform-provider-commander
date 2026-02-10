@@ -22,7 +22,7 @@ func (r *ManageCompanyResource) Delete(ctx context.Context, req resource.DeleteR
 	}
 
 	// Validate ApiManager is configured
-	if err := r.ensureApiManager(); err != nil {
+	if err := r.EnsureApiManager(); err != nil {
 		resp.Diagnostics.AddError(
 			"Provider Configuration Error",
 			err.Error(),
@@ -30,28 +30,18 @@ func (r *ManageCompanyResource) Delete(ctx context.Context, req resource.DeleteR
 		return
 	}
 
-	// Build delete command
-	command := fmt.Sprintf("msp-remove '%s' -f", state.Id.ValueString())
-
-	// Only switch to MSP if it's an MSP account
-	if r.apiManager.IsMspAccount {
-		if err := utils.SwitchToMsp(ctx, r.apiManager); err != nil {
-			resp.Diagnostics.AddError(
-				"Delete Managed Company Failed",
-				fmt.Sprintf("Failed to switch to MSP context: %s", err.Error()),
-			)
-			return
+	if err := utils.RunWithMspContext(ctx, r.ApiManager, func() error {
+		command := fmt.Sprintf("msp-remove '%s' -f", state.Id.ValueString())
+		_, err := r.ApiManager.ExecuteCommand(ctx, command, "Unable to delete managed company")
+		if err != nil {
+			return err
 		}
-	}
-
-	_, err := r.apiManager.ExecuteCommand(ctx, command, "Unable to delete managed company")
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"Delete Managed Company Failed",
-			err.Error(),
-		)
+		resp.State.RemoveResource(ctx)
+		return nil
+	}, "Delete Managed Company Failed", &resp.Diagnostics); err != nil {
 		return
 	}
-
-	resp.State.RemoveResource(ctx)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 }
