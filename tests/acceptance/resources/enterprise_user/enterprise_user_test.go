@@ -1,7 +1,7 @@
 // Copyright (c) HashiCorp, Inc.
 // SPDX-License-Identifier: MPL-2.0
 
-package enterpiseuser_test
+package enterpriseuser_test
 
 import (
 	"strings"

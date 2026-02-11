@@ -1,19 +1,19 @@
 // Copyright (c) HashiCorp, Inc.
 // SPDX-License-Identifier: MPL-2.0
 
-package enterpiseuser_test
+package enterpriseuser_test
 
 import (
 	"context"
 	"testing"
 
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/api"
-	enterpiseuser "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/enterpise_user"
+	enterpriseuser "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/enterprise_user"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 )
 
 func TestEnterpriseUserResource_Metadata(t *testing.T) {
-	r := enterpiseuser.NewEnterpriseUserResource().(*enterpiseuser.EnterpriseUserResource)
+	r := enterpriseuser.NewEnterpriseUserResource().(*enterpriseuser.EnterpriseUserResource)
 	req := resource.MetadataRequest{ProviderTypeName: "commander"}
 	var resp resource.MetadataResponse
 	r.Metadata(context.Background(), req, &resp)
@@ -23,7 +23,7 @@ func TestEnterpriseUserResource_Metadata(t *testing.T) {
 }
 
 func TestEnterpriseUserResource_Configure_NilProviderData(t *testing.T) {
-	r := enterpiseuser.NewEnterpriseUserResource().(*enterpiseuser.EnterpriseUserResource)
+	r := enterpriseuser.NewEnterpriseUserResource().(*enterpriseuser.EnterpriseUserResource)
 	req := resource.ConfigureRequest{ProviderData: nil}
 	var resp resource.ConfigureResponse
 	r.Configure(context.Background(), req, &resp)
@@ -33,7 +33,7 @@ func TestEnterpriseUserResource_Configure_NilProviderData(t *testing.T) {
 }
 
 func TestEnterpriseUserResource_Configure_InvalidProviderData(t *testing.T) {
-	r := enterpiseuser.NewEnterpriseUserResource().(*enterpiseuser.EnterpriseUserResource)
+	r := enterpriseuser.NewEnterpriseUserResource().(*enterpriseuser.EnterpriseUserResource)
 	req := resource.ConfigureRequest{ProviderData: "not-api-manager"}
 	var resp resource.ConfigureResponse
 	r.Configure(context.Background(), req, &resp)
@@ -43,7 +43,7 @@ func TestEnterpriseUserResource_Configure_InvalidProviderData(t *testing.T) {
 }
 
 func TestEnterpriseUserResource_Configure_Success(t *testing.T) {
-	r := enterpiseuser.NewEnterpriseUserResource().(*enterpiseuser.EnterpriseUserResource)
+	r := enterpriseuser.NewEnterpriseUserResource().(*enterpriseuser.EnterpriseUserResource)
 	am := &api.ApiManager{ServiceModeUrl: "http://test", ServiceModeApiKey: "key"}
 	req := resource.ConfigureRequest{ProviderData: am}
 	var resp resource.ConfigureResponse
@@ -54,11 +54,11 @@ func TestEnterpriseUserResource_Configure_Success(t *testing.T) {
 }
 
 func TestNewEnterpriseUserResource(t *testing.T) {
-	res := enterpiseuser.NewEnterpriseUserResource()
+	res := enterpriseuser.NewEnterpriseUserResource()
 	if res == nil {
 		t.Fatal("NewEnterpriseUserResource returned nil")
 	}
-	_, ok := res.(*enterpiseuser.EnterpriseUserResource)
+	_, ok := res.(*enterpriseuser.EnterpriseUserResource)
 	if !ok {
 		t.Errorf("expected *EnterpriseUserResource, got %T", res)
 	}

@@ -1,7 +1,7 @@
 // Copyright (c) HashiCorp, Inc.
 // SPDX-License-Identifier: MPL-2.0
 
-package enterpiseuser_test
+package enterpriseuser_test
 
 import (
 	"context"
@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/api"
-	enterpiseuser "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/enterpise_user"
+	enterpriseuser "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/enterprise_user"
 	"github.com/Keeper-Security/terraform-provider-commander/tests/helpers"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -73,14 +73,14 @@ func newPlanStateValues(id, email, name, jobTitle, roles, teams, node, managedCo
 
 func getSchema(t *testing.T) (schema.Schema, tftypes.Object) {
 	t.Helper()
-	r := enterpiseuser.NewEnterpriseUserResource().(*enterpiseuser.EnterpriseUserResource)
+	r := enterpriseuser.NewEnterpriseUserResource().(*enterpriseuser.EnterpriseUserResource)
 	var resp resource.SchemaResponse
 	r.Schema(context.Background(), resource.SchemaRequest{}, &resp)
 	objType := enterpriseUserObjectType()
 	return resp.Schema, objType
 }
 
-func newConfiguredResource(t *testing.T, server *httptest.Server) *enterpiseuser.EnterpriseUserResource {
+func newConfiguredResource(t *testing.T, server *httptest.Server) *enterpriseuser.EnterpriseUserResource {
 	t.Helper()
 	am := &api.ApiManager{
 		ServiceModeUrl:    server.URL,
@@ -88,7 +88,7 @@ func newConfiguredResource(t *testing.T, server *httptest.Server) *enterpiseuser
 		HttpClient:        server.Client(),
 		IsMspAccount:      false,
 	}
-	r := enterpiseuser.NewEnterpriseUserResource().(*enterpiseuser.EnterpriseUserResource)
+	r := enterpriseuser.NewEnterpriseUserResource().(*enterpriseuser.EnterpriseUserResource)
 	r.Configure(context.Background(), resource.ConfigureRequest{ProviderData: am}, &resource.ConfigureResponse{})
 	return r
 }

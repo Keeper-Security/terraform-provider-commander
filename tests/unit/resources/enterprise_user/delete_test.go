@@ -1,7 +1,7 @@
 // Copyright (c) HashiCorp, Inc.
 // SPDX-License-Identifier: MPL-2.0
 
-package enterpiseuser_test
+package enterpriseuser_test
 
 import (
 	"context"
@@ -10,7 +10,7 @@ import (
 	"testing"
 
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/api"
-	enterpiseuser "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/enterpise_user"
+	enterpriseuser "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/enterprise_user"
 	"github.com/Keeper-Security/terraform-provider-commander/tests/helpers"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
@@ -35,7 +35,7 @@ func TestEnterpriseUserResource_Delete_Success(t *testing.T) {
 }
 
 func TestEnterpriseUserResource_Delete_NoApiManager(t *testing.T) {
-	r := enterpiseuser.NewEnterpriseUserResource().(*enterpiseuser.EnterpriseUserResource)
+	r := enterpriseuser.NewEnterpriseUserResource().(*enterpriseuser.EnterpriseUserResource)
 	sch, objType := getSchema(t)
 	rawState := tftypes.NewValue(objType, newPlanStateValues("123", "user@example.com", nil, nil, nil, nil, "Root", nil, nil))
 
@@ -67,7 +67,7 @@ func TestEnterpriseUserResource_Delete_ApiError(t *testing.T) {
 }
 
 func TestEnterpriseUserResource_Delete_StateGetError(t *testing.T) {
-	r := enterpiseuser.NewEnterpriseUserResource().(*enterpiseuser.EnterpriseUserResource)
+	r := enterpriseuser.NewEnterpriseUserResource().(*enterpriseuser.EnterpriseUserResource)
 	r.Configure(context.Background(), resource.ConfigureRequest{ProviderData: &api.ApiManager{}}, &resource.ConfigureResponse{})
 	sch, _ := getSchema(t)
 	wrongTypes := map[string]tftypes.Type{
