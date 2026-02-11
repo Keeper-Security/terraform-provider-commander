@@ -34,6 +34,8 @@ func enterpriseUserObjectType() tftypes.Object {
 
 // newPlanStateValues builds tftypes values for plan/state. Pass nil for null/optional attributes.
 // roles and teams: nil = null set; []interface{}{"a","b"} = set with elements.
+//
+//nolint:unparam // roles is always nil at call sites but used in body for null set.
 func newPlanStateValues(id, email, name, jobTitle, roles, teams, node, managedCompany, status interface{}) map[string]tftypes.Value {
 	var rolesVal, teamsVal tftypes.Value
 	if roles == nil {

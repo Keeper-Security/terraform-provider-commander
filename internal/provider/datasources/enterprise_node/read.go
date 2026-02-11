@@ -37,7 +37,7 @@ func (d *EnterpriseNodesDataSource) Read(ctx context.Context, req datasource.Rea
 			return err
 		}
 		if nodeInfo == nil {
-			return fmt.Errorf("Enterprise node: '%s' not found", data.Node.ValueString())
+			return fmt.Errorf("enterprise node: '%s' not found", data.Node.ValueString())
 		}
 		data.Id = types.StringValue(strconv.Itoa(nodeInfo.NodeId))
 		data.Name = types.StringValue(nodeInfo.Name)

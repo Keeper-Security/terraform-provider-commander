@@ -12,49 +12,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
-// ----- ENFORCEMENT POLICY KEY VALIDATOR --------------------------------
-// ValidEnforcementPolicyKeys is defined in constants.go and contains all valid enforcement policy keys
-
-type enforcementPolicyKeyValidator struct{}
-
-func (v enforcementPolicyKeyValidator) Description(ctx context.Context) string {
-	return "Enforcement policy key must be one of the valid policy keys."
-}
-
-func (v enforcementPolicyKeyValidator) MarkdownDescription(ctx context.Context) string {
-	return "Enforcement policy key must be one of the valid policy keys. See documentation for the complete list."
-}
-
-func (v enforcementPolicyKeyValidator) ValidateString(ctx context.Context, req validator.StringRequest, resp *validator.StringResponse) {
-	// Skip validation if the value is unknown (e.g., from data source during plan)
-	if req.ConfigValue.IsUnknown() {
-		return
-	}
-
-	value := req.ConfigValue.ValueString()
-	if value == "" {
-		resp.Diagnostics.AddError(
-			"Invalid Enforcement Policy Key",
-			"Enforcement policy key cannot be empty.")
-		return
-	}
-
-	// Check if the value is in the valid keys list
-	isValid := false
-	for _, validKey := range ValidEnforcementPolicyKeys {
-		if value == validKey {
-			isValid = true
-			break
-		}
-	}
-
-	if !isValid {
-		resp.Diagnostics.AddError(
-			"Invalid Enforcement Policy Key",
-			fmt.Sprintf("Enforcement policy key '%s' is not valid. Must be one of: %s", value, strings.Join(ValidEnforcementPolicyKeys, ", ")))
-	}
-}
-
 // ----- ENFORCEMENT POLICIES MAP KEY VALIDATOR --------------------------------
 // Validates that all map keys (policy keys) in enforcement_policies are valid.
 type enforcementPoliciesMapKeyValidator struct{}
@@ -130,7 +87,7 @@ func (v enforcementPoliciesMapKeyValidator) ValidateMap(ctx context.Context, req
 	}
 }
 
-// ----- PRIVILEGES SET VALIDATOR --------------------------------
+// ----- PRIVILEGES SET VALIDATOR --------------------------------.
 type privilegesValidator struct{}
 
 func (v privilegesValidator) Description(ctx context.Context) string {

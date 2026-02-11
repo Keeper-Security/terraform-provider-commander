@@ -94,16 +94,16 @@ func (v setNoEmptyStringsValidator) ValidateSet(ctx context.Context, req validat
 	}
 }
 
-// ----- CONVENIENCE: NODE (optional string) --------------------------------
+// ----- CONVENIENCE: NODE (optional string) --------------------------------.
 var NodeValidator = stringMinLengthValidator{DisplayName: "Node Name", MinLen: 1, AllowNull: true}
 
-// ----- CONVENIENCE: MANAGED COMPANY (optional string) --------------------------------
+// ----- CONVENIENCE: MANAGED COMPANY (optional string) --------------------------------.
 var ManagedCompanyValidator = stringMinLengthValidator{DisplayName: "Managed Company Name", MinLen: 1, AllowNull: true}
 
-// ----- CONVENIENCE: TEAMS SET --------------------------------
+// ----- CONVENIENCE: TEAMS SET --------------------------------.
 var TeamsValidator = setNoEmptyStringsValidator{DisplayName: "Team"}
 
-// ----- CONVENIENCE: ROLES SET --------------------------------
+// ----- CONVENIENCE: ROLES SET --------------------------------.
 var RolesValidator = setNoEmptyStringsValidator{DisplayName: "Role"}
 
 // ----- GENERIC: MAP KEYS MIN LENGTH --------------------------------

@@ -36,7 +36,7 @@ func (d *EnterpriseTeamDataSource) Read(ctx context.Context, req datasource.Read
 			return err
 		}
 		if teamInfo == nil {
-			return fmt.Errorf("Enterprise team: '%s' not found", data.Team.ValueString())
+			return fmt.Errorf("enterprise team: '%s' not found", data.Team.ValueString())
 		}
 		data.Id = types.StringValue(teamInfo.TeamUid)
 		data.Name = types.StringValue(teamInfo.Name)

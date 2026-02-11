@@ -32,6 +32,8 @@ func manageCompanyObjectType() tftypes.Object {
 
 // newPlanStateValues builds tftypes values for plan/state. Pass nil for null/optional attributes.
 // add_ons: nil = null set; []interface{}{"secrets_manager"} = set with elements.
+//
+//nolint:unparam // addOns is always nil at call sites but used in body for null set.
 func newPlanStateValues(id, name, node interface{}, seats interface{}, plan, filePlan interface{}, addOns interface{}) map[string]tftypes.Value {
 	var addOnsVal tftypes.Value
 	if addOns == nil {

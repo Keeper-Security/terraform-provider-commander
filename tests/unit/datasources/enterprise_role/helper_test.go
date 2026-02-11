@@ -30,6 +30,8 @@ func enterpriseRoleDataSourceObjectType() tftypes.Object {
 }
 
 // newConfigValues builds tftypes values for datasource config. role is required; managed_company optional; computed fields null in config.
+//
+//nolint:unparam // managedCompany is always nil at call sites but used for managed_company attribute.
 func newConfigValues(role, managedCompany interface{}) map[string]tftypes.Value {
 	return map[string]tftypes.Value{
 		"role":            tftypes.NewValue(tftypes.String, role),

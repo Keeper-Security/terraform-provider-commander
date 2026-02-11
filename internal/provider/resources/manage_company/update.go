@@ -52,7 +52,7 @@ func (r *ManageCompanyResource) Update(ctx context.Context, req resource.UpdateR
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }
 
-// buildManageCompanyUpdateCommand builds the Commander CLI command for updating a managed company
+// buildManageCompanyUpdateCommand builds the Commander CLI command for updating a managed company.
 func updateManageCompany(ctx context.Context, apiManager *api.ApiManager, plan *ManageCompanyResourceModel, state *ManageCompanyResourceModel) error {
 	var parts []string
 

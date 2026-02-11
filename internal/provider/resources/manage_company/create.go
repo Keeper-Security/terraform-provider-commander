@@ -47,7 +47,7 @@ func (r *ManageCompanyResource) Create(ctx context.Context, req resource.CreateR
 
 }
 
-// buildManageCompanyAddCommand builds the Commander CLI command for adding a managed company
+// buildManageCompanyAddCommand builds the Commander CLI command for adding a managed company.
 func addManageCompany(ctx context.Context, apiManager *api.ApiManager, data *ManageCompanyResourceModel) error {
 	var parts []string
 

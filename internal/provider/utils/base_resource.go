@@ -19,7 +19,7 @@ type BaseResource struct {
 }
 
 // ConfigureResource sets the API manager from provider data.
-// Call this from your resource's Configure: r.BaseResource.ConfigureResource(ctx, req, resp)
+// Call this from your resource's Configure: r.ConfigureResource(ctx, req, resp).
 func (b *BaseResource) ConfigureResource(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 	if req.ProviderData == nil {
 		return

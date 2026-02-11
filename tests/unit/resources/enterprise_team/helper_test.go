@@ -34,6 +34,8 @@ func enterpriseTeamObjectType() tftypes.Object {
 
 // newPlanStateValues builds tftypes values for plan/state. Pass nil for null/optional attributes.
 // users, roles: nil = null set; []interface{}{"a"} = set with elements.
+//
+//nolint:unparam // restrictView is always nil at call sites but used in body.
 func newPlanStateValues(id, name interface{}, restrictEdit, restrictShare, restrictView interface{}, users, roles interface{}, node, managedCompany interface{}) map[string]tftypes.Value {
 	var usersVal, rolesVal tftypes.Value
 	if users == nil {

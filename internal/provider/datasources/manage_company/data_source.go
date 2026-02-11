@@ -22,7 +22,7 @@ func (d *ManageCompanyDataSource) Metadata(ctx context.Context, req datasource.M
 }
 
 func (d *ManageCompanyDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
-	d.BaseDataSource.ConfigureDataSource(ctx, req, resp)
+	d.ConfigureDataSource(ctx, req, resp)
 }
 
 func NewManageCompanyDataSource() datasource.DataSource {

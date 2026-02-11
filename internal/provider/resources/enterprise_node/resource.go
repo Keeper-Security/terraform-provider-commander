@@ -23,7 +23,7 @@ func (r *EnterpriseNodeResource) Metadata(ctx context.Context, req resource.Meta
 }
 
 func (r *EnterpriseNodeResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
-	r.BaseResource.ConfigureResource(ctx, req, resp)
+	r.ConfigureResource(ctx, req, resp)
 }
 
 func NewEnterpriseNodeResource() resource.Resource {

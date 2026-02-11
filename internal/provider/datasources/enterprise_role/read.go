@@ -37,7 +37,7 @@ func (d *EnterpriseRoleDataSource) Read(ctx context.Context, req datasource.Read
 			return err
 		}
 		if roleInfo == nil {
-			return fmt.Errorf("Enterprise role: '%s' not found", data.Role.ValueString())
+			return fmt.Errorf("enterprise role: '%s' not found", data.Role.ValueString())
 		}
 		data.Id = types.StringValue(strconv.Itoa(roleInfo.RoleId))
 		data.Name = types.StringValue(roleInfo.Name)

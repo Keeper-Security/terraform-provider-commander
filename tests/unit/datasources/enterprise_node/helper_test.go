@@ -30,6 +30,8 @@ func enterpriseNodeDataSourceObjectType() tftypes.Object {
 }
 
 // newConfigValues builds tftypes values for datasource config. node is required; managed_company optional; computed fields null in config.
+//
+//nolint:unparam // managedCompany is always nil at call sites but used for managed_company attribute.
 func newConfigValues(node, managedCompany interface{}) map[string]tftypes.Value {
 	return map[string]tftypes.Value{
 		"node":            tftypes.NewValue(tftypes.String, node),

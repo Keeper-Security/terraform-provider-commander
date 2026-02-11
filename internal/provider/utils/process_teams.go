@@ -13,7 +13,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
-// ParseTeamsResponse parses the JSON response from enterprise-info -t command
+// ParseTeamsResponse parses the JSON response from enterprise-info -t command.
 func ParseTeamsResponse(data interface{}) ([]EnterpriseTeamResponse, error) {
 	var teams []EnterpriseTeamResponse
 
@@ -29,7 +29,7 @@ func ParseTeamsResponse(data interface{}) ([]EnterpriseTeamResponse, error) {
 	return teams, nil
 }
 
-// BuildTeamLookupMaps creates lookup maps from API response
+// BuildTeamLookupMaps creates lookup maps from API response.
 func BuildTeamLookupMaps(teamsRespData []EnterpriseTeamResponse) LookupMaps {
 	identifierToId := make(map[string]string)
 	idToIdentifier := make(map[string]string)
@@ -47,7 +47,7 @@ func BuildTeamLookupMaps(teamsRespData []EnterpriseTeamResponse) LookupMaps {
 	}
 }
 
-// ConvertTeamsToIdMap converts a types.Set of teams to a map of team_uid -> original input
+// ConvertTeamsToIdMap converts a types.Set of teams to a map of team_uid -> original input.
 func ConvertTeamsToIdMap(teams types.Set, lookup LookupMaps, teamsRespData []EnterpriseTeamResponse) (map[string]string, error) {
 	validateTeam := func(userInput string) (bool, string) {
 		for _, team := range teamsRespData {
@@ -64,7 +64,7 @@ func ConvertTeamsToIdMap(teams types.Set, lookup LookupMaps, teamsRespData []Ent
 // FetchAndProcessTeams processes teams for both create and update operations
 // For create: stateTeams should be null/empty, planTeams contains teams to add
 // For update: compares stateTeams (old) with planTeams (new) to determine additions and removals
-// Returns a string with -at "team_uid" for additions and -rt "team_uid" for removals
+// Returns a string with -at "team_uid" for additions and -rt "team_uid" for removals.
 func FetchAndProcessTeams(ctx context.Context, apiManager *api.ApiManager, stateTeams types.Set, planTeams types.Set, optionalFlags ...string) (string, error) {
 	// Early return if both are empty/null
 	if (stateTeams.IsNull() || len(stateTeams.Elements()) == 0) &&
@@ -165,6 +165,12 @@ func RestoreUserInputFormatForTeams(ctx context.Context, apiManager *api.ApiMana
 		"team",
 		"enterprise-info -t --format json",
 		func(data interface{}) (interface{}, error) { return ParseTeamsResponse(data) },
-		func(data interface{}) LookupMaps { return BuildTeamLookupMaps(data.([]EnterpriseTeamResponse)) },
+		func(data interface{}) LookupMaps {
+			list, ok := data.([]EnterpriseTeamResponse)
+			if !ok {
+				return LookupMaps{}
+			}
+			return BuildTeamLookupMaps(list)
+		},
 	)
 }

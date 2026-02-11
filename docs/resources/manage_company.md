@@ -23,7 +23,7 @@ description: |-
 
 ### Optional
 
-- `add_ons` (Set of String) Secure Add-Ons to apply to the Managed Company. Must be one of: `msp_service_and_support`, `enterprise_breach_watch`, `compliance_report`, `secrets_manager`, `password_rotation`, `remote_browser_isolation`, `chat`, `enterprise_audit_and_reporting`, `connection_manager:N`, `privileged_access_manager:N`, `keeper_endpoint_privilege_manager:N`
+- `add_ons` (Set of String) Secure Add-Ons to apply to the Managed Company. Must be one of: `chat`, `compliance_report`, `connection_manager:N`, `enterprise_audit_and_reporting`, `enterprise_breach_watch`, `keeper_endpoint_privilege_manager:N`, `msp_service_and_support`, `password_rotation`, `privileged_access_manager:N`, `remote_browser_isolation`, `secrets_manager`
 - `file_plan` (String) File storage plan. Must be one of: `100gb`, `1tb`, `10tb`
 - `seats` (Number) Maximum Licenses Allowed.
 

@@ -13,7 +13,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
-// ParseNodesResponse parses the JSON response from enterprise-info -n command
+// ParseNodesResponse parses the JSON response from enterprise-info -n command.
 func ParseNodesResponse(data interface{}) ([]EnterpriseNodeResponse, error) {
 	var nodes []EnterpriseNodeResponse
 

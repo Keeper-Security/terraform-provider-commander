@@ -3,7 +3,7 @@
 
 package enterpriserole
 
-// Enforcement policy key constants
+// Enforcement policy key constants.
 const (
 	MasterPasswordMinimumLength              = "MASTER_PASSWORD_MINIMUM_LENGTH"
 	MasterPasswordMinimumSpecial             = "MASTER_PASSWORD_MINIMUM_SPECIAL"
@@ -142,7 +142,7 @@ const (
 	RestrictManageTla                        = "RESTRICT_MANAGE_TLA"
 )
 
-// Managing node privilege constants
+// Managing node privilege constants.
 const (
 	PrivilegeManageNodes          = "manage_nodes"
 	PrivilegeManageUser           = "manage_user"
@@ -158,7 +158,7 @@ const (
 	PrivilegeManageCompanies      = "manage_companies"
 )
 
-// ValidPrivileges contains all valid privilege values as a slice
+// ValidPrivileges contains all valid privilege values as a slice.
 var ValidPrivileges = []string{
 	PrivilegeManageNodes,
 	PrivilegeManageUser,
@@ -174,7 +174,7 @@ var ValidPrivileges = []string{
 	PrivilegeManageCompanies,
 }
 
-// ValidEnforcementPolicyKeys contains all valid enforcement policy keys as a slice
+// ValidEnforcementPolicyKeys contains all valid enforcement policy keys as a slice.
 var ValidEnforcementPolicyKeys = []string{
 	MasterPasswordMinimumLength,
 	MasterPasswordMinimumSpecial,

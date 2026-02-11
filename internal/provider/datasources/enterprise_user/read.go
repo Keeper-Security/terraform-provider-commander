@@ -37,7 +37,7 @@ func (d *EnterpriseUserDataSource) Read(ctx context.Context, req datasource.Read
 			return err
 		}
 		if userInfo == nil {
-			return fmt.Errorf("Enterprise user: '%s' not found", data.User.ValueString())
+			return fmt.Errorf("enterprise user: '%s' not found", data.User.ValueString())
 		}
 		data.Id = types.StringValue(strconv.Itoa(userInfo.UserId))
 		data.Name = types.StringValue(userInfo.Name)

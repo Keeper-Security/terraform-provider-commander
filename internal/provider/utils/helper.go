@@ -21,14 +21,14 @@ import (
 // and has been removed from state. The caller should return without calling State.Set.
 var ErrResourceRemoved = errors.New("resource removed from state")
 
-// SwitchToManageCompany switches to the specified managed company
+// SwitchToManageCompany switches to the specified managed company.
 func SwitchToManageCompany(ctx context.Context, apiManager *api.ApiManager, manageCompany string) error {
 	command := fmt.Sprintf("switch-to-mc '%s'", manageCompany)
 	_, err := apiManager.ExecuteCommand(ctx, command, "Unable to switch to manage company")
 	return err
 }
 
-// SwitchToMsp switches back to MSP context
+// SwitchToMsp switches back to MSP context.
 func SwitchToMsp(ctx context.Context, apiManager *api.ApiManager) error {
 	command := "switch-to-msp"
 	_, err := apiManager.ExecuteCommand(ctx, command, "Unable to switch to msp")
@@ -40,14 +40,14 @@ func SwitchToMsp(ctx context.Context, apiManager *api.ApiManager) error {
 	return err
 }
 
-// Perform msp down
+// Perform msp down.
 func MspDown(ctx context.Context, apiManager *api.ApiManager) error {
 	command := "msp-down"
 	_, err := apiManager.ExecuteCommand(ctx, command, "Unable to perform msp down")
 	return err
 }
 
-// Perform enterprise down
+// Perform enterprise down.
 func EnterpriseDown(ctx context.Context, apiManager *api.ApiManager) error {
 	command := "enterprise-down"
 	_, err := apiManager.ExecuteCommand(ctx, command, "Unable to perform enterprise down")
@@ -57,7 +57,7 @@ func EnterpriseDown(ctx context.Context, apiManager *api.ApiManager) error {
 // ExecuteWithManagedCompanyContext executes a function with managed company context switching
 // If managedCompany is provided and not null, it switches to MC before execution and back to MSP after
 // If managedCompany is not provided, it ensures we're in the correct base context (MSP for MSP accounts, Enterprise for Enterprise)
-// This prevents race conditions when Terraform runs resources in parallel or different orders
+// This prevents race conditions when Terraform runs resources in parallel or different orders.
 func ExecuteWithManagedCompanyContext(
 	ctx context.Context,
 	apiManager *api.ApiManager,
@@ -71,12 +71,12 @@ func ExecuteWithManagedCompanyContext(
 		// Has managed_company - switch to it
 		// Sync enterprise data first
 		if err := EnterpriseDown(ctx, apiManager); err != nil {
-			return fmt.Errorf("Failed to sync enterprise data: %w", err)
+			return fmt.Errorf("failed to sync enterprise data: %w", err)
 		}
 
 		// Switch to managed company
 		if err := SwitchToManageCompany(ctx, apiManager, managedCompany.ValueString()); err != nil {
-			return fmt.Errorf("Failed to switch to managed company: %w", err)
+			return fmt.Errorf("failed to switch to managed company: %w", err)
 		}
 		switchedToMC = true
 	} else {
@@ -87,12 +87,12 @@ func ExecuteWithManagedCompanyContext(
 		if apiManager.IsMspAccount {
 			// MSP account - explicitly switch to MSP to ensure clean state
 			if err := SwitchToMsp(ctx, apiManager); err != nil {
-				return fmt.Errorf("Failed to switch to MSP context: %w", err)
+				return fmt.Errorf("failed to switch to MSP context: %w", err)
 			}
 		}
 		// For both MSP and Enterprise accounts, sync enterprise data
 		if err := EnterpriseDown(ctx, apiManager); err != nil {
-			return fmt.Errorf("Failed to sync enterprise data: %w", err)
+			return fmt.Errorf("failed to sync enterprise data: %w", err)
 		}
 	}
 
@@ -108,7 +108,7 @@ func ExecuteWithManagedCompanyContext(
 						err = fmt.Errorf("operation failed: %w; also failed to switch back to MSP: %w", err, switchErr)
 					} else {
 						// Operation succeeded but switch-back failed - this is critical
-						err = fmt.Errorf("Failed to switch back to MSP: %w", switchErr)
+						err = fmt.Errorf("failed to switch back to MSP: %w", switchErr)
 					}
 				}
 			}
@@ -121,8 +121,8 @@ func ExecuteWithManagedCompanyContext(
 	return err
 }
 
-// Note: After creating a node, service mode api returns message like: "Node is created with Node ID: 1169425105420462"
-// This function extracts the node id from the response
+// Note: After creating a node, service mode api returns message like: "Node is created with Node ID: 1169425105420462".
+// This function extracts the node id from the response.
 func ExtractNodeIDFromCreateNodeResponse(s string) (string, bool) {
 	re := regexp.MustCompile(`Node ID:\s*(\d+)`)
 	match := re.FindStringSubmatch(s)
@@ -134,7 +134,7 @@ func ExtractNodeIDFromCreateNodeResponse(s string) (string, bool) {
 }
 
 // Function to extract the node name from the input string like "Metronlabs\\Aditya Dev Inc" -> "Aditya Dev Inc"
-// msp-info retuns node_name as "Metronlabs\\Aditya Dev Inc" if present in child node or node_name as "Metronlabs" if present in root node
+// msp-info returns node_name as "Metronlabs\\Aditya Dev Inc" if present in child node or node_name as "Metronlabs" if present in root node.
 func ExtractNodeName(input string) string {
 	if idx := strings.LastIndex(input, `\`); idx != -1 {
 		return input[idx+1:]
@@ -171,14 +171,14 @@ func UnmarshalApiResponse(data interface{}, target interface{}) error {
 	return nil
 }
 
-// LookupMaps holds the mappings between identifiers (name/email) and IDs
+// LookupMaps holds the mappings between identifiers (name/email) and IDs.
 type LookupMaps struct {
 	IdentifierToId map[string]string // identifier (name/email) -> id
 	IdToIdentifier map[string]string // id -> identifier (name/email)
 }
 
-// ConvertItemsToIdMap is a generic function that converts a types.Set to a map of id -> original input
-// It works for roles, users, and teams by accepting lookup maps and validation functions
+// ConvertItemsToIdMap is a generic function that converts a types.Set to a map of id -> original input.
+// It works for roles, users, and teams by accepting lookup maps and validation functions.
 func ConvertItemsToIdMap(
 	items types.Set,
 	lookup LookupMaps,
@@ -199,7 +199,10 @@ func ConvertItemsToIdMap(
 	seenIds := make(map[string]string) // id -> original input
 
 	for _, itemElem := range elements {
-		itemStr := itemElem.(types.String)
+		itemStr, ok := itemElem.(types.String)
+		if !ok {
+			continue
+		}
 		userInput := itemStr.ValueString()
 
 		if userInput == "" {

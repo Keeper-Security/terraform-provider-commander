@@ -14,7 +14,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
-// ParseRolesResponse parses the JSON response from enterprise-info -r command
+// ParseRolesResponse parses the JSON response from enterprise-info -r command.
 func ParseRolesResponse(data interface{}) ([]EnterpriseRoleResponse, error) {
 	var roles []EnterpriseRoleResponse
 
@@ -30,7 +30,7 @@ func ParseRolesResponse(data interface{}) ([]EnterpriseRoleResponse, error) {
 	return roles, nil
 }
 
-// BuildRoleLookupMaps creates lookup maps from API response
+// BuildRoleLookupMaps creates lookup maps from API response.
 func BuildRoleLookupMaps(rolesRespData []EnterpriseRoleResponse) LookupMaps {
 	identifierToId := make(map[string]string)
 	idToIdentifier := make(map[string]string)
@@ -49,7 +49,7 @@ func BuildRoleLookupMaps(rolesRespData []EnterpriseRoleResponse) LookupMaps {
 	}
 }
 
-// ConvertRolesToIdMap converts a types.Set of roles to a map of role_id -> original input
+// ConvertRolesToIdMap converts a types.Set of roles to a map of role_id -> original input.
 func ConvertRolesToIdMap(roles types.Set, lookup LookupMaps, rolesRespData []EnterpriseRoleResponse) (map[string]string, error) {
 	validateRole := func(userInput string) (bool, string) {
 		for _, role := range rolesRespData {
@@ -67,7 +67,7 @@ func ConvertRolesToIdMap(roles types.Set, lookup LookupMaps, rolesRespData []Ent
 // For create: stateRoles should be null/empty, planRoles contains roles to add
 // For update: compares stateRoles (old) with planRoles (new) to determine additions and removals
 // Optional variadic flags: pass addRoleFlagName, removeRoleFlagName to override; when omitted or empty, "-ar" and "-rr" are used.
-// Returns a string with add flag "role_id" for additions and remove flag "role_id" for removals
+// Returns a string with add flag "role_id" for additions and remove flag "role_id" for removals.
 func FetchAndProcessRoles(ctx context.Context, apiManager *api.ApiManager, stateRoles types.Set, planRoles types.Set, optionalFlags ...string) (string, error) {
 	addRoleFlagName := "-ar"
 	removeRoleFlagName := "-rr"
@@ -169,6 +169,12 @@ func RestoreUserInputFormatForRoles(ctx context.Context, apiManager *api.ApiMana
 		"role",
 		"enterprise-info -r --format json",
 		func(data interface{}) (interface{}, error) { return ParseRolesResponse(data) },
-		func(data interface{}) LookupMaps { return BuildRoleLookupMaps(data.([]EnterpriseRoleResponse)) },
+		func(data interface{}) LookupMaps {
+			list, ok := data.([]EnterpriseRoleResponse)
+			if !ok {
+				return LookupMaps{}
+			}
+			return BuildRoleLookupMaps(list)
+		},
 	)
 }
