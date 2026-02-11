@@ -7,6 +7,7 @@ import (
 	"context"
 	"fmt"
 	"regexp"
+	"sort"
 	"strconv"
 	"strings"
 
@@ -14,10 +15,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
-// ----- PLAN VALIDATOR --------------------------------
+// ----- PLAN VALIDATOR --------------------------------.
 type planValidator struct{}
 
-// PlanOptions contains all valid plan options
+// PlanOptions contains all valid plan options.
 var PlanOptions = []string{PlanBusiness, PlanBusinessPlus, PlanEnterprise, PlanEnterprisePlus}
 
 func (v planValidator) Description(ctx context.Context) string {
@@ -43,7 +44,7 @@ func (v planValidator) ValidateString(ctx context.Context, req validator.StringR
 	}
 }
 
-// -------------------------------- SEATS VALIDATOR --------------------------------
+// -------------------------------- SEATS VALIDATOR --------------------------------.
 type seatsValidator struct{}
 
 func (v seatsValidator) Description(ctx context.Context) string {
@@ -69,7 +70,7 @@ func (v seatsValidator) ValidateInt64(ctx context.Context, req validator.Int64Re
 	}
 }
 
-// ----- FILE PLAN VALIDATOR --------------------------------
+// ----- FILE PLAN VALIDATOR --------------------------------.
 type filePlanValidator struct{}
 
 /*
@@ -79,10 +80,10 @@ type filePlanValidator struct{}
 4. enterprisePlus plan - 1tb, 10tb
 */
 
-// FilePlanOptions contains all valid file plan options
+// FilePlanOptions contains all valid file plan options.
 var FilePlanOptions = []string{FilePlan100GB, FilePlan1TB, FilePlan10TB}
 
-// FilePlanPlusOptions contains file plan options for plus plans (businessPlus, enterprisePlus)
+// FilePlanPlusOptions contains file plan options for plus plans (businessPlus, enterprisePlus).
 var FilePlanPlusOptions = []string{FilePlan1TB, FilePlan10TB}
 
 func (v filePlanValidator) Description(ctx context.Context) string {
@@ -142,17 +143,17 @@ func (v filePlanValidator) ValidateString(ctx context.Context, req validator.Str
 	}
 }
 
-// ----- ADD-ONS VALIDATOR --------------------------------
+// ----- ADD-ONS VALIDATOR --------------------------------.
 type addOnsValidator struct{}
 
 var (
-	// Regex to match add-on with number: "connection_manager:5"
+	// Regex to match add-on with number: "connection_manager:5".
 	addOnWithNumberRegex = regexp.MustCompile(`^([a-z_]+):(\d+)$`)
 )
 
-// Base add-ons (no number suffix)
+// Base add-ons (no number suffix).
 //
-// Note: these add-ons are not working in commander cli
+// Note: these add-ons are not working in commander cli.
 // consumer_breach_watch - when we use this add-on we get error from commander cli
 // professional_services_silver_add_on - when we use this add-on it don't make any changes to the company.
 // gold_professional_services_add_on - when we use this add-on it don't make any changes to the company.
@@ -172,7 +173,7 @@ var BaseAddOns = map[string]bool{
 	AddOnRemoteBrowserIsolation: true,
 }
 
-// AddOnsWithNumber are add-ons that can have :N suffix
+// AddOnsWithNumber are add-ons that can have :N suffix.
 var AddOnsWithNumber = map[string]bool{
 	AddOnConnectionManager:              true,
 	AddOnPrivilegedAccessManager:        true,
@@ -341,8 +342,8 @@ func (v addOnsValidator) ValidateSet(ctx context.Context, req validator.SetReque
 	}
 }
 
-// GetAllValidAddOns returns a list of all valid add-on names
-// This includes base add-ons and add-ons that support number suffixes
+// GetAllValidAddOns returns a list of all valid add-on names in deterministic order.
+// This includes base add-ons and add-ons that support number suffixes.
 func GetAllValidAddOns() []string {
 	validOptions := []string{}
 
@@ -356,5 +357,6 @@ func GetAllValidAddOns() []string {
 		validOptions = append(validOptions, k+":N")
 	}
 
+	sort.Strings(validOptions)
 	return validOptions
 }

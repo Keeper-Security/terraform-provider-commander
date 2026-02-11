@@ -30,6 +30,8 @@ func enterpriseTeamDataSourceObjectType() tftypes.Object {
 }
 
 // newConfigValues builds tftypes values for datasource config. team is required; managed_company optional; computed fields null in config.
+//
+//nolint:unparam // managedCompany is always nil at call sites but used for managed_company attribute.
 func newConfigValues(team, managedCompany interface{}) map[string]tftypes.Value {
 	return map[string]tftypes.Value{
 		"team":            tftypes.NewValue(tftypes.String, team),

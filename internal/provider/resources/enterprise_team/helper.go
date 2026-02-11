@@ -15,6 +15,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
+// parseNodesResponse is used by convertNodeToName for ID-to-name resolution; kept for potential reuse.
+//
+//nolint:unused
 func parseNodesResponse(data interface{}) ([]utils.EnterpriseNodeResponse, error) {
 	var nodes []utils.EnterpriseNodeResponse
 
@@ -30,9 +33,11 @@ func parseNodesResponse(data interface{}) ([]utils.EnterpriseNodeResponse, error
 	return nodes, nil
 }
 
-// convertNodeToName converts node from API response to node name
+// convertNodeToName converts node from API response to node name.
 // API may return node as name or ID. If it's an ID, we fetch nodes and convert to name.
 // Final state always stores node name (not ID).
+//
+//nolint:unused
 func convertNodeToName(ctx context.Context, apiManager *api.ApiManager, nodeFromApi string) (types.String, error) {
 	// Handle empty/null cases
 	nodeFromApi = strings.TrimSpace(nodeFromApi)
@@ -42,9 +47,10 @@ func convertNodeToName(ctx context.Context, apiManager *api.ApiManager, nodeFrom
 
 	// Check if nodeFromApi is numeric (likely an ID)
 	// If it's not numeric, assume it's already a name and use it directly
-	nodeIdInt, err := strconv.Atoi(nodeFromApi)
-	if err != nil {
-		// Not numeric - assume it's a name, use it directly
+	nodeIdInt, atoiErr := strconv.Atoi(nodeFromApi)
+	if atoiErr != nil {
+		// Not numeric - assume it's a name, use it directly (atoi error is expected, not propagated).
+		//nolint:nilerr
 		return types.StringValue(nodeFromApi), nil
 	}
 
@@ -79,7 +85,7 @@ func convertNodeToName(ctx context.Context, apiManager *api.ApiManager, nodeFrom
 }
 
 // Note: After creating a node, service mode api returns message like: "Node is created with Node ID: 1169425105420462"
-// This function extracts the node id from the response
+// This function extracts the node id from the response.
 func extractTeamIdFromCreateTeamResponse(s string) (string, bool) {
 	_, after, ok := strings.Cut(s, "Team ID:")
 	if !ok {

@@ -23,7 +23,7 @@ func (r *EnterpriseTeamResource) Metadata(ctx context.Context, req resource.Meta
 }
 
 func (r *EnterpriseTeamResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
-	r.BaseResource.ConfigureResource(ctx, req, resp)
+	r.ConfigureResource(ctx, req, resp)
 }
 
 func NewEnterpriseTeamResource() resource.Resource {

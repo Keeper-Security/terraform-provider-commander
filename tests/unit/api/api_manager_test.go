@@ -469,8 +469,9 @@ func TestIsMspAccountType_AlreadyMsp(t *testing.T) {
 	}
 	ctx := context.Background()
 	_ = client.IsMspAccountType(ctx)
-	// When error message contains "already" we set IsMspAccount = true
+	// When error message contains "already" we set IsMspAccount = true.
+	// May be false if ExecuteCommand failed (e.g. poll timeout); test just ensures no panic.
 	if !client.IsMspAccount {
-		// May be false if ExecuteCommand failed (e.g. poll timeout); test just ensures no panic
+		t.Log("IsMspAccount is false (e.g. ExecuteCommand failed or poll timeout)")
 	}
 }

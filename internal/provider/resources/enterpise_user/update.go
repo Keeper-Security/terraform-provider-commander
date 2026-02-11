@@ -57,10 +57,10 @@ func (r *EnterpriseUserResource) Update(ctx context.Context, req resource.Update
 	if err := utils.RunWithManagedCompanyContext(ctx, r.ApiManager, managedCompany, func() error {
 		if !state.Status.IsNull() && !state.Status.IsUnknown() &&
 			state.Status.ValueString() == UserInvitedStatus && !state.Teams.Equal(plan.Teams) {
-			return fmt.Errorf("User with 'Invited' status cannot be added to teams.")
+			return fmt.Errorf("user with 'Invited' status cannot be added to teams")
 		}
 		if !state.Email.Equal(plan.Email) {
-			return fmt.Errorf("Email can not be changed.")
+			return fmt.Errorf("email can not be changed")
 		}
 		if err := updateUserAttributes(ctx, r.ApiManager, &plan, &state); err != nil {
 			return err
@@ -104,7 +104,7 @@ func updateUserAttributes(ctx context.Context, apiManager *api.ApiManager, plan 
 			return err
 		}
 		if roles != "" {
-			parts = append(parts, fmt.Sprintf("%s", roles))
+			parts = append(parts, roles)
 		}
 	}
 
@@ -114,7 +114,7 @@ func updateUserAttributes(ctx context.Context, apiManager *api.ApiManager, plan 
 			return err
 		}
 		if teams != "" {
-			parts = append(parts, fmt.Sprintf("%s", teams))
+			parts = append(parts, teams)
 		}
 	}
 

@@ -14,7 +14,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
-// ParseUsersResponse parses the JSON response from enterprise-info -u command
+// ParseUsersResponse parses the JSON response from enterprise-info -u command.
 func ParseUsersResponse(data interface{}) ([]EnterpriseUserResponse, error) {
 	var users []EnterpriseUserResponse
 
@@ -30,7 +30,7 @@ func ParseUsersResponse(data interface{}) ([]EnterpriseUserResponse, error) {
 	return users, nil
 }
 
-// BuildUserLookupMaps creates lookup maps from API response
+// BuildUserLookupMaps creates lookup maps from API response.
 func BuildUserLookupMaps(usersRespData []EnterpriseUserResponse) LookupMaps {
 	identifierToId := make(map[string]string)
 	idToIdentifier := make(map[string]string)
@@ -49,7 +49,7 @@ func BuildUserLookupMaps(usersRespData []EnterpriseUserResponse) LookupMaps {
 	}
 }
 
-// ConvertUsersToIdMap converts a types.Set of users to a map of user_id -> original input
+// ConvertUsersToIdMap converts a types.Set of users to a map of user_id -> original input.
 func ConvertUsersToIdMap(users types.Set, lookup LookupMaps, usersRespData []EnterpriseUserResponse) (map[string]string, error) {
 	validateUser := func(userInput string) (bool, string) {
 		for _, user := range usersRespData {
@@ -66,7 +66,7 @@ func ConvertUsersToIdMap(users types.Set, lookup LookupMaps, usersRespData []Ent
 // FetchAndProcessUsers processes users for both create and update operations
 // For create: stateUsers should be null/empty, planUsers contains users to add
 // For update: compares stateUsers (old) with planUsers (new) to determine additions and removals
-// Returns a string with -au "user_id" for additions and -ru "user_id" for removals
+// Returns a string with -au "user_id" for additions and -ru "user_id" for removals.
 func FetchAndProcessUsers(ctx context.Context, apiManager *api.ApiManager, stateUsers types.Set, planUsers types.Set, optionalFlags ...string) (string, error) {
 	// Early return if both are empty/null
 	if (stateUsers.IsNull() || len(stateUsers.Elements()) == 0) &&
@@ -184,6 +184,12 @@ func RestoreUserInputFormatForUsers(ctx context.Context, apiManager *api.ApiMana
 		"user",
 		"enterprise-info -u --format json",
 		func(data interface{}) (interface{}, error) { return ParseUsersResponse(data) },
-		func(data interface{}) LookupMaps { return BuildUserLookupMaps(data.([]EnterpriseUserResponse)) },
+		func(data interface{}) LookupMaps {
+			list, ok := data.([]EnterpriseUserResponse)
+			if !ok {
+				return LookupMaps{}
+			}
+			return BuildUserLookupMaps(list)
+		},
 	)
 }

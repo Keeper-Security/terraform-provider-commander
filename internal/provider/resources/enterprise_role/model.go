@@ -7,8 +7,8 @@ package enterpriserole
 
 import "github.com/hashicorp/terraform-plugin-framework/types"
 
-// ManagingNodeModel represents a single managing node with its privileges and cascade option
-// Note: The node name/ID is the map key, so it's not stored in this struct
+// ManagingNodeModel represents a single managing node with its privileges and cascade option.
+// Note: The node name/ID is the map key, so it's not stored in this struct.
 type ManagingNodeModel struct {
 	Privileges types.Set  `tfsdk:"privileges"`
 	Cascade    types.Bool `tfsdk:"cascade"`

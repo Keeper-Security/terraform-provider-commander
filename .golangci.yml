@@ -28,6 +28,10 @@ linters:
       - third_party$
       - builtin$
       - examples$
+    rules:
+      # Test code uses type assertions on known factory return types (e.g. NewX().(*X)); safe in tests.
+      - path: _test\.go
+        linters: [forcetypeassert]
 issues:
   max-issues-per-linter: 0
   max-same-issues: 0

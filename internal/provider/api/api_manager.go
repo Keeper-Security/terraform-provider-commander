@@ -13,9 +13,9 @@ import (
 	"time"
 )
 
-// ApiManager manages API interactions with the Commander Service Mode
+// ApiManager manages API interactions with the Commander Service Mode.
 // Resources and data sources use this struct to make API calls without
-// directly accessing the service mode URL and API key
+// directly accessing the service mode URL and API key.
 type ApiManager struct {
 	ServiceModeUrl    string
 	ServiceModeApiKey string
@@ -23,7 +23,7 @@ type ApiManager struct {
 	IsMspAccount      bool // true for MSP accounts, false for Enterprise accounts
 }
 
-// SubmitRequestResponse represents the response structure when we submit new requests
+// SubmitRequestResponse represents the response structure when we submit new requests.
 type SubmitRequestResponse struct {
 	Success   bool   `json:"success"`
 	RequestId string `json:"request_id"`
@@ -31,7 +31,7 @@ type SubmitRequestResponse struct {
 	Message   string `json:"message"`
 }
 
-// RequestStatusResponse represents the response structure when we check the status of a request
+// RequestStatusResponse represents the response structure when we check the status of a request.
 type RequestStatusResponse struct {
 	Success     bool   `json:"success"`
 	RequestId   string `json:"request_id"`
@@ -90,10 +90,10 @@ type RequestResultResponse struct {
 	Error   string          `json:"error"`
 }
 
-// handleAPIErrorResponse checks HTTP status codes and handles error cases
-// For error status codes: reads body and returns error with body content
-// For success status codes (2xx): return nil, nil (caller reads body)
-func handleAPIErrorResponse(resp *http.Response) ([]byte, error) {
+// handleAPIErrorResponse checks HTTP status codes and handles error cases.
+// For error status codes: reads body and returns error with body content.
+// For success status codes (2xx): return nil (caller reads body).
+func handleAPIErrorResponse(resp *http.Response) error {
 	// Check if it's an error status code first
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
 		// Read body only for error cases
@@ -118,28 +118,28 @@ func handleAPIErrorResponse(resp *http.Response) ([]byte, error) {
 		// Handle specific error status codes according to API documentation
 		switch resp.StatusCode {
 		case http.StatusServiceUnavailable: // 503 - Queue is full
-			return bodyBytes, fmt.Errorf("queue is full (503): service unavailable, please try again later")
+			return fmt.Errorf("queue is full (503): service unavailable, please try again later")
 
 		case http.StatusTooManyRequests: // 429 - Rate limit exceeded
-			return bodyBytes, fmt.Errorf("rate limit exceeded (429): too many requests, please retry after some time")
+			return fmt.Errorf("rate limit exceeded (429): too many requests, please retry after some time")
 
 		case http.StatusNotFound: // 404 - Request ID not found
-			return bodyBytes, fmt.Errorf("request id not found (404)")
+			return fmt.Errorf("request id not found (404)")
 
 		case http.StatusInternalServerError: // 500 - Command execution failed
-			return bodyBytes, fmt.Errorf("internal server error (500): %s", errorMsg)
+			return fmt.Errorf("internal server error (500): %s", errorMsg)
 
 		case http.StatusBadRequest: // 400 - Bad request
-			return bodyBytes, fmt.Errorf("bad request (400): %s", errorMsg)
+			return fmt.Errorf("bad request (400): %s", errorMsg)
 
 		default:
 			// For any other non-2xx status
-			return bodyBytes, fmt.Errorf("Keeper Security API request failed with status %d: %s", resp.StatusCode, errorMsg)
+			return fmt.Errorf("keeper Security API request failed with status %d: %s", resp.StatusCode, errorMsg)
 		}
 	}
 
-	// For 2xx status codes, return nil, nil (success - caller reads body)
-	return nil, nil
+	// For 2xx status codes, return nil (success - caller reads body)
+	return nil
 }
 
 // normalizeCommandForShell doubles single quotes in the command so the Commander
@@ -245,8 +245,7 @@ func (a *ApiManager) SubmitRequest(ctx context.Context, command string) (*Submit
 	}
 
 	// Handle all other status codes (errors or unexpected 2xx)
-	_, apiError := handleAPIErrorResponse(resp)
-	if apiError != nil {
+	if apiError := handleAPIErrorResponse(resp); apiError != nil {
 		return nil, apiError
 	}
 
@@ -255,7 +254,7 @@ func (a *ApiManager) SubmitRequest(ctx context.Context, command string) (*Submit
 
 }
 
-// RequestStatus checks the status of an API request
+// RequestStatus checks the status of an API request.
 func (a *ApiManager) RequestStatus(ctx context.Context, requestId string) (*RequestStatusResponse, error) {
 	// Build the full URL
 	endpoint := a.ServiceModeUrl + "/status/" + requestId
@@ -278,8 +277,7 @@ func (a *ApiManager) RequestStatus(ctx context.Context, requestId string) (*Requ
 
 	// Handle response using common function
 	// Expected status: 200 OK
-	_, apiError := handleAPIErrorResponse(resp)
-	if apiError != nil {
+	if apiError := handleAPIErrorResponse(resp); apiError != nil {
 		// For 404, provide more context
 		if strings.Contains(apiError.Error(), "404") {
 			return nil, fmt.Errorf("request ID not found (404): request %s does not exist", requestId)
@@ -301,7 +299,7 @@ func (a *ApiManager) RequestStatus(ctx context.Context, requestId string) (*Requ
 	return &result, nil
 }
 
-// RequestResult gets the result of an API request
+// RequestResult gets the result of an API request.
 func (a *ApiManager) RequestResult(ctx context.Context, requestId string) (*RequestResultResponse, error) {
 	// Build the full URL
 	endpoint := a.ServiceModeUrl + "/result/" + requestId
@@ -335,8 +333,7 @@ func (a *ApiManager) RequestResult(ctx context.Context, requestId string) (*Requ
 	}
 
 	// Handle API errors (404, 500, 503, 429, etc.)
-	_, apiError := handleAPIErrorResponse(resp)
-	if apiError != nil {
+	if apiError := handleAPIErrorResponse(resp); apiError != nil {
 		return nil, apiError
 	}
 
@@ -359,9 +356,9 @@ func (a *ApiManager) RequestResult(ctx context.Context, requestId string) (*Requ
 	return &result, nil
 }
 
-// ExecuteCommand submits a command and polls for the result
-// This is a convenience function that combines SubmitRequest and PollRequestResult
-// It handles all error checking and returns the final result or an error
+// ExecuteCommand submits a command and polls for the result.
+// This is a convenience function that combines SubmitRequest and PollRequestResult.
+// It handles all error checking and returns the final result or an error.
 func (a *ApiManager) ExecuteCommand(ctx context.Context, command string, errorSummary string) (*RequestResultResponse, error) {
 	// Submit the request
 	submitResp, err := a.SubmitRequest(ctx, command)
@@ -383,9 +380,9 @@ func (a *ApiManager) ExecuteCommand(ctx context.Context, command string, errorSu
 	return apiResp, nil
 }
 
-// PollRequestResult polls RequestResult directly until the request is completed
-// Uses exponential backoff for polling intervals
-// Default timeout is 10 seconds if not specified
+// PollRequestResult polls RequestResult directly until the request is completed.
+// Uses exponential backoff for polling intervals.
+// Default timeout is 10 seconds if not specified.
 func (a *ApiManager) PollRequestResult(ctx context.Context, requestId string, timeout ...time.Duration) (*RequestResultResponse, error) {
 	// Set default timeout to 10 seconds
 	pollTimeout := 60 * time.Second
@@ -450,7 +447,7 @@ func (a *ApiManager) PollRequestResult(ctx context.Context, requestId string, ti
 	}
 }
 
-// DetectAccountType detects whether the account is MSP or Enterprise
+// DetectAccountType detects whether the account is MSP or Enterprise.
 func (a *ApiManager) IsMspAccountType(ctx context.Context) error {
 	// Try a lightweight MSP command to detect account type
 	// If it succeeds, it's an MSP account; if it fails, it's Enterprise

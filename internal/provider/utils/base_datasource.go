@@ -19,7 +19,7 @@ type BaseDataSource struct {
 }
 
 // ConfigureDataSource sets the API manager from provider data.
-// Call this from your datasource's Configure: d.BaseDataSource.ConfigureDataSource(ctx, req, resp)
+// Call this from your datasource's Configure: d.ConfigureDataSource(ctx, req, resp).
 func (b *BaseDataSource) ConfigureDataSource(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
 	if req.ProviderData == nil {
 		return

@@ -3,7 +3,7 @@
 
 package managecompany
 
-// Plan constants
+// Plan constants.
 const (
 	PlanBusiness       = "business"
 	PlanBusinessPlus   = "businessPlus"
@@ -11,7 +11,7 @@ const (
 	PlanEnterprisePlus = "enterprisePlus"
 )
 
-// File plan constants
+// File plan constants.
 const (
 	FilePlan100GB = "100gb"
 	FilePlan1TB   = "1tb"
@@ -34,14 +34,14 @@ chat -> KeeperChat
 
 */
 
-// Add-on name constants
+// Add-on name constants.
 const (
-	// Add-ons with number suffix
+	// Add-ons with number suffix.
 	AddOnConnectionManager              = "connection_manager"
 	AddOnPrivilegedAccessManager        = "privileged_access_manager"
 	AddOnKeeperEndpointPrivilegeManager = "keeper_endpoint_privilege_manager"
 
-	// Base add-ons (no number suffix)
+	// Base add-ons (no number suffix).
 	AddOnSecretsManager              = "secrets_manager"
 	AddOnRemoteBrowserIsolation      = "remote_browser_isolation"
 	AddOnChat                        = "chat"

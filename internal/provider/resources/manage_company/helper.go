@@ -7,7 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
-// normalizeAddOns extracts add-ons from the Set (no normalization needed - validation ensures correct format)
+// normalizeAddOns extracts add-ons from the Set (no normalization needed - validation ensures correct format).
 func normalizeAddOns(addOns types.Set) []string {
 	if addOns.IsNull() || addOns.IsUnknown() {
 		return nil

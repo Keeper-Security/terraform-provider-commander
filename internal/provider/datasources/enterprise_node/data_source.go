@@ -22,7 +22,7 @@ func (d *EnterpriseNodesDataSource) Metadata(ctx context.Context, req datasource
 }
 
 func (d *EnterpriseNodesDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
-	d.BaseDataSource.ConfigureDataSource(ctx, req, resp)
+	d.ConfigureDataSource(ctx, req, resp)
 }
 
 func NewEnterpriseNodesDataSource() datasource.DataSource {

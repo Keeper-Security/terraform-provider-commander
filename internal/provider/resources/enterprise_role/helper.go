@@ -16,9 +16,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
-// extractManagingNodes extracts managing nodes from a Map and returns them as a map with node names as keys
-// This helper function can be used when building commands that require managing nodes
-// Returns: map[nodeName]ManagingNodeModel
+// extractManagingNodes extracts managing nodes from a Map and returns them as a map with node names as keys.
+// This helper function can be used when building commands that require managing nodes.
+// Returns: map[nodeName]ManagingNodeModel.
 func extractManagingNodes(ctx context.Context, managingNodesMap types.Map) (map[string]ManagingNodeModel, error) {
 	if managingNodesMap.IsNull() || managingNodesMap.IsUnknown() {
 		return make(map[string]ManagingNodeModel), nil
@@ -35,7 +35,7 @@ func extractManagingNodes(ctx context.Context, managingNodesMap types.Map) (map[
 
 // extractEnforcementPolicies extracts enforcement policies from a Map and returns them as a map with policy keys as keys.
 // Map value type is String (policy value).
-// Returns: map[policyKey]types.String
+// Returns: map[policyKey]types.String.
 func extractEnforcementPolicies(ctx context.Context, enforcementPoliciesMap types.Map) (map[string]types.String, error) {
 	if enforcementPoliciesMap.IsNull() || enforcementPoliciesMap.IsUnknown() {
 		return make(map[string]types.String), nil
@@ -85,7 +85,7 @@ func buildUpdateEnforcementPoliciesCommand(roleId string, policies map[string]ty
 }
 
 // buildAddManagingNodeCommand builds the command to add a managing node to a role
-// Format: enterprise-role "Role ID/Name" -aa 'Managing Node Name' --cascade on/off
+// Format: enterprise-role "Role ID/Name" -aa 'Managing Node Name' --cascade on/off.
 func buildAddManagingNodeCommand(roleId string, managingNodeName string, cascade bool) string {
 	var parts []string
 
@@ -122,7 +122,7 @@ func buildAddRemoveManagingNodePrivilegesCommand(roleId string, managingNodeName
 
 // Note: getManagingNodeKey is no longer needed since map keys are the node names
 
-// getPrivilegesList extracts privileges from a ManagingNodeModel and returns them as a sorted string slice
+// getPrivilegesList extracts privileges from a ManagingNodeModel and returns them as a sorted string slice.
 func getPrivilegesList(ctx context.Context, node ManagingNodeModel) ([]string, error) {
 	if node.Privileges.IsNull() || node.Privileges.IsUnknown() {
 		return []string{}, nil
@@ -147,7 +147,7 @@ func getPrivilegesList(ctx context.Context, node ManagingNodeModel) ([]string, e
 	return privilegeList, nil
 }
 
-// getCascadeValue returns the cascade boolean value from a ManagingNodeModel
+// getCascadeValue returns the cascade boolean value from a ManagingNodeModel.
 func getCascadeValue(node ManagingNodeModel) bool {
 	if node.Cascade.IsNull() || node.Cascade.IsUnknown() {
 		return false
@@ -156,7 +156,7 @@ func getCascadeValue(node ManagingNodeModel) bool {
 }
 
 // addManagingNodeWithPrivileges adds a managing node to a role and sets its privileges
-// managingNodeName is the node name/ID (map key)
+// managingNodeName is the node name/ID (map key).
 func addManagingNodeWithPrivileges(ctx context.Context, apiManager *api.ApiManager, roleId string, managingNodeName string, node ManagingNodeModel) error {
 	if managingNodeName == "" {
 		return fmt.Errorf("managing node name cannot be empty")
@@ -190,7 +190,7 @@ func addManagingNodeWithPrivileges(ctx context.Context, apiManager *api.ApiManag
 
 // processManagingNodes processes all managing nodes for a role (for CREATE operation)
 // 1. Adding each managing node to the role with cascade option
-// 2. Adding privileges to each managing node
+// 2. Adding privileges to each managing node.
 func processManagingNodes(ctx context.Context, apiManager *api.ApiManager, roleId string, managingNodesMap types.Map) error {
 	if managingNodesMap.IsNull() || managingNodesMap.IsUnknown() {
 		return nil
@@ -239,65 +239,7 @@ func processEnforcementPolicies(ctx context.Context, apiManager *api.ApiManager,
 	return nil
 }
 
-/* NOTE: currently we dont need this logic bec when node name changes terraform will remove old managing node and add new managing node separately with its privileges and cascade option*/
-// validateManagingNodeNamesUnchanged validates that no managing node names have been changed
-// Users cannot change managing node names in a single update - they must remove the old node and add a new one in separate operations
-// With MapNestedAttribute, the map keys are the node names, so we can directly compare keys
-// func validateManagingNodeNamesUnchanged(ctx context.Context, planNodesMap, stateNodesMap types.Map) error {
-// 	// Get map keys (node names) - Elements() returns map[string]ManagingNodeModel where keys are node names
-// 	var planNodeNames map[string]bool
-// 	var stateNodeNames map[string]bool
-
-// 	if !planNodesMap.IsNull() && !planNodesMap.IsUnknown() {
-// 		planElements := planNodesMap.Elements()
-// 		planNodeNames = make(map[string]bool, len(planElements))
-// 		for key := range planElements {
-// 			planNodeNames[key] = true
-// 		}
-// 	} else {
-// 		planNodeNames = make(map[string]bool)
-// 	}
-
-// 	if !stateNodesMap.IsNull() && !stateNodesMap.IsUnknown() {
-// 		stateElements := stateNodesMap.Elements()
-// 		stateNodeNames = make(map[string]bool, len(stateElements))
-// 		for key := range stateElements {
-// 			stateNodeNames[key] = true
-// 		}
-// 	} else {
-// 		stateNodeNames = make(map[string]bool)
-// 	}
-
-// 	// Find removed and added node names
-// 	var removedNames []string
-// 	var addedNames []string
-
-// 	for stateName := range stateNodeNames {
-// 		if !planNodeNames[stateName] {
-// 			removedNames = append(removedNames, stateName)
-// 		}
-// 	}
-
-// 	for planName := range planNodeNames {
-// 		if !stateNodeNames[planName] {
-// 			addedNames = append(addedNames, planName)
-// 		}
-// 	}
-
-// 	// If nodes were both removed and added in the same update, it might be a rename attempt
-// 	// We prevent this to force users to do remove and add in separate operations
-// 	if len(removedNames) > 0 && len(addedNames) > 0 {
-// 		return fmt.Errorf(
-// 			"cannot change managing node names. To change a managing node name, you must first remove the old node(s) '%s' in one update, then add the new node(s) '%s' in a separate update. Please remove the old managing node(s) and apply, then add the new managing node(s) in a subsequent update",
-// 			strings.Join(removedNames, ", "),
-// 			strings.Join(addedNames, ", "),
-// 		)
-// 	}
-
-// 	return nil
-// }
-
-// validateManagingNodes validates that all managing nodes exist in the available nodes list
+// validateManagingNodes validates that all managing nodes exist in the available nodes list.
 func validateManagingNodes(ctx context.Context, managingNodesMap types.Map, apiResponseData interface{}) error {
 	if managingNodesMap.IsNull() || managingNodesMap.IsUnknown() {
 		return nil
@@ -346,7 +288,7 @@ func validateManagingNodes(ctx context.Context, managingNodesMap types.Map, apiR
 	return nil
 }
 
-// extractRoleIdFromCreateRoleResponse extracts the role id from the response
+// extractRoleIdFromCreateRoleResponse extracts the role id from the response.
 func extractRoleIdFromCreateRoleResponse(s string) (string, bool) {
 	re := regexp.MustCompile(`Role ID :\s*(\d+)`)
 	match := re.FindStringSubmatch(s)

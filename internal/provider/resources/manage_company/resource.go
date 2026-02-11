@@ -23,7 +23,7 @@ func (r *ManageCompanyResource) Metadata(ctx context.Context, req resource.Metad
 }
 
 func (r *ManageCompanyResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
-	r.BaseResource.ConfigureResource(ctx, req, resp)
+	r.ConfigureResource(ctx, req, resp)
 }
 
 func NewManageCompanyResource() resource.Resource {

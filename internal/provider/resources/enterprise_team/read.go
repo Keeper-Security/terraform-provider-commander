@@ -44,7 +44,7 @@ func (r *EnterpriseTeamResource) Read(ctx context.Context, req resource.ReadRequ
 			return utils.ErrResourceRemoved
 		}
 		if err := mapTeamReadResponseToModel(ctx, r.ApiManager, *teamInfo, &state); err != nil {
-			return fmt.Errorf("Failed to map team response to model: %w", err)
+			return fmt.Errorf("failed to map team response to model: %w", err)
 		}
 		return nil
 	}, "Read Enterprise Team Failed", &resp.Diagnostics)
@@ -59,10 +59,10 @@ func (r *EnterpriseTeamResource) Read(ctx context.Context, req resource.ReadRequ
 	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
 }
 
-// parseRestrictsString parses the restricts string (e.g., "R W S") and returns boolean values
+// parseRestrictsString parses the restricts string (e.g., "R W S") and returns boolean values.
 // R -> enable_privacy_screen (RestrictView)
 // S -> restrict_record_re_share (RestrictShare)
-// W -> restrict_record_edit (RestrictEdit)
+// W -> restrict_record_edit (RestrictEdit).
 func parseRestrictsString(restricts string) (restrictEdit, restrictShare, restrictView bool) {
 	restricts = strings.TrimSpace(restricts)
 	if restricts == "" {
@@ -85,7 +85,7 @@ func parseRestrictsString(restricts string) (restrictEdit, restrictShare, restri
 	return restrictEdit, restrictShare, restrictView
 }
 
-// mapTeamReadResponseToModel maps the API response to the resource model
+// mapTeamReadResponseToModel maps the API response to the resource model.
 func mapTeamReadResponseToModel(ctx context.Context, apiManager *api.ApiManager, teamResp utils.EnterpriseTeamResponse, state *EnterpriseTeamResourceModel) error {
 	// Map ID
 	state.Id = types.StringValue(teamResp.TeamUid)

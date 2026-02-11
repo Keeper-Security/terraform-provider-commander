@@ -106,7 +106,7 @@ func (r *EnterpriseRoleResource) Update(ctx context.Context, req resource.Update
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }
 
-// validateTeamsAndManagingNodesMutualExclusivity validates that only one of teams or managing_nodes is provided
+// validateTeamsAndManagingNodesMutualExclusivity validates that only one of teams or managing_nodes is provided.
 func validateTeamsAndManagingNodesMutualExclusivity(teams types.Set, managingNodes types.Map) error {
 	// Check if teams is provided (not null, not unknown, and has elements)
 	hasTeams := !teams.IsNull() && !teams.IsUnknown()
@@ -129,7 +129,7 @@ func validateTeamsAndManagingNodesMutualExclusivity(teams types.Set, managingNod
 	return nil
 }
 
-// updateRoleBasicAttributes updates basic role attributes (name, node, etc.)
+// updateRoleBasicAttributes updates basic role attributes (name, node, etc.).
 func updateRoleBasicAttributes(ctx context.Context, apiManager *api.ApiManager, plan, state *EnterpriseRoleResourceModel) error {
 	var parts []string
 
@@ -160,13 +160,8 @@ func updateRoleBasicAttributes(ctx context.Context, apiManager *api.ApiManager, 
 // 1. Removed nodes -> remove via -ra
 // 2. Added nodes -> add via -aa with privileges and cascade
 // 3. Changed cascade -> update via -aa with --cascade
-// 4. Changed privileges -> update via --node with -ap flags
+// 4. Changed privileges -> update via --node with -ap flags.
 func updateRoleManagingNodes(ctx context.Context, apiManager *api.ApiManager, roleId string, plan, state *EnterpriseRoleResourceModel) error {
-	/* NOTE: currently we dont need this logic bec when node name changes terraform will remove old managing node and add new managing node separately with its privileges and cascade option*/
-	// TODO: Validate that no managing node names have been changed
-	// if err := validateManagingNodeNamesUnchanged(ctx, plan.ManagingNodes, state.ManagingNodes); err != nil {
-	// 	return fmt.Errorf("managing nodes update validation failed: %w", err)
-	// }
 
 	// Validate new managing nodes before processing by fetching all available nodes for current scope and validating them
 	currentScopeNodes, err := apiManager.ExecuteCommand(ctx, "enterprise-info -n --format json", "Unable to fetch enterprise nodes for validation")
@@ -189,7 +184,7 @@ func updateRoleManagingNodes(ctx context.Context, apiManager *api.ApiManager, ro
 
 // updateRoleUsers updates users for a role
 // 1. Removed users -> remove via -ru
-// 2. Added users -> add via -au
+// 2. Added users -> add via -au.
 func updateRoleUsers(ctx context.Context, apiManager *api.ApiManager, roleId string, plan, state *EnterpriseRoleResourceModel) error {
 	if plan.Users.Equal(state.Users) {
 		return nil // No change
@@ -213,7 +208,7 @@ func updateRoleUsers(ctx context.Context, apiManager *api.ApiManager, roleId str
 
 // updateRoleTeams updates teams for a role
 // 1. Removed teams -> remove via -rt
-// 2. Added teams -> add via -at
+// 2. Added teams -> add via -at.
 func updateRoleTeams(ctx context.Context, apiManager *api.ApiManager, roleId string, plan, state *EnterpriseRoleResourceModel) error {
 	if plan.Teams.Equal(state.Teams) {
 		return nil // No change
@@ -254,7 +249,7 @@ func buildRemoveManagingNodeCommand(roleId string, managingNodeNames []string) s
 }
 
 // buildUpdateManagingNodeCascadeCommand builds the command to update cascade option for a managing node
-// Format: enterprise-role "Role ID/Name" -aa "Managing Node Name" --cascade on/off
+// Format: enterprise-role "Role ID/Name" -aa "Managing Node Name" --cascade on/off.
 func buildUpdateManagingNodeCascadeCommand(roleId string, managingNodeName string, cascade bool) string {
 	var parts []string
 
@@ -269,7 +264,7 @@ func buildUpdateManagingNodeCascadeCommand(roleId string, managingNodeName strin
 	return strings.Join(parts, " ")
 }
 
-// privilegesEqual compares two privilege lists to see if they're equal
+// privilegesEqual compares two privilege lists to see if they're equal.
 func privilegesEqual(privs1, privs2 []string) bool {
 	if len(privs1) != len(privs2) {
 		return false
@@ -304,7 +299,7 @@ func privilegesEqual(privs1, privs2 []string) bool {
 // 1. Removed nodes -> remove via -ra
 // 2. Added nodes -> add via -aa with privileges and cascade
 // 3. Changed cascade -> update via -aa with --cascade
-// 4. Changed privileges -> update via --node with -ap flags
+// 4. Changed privileges -> update via --node with -ap flags.
 func processManagingNodesUpdate(ctx context.Context, apiManager *api.ApiManager, roleId string, planNodesMap, stateNodesMap types.Map) error {
 	// Extract managing nodes from plan and state maps
 	planNodesMapValue, err := extractManagingNodes(ctx, planNodesMap)

@@ -3,7 +3,7 @@
 
 package utils
 
-// NodeInfo represents a node from the enterprise-info API response
+// NodeInfo represents a node from the enterprise-info API response.
 type EnterpriseNodeResponse struct {
 	NodeId         int    `json:"node_id"`
 	Name           string `json:"name"`
@@ -22,7 +22,7 @@ type ManageCompanyResponse struct {
 	Allocated   int      `json:"allocated"`
 }
 
-// EnterpriseTeamResponse represents the team information from the read API response
+// EnterpriseTeamResponse represents the team information from the read API response.
 type EnterpriseTeamResponse struct {
 	TeamUid   string   `json:"team_uid"`
 	Name      string   `json:"name"`
@@ -40,7 +40,7 @@ type ManagedNodePermission struct {
 	Privileges []string `json:"privileges"`
 }
 
-// EnterpriseRoleResponse represents a role from the enterprise-info API response
+// EnterpriseRoleResponse represents a role from the enterprise-info API response.
 type EnterpriseRoleResponse struct {
 	RoleId                  int                     `json:"role_id"`
 	Name                    string                  `json:"name"`
@@ -54,7 +54,7 @@ type EnterpriseRoleResponse struct {
 	ManagedNodesPermissions []ManagedNodePermission `json:"managed_nodes_permissions"`
 }
 
-// EnterpriseUserResponse represents a user from the API response
+// EnterpriseUserResponse represents a user from the API response.
 type EnterpriseUserResponse struct {
 	UserId   int      `json:"user_id"`
 	Email    string   `json:"email"`

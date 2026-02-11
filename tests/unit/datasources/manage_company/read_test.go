@@ -29,7 +29,7 @@ func companyListResponse(companyID int, companyName, node, plan, storage string)
 	}
 }
 
-func manageCompanyResponseForCommand(cmd string, idx int, companyID int, companyName, node, plan, storage string) (string, interface{}) {
+func manageCompanyResponseForCommand(cmd string, _ int, companyID int, companyName, node, plan, storage string) (string, interface{}) {
 	if cmd == "msp-down" {
 		return "ok", nil
 	}
