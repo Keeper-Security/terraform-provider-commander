@@ -36,3 +36,7 @@ website/vendor
 
 # Local testing folder
 examples/local-test/
+
+# Coverage
+coverage.out
+coverage.html

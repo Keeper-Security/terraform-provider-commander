@@ -62,8 +62,16 @@ func mapUserReadResponseToModel(ctx context.Context, apiManager *api.ApiManager,
 	// Map the response to the state
 	state.Id = types.StringValue(strconv.Itoa(userInfo.UserId)) // NOTE: For now we are using email as id, once we get user_id in commander cli response while creating user we will change to Int64 type
 	state.Email = types.StringValue(userInfo.Email)
-	state.Name = types.StringValue(userInfo.Name)
-	state.JobTitle = types.StringValue(userInfo.JobTitle)
+	if userInfo.Name == "" {
+		state.Name = types.StringNull()
+	} else {
+		state.Name = types.StringValue(userInfo.Name)
+	}
+	if userInfo.JobTitle == "" {
+		state.JobTitle = types.StringNull()
+	} else {
+		state.JobTitle = types.StringValue(userInfo.JobTitle)
+	}
 	nodeVal, err := utils.RestoreUserInputFormatForNode(ctx, apiManager, userInfo.Node, state.Node)
 	if err != nil {
 		return fmt.Errorf("failed to convert node to original format: %w", err)

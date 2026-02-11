@@ -93,11 +93,17 @@ func mapTeamReadResponseToModel(ctx context.Context, apiManager *api.ApiManager,
 	// Map Name
 	state.Name = types.StringValue(teamResp.Name)
 
-	// Parse and map restricts flags
+	// Parse and map restricts flags; use null when restricts is empty so optional attrs match unset config
 	restrictEdit, restrictShare, restrictView := parseRestrictsString(teamResp.Restricts)
-	state.RestrictEdit = types.BoolValue(restrictEdit)
-	state.RestrictShare = types.BoolValue(restrictShare)
-	state.RestrictView = types.BoolValue(restrictView)
+	if teamResp.Restricts == "" {
+		state.RestrictEdit = types.BoolNull()
+		state.RestrictShare = types.BoolNull()
+		state.RestrictView = types.BoolNull()
+	} else {
+		state.RestrictEdit = types.BoolValue(restrictEdit)
+		state.RestrictShare = types.BoolValue(restrictShare)
+		state.RestrictView = types.BoolValue(restrictView)
+	}
 
 	// Convert API response identifiers back to original format from state
 	// Roles: preserve original format (name or ID) as user provided
