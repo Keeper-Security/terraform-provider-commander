@@ -1,21 +1,21 @@
 // Copyright (c) HashiCorp, Inc.
 // SPDX-License-Identifier: MPL-2.0
 
-package enterpiseuser_test
+package enterpriseuser_test
 
 import (
 	"context"
 	"testing"
 
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/api"
-	enterpiseuser "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/enterpise_user"
+	enterpriseuser "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/enterprise_user"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
 func TestEnterpriseUserResource_ImportState_EmptyID(t *testing.T) {
-	r := enterpiseuser.NewEnterpriseUserResource().(*enterpiseuser.EnterpriseUserResource)
+	r := enterpriseuser.NewEnterpriseUserResource().(*enterpriseuser.EnterpriseUserResource)
 	r.Configure(context.Background(), resource.ConfigureRequest{ProviderData: &api.ApiManager{}}, &resource.ConfigureResponse{})
 	req := resource.ImportStateRequest{ID: ""}
 	var resp resource.ImportStateResponse
@@ -26,7 +26,7 @@ func TestEnterpriseUserResource_ImportState_EmptyID(t *testing.T) {
 }
 
 func TestEnterpriseUserResource_ImportState_ManagedCompanyEmptyUser(t *testing.T) {
-	r := enterpiseuser.NewEnterpriseUserResource().(*enterpiseuser.EnterpriseUserResource)
+	r := enterpriseuser.NewEnterpriseUserResource().(*enterpriseuser.EnterpriseUserResource)
 	r.Configure(context.Background(), resource.ConfigureRequest{ProviderData: &api.ApiManager{}}, &resource.ConfigureResponse{})
 	req := resource.ImportStateRequest{ID: "Company,"}
 	var resp resource.ImportStateResponse
@@ -37,7 +37,7 @@ func TestEnterpriseUserResource_ImportState_ManagedCompanyEmptyUser(t *testing.T
 }
 
 func TestEnterpriseUserResource_ImportState_NoApiManager(t *testing.T) {
-	r := enterpiseuser.NewEnterpriseUserResource().(*enterpiseuser.EnterpriseUserResource)
+	r := enterpriseuser.NewEnterpriseUserResource().(*enterpriseuser.EnterpriseUserResource)
 	req := resource.ImportStateRequest{ID: "user@example.com"}
 	var resp resource.ImportStateResponse
 	r.ImportState(context.Background(), req, &resp)
@@ -47,7 +47,7 @@ func TestEnterpriseUserResource_ImportState_NoApiManager(t *testing.T) {
 }
 
 func TestEnterpriseUserResource_ImportState_Success_UserOnly(t *testing.T) {
-	r := enterpiseuser.NewEnterpriseUserResource().(*enterpiseuser.EnterpriseUserResource)
+	r := enterpriseuser.NewEnterpriseUserResource().(*enterpriseuser.EnterpriseUserResource)
 	r.Configure(context.Background(), resource.ConfigureRequest{ProviderData: &api.ApiManager{}}, &resource.ConfigureResponse{})
 	sch, objType := getSchema(t)
 	emptyRaw := tftypes.NewValue(objType, newPlanStateValues(nil, nil, nil, nil, nil, nil, nil, nil, nil))
@@ -61,7 +61,7 @@ func TestEnterpriseUserResource_ImportState_Success_UserOnly(t *testing.T) {
 }
 
 func TestEnterpriseUserResource_ImportState_Success_WithManagedCompany(t *testing.T) {
-	r := enterpiseuser.NewEnterpriseUserResource().(*enterpiseuser.EnterpriseUserResource)
+	r := enterpriseuser.NewEnterpriseUserResource().(*enterpriseuser.EnterpriseUserResource)
 	r.Configure(context.Background(), resource.ConfigureRequest{ProviderData: &api.ApiManager{}}, &resource.ConfigureResponse{})
 	sch, objType := getSchema(t)
 	emptyRaw := tftypes.NewValue(objType, newPlanStateValues(nil, nil, nil, nil, nil, nil, nil, nil, nil))

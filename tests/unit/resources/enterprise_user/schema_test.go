@@ -1,18 +1,18 @@
 // Copyright (c) HashiCorp, Inc.
 // SPDX-License-Identifier: MPL-2.0
 
-package enterpiseuser_test
+package enterpriseuser_test
 
 import (
 	"context"
 	"testing"
 
-	enterpiseuser "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/enterpise_user"
+	enterpriseuser "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/enterprise_user"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 )
 
 func TestEnterpriseUserResource_Schema(t *testing.T) {
-	r := enterpiseuser.NewEnterpriseUserResource().(*enterpiseuser.EnterpriseUserResource)
+	r := enterpriseuser.NewEnterpriseUserResource().(*enterpriseuser.EnterpriseUserResource)
 	req := resource.SchemaRequest{}
 	var resp resource.SchemaResponse
 	r.Schema(context.Background(), req, &resp)

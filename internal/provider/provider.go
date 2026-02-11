@@ -14,10 +14,10 @@ import (
 	enterpriseteamdatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/enterprise_team"
 	enterpriseuserdatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/enterprise_user"
 	managecompanydatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/manage_company"
-	enterpiseuser "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/enterpise_user"
 	enterprisenode "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/enterprise_node"
 	enterpriserole "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/enterprise_role"
 	enterpriseteam "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/enterprise_team"
+	enterpriseuser "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/enterprise_user"
 	managecompany "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/manage_company"
 	"github.com/hashicorp/terraform-plugin-framework/action"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
@@ -132,7 +132,7 @@ func (p *CommanderProvider) Resources(ctx context.Context) []func() resource.Res
 		enterprisenode.NewEnterpriseNodeResource,
 		enterpriseteam.NewEnterpriseTeamResource,
 		enterpriserole.NewEnterpriseRoleResource,
-		enterpiseuser.NewEnterpriseUserResource,
+		enterpriseuser.NewEnterpriseUserResource,
 	}
 }
 

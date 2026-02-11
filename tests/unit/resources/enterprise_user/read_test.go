@@ -1,7 +1,7 @@
 // Copyright (c) HashiCorp, Inc.
 // SPDX-License-Identifier: MPL-2.0
 
-package enterpiseuser_test
+package enterpriseuser_test
 
 import (
 	"context"
@@ -10,7 +10,7 @@ import (
 	"strings"
 	"testing"
 
-	enterpiseuser "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/enterpise_user"
+	enterpriseuser "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/enterprise_user"
 	"github.com/Keeper-Security/terraform-provider-commander/tests/helpers"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
@@ -90,7 +90,7 @@ func TestEnterpriseUserResource_Read_NotFound(t *testing.T) {
 }
 
 func TestEnterpriseUserResource_Read_NoApiManager(t *testing.T) {
-	r := enterpiseuser.NewEnterpriseUserResource().(*enterpiseuser.EnterpriseUserResource)
+	r := enterpriseuser.NewEnterpriseUserResource().(*enterpriseuser.EnterpriseUserResource)
 	sch, objType := getSchema(t)
 	rawState := tftypes.NewValue(objType, newPlanStateValues("123", "user@example.com", nil, nil, nil, nil, "Root", nil, nil))
 
