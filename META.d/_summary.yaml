@@ -4,7 +4,8 @@ schema: 1.1
 partition: tf-ecosystem
 
 summary:
-  owner: team-tf-core-plugins
+  owner: keeper-security
   description: |
-    Quick start repository for creating a Terraform provider using terraform-plugin-framework
+    Terraform provider for Keeper Security. Manages enterprise nodes,
+    roles, teams, users, and companies via the Keeper Commander Service Mode REST API.
   visibility: public
