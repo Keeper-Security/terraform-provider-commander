@@ -16,6 +16,8 @@ import (
 func (r *EnterpriseUserResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 
 	resp.Schema = schema.Schema{
+		Description:         "Manages an enterprise user. Use this resource to create and manage users in the MSP or Enterprise account",
+		MarkdownDescription: "Manages an enterprise user. Use this resource to create and manage users in the MSP or Enterprise account",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed:            true,
@@ -24,46 +26,50 @@ func (r *EnterpriseUserResource) Schema(ctx context.Context, req resource.Schema
 			},
 			"email": schema.StringAttribute{
 				Required:            true,
-				Description:         "Email address.",
-				MarkdownDescription: "Email address.",
+				Description:         "Email address of the enterprise user.",
+				MarkdownDescription: "Email address of the enterprise user.",
 				Validators: []validator.String{
 					emailValidator{},
 				},
 			},
 			"name": schema.StringAttribute{
 				Optional:            true,
-				Description:         "Name.",
-				MarkdownDescription: "Name.",
+				Description:         "Name of the enterprise user.",
+				MarkdownDescription: "Name of the enterprise user.",
 				Validators: []validator.String{
 					utils.StringMinLengthValidator("Name", 1, true),
 				},
 			},
 			"job_title": schema.StringAttribute{
 				Optional:            true,
-				Description:         "Job title.",
-				MarkdownDescription: "Job title.",
+				Description:         "Job title of the enterprise user.",
+				MarkdownDescription: "Job title of the enterprise user.",
 				Validators: []validator.String{
 					utils.StringMinLengthValidator("Job title", 1, true),
 				},
 			},
 			"roles": schema.SetAttribute{
-				Optional:    true,
-				ElementType: types.StringType,
+				Optional:            true,
+				ElementType:         types.StringType,
+				Description:         "Manage roles to the enterprise user.",
+				MarkdownDescription: "Manage roles to the enterprise user.",
 				Validators: []validator.Set{
 					utils.RolesValidator,
 				},
 			},
 			"teams": schema.SetAttribute{
-				Optional:    true,
-				ElementType: types.StringType,
+				Optional:            true,
+				ElementType:         types.StringType,
+				Description:         "Manage teams to the enterprise user.",
+				MarkdownDescription: "Manage teams to the enterprise user.",
 				Validators: []validator.Set{
 					utils.TeamsValidator,
 				},
 			},
 			"node": schema.StringAttribute{
 				Required:            true,
-				Description:         "Managing Node name or ID.",
-				MarkdownDescription: "Managing Node name or ID.",
+				Description:         "Managing node name or ID of the enterprise user.",
+				MarkdownDescription: "Managing node name or ID of the enterprise user.",
 				Validators: []validator.String{
 					utils.NodeValidator,
 				},
@@ -71,8 +77,8 @@ func (r *EnterpriseUserResource) Schema(ctx context.Context, req resource.Schema
 
 			"managed_company": schema.StringAttribute{
 				Optional:            true,
-				Description:         "Managed Company name or ID.",
-				MarkdownDescription: "Managed Company name or ID.",
+				Description:         utils.EnterpriseManagedCompanySchemaAttributeDescription,
+				MarkdownDescription: utils.EnterpriseManagedCompanySchemaAttributeMarkdownDescription,
 				Validators: []validator.String{
 					utils.ManagedCompanyValidator,
 				},

@@ -1,9 +1,10 @@
-# NOTE: This file is for HashiCorp specific licensing automation and can be deleted after creating a new repo with this template.
+# Copywrite config: adds/updates copyright headers when running "make generate".
 schema_version = 1
 
 project {
-  license        = "MPL-2.0"
-  copyright_year = 2021
+  license           = "MPL-2.0"
+  copyright_year    = 2026
+  copyright_holder  = "Keeper Security, Inc."
 
   header_ignore = [
     # internal catalog metadata (prose)
