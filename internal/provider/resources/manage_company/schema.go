@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright (c) Keeper Security, Inc.
 // SPDX-License-Identifier: MPL-2.0
 
 package managecompany
@@ -16,9 +16,13 @@ import (
 
 func (r *ManageCompanyResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
+		Description:         "Manages a managed company. Use this resource to create and manage a managed company's of your MSP account.",
+		MarkdownDescription: "Manages a managed company. Use this resource to create and manage a managed company's of your MSP account.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
-				Computed: true,
+				Computed:            true,
+				Description:         "ID of the managed company.",
+				MarkdownDescription: "ID of the managed company.",
 			},
 			"name": schema.StringAttribute{
 				Required: true,
@@ -33,8 +37,8 @@ func (r *ManageCompanyResource) Schema(ctx context.Context, req resource.SchemaR
 				Validators: []validator.String{
 					utils.NodeValidator,
 				},
-				Description:         "Managing Node name or ID.",
-				MarkdownDescription: "Managing Node name or ID.",
+				Description:         "Managing Node name or ID of the managed company.",
+				MarkdownDescription: "Managing Node name or ID of the managed company.",
 			},
 			"seats": schema.Int64Attribute{
 				Optional: true,
@@ -49,8 +53,8 @@ func (r *ManageCompanyResource) Schema(ctx context.Context, req resource.SchemaR
 				Validators: []validator.String{
 					planValidator{},
 				},
-				Description:         "Base plan. Must be one of: " + strings.Join(PlanOptions, ", "),
-				MarkdownDescription: "Base plan. Must be one of: `" + strings.Join(PlanOptions, "`, `") + "`",
+				Description:         "Manage Company Plan or Product. Must be one of: " + strings.Join(PlanOptions, ", "),
+				MarkdownDescription: "Manage Company Plan or Product. Must be one of: `" + strings.Join(PlanOptions, "`, `") + "`",
 			},
 			"file_plan": schema.StringAttribute{
 				Optional: true,

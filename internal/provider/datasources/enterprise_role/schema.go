@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright (c) Keeper Security, Inc.
 // SPDX-License-Identifier: MPL-2.0
 
 package enterpriserole
@@ -6,6 +6,7 @@ package enterpriserole
 import (
 	"context"
 
+	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/utils"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -44,8 +45,8 @@ func (d *EnterpriseRoleDataSource) Schema(ctx context.Context, req datasource.Sc
 			},
 			"managed_company": schema.StringAttribute{
 				Optional:            true,
-				Description:         "Managed company name or ID to scope the lookup (used for API context only; not returned in the result).",
-				MarkdownDescription: "Managed company name or ID to scope the lookup (used for API context only; not returned in the result).",
+				Description:         utils.EnterpriseManagedCompanySchemaAttributeDescription,
+				MarkdownDescription: utils.EnterpriseManagedCompanySchemaAttributeMarkdownDescription,
 			},
 		},
 	}

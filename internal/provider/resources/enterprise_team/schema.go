@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright (c) Keeper Security, Inc.
 // SPDX-License-Identifier: MPL-2.0
 
 package enterpriseteam
@@ -15,6 +15,8 @@ import (
 
 func (r *EnterpriseTeamResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
+		Description:         "Manages an enterprise team. Use this resource to create and manage teams in the MSP or Enterprise account",
+		MarkdownDescription: "Manages an enterprise team. Use this resource to create and manage teams in the MSP or Enterprise account",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed:            true,
@@ -31,18 +33,18 @@ func (r *EnterpriseTeamResource) Schema(ctx context.Context, req resource.Schema
 			},
 			"restrict_record_edit": schema.BoolAttribute{
 				Optional:            true,
-				Description:         "Restrict record editing.",
-				MarkdownDescription: "Restrict record editing.",
+				Description:         "Restrict record editing. Decide if users in this team can edit records",
+				MarkdownDescription: "Restrict record editing. Decide if users in this team can edit records",
 			},
 			"restrict_record_re_share": schema.BoolAttribute{
 				Optional:            true,
-				Description:         "Restrict record re-sharing.",
-				MarkdownDescription: "Restrict record re-sharing.",
+				Description:         "Restrict record re-sharing. Decide if users in this team can share records",
+				MarkdownDescription: "Restrict record re-sharing. Decide if users in this team can share records",
 			},
 			"enable_privacy_screen": schema.BoolAttribute{
 				Optional:            true,
-				Description:         "Enable privacy screen.",
-				MarkdownDescription: "Enable privacy screen.",
+				Description:         "Enable privacy screen. Decide if users in this team can view record passwords",
+				MarkdownDescription: "Enable privacy screen. Decide if users in this team can view record passwords",
 			},
 			"users": schema.SetAttribute{
 				Optional:    true,
@@ -50,8 +52,8 @@ func (r *EnterpriseTeamResource) Schema(ctx context.Context, req resource.Schema
 				Validators: []validator.Set{
 					utils.SetNoEmptyStringsValidator("User"),
 				},
-				Description:         "Set of users in the enterprise team. Duplicate values are automatically prevented. Empty strings are not allowed.",
-				MarkdownDescription: "Set of users in the enterprise team. Duplicate values are automatically prevented. Empty strings are not allowed.",
+				Description:         "Manage users to the enterprise team.",
+				MarkdownDescription: "Manage users to the enterprise team.",
 			},
 			"roles": schema.SetAttribute{
 				Optional:    true,
@@ -59,21 +61,21 @@ func (r *EnterpriseTeamResource) Schema(ctx context.Context, req resource.Schema
 				Validators: []validator.Set{
 					utils.RolesValidator,
 				},
-				Description:         "Set of roles in the enterprise team. Duplicate values are automatically prevented. Empty strings are not allowed.",
-				MarkdownDescription: "Set of roles in the enterprise team. Duplicate values are automatically prevented. Empty strings are not allowed.",
+				Description:         "Manage roles to the enterprise team.",
+				MarkdownDescription: "Manage roles to the enterprise team.",
 			},
 			"node": schema.StringAttribute{
 				Required:            true,
-				Description:         "Managing Node name or ID.",
-				MarkdownDescription: "Managing Node name or ID.",
+				Description:         "Managing Node name or ID of the enterprise team.",
+				MarkdownDescription: "Managing Node name or ID of the enterprise team.",
 				Validators: []validator.String{
 					utils.NodeValidator,
 				},
 			},
 			"managed_company": schema.StringAttribute{
 				Optional:            true,
-				Description:         "Managed Company name or ID.",
-				MarkdownDescription: "Managed Company name or ID.",
+				Description:         utils.EnterpriseManagedCompanySchemaAttributeDescription,
+				MarkdownDescription: utils.EnterpriseManagedCompanySchemaAttributeMarkdownDescription,
 				Validators: []validator.String{
 					utils.ManagedCompanyValidator,
 				},
