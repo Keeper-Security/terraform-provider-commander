@@ -69,6 +69,36 @@ func (v setNoEmptyStringsValidator) MarkdownDescription(ctx context.Context) str
 	return v.Description(ctx)
 }
 
+// SetNotEmptyValidator validates that a set has at least one element.
+func SetNotEmptyValidator(displayName string) setNotEmptyValidator {
+	return setNotEmptyValidator{DisplayName: displayName}
+}
+
+type setNotEmptyValidator struct {
+	DisplayName string
+}
+
+func (v setNotEmptyValidator) Description(ctx context.Context) string {
+	return v.DisplayName + " set cannot be empty. At least one value is required."
+}
+
+func (v setNotEmptyValidator) MarkdownDescription(ctx context.Context) string {
+	return v.Description(ctx)
+}
+
+func (v setNotEmptyValidator) ValidateSet(ctx context.Context, req validator.SetRequest, resp *validator.SetResponse) {
+	if req.ConfigValue.IsNull() || req.ConfigValue.IsUnknown() {
+		return
+	}
+	if len(req.ConfigValue.Elements()) == 0 {
+		resp.Diagnostics.AddError(
+			"Empty "+v.DisplayName+" Set",
+			v.DisplayName+" set cannot be empty. At least one value is required.",
+		)
+		return
+	}
+}
+
 func (v setNoEmptyStringsValidator) ValidateSet(ctx context.Context, req validator.SetRequest, resp *validator.SetResponse) {
 	if req.ConfigValue.IsNull() || req.ConfigValue.IsUnknown() {
 		return

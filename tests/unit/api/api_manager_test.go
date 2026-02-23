@@ -81,7 +81,7 @@ func TestSubmitRequest_Success(t *testing.T) {
 		HttpClient:        server.Client(),
 	}
 	ctx := context.Background()
-	resp, err := client.SubmitRequest(ctx, "enterprise-info")
+	resp, err := client.SubmitRequest(ctx, "enterprise-info", nil)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -106,7 +106,7 @@ func TestSubmitRequest_ErrorStatus(t *testing.T) {
 		HttpClient:        server.Client(),
 	}
 	ctx := context.Background()
-	_, err := client.SubmitRequest(ctx, "cmd")
+	_, err := client.SubmitRequest(ctx, "cmd", nil)
 	if err == nil {
 		t.Fatal("expected error for 503")
 	}
@@ -128,7 +128,7 @@ func TestSubmitRequest_BadRequest(t *testing.T) {
 		HttpClient:        server.Client(),
 	}
 	ctx := context.Background()
-	_, err := client.SubmitRequest(ctx, "cmd")
+	_, err := client.SubmitRequest(ctx, "cmd", nil)
 	if err == nil {
 		t.Fatal("expected error for 400")
 	}
@@ -149,7 +149,7 @@ func TestSubmitRequest_NotFound(t *testing.T) {
 		HttpClient:        server.Client(),
 	}
 	ctx := context.Background()
-	_, err := client.SubmitRequest(ctx, "cmd")
+	_, err := client.SubmitRequest(ctx, "cmd", nil)
 	if err == nil {
 		t.Fatal("expected error for 404")
 	}
@@ -168,7 +168,7 @@ func TestSubmitRequest_InternalServerError(t *testing.T) {
 		HttpClient:        server.Client(),
 	}
 	ctx := context.Background()
-	_, err := client.SubmitRequest(ctx, "cmd")
+	_, err := client.SubmitRequest(ctx, "cmd", nil)
 	if err == nil {
 		t.Fatal("expected error for 500")
 	}
@@ -189,7 +189,7 @@ func TestSubmitRequest_TooManyRequests(t *testing.T) {
 		HttpClient:        server.Client(),
 	}
 	ctx := context.Background()
-	_, err := client.SubmitRequest(ctx, "cmd")
+	_, err := client.SubmitRequest(ctx, "cmd", nil)
 	if err == nil {
 		t.Fatal("expected error for 429")
 	}
@@ -208,7 +208,7 @@ func TestSubmitRequest_Unexpected2xx(t *testing.T) {
 		HttpClient:        server.Client(),
 	}
 	ctx := context.Background()
-	_, err := client.SubmitRequest(ctx, "cmd")
+	_, err := client.SubmitRequest(ctx, "cmd", nil)
 	if err == nil {
 		t.Fatal("expected error for 200 (expected 202)")
 	}

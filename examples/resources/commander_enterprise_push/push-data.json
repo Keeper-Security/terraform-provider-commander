@@ -1,0 +1,35 @@
+{
+  "records": [{
+    "title":"Google",
+    "folders": [
+      {
+        "folder": "My Websites\\Online"
+      }
+    ],
+    "login": "testing",
+    "password": "lk4j139sk4j",
+    "login_url": "https://google.com",
+    "notes": "These are some notes.",
+    "custom_fields": {"Favorite Food":"Cheetos"}
+  },
+  {
+    "title":"Facebook",
+    "folders": [
+      {
+        "folder": "Social Media"
+      },
+      {
+        "shared_folder": "Shared Social",
+        "can_edit": false,
+        "can_share": false
+      }
+    ],
+    "login": "me@gmail.com",
+    "password": "123123123123",
+    "login_url": "https://facebook.com",
+    "notes": "This is our corporate shared record.",
+    "custom_fields": {
+      "Facebook Application ID":"ABC12345",
+      "$oneTimeCode": "otpauth://totp/Amazon:me@company.com?secret=JBSWY3DPEHPK3PXP&issuer=Amazon&algorithm=SHA1&digits=6&period=30"}
+  }]
+}
