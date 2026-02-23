@@ -80,18 +80,8 @@ func updateEnterpriseNode(ctx context.Context, apiManager *api.ApiManager, plan 
 	}
 
 	if !state.Parent.Equal(plan.Parent) {
-		value := plan.Parent.ValueString()
-
-		// We need to make the parent as "root" as we if the parent is the same as the managed company
-		if !plan.ManagedCompany.IsNull() && plan.Parent.ValueString() == plan.ManagedCompany.ValueString() {
-			value = "root"
-		}
-		parts = append(parts, fmt.Sprintf("--parent '%s'", value))
+		parts = append(parts, fmt.Sprintf("--parent '%s'", plan.Parent.ValueString()))
 	}
-
-	// if !state.WipeOut.Equal(plan.WipeOut) {
-	// 	parts = append(parts, "--wipe-out")
-	// }
 
 	// --toggle-isolated toggles current state; it does not accept true/false.
 	// Only append when the effective "on" state changed. Treat null and false as "off" so
@@ -101,10 +91,6 @@ func updateEnterpriseNode(ctx context.Context, apiManager *api.ApiManager, plan 
 	if stateIsolatedOn != planIsolatedOn {
 		parts = append(parts, "--toggle-isolated")
 	}
-
-	// if !state.LogoFile.Equal(plan.LogoFile) {
-	// 	parts = append(parts, fmt.Sprintf("--logo-file '%s'", plan.LogoFile.ValueString()))
-	// }
 
 	// Node to update
 	parts = append(parts, fmt.Sprintf("'%s'", state.Id.ValueString()))

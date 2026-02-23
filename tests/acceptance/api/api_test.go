@@ -73,12 +73,13 @@ func TestAccApi_ExecuteCommandFlow_ResourceCreate(t *testing.T) {
 					"name":        "api-test-node",
 					"parent_node": "Root",
 					"parent_id":   float64(0),
+					"isolated":    false,
 				},
 			}
 		case strings.Contains(cmd, "enterprise-info") && strings.Contains(cmd, "-n") && strings.Contains(cmd, "--format json"):
 			return "ok", []map[string]interface{}{
-				{"node_id": float64(0), "name": "Root", "parent_node": "", "parent_id": float64(0)},
-				{"node_id": float64(5002), "name": "api-test-node", "parent_node": "Root", "parent_id": float64(0)},
+				{"node_id": float64(0), "name": "Root", "parent_node": "", "parent_id": float64(0), "isolated": false},
+				{"node_id": float64(5002), "name": "api-test-node", "parent_node": "Root", "parent_id": float64(0), "isolated": false},
 			}
 		case strings.Contains(cmd, "enterprise-node") && strings.Contains(cmd, "--delete"):
 			return "ok", nil

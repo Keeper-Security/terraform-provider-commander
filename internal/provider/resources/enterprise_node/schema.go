@@ -9,6 +9,7 @@ import (
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/utils"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 )
 
@@ -40,8 +41,10 @@ func (r *EnterpriseNodeResource) Schema(ctx context.Context, req resource.Schema
 			},
 			"toggle_isolated": schema.BoolAttribute{
 				Optional:            true,
-				Description:         "Make node visible or invisible to people in other nodes.",
-				MarkdownDescription: "Make node visible or invisible to people in other nodes.",
+				Computed:            true,
+				Default:             booldefault.StaticBool(false),
+				Description:         "Make node visible or invisible to people in other nodes. Defaults to false. Not supported on create; on update set to true or false to turn isolation on or off.",
+				MarkdownDescription: "Make node visible or invisible to people in other nodes. Defaults to false. Not supported on create; on update set to true or false to turn isolation on or off.",
 			},
 			"managed_company": schema.StringAttribute{
 				Optional:            true,

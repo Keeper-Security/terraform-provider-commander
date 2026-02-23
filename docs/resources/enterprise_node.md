@@ -13,14 +13,12 @@ Manages a enterprise node. Use this resource to create and manage nodes in the M
 ## Example Usage
 
 ```terraform
-# Enterprise node: name, parent (required). Optional: toggle_isolated, managed_company (MSP only).
+# Enterprise node: name, parent (required). Optional: managed_company (MSP only).
+# toggle_isolated defaults to false and is not supported on create; set it on update to turn isolation on or off.
 
 resource "commander_enterprise_node" "example" {
   name   = "Engineering"
   parent = "Root"
-
-  # Optional: isolate this node from other nodes
-  toggle_isolated = false
 
   # Optional, MSP only: scope to a specific managed company
   # managed_company = "Acme Corp"
@@ -38,7 +36,7 @@ resource "commander_enterprise_node" "example" {
 ### Optional
 
 - `managed_company` (String) Only applies to **MSP accounts**. Name or ID of the managed company to scope this resource or data source to. Omit to use the logged-in account context.
-- `toggle_isolated` (Boolean) Make node visible or invisible to people in other nodes.
+- `toggle_isolated` (Boolean) Make node visible or invisible to people in other nodes. Defaults to false. Not supported on create; on update set to true or false to turn isolation on or off.
 
 ### Read-Only
 
