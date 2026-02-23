@@ -32,6 +32,15 @@ func (r *EnterpriseNodeResource) Create(ctx context.Context, req resource.Create
 		return
 	}
 
+	// Restrict use of toggle_isolated in create bec cli does not support it
+	if !data.ToggleIsolated.IsNull() && data.ToggleIsolated.ValueBool() {
+		resp.Diagnostics.AddError(
+			"Invalid Configuration",
+			"toggle_isolated is not supported in create",
+		)
+		return
+	}
+
 	// Execute with managed company context if provided
 	if err := utils.RunWithManagedCompanyContext(ctx, r.ApiManager, data.ManagedCompany, func() error {
 		return addNodeBasicAttributes(ctx, r.ApiManager, &data)
@@ -56,31 +65,8 @@ func addNodeBasicAttributes(ctx context.Context, apiManager *api.ApiManager, dat
 
 	// Optional parameters
 	if !data.Parent.IsNull() {
-		value := data.Parent.ValueString()
-
-		// We need to make the parent as "root" as if the parent is the same as the managed company bec. this like functionality implemente in commander cli.
-		if !data.ManagedCompany.IsNull() && data.Parent.ValueString() == data.ManagedCompany.ValueString() {
-			value = "root"
-		}
-
-		parts = append(parts, fmt.Sprintf("--parent '%s'", value))
+		parts = append(parts, fmt.Sprintf("--parent '%s'", data.Parent.ValueString()))
 	}
-
-	// TODO: Currently its not working in
-	// if !data.WipeOut.IsNull() {
-	// 	parts = append(parts, "--wipe-out")
-	// }
-
-	// --toggle-isolated does not accept true/false; the flag toggles the node's isolated state.
-	// Only append when user explicitly sets toggle_isolated = true (to turn isolated on for new node).
-	if !data.ToggleIsolated.IsNull() && data.ToggleIsolated.ValueBool() {
-		parts = append(parts, "--toggle-isolated")
-	}
-
-	// TODO: NEED TO CHECK HOW WE CAN ADD LOGO FILE - NOT WORKING IN COMMANDER CLI
-	// if !data.LogoFile.IsNull() {
-	// 	parts = append(parts, fmt.Sprintf("--logo-file '%s'", data.LogoFile.ValueString()))
-	// }
 
 	command := strings.Join(parts, " ")
 

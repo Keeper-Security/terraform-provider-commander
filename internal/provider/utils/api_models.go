@@ -9,6 +9,7 @@ type EnterpriseNodeResponse struct {
 	Name           string `json:"name"`
 	ParentNodeName string `json:"parent_node"`
 	ParentNodeId   int    `json:"parent_id"`
+	Isolated       bool   `json:"isolated"`
 }
 
 type ManageCompanyResponse struct {

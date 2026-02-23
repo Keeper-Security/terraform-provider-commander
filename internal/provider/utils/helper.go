@@ -133,6 +133,18 @@ func ExtractNodeIDFromCreateNodeResponse(s string) (string, bool) {
 	return match[1], true
 }
 
+// Note: After creating a user, service mode api returns message like: "user@example.com user invited with Enterprise User ID : 116942510420593".
+// This function extracts the user id from the response.
+func ExtractUserIDFromCreateUserResponse(s string) (string, bool) {
+	re := regexp.MustCompile(`User ID :\s*(\d+)`)
+	match := re.FindStringSubmatch(s)
+
+	if len(match) < 2 {
+		return "", false
+	}
+	return match[1], true
+}
+
 // Function to extract the node name from the input string like "Metronlabs\\Aditya Dev Inc" -> "Aditya Dev Inc"
 // msp-info returns node_name as "Metronlabs\\Aditya Dev Inc" if present in child node or node_name as "Metronlabs" if present in root node.
 func ExtractNodeName(input string) string {
@@ -406,7 +418,7 @@ func RestoreUserInputFormatFromApiResponse(
 func FetchEnterpriseNodeByNameOrId(ctx context.Context, apiManager *api.ApiManager, nodeNameOrId string) (*EnterpriseNodeResponse, error) {
 	// node can be id or name
 
-	command := fmt.Sprintf("enterprise-info -n -v --format json --node '%s'", nodeNameOrId)
+	command := fmt.Sprintf("enterprise-info -n -v --format json --node '%s' --columns='isolated,parent_node,parent_id'", nodeNameOrId)
 
 	apiResp, err := apiManager.ExecuteCommand(ctx, command, "Failed to retrieve enterprise node information")
 	if err != nil {

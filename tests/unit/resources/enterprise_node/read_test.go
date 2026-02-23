@@ -112,7 +112,7 @@ func TestEnterpriseNodeResource_Read_RestoreParentFormatError(t *testing.T) {
 	responseForCommand := func(cmd string, idx int) (string, interface{}) {
 		if strings.Contains(cmd, "enterprise-info -n -v --format json --node") {
 			return "ok", []map[string]interface{}{
-				{"node_id": float64(123), "name": "TestNode", "parent_node": "Root", "parent_id": float64(0)},
+				{"node_id": float64(123), "name": "TestNode", "parent_node": "Root", "parent_id": float64(0), "isolated": false},
 			}
 		}
 		if strings.Contains(cmd, "enterprise-info -n --format json -v -q") {
