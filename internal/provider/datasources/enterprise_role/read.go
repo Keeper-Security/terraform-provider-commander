@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"strconv"
 
+	enterpriseRoleResource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/enterprise_role"
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/utils"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -39,18 +40,34 @@ func (d *EnterpriseRoleDataSource) Read(ctx context.Context, req datasource.Read
 		if roleInfo == nil {
 			return fmt.Errorf("enterprise role: '%s' not found", data.Role.ValueString())
 		}
+
 		data.Id = types.StringValue(strconv.Itoa(roleInfo.RoleId))
 		data.Name = types.StringValue(roleInfo.Name)
+
 		users, usersDiags := types.SetValueFrom(ctx, types.StringType, roleInfo.Users)
 		if usersDiags.HasError() {
 			return fmt.Errorf("failed to create users set: %v", usersDiags.Errors())
 		}
 		data.Users = users
+
 		teams, teamsDiags := types.SetValueFrom(ctx, types.StringType, roleInfo.Teams)
 		if teamsDiags.HasError() {
 			return fmt.Errorf("failed to create teams set: %v", teamsDiags.Errors())
 		}
 		data.Teams = teams
+
+		managingNodesMap, err := utils.MapManagedNodesPermissionsToState(ctx, roleInfo.ManagedNodesPermissions)
+		if err != nil {
+			return fmt.Errorf("failed to map managing nodes: %w", err)
+		}
+		data.ManagingNodes = managingNodesMap
+
+		enforcementPoliciesMap, err := utils.MapEnforcementsToState(roleInfo.Enforcements, enterpriseRoleResource.GeneratedPasswordComplexity)
+		if err != nil {
+			return fmt.Errorf("failed to map enforcement policies: %w", err)
+		}
+		data.EnforcementPolicies = enforcementPoliciesMap
+
 		data.ManagedCompany = types.StringNull()
 		return nil
 	}, "Read Enterprise Role Failed", &resp.Diagnostics); err != nil {

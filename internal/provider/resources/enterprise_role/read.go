@@ -8,11 +8,9 @@ import (
 	"errors"
 	"fmt"
 	"strconv"
-	"strings"
 
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/api"
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/utils"
-	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
@@ -45,7 +43,7 @@ func (r *EnterpriseRoleResource) Read(ctx context.Context, req resource.ReadRequ
 			return utils.ErrResourceRemoved
 		}
 		if err := mapRoleReadResponseToModel(ctx, r.ApiManager, *roleInfo, &state); err != nil {
-			return fmt.Errorf("failed to map role response to model: %w", err)
+			return err
 		}
 		return nil
 	}, "Read Enterprise Role Failed", &resp.Diagnostics)
@@ -95,103 +93,18 @@ func mapRoleReadResponseToModel(ctx context.Context, apiManager *api.ApiManager,
 	}
 
 	// Managing nodes: map API managed_nodes_permissions to state
-	managingNodesMap, err := mapManagedNodesPermissionsToState(ctx, roleInfo.ManagedNodesPermissions)
+	managingNodesMap, err := utils.MapManagedNodesPermissionsToState(ctx, roleInfo.ManagedNodesPermissions)
 	if err != nil {
 		return fmt.Errorf("failed to map managing nodes to state: %w", err)
 	}
 	state.ManagingNodes = managingNodesMap
 
-	// Enforcement policies: map API enforcements (keys only, lowercase) to state map
-	// Use value from state if key exists there, else empty string
-	enforcementPoliciesMap, err := mapEnforcementsToState(roleInfo.Enforcements, state.EnforcementPolicies)
+	// Enforcement policies: map API enforcements (key -> string value) to state map; keys normalized to UPPER_SNAKE_CASE
+	enforcementPoliciesMap, err := utils.MapEnforcementsToState(roleInfo.Enforcements, GeneratedPasswordComplexity)
 	if err != nil {
 		return fmt.Errorf("failed to map enforcement policies to state: %w", err)
 	}
 	state.EnforcementPolicies = enforcementPoliciesMap
 
 	return nil
-}
-
-// managingNodesMapElemType is the object type for each entry in the managing_nodes map.
-var managingNodesMapElemType = types.ObjectType{
-	AttrTypes: map[string]attr.Type{
-		"privileges": types.SetType{ElemType: types.StringType},
-		"cascade":    types.BoolType,
-	},
-}
-
-// mapManagedNodesPermissionsToState converts API ManagedNodesPermissions to a types.Map for state.
-// Map key is the node name (ExtractNodeName). Value is object with privileges (Set) and cascade (Bool).
-func mapManagedNodesPermissionsToState(_ context.Context, perms []utils.ManagedNodePermission) (types.Map, error) {
-	if len(perms) == 0 {
-		return types.MapNull(managingNodesMapElemType), nil
-	}
-
-	elements := make(map[string]attr.Value)
-	for _, p := range perms {
-		key := p.NodeName
-
-		//  this is edge case, we will get node name all time
-		if key == "" {
-			key = strconv.FormatInt(p.NodeId, 10)
-		}
-
-		privilegeElems := make([]attr.Value, len(p.Privileges))
-		for i, pr := range p.Privileges {
-			privilegeElems[i] = types.StringValue(pr)
-		}
-
-		privilegesSet := types.SetValueMust(types.StringType, privilegeElems)
-		obj := types.ObjectValueMust(
-			managingNodesMapElemType.AttrTypes,
-			map[string]attr.Value{
-				"privileges": privilegesSet,
-				"cascade":    types.BoolValue(p.Cascade),
-			},
-		)
-		elements[key] = obj
-	}
-
-	mapVal, diags := types.MapValue(managingNodesMapElemType, elements)
-	if diags.HasError() {
-		return types.MapNull(managingNodesMapElemType), fmt.Errorf("failed to build managing_nodes map: %v", diags)
-	}
-	return mapVal, nil
-}
-
-// mapEnforcementsToState converts API enforcements (array of keys in lowercase) to a types.Map for state.
-// API returns only keys; we normalize to UPPER_SNAKE_CASE. If the key exists in state, use state's value; else use "".
-func mapEnforcementsToState(enforcements []string, stateEnforcementPolicies types.Map) (types.Map, error) {
-	if len(enforcements) == 0 {
-		return types.MapNull(types.StringType), nil
-	}
-	stateValues := make(map[string]string)
-	if !stateEnforcementPolicies.IsNull() && !stateEnforcementPolicies.IsUnknown() {
-		for key, val := range stateEnforcementPolicies.Elements() {
-			if s, ok := val.(types.String); ok && !s.IsNull() && !s.IsUnknown() {
-				stateValues[key] = s.ValueString()
-			}
-		}
-	}
-	elements := make(map[string]attr.Value)
-	for _, key := range enforcements {
-		key = strings.TrimSpace(key)
-		if key == "" {
-			continue
-		}
-		normalizedKey := strings.ToUpper(key)
-		if v, ok := stateValues[normalizedKey]; ok {
-			elements[normalizedKey] = types.StringValue(v)
-		} else {
-			elements[normalizedKey] = types.StringValue("")
-		}
-	}
-	if len(elements) == 0 {
-		return types.MapNull(types.StringType), nil
-	}
-	mapVal, diags := types.MapValue(types.StringType, elements)
-	if diags.HasError() {
-		return types.MapNull(types.StringType), fmt.Errorf("failed to build enforcement_policies map: %v", diags)
-	}
-	return mapVal, nil
 }

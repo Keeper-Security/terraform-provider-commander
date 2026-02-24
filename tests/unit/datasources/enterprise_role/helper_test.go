@@ -16,14 +16,24 @@ import (
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
-var enterpriseRoleDataSourceAttrTypes = map[string]tftypes.Type{
-	"role":            tftypes.String,
-	"id":              tftypes.String,
-	"name":            tftypes.String,
-	"users":           tftypes.Set{ElementType: tftypes.String},
-	"teams":           tftypes.Set{ElementType: tftypes.String},
-	"managed_company": tftypes.String,
-}
+var (
+	managingNodesElemType = tftypes.Object{
+		AttributeTypes: map[string]tftypes.Type{
+			"privileges": tftypes.Set{ElementType: tftypes.String},
+			"cascade":    tftypes.Bool,
+		},
+	}
+	enterpriseRoleDataSourceAttrTypes = map[string]tftypes.Type{
+		"role":                 tftypes.String,
+		"id":                   tftypes.String,
+		"name":                 tftypes.String,
+		"users":                tftypes.Set{ElementType: tftypes.String},
+		"teams":                tftypes.Set{ElementType: tftypes.String},
+		"managing_nodes":       tftypes.Map{ElementType: managingNodesElemType},
+		"enforcement_policies": tftypes.Map{ElementType: tftypes.String},
+		"managed_company":      tftypes.String,
+	}
+)
 
 func enterpriseRoleDataSourceObjectType() tftypes.Object {
 	return tftypes.Object{AttributeTypes: enterpriseRoleDataSourceAttrTypes}
@@ -34,12 +44,14 @@ func enterpriseRoleDataSourceObjectType() tftypes.Object {
 //nolint:unparam // managedCompany is always nil at call sites but used for managed_company attribute.
 func newConfigValues(role, managedCompany interface{}) map[string]tftypes.Value {
 	return map[string]tftypes.Value{
-		"role":            tftypes.NewValue(tftypes.String, role),
-		"id":              tftypes.NewValue(tftypes.String, nil),
-		"name":            tftypes.NewValue(tftypes.String, nil),
-		"users":           tftypes.NewValue(tftypes.Set{ElementType: tftypes.String}, nil),
-		"teams":           tftypes.NewValue(tftypes.Set{ElementType: tftypes.String}, nil),
-		"managed_company": tftypes.NewValue(tftypes.String, managedCompany),
+		"role":                 tftypes.NewValue(tftypes.String, role),
+		"id":                   tftypes.NewValue(tftypes.String, nil),
+		"name":                 tftypes.NewValue(tftypes.String, nil),
+		"users":                tftypes.NewValue(tftypes.Set{ElementType: tftypes.String}, nil),
+		"teams":                tftypes.NewValue(tftypes.Set{ElementType: tftypes.String}, nil),
+		"managing_nodes":       tftypes.NewValue(tftypes.Map{ElementType: managingNodesElemType}, nil),
+		"enforcement_policies": tftypes.NewValue(tftypes.Map{ElementType: tftypes.String}, nil),
+		"managed_company":      tftypes.NewValue(tftypes.String, managedCompany),
 	}
 }
 

@@ -14,6 +14,10 @@ Manages an enterprise role. Use this resource to create and manage roles in the 
 
 ```terraform
 # Enterprise role: name and node (required). Optional: users, teams, managing_nodes, enforcement_policies, managed_company (MSP only).
+# enforcement_policies: key = policy name (e.g. REQUIRE_TWO_FACTOR), value = string.
+#   - GENERATED_PASSWORD_COMPLEXITY: use jsonencode([...]) with a non-empty array of rule objects.
+#   - TWO_FACTOR_DURATION_*: one of login, 12_hours, 24_hours, 30_days, forever.
+#   - KEEPER_FILL_*: one of enforce, disable, null.
 
 resource "commander_enterprise_role" "example" {
   name = "Developer"
@@ -30,9 +34,33 @@ resource "commander_enterprise_role" "example" {
     }
   }
 
-  # Enforcement policies (key = policy name, value = string e.g. "true" or "false")
+  # Enforcement policies: key = policy name, value = string. GPC must be non-empty JSON array.
   enforcement_policies = {
-    "REQUIRE_TWO_FACTOR" = "true"
+    "REQUIRE_TWO_FACTOR"             = "true"
+    "MASTER_PASSWORD_MINIMUM_LENGTH" = "20"
+    "TWO_FACTOR_DURATION_WEB"        = "24_hours" # login | 12_hours | 24_hours | 30_days | forever
+    "KEEPER_FILL_AUTO_FILL"          = "enforce"  # enforce | disable | null
+    "GENERATED_PASSWORD_COMPLEXITY" = jsonencode([
+      {
+        domains                 = ["_default_"]
+        length                  = 40
+        "lower-use"             = true
+        "lower-min"             = 2
+        "upper-use"             = true
+        "upper-min"             = 2
+        "digit-use"             = true
+        "digit-min"             = 2
+        "special-use"           = true
+        "special-min"           = 2
+        special                 = "!@#$%^?();'\",=+[]<>{}&"
+        "passphrase-allow"      = true
+        "passphrase-length"     = 5
+        "passphrase-capitalize" = false
+        "passphrase-number"     = false
+        "passphrase-separator"  = "-"
+        "apply-privacy-screen"  = true
+      }
+    ])
   }
 
   # Optional, MSP only
@@ -50,7 +78,7 @@ resource "commander_enterprise_role" "example" {
 
 ### Optional
 
-- `enforcement_policies` (Map of String) Manage enforcement policies for the given role. The map key is the enforcement policy key (e.g., `REQUIRE_TWO_FACTOR`) and the value is the policy value (e.g., `"false"`).
+- `enforcement_policies` (Map of String) Manage enforcement policies for the given role. The map key is the enforcement policy key (e.g., `REQUIRE_TWO_FACTOR`) and the value is the policy value (e.g., `"false"`). For `GENERATED_PASSWORD_COMPLEXITY` use a JSON string (e.g. `jsonencode([...])`).
 - `managed_company` (String) Only applies to **MSP accounts**. Name or ID of the managed company to scope this resource or data source to. Omit to use the logged-in account context.
 - `managing_nodes` (Attributes Map) Manage an admin privilege to the role. The map key is the node name/ID. Each managing node has `privileges` (optional) and `cascade` (optional) fields. (see [below for nested schema](#nestedatt--managing_nodes))
 - `teams` (Set of String) Manage teams to the enterprise role.
