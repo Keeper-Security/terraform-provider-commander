@@ -13,6 +13,7 @@ import (
 	"strings"
 
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/api"
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
@@ -613,4 +614,91 @@ func ParseManagedCompanyImportID(importID string, resourceName string) (resource
 	}
 
 	return resourceID, managedCompany, diags
+}
+
+// ManagingNodesMapElemType is the object type for each entry in the managing_nodes map (privileges set + cascade bool).
+// Used by enterprise role resource and data source.
+var ManagingNodesMapElemType = types.ObjectType{
+	AttrTypes: map[string]attr.Type{
+		"privileges": types.SetType{ElemType: types.StringType},
+		"cascade":    types.BoolType,
+	},
+}
+
+// MapManagedNodesPermissionsToState converts API ManagedNodesPermissions to a types.Map for state.
+// Map key is the node name (or node ID if name empty). Value is object with privileges (Set) and cascade (Bool).
+func MapManagedNodesPermissionsToState(_ context.Context, perms []ManagedNodePermission) (types.Map, error) {
+	if len(perms) == 0 {
+		return types.MapNull(ManagingNodesMapElemType), nil
+	}
+	elements := make(map[string]attr.Value)
+	for _, p := range perms {
+		key := p.NodeName
+		if key == "" {
+			key = strconv.FormatInt(p.NodeId, 10)
+		}
+		privilegeElems := make([]attr.Value, len(p.Privileges))
+		for i, pr := range p.Privileges {
+			privilegeElems[i] = types.StringValue(pr)
+		}
+		privilegesSet := types.SetValueMust(types.StringType, privilegeElems)
+		obj := types.ObjectValueMust(
+			ManagingNodesMapElemType.AttrTypes,
+			map[string]attr.Value{
+				"privileges": privilegesSet,
+				"cascade":    types.BoolValue(p.Cascade),
+			},
+		)
+		elements[key] = obj
+	}
+	mapVal, diags := types.MapValue(ManagingNodesMapElemType, elements)
+	if diags.HasError() {
+		return types.MapNull(ManagingNodesMapElemType), fmt.Errorf("failed to build managing_nodes map: %v", diags)
+	}
+	return mapVal, nil
+}
+
+// CanonicalizeGeneratedPasswordComplexityJSON parses the JSON string and re-encodes it with sorted keys
+// so that semantically equal values compare equal (avoids perpetual diff from whitespace/key order).
+func CanonicalizeGeneratedPasswordComplexityJSON(s string) string {
+	if s == "" {
+		return s
+	}
+	var arr []map[string]interface{}
+	if err := json.Unmarshal([]byte(s), &arr); err != nil {
+		return s
+	}
+	out, err := json.Marshal(arr)
+	if err != nil {
+		return s
+	}
+	return string(out)
+}
+
+// MapEnforcementsToState converts API enforcements (key -> string value) to a types.Map for state.
+// Keys are normalized to UPPER_SNAKE_CASE. GENERATED_PASSWORD_COMPLEXITY value is canonicalized.
+func MapEnforcementsToState(enforcements map[string]string, GeneratedPasswordComplexityKey string) (types.Map, error) {
+	if len(enforcements) == 0 {
+		return types.MapNull(types.StringType), nil
+	}
+	elements := make(map[string]attr.Value)
+	for key, val := range enforcements {
+		key = strings.TrimSpace(key)
+		if key == "" {
+			continue
+		}
+		normalizedKey := strings.ToUpper(strings.ReplaceAll(key, "-", "_"))
+		if normalizedKey == GeneratedPasswordComplexityKey {
+			val = CanonicalizeGeneratedPasswordComplexityJSON(val)
+		}
+		elements[normalizedKey] = types.StringValue(val)
+	}
+	if len(elements) == 0 {
+		return types.MapNull(types.StringType), nil
+	}
+	mapVal, diags := types.MapValue(types.StringType, elements)
+	if diags.HasError() {
+		return types.MapNull(types.StringType), fmt.Errorf("failed to build enforcement_policies map: %v", diags)
+	}
+	return mapVal, nil
 }

@@ -428,7 +428,7 @@ func processEnforcementPoliciesUpdate(ctx context.Context, apiManager *api.ApiMa
 		}
 	}
 
-	cmd, err := buildUpdateEnforcementPoliciesCommand(roleId, toSet)
+	cmd, filedata, err := buildUpdateEnforcementPoliciesCommand(roleId, toSet)
 	if err != nil {
 		return err
 	}
@@ -436,7 +436,11 @@ func processEnforcementPoliciesUpdate(ctx context.Context, apiManager *api.ApiMa
 		return nil
 	}
 
-	_, err = apiManager.ExecuteCommand(ctx, cmd, "Unable to update enforcement policies for role")
+	if filedata != nil {
+		_, err = apiManager.ExecuteCommand(ctx, cmd, "Unable to update enforcement policies for role", filedata)
+	} else {
+		_, err = apiManager.ExecuteCommand(ctx, cmd, "Unable to update enforcement policies for role")
+	}
 	if err != nil {
 		return fmt.Errorf("failed to update enforcement policies for role '%s': %w", roleId, err)
 	}

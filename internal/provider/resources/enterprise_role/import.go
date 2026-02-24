@@ -7,7 +7,6 @@ import (
 	"context"
 
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/utils"
-	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
@@ -32,20 +31,13 @@ func (r *EnterpriseRoleResource) ImportState(ctx context.Context, req resource.I
 		return
 	}
 
-	managingNodesElemType := types.ObjectType{
-		AttrTypes: map[string]attr.Type{
-			"privileges": types.SetType{ElemType: types.StringType},
-			"cascade":    types.BoolType,
-		},
-	}
-
 	state := EnterpriseRoleResourceModel{
 		Id:                  types.StringValue(resourceID),
 		Name:                types.StringNull(),
 		Node:                types.StringNull(),
 		Users:               types.SetNull(types.StringType),
 		Teams:               types.SetNull(types.StringType),
-		ManagingNodes:       types.MapNull(managingNodesElemType),
+		ManagingNodes:       types.MapNull(utils.ManagingNodesMapElemType),
 		EnforcementPolicies: types.MapNull(types.StringType),
 		ManagedCompany:      types.StringNull(),
 	}

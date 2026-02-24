@@ -9,6 +9,7 @@ import (
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/utils"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
@@ -88,9 +89,12 @@ func (r *EnterpriseRoleResource) Schema(ctx context.Context, req resource.Schema
 				Validators: []validator.Map{
 					enforcementPoliciesMapKeyValidator{},
 				},
+				PlanModifiers: []planmodifier.Map{
+					enforcementPoliciesGPCPlanModifier{},
+				},
 				ElementType:         types.StringType,
-				Description:         "Manage enforcement policies for the given role. The map key is the enforcement policy key (e.g., REQUIRE_TWO_FACTOR) and the value is the policy value (e.g., false).",
-				MarkdownDescription: "Manage enforcement policies for the given role. The map key is the enforcement policy key (e.g., `REQUIRE_TWO_FACTOR`) and the value is the policy value (e.g., `\"false\"`).",
+				Description:         "Manage enforcement policies for the given role. The map key is the enforcement policy key (e.g., REQUIRE_TWO_FACTOR) and the value is the policy value (e.g., false). For GENERATED_PASSWORD_COMPLEXITY use a JSON string (e.g. jsonencode([...])).",
+				MarkdownDescription: "Manage enforcement policies for the given role. The map key is the enforcement policy key (e.g., `REQUIRE_TWO_FACTOR`) and the value is the policy value (e.g., `\"false\"`). For `GENERATED_PASSWORD_COMPLEXITY` use a JSON string (e.g. `jsonencode([...])`).",
 			},
 			"managed_company": schema.StringAttribute{
 				Optional:            true,

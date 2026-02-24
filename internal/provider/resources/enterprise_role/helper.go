@@ -52,13 +52,13 @@ func extractEnforcementPolicies(ctx context.Context, enforcementPoliciesMap type
 
 // buildUpdateEnforcementPoliciesCommand builds a command to set enforcement policy values for a role.
 // Format: enterprise-role 'Role ID/Name' --enforcement 'KEY:VALUE' --enforcement 'KEY2:VALUE2' ...
+// For GENERATED_PASSWORD_COMPLEXITY the command uses --enforcement 'GENERATED_PASSWORD_COMPLEXITY:$FILE=FILEDATA'
+// and the parsed JSON array ([]map[string]interface{}) is returned as filedata for the request body.
 //
-// Note: This function only supports setting/updating enforcement policies present in the input.
-// If a key is removed from Terraform config, there is currently no known Commander CLI "unset" flag,
-// so removals are treated as "stop managing" rather than actively unsetting on the remote side.
-func buildUpdateEnforcementPoliciesCommand(roleId string, policies map[string]types.String) (string, error) {
+// Returns: (command, filedata or nil, error). When filedata is non-nil, call ExecuteCommand(..., filedata).
+func buildUpdateEnforcementPoliciesCommand(roleId string, policies map[string]types.String) (string, interface{}, error) {
 	if len(policies) == 0 {
-		return "", nil
+		return "", nil, nil
 	}
 
 	keys := make([]string, 0, len(policies))
@@ -70,18 +70,39 @@ func buildUpdateEnforcementPoliciesCommand(roleId string, policies map[string]ty
 	var parts []string
 	parts = append(parts, fmt.Sprintf("enterprise-role '%s'", roleId))
 
+	var filedata interface{}
+
 	for _, key := range keys {
 		v := policies[key]
-		if v.IsNull() || v.IsUnknown() {
-			return "", fmt.Errorf("enforcement policy value for key '%s' is null/unknown", key)
+		if key == GeneratedPasswordComplexity {
+			if v.IsNull() || v.IsUnknown() {
+				return "", nil, fmt.Errorf("enforcement policy value for key '%s' is null/unknown", key)
+			}
+			raw := v.ValueString()
+			if raw == "" {
+				return "", nil, fmt.Errorf("enforcement policy value for key '%s' cannot be an empty string", key)
+			}
+			var arr []map[string]interface{}
+			if err := json.Unmarshal([]byte(raw), &arr); err != nil {
+				return "", nil, fmt.Errorf("enforcement policy value for key '%s' is not valid JSON array: %w", key, err)
+			}
+			if len(arr) == 0 {
+				return "", nil, fmt.Errorf("enforcement policy value for key '%s' cannot be an empty array", key)
+			}
+			parts = append(parts, fmt.Sprintf("--enforcement '%s:$FILE=FILEDATA'", key))
+			filedata = arr
+		} else {
+			if v.IsNull() || v.IsUnknown() {
+				return "", nil, fmt.Errorf("enforcement policy value for key '%s' is null/unknown", key)
+			}
+			if v.ValueString() == "" {
+				return "", nil, fmt.Errorf("enforcement policy value for key '%s' cannot be an empty string", key)
+			}
+			parts = append(parts, fmt.Sprintf("--enforcement '%s:%s'", key, v.ValueString()))
 		}
-		if v.ValueString() == "" {
-			return "", fmt.Errorf("enforcement policy value for key '%s' cannot be an empty string", key)
-		}
-		parts = append(parts, fmt.Sprintf("--enforcement '%s:%s'", key, v.ValueString()))
 	}
 
-	return strings.Join(parts, " "), nil
+	return strings.Join(parts, " "), filedata, nil
 }
 
 // buildAddManagingNodeCommand builds the command to add a managing node to a role
@@ -223,7 +244,7 @@ func processEnforcementPolicies(ctx context.Context, apiManager *api.ApiManager,
 		return nil
 	}
 
-	cmd, err := buildUpdateEnforcementPoliciesCommand(roleId, policies)
+	cmd, filedata, err := buildUpdateEnforcementPoliciesCommand(roleId, policies)
 	if err != nil {
 		return err
 	}
@@ -231,7 +252,11 @@ func processEnforcementPolicies(ctx context.Context, apiManager *api.ApiManager,
 		return nil
 	}
 
-	_, err = apiManager.ExecuteCommand(ctx, cmd, "Unable to set enforcement policies for role")
+	if filedata != nil {
+		_, err = apiManager.ExecuteCommand(ctx, cmd, "Unable to set enforcement policies for role", filedata)
+	} else {
+		_, err = apiManager.ExecuteCommand(ctx, cmd, "Unable to set enforcement policies for role")
+	}
 	if err != nil {
 		return fmt.Errorf("failed to set enforcement policies for role '%s': %w", roleId, err)
 	}

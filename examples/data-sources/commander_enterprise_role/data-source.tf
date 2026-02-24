@@ -1,4 +1,4 @@
-# Look up an enterprise role by name or ID. Returns id, name, users, teams.
+# Look up an enterprise role by name or ID. Returns id, name, users, teams, managing_nodes, enforcement_policies.
 # Optional: managed_company (MSP only) to scope the lookup.
 
 data "commander_enterprise_role" "example" {
@@ -22,4 +22,12 @@ output "role_users" {
 
 output "role_teams" {
   value = data.commander_enterprise_role.example.teams
+}
+
+output "role_managing_nodes" {
+  value = data.commander_enterprise_role.example.managing_nodes
+}
+
+output "role_enforcement_policies" {
+  value = data.commander_enterprise_role.example.enforcement_policies
 }

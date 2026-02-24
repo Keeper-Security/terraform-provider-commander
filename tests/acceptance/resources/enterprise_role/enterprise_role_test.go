@@ -27,7 +27,7 @@ func TestAccEnterpriseRoleResource_basic(t *testing.T) {
 					"users":                     []interface{}{},
 					"teams":                     []interface{}{},
 					"managed_nodes_permissions": []interface{}{},
-					"enforcements":              []interface{}{},
+					"enforcements":              map[string]interface{}{},
 				},
 			}
 		case strings.Contains(cmd, "enterprise-info") && strings.Contains(cmd, "-n") && strings.Contains(cmd, "--format json"):
@@ -86,7 +86,7 @@ func TestAccEnterpriseRoleResource_updateAndDelete(t *testing.T) {
 					"users":                     []interface{}{},
 					"teams":                     []interface{}{},
 					"managed_nodes_permissions": []interface{}{},
-					"enforcements":              []interface{}{},
+					"enforcements":              map[string]interface{}{},
 				},
 			}
 		case strings.Contains(cmd, "enterprise-info") && strings.Contains(cmd, "-n") && strings.Contains(cmd, "--format json"):
