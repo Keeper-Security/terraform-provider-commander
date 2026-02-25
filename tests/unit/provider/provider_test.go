@@ -45,8 +45,8 @@ func TestCommanderProvider_Schema(t *testing.T) {
 func TestCommanderProvider_Resources(t *testing.T) {
 	p := commander.New("test")()
 	resources := p.Resources(context.Background())
-	if len(resources) != 5 {
-		t.Errorf("expected 5 resources, got %d", len(resources))
+	if len(resources) != 6 {
+		t.Errorf("expected 6 resources, got %d", len(resources))
 	}
 	for i, factory := range resources {
 		r := factory()
