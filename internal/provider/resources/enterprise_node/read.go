@@ -44,8 +44,7 @@ func (r *EnterpriseNodeResource) Read(ctx context.Context, req resource.ReadRequ
 		}
 		state.Id = types.StringValue(strconv.Itoa(nodeInfo.NodeId))
 		state.Name = types.StringValue(nodeInfo.Name)
-
-		// TODO: later we need to add the toggle_isolated state from the api response
+		state.ToggleIsolated = types.BoolValue(nodeInfo.Isolated)
 
 		parentNodeVal, err := utils.RestoreUserInputFormatForNode(ctx, r.ApiManager, nodeInfo.ParentNodeName, state.Parent)
 		if err != nil {

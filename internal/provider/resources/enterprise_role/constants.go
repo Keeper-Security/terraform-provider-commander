@@ -312,3 +312,20 @@ var ValidEnforcementPolicyKeys = []string{
 	RestrictSfRecordRemoval,
 	RestrictSfFolderDeletion,
 }
+
+// TwoFactorDurationAllowedValues are the only allowed values for TWO_FACTOR_DURATION_* policies.
+var TwoFactorDurationAllowedValues = []string{"login", "12_hours", "24_hours", "30_days", "forever"}
+
+// KeeperFillAllowedValues are the only allowed values for KEEPER_FILL_* policies.
+var KeeperFillAllowedValues = []string{"enforce", "disable", "null"}
+
+// TwoFactorDurationPolicyKeys are enforcement keys whose value must be in TwoFactorDurationAllowedValues.
+var TwoFactorDurationPolicyKeys = map[string]bool{
+	TwoFactorDurationWeb: true, TwoFactorDurationMobile: true, TwoFactorDurationDesktop: true,
+}
+
+// KeeperFillPolicyKeys are enforcement keys whose value must be in KeeperFillAllowedValues.
+var KeeperFillPolicyKeys = map[string]bool{
+	KeeperFillHoverLocks: true, KeeperFillAutoFill: true, KeeperFillAutoSubmit: true,
+	KeeperFillMatchOnSubdomain: true, KeeperFillAutoSuggest: true,
+}

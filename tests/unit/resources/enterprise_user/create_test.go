@@ -46,7 +46,7 @@ func TestEnterpriseUserResource_Create_WithNameAndJobTitle(t *testing.T) {
 	responseForCommand := func(cmd string, idx int) (string, interface{}) {
 		if strings.Contains(cmd, "enterprise-user") && strings.Contains(cmd, "--add") &&
 			strings.Contains(cmd, "--name") && strings.Contains(cmd, "--job-title") {
-			return "ok", nil
+			return "u@ex.com user invited with Enterprise User ID : 456", nil
 		}
 		return "ok", nil
 	}
@@ -96,6 +96,32 @@ func TestEnterpriseUserResource_Create_NoApiManager(t *testing.T) {
 	r.Create(context.Background(), req, &resp)
 	if !resp.Diagnostics.HasError() {
 		t.Error("expected diagnostics when apiManager is not configured")
+	}
+}
+
+// TestEnterpriseUserResource_Create_FallbackToEmailWhenNoUserID verifies that when the API
+// response does not contain "User ID : <id>", create succeeds and falls back to using email as id (for API compatibility).
+func TestEnterpriseUserResource_Create_FallbackToEmailWhenNoUserID(t *testing.T) {
+	mock := &helpers.CommandServer{}
+	responseForCommand := func(cmd string, idx int) (string, interface{}) {
+		if strings.Contains(cmd, "enterprise-user") && strings.Contains(cmd, "--add") {
+			return "User invited successfully", nil
+		}
+		return "ok", nil
+	}
+	server := startMockServer(mock, responseForCommand)
+	defer server.Close()
+
+	r := newConfiguredResource(t, server)
+	sch, objType := getSchema(t)
+	rawPlan := tftypes.NewValue(objType, newPlanStateValues(nil, "user@example.com", nil, nil, nil, nil, "Root", nil, nil))
+	emptyState := tftypes.NewValue(objType, newPlanStateValues(nil, nil, nil, nil, nil, nil, nil, nil, nil))
+
+	req := resource.CreateRequest{Plan: tfsdk.Plan{Schema: sch, Raw: rawPlan}}
+	resp := resource.CreateResponse{State: tfsdk.State{Schema: sch, Raw: emptyState}}
+	r.Create(context.Background(), req, &resp)
+	if resp.Diagnostics.HasError() {
+		t.Fatalf("Create should succeed with email fallback: %v", resp.Diagnostics)
 	}
 }
 

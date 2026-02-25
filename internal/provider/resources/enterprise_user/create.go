@@ -84,13 +84,18 @@ func addUserBasicAttributes(ctx context.Context, apiManager *api.ApiManager, dat
 
 	command := strings.Join(parts, " ")
 
-	_, err := apiManager.ExecuteCommand(ctx, command, "Unable to add user")
+	createUserResponse, err := apiManager.ExecuteCommand(ctx, command, "Unable to add user")
 	if err != nil {
 		return err
 	}
 
-	// TODO: later user created users_id in date.id
-	data.Id = data.Email
+	createdUserId, isCreatedUserIdExtracted := utils.ExtractUserIDFromCreateUserResponse(string(createUserResponse.Message))
+	if isCreatedUserIdExtracted {
+		data.Id = types.StringValue(createdUserId)
+	} else {
+		// Fallback: some API versions may not return "User ID : <id>" in the message; use email as id for compatibility
+		data.Id = data.Email
+	}
 
 	return nil
 }

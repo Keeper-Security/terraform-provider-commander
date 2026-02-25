@@ -17,7 +17,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
-func roleListResponse(roleID int, name, node string, users, teams []interface{}, managedNodesPerms []interface{}, enforcements []interface{}) interface{} {
+func roleListResponse(roleID int, name, node string, users, teams []interface{}, managedNodesPerms []interface{}, enforcements map[string]interface{}) interface{} {
 	return []map[string]interface{}{
 		{
 			"role_id":                   float64(roleID),
@@ -41,7 +41,7 @@ func TestEnterpriseRoleResource_Read_Success(t *testing.T) {
 	mock := &helpers.CommandServer{}
 	responseForCommand := func(cmd string, idx int) (string, interface{}) {
 		if strings.Contains(cmd, "enterprise-info") && strings.Contains(cmd, "-r") && strings.Contains(cmd, "--format json") {
-			return "ok", roleListResponse(123, "Admin", "Root", []interface{}{}, []interface{}{}, []interface{}{}, []interface{}{})
+			return "ok", roleListResponse(123, "Admin", "Root", []interface{}{}, []interface{}{}, []interface{}{}, map[string]interface{}{})
 		}
 		if strings.Contains(cmd, "enterprise-info -n --format json -v -q") {
 			return "ok", nodesListResponse()

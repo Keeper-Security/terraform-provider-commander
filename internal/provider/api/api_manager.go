@@ -193,8 +193,10 @@ func normalizeCommandForShell(command string) string {
 }
 
 // SubmitRequest creates a new API request and returns the parsed response.
-// If fileData is non-nil, it is sent in the request body as the "filedata" field (e.g. for enterprise-push).
-func (a *ApiManager) SubmitRequest(ctx context.Context, command string, fileData map[string]interface{}) (*SubmitRequestResponse, error) {
+// If fileData is non-nil, it is sent in the request body as the "filedata" field.
+// fileData is dynamic: pass an object (e.g. map[string]interface{}) for "filedata": {...},
+// or a JSON array (e.g. []map[string]interface{}) for "filedata": [...]. It is serialized as-is.
+func (a *ApiManager) SubmitRequest(ctx context.Context, command string, fileData interface{}) (*SubmitRequestResponse, error) {
 	// Normalize command so single-quoted arguments with apostrophes are valid in shell
 	command = normalizeCommandForShell(command)
 	// Build request body: command only, or command + filedata
@@ -370,9 +372,10 @@ func (a *ApiManager) RequestResult(ctx context.Context, requestId string) (*Requ
 // ExecuteCommand submits a command and polls for the result.
 // This is a convenience function that combines SubmitRequest and PollRequestResult.
 // It handles all error checking and returns the final result or an error.
-// Optional fileData is sent as the "filedata" field in the request body (e.g. for enterprise-push).
-func (a *ApiManager) ExecuteCommand(ctx context.Context, command string, errorSummary string, fileData ...map[string]interface{}) (*RequestResultResponse, error) {
-	var fd map[string]interface{}
+// Optional fileData is sent as the "filedata" field in the request body. It is dynamic:
+// pass an object (map) for "filedata": {...} or a JSON array (slice) for "filedata": [...].
+func (a *ApiManager) ExecuteCommand(ctx context.Context, command string, errorSummary string, fileData ...interface{}) (*RequestResultResponse, error) {
+	var fd interface{}
 	if len(fileData) > 0 {
 		fd = fileData[0]
 	}

@@ -14,7 +14,7 @@ import (
 
 func (d *EnterpriseRoleDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		Description: "Use this data source to look up an enterprise role by name or ID. Returns the role's ID, name, users, and teams so you can reference them in other resources.",
+		Description: "Use this data source to look up an enterprise role by name or ID. Returns the role's ID, name, users, teams, managing nodes, and enforcement policies so you can reference them in other resources.",
 		Attributes: map[string]schema.Attribute{
 			"role": schema.StringAttribute{
 				Required:            true,
@@ -41,6 +41,18 @@ func (d *EnterpriseRoleDataSource) Schema(ctx context.Context, req datasource.Sc
 				Computed:            true,
 				Description:         "Teams of the found enterprise role.",
 				MarkdownDescription: "Teams of the found enterprise role.",
+				ElementType:         types.StringType,
+			},
+			"managing_nodes": schema.MapAttribute{
+				Computed:            true,
+				Description:         "Managing nodes (admin privileges) for the role. Map key is node name/ID; value is object with privileges (set of strings) and cascade (bool).",
+				MarkdownDescription: "Managing nodes (admin privileges) for the role. Map key is node name/ID; value is object with `privileges` (set of strings) and `cascade` (bool).",
+				ElementType:         utils.ManagingNodesMapElemType,
+			},
+			"enforcement_policies": schema.MapAttribute{
+				Computed:            true,
+				Description:         "Enforcement policies for the role. Map key is policy name (e.g. REQUIRE_TWO_FACTOR); value is the policy value string.",
+				MarkdownDescription: "Enforcement policies for the role. Map key is policy name (e.g. `REQUIRE_TWO_FACTOR`); value is the policy value string.",
 				ElementType:         types.StringType,
 			},
 			"managed_company": schema.StringAttribute{

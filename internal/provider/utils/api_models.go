@@ -9,6 +9,7 @@ type EnterpriseNodeResponse struct {
 	Name           string `json:"name"`
 	ParentNodeName string `json:"parent_node"`
 	ParentNodeId   int    `json:"parent_id"`
+	Isolated       bool   `json:"isolated"`
 }
 
 type ManageCompanyResponse struct {
@@ -50,7 +51,7 @@ type EnterpriseRoleResponse struct {
 	Admin                   bool                    `json:"admin"`
 	Users                   []string                `json:"users"`
 	Teams                   []string                `json:"teams"`
-	Enforcements            []string                `json:"enforcements"`
+	Enforcements            map[string]string       `json:"enforcements"`
 	ManagedNodesPermissions []ManagedNodePermission `json:"managed_nodes_permissions"`
 }
 
