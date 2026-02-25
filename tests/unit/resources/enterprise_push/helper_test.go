@@ -19,12 +19,12 @@ import (
 )
 
 var enterprisePushAttrTypes = map[string]tftypes.Type{
-	"id":                 tftypes.String,
-	"file_path":          tftypes.String,
+	"id":                  tftypes.String,
+	"file_path":           tftypes.String,
 	"file_content_sha256": tftypes.String,
-	"email":              tftypes.Set{ElementType: tftypes.String},
-	"team":               tftypes.Set{ElementType: tftypes.String},
-	"managed_company":    tftypes.String,
+	"email":               tftypes.Set{ElementType: tftypes.String},
+	"team":                tftypes.Set{ElementType: tftypes.String},
+	"managed_company":     tftypes.String,
 }
 
 func enterprisePushObjectType() tftypes.Object {
@@ -32,7 +32,7 @@ func enterprisePushObjectType() tftypes.Object {
 }
 
 // newPlanStateValues builds tftypes values for plan/state. email and team: nil = null set; []interface{}{"a","b"} = set with elements.
-func newPlanStateValues(id, filePath, fileContentSha256, managedCompany interface{}, emailSet, teamSet interface{}) map[string]tftypes.Value {
+func newPlanStateValues(id, filePath, fileContentSha256 interface{}, emailSet, teamSet interface{}) map[string]tftypes.Value {
 	var emailVal, teamVal tftypes.Value
 	if emailSet == nil {
 		emailVal = tftypes.NewValue(tftypes.Set{ElementType: tftypes.String}, nil)
@@ -55,12 +55,12 @@ func newPlanStateValues(id, filePath, fileContentSha256, managedCompany interfac
 		teamVal = tftypes.NewValue(tftypes.Set{ElementType: tftypes.String}, vals)
 	}
 	return map[string]tftypes.Value{
-		"id":                 tftypes.NewValue(tftypes.String, id),
-		"file_path":          tftypes.NewValue(tftypes.String, filePath),
+		"id":                  tftypes.NewValue(tftypes.String, id),
+		"file_path":           tftypes.NewValue(tftypes.String, filePath),
 		"file_content_sha256": tftypes.NewValue(tftypes.String, fileContentSha256),
-		"email":              emailVal,
-		"team":               teamVal,
-		"managed_company":    tftypes.NewValue(tftypes.String, managedCompany),
+		"email":               emailVal,
+		"team":                teamVal,
+		"managed_company":     tftypes.NewValue(tftypes.String, nil),
 	}
 }
 
@@ -90,13 +90,16 @@ func startMockServer(mock *helpers.CommandServer, responseForCommand func(cmd st
 	return helpers.StartCommandServer(mock, responseForCommand)
 }
 
-// createTempJSONFile creates a temp file with valid JSON content. Caller should remove the dir.
-func createTempJSONFile(t *testing.T, content string) (dir string, path string) {
+// defaultPushDataJSON is the JSON content used by createTempJSONFile for tests.
+const defaultPushDataJSON = `{"records":[]}`
+
+// createTempJSONFile creates a temp file with valid JSON content. The file lives in t.TempDir() (cleaned automatically).
+func createTempJSONFile(t *testing.T) (path string) {
 	t.Helper()
-	dir = t.TempDir()
+	dir := t.TempDir()
 	path = filepath.Join(dir, "push-data.json")
-	if err := os.WriteFile(path, []byte(content), 0600); err != nil {
+	if err := os.WriteFile(path, []byte(defaultPushDataJSON), 0600); err != nil {
 		t.Fatalf("write temp file: %v", err)
 	}
-	return dir, path
+	return path
 }

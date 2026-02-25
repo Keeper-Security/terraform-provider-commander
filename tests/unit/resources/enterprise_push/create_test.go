@@ -18,7 +18,7 @@ import (
 )
 
 func TestEnterprisePushResource_Create_Success_WithEmail(t *testing.T) {
-	_, filePath := createTempJSONFile(t, `{"records":[]}`)
+	filePath := createTempJSONFile(t)
 	mock := &helpers.CommandServer{}
 	responseForCommand := func(cmd string, idx int) (string, interface{}) {
 		if strings.Contains(cmd, "enterprise-push") && strings.Contains(cmd, "FILEDATA") && strings.Contains(cmd, "--email=") {
@@ -31,8 +31,8 @@ func TestEnterprisePushResource_Create_Success_WithEmail(t *testing.T) {
 
 	r := newConfiguredResource(t, server)
 	sch, objType := getSchema(t)
-	rawPlan := tftypes.NewValue(objType, newPlanStateValues(nil, filePath, nil, nil, []interface{}{"user@example.com"}, nil))
-	emptyState := tftypes.NewValue(objType, newPlanStateValues(nil, nil, nil, nil, nil, nil))
+	rawPlan := tftypes.NewValue(objType, newPlanStateValues(nil, filePath, nil, []interface{}{"user@example.com"}, nil))
+	emptyState := tftypes.NewValue(objType, newPlanStateValues(nil, nil, nil, nil, nil))
 
 	req := resource.CreateRequest{Plan: tfsdk.Plan{Schema: sch, Raw: rawPlan}}
 	resp := resource.CreateResponse{State: tfsdk.State{Schema: sch, Raw: emptyState}}
@@ -43,15 +43,15 @@ func TestEnterprisePushResource_Create_Success_WithEmail(t *testing.T) {
 }
 
 func TestEnterprisePushResource_Create_Success_WithTeam(t *testing.T) {
-	_, filePath := createTempJSONFile(t, `{"records":[]}`)
+	filePath := createTempJSONFile(t)
 	mock := &helpers.CommandServer{}
 	server := startMockServer(mock, nil)
 	defer server.Close()
 
 	r := newConfiguredResource(t, server)
 	sch, objType := getSchema(t)
-	rawPlan := tftypes.NewValue(objType, newPlanStateValues(nil, filePath, nil, nil, nil, []interface{}{"Engineering"}))
-	emptyState := tftypes.NewValue(objType, newPlanStateValues(nil, nil, nil, nil, nil, nil))
+	rawPlan := tftypes.NewValue(objType, newPlanStateValues(nil, filePath, nil, nil, []interface{}{"Engineering"}))
+	emptyState := tftypes.NewValue(objType, newPlanStateValues(nil, nil, nil, nil, nil))
 
 	req := resource.CreateRequest{Plan: tfsdk.Plan{Schema: sch, Raw: rawPlan}}
 	resp := resource.CreateResponse{State: tfsdk.State{Schema: sch, Raw: emptyState}}
@@ -62,7 +62,7 @@ func TestEnterprisePushResource_Create_Success_WithTeam(t *testing.T) {
 }
 
 func TestEnterprisePushResource_Create_NoEmailOrTeam_Error(t *testing.T) {
-	_, filePath := createTempJSONFile(t, `{"records":[]}`)
+	filePath := createTempJSONFile(t)
 	mock := &helpers.CommandServer{}
 	server := startMockServer(mock, nil)
 	defer server.Close()
@@ -70,8 +70,8 @@ func TestEnterprisePushResource_Create_NoEmailOrTeam_Error(t *testing.T) {
 	r := newConfiguredResource(t, server)
 	sch, objType := getSchema(t)
 	// Neither email nor team set (both null)
-	rawPlan := tftypes.NewValue(objType, newPlanStateValues(nil, filePath, nil, nil, nil, nil))
-	emptyState := tftypes.NewValue(objType, newPlanStateValues(nil, nil, nil, nil, nil, nil))
+	rawPlan := tftypes.NewValue(objType, newPlanStateValues(nil, filePath, nil, nil, nil))
+	emptyState := tftypes.NewValue(objType, newPlanStateValues(nil, nil, nil, nil, nil))
 
 	req := resource.CreateRequest{Plan: tfsdk.Plan{Schema: sch, Raw: rawPlan}}
 	resp := resource.CreateResponse{State: tfsdk.State{Schema: sch, Raw: emptyState}}
@@ -93,11 +93,11 @@ func TestEnterprisePushResource_Create_NoEmailOrTeam_Error(t *testing.T) {
 }
 
 func TestEnterprisePushResource_Create_NoApiManager(t *testing.T) {
-	_, filePath := createTempJSONFile(t, `{"records":[]}`)
+	filePath := createTempJSONFile(t)
 	r := enterprisepush.NewEnterprisePushResource().(*enterprisepush.EnterprisePushResource)
 	sch, objType := getSchema(t)
-	rawPlan := tftypes.NewValue(objType, newPlanStateValues(nil, filePath, nil, nil, []interface{}{"user@example.com"}, nil))
-	emptyState := tftypes.NewValue(objType, newPlanStateValues(nil, nil, nil, nil, nil, nil))
+	rawPlan := tftypes.NewValue(objType, newPlanStateValues(nil, filePath, nil, []interface{}{"user@example.com"}, nil))
+	emptyState := tftypes.NewValue(objType, newPlanStateValues(nil, nil, nil, nil, nil))
 
 	req := resource.CreateRequest{Plan: tfsdk.Plan{Schema: sch, Raw: rawPlan}}
 	resp := resource.CreateResponse{State: tfsdk.State{Schema: sch, Raw: emptyState}}
@@ -115,8 +115,8 @@ func TestEnterprisePushResource_Create_FileReadFails(t *testing.T) {
 	r := newConfiguredResource(t, server)
 	sch, objType := getSchema(t)
 	// Non-existent file
-	rawPlan := tftypes.NewValue(objType, newPlanStateValues(nil, "/nonexistent/path/to/file.json", nil, nil, []interface{}{"user@example.com"}, nil))
-	emptyState := tftypes.NewValue(objType, newPlanStateValues(nil, nil, nil, nil, nil, nil))
+	rawPlan := tftypes.NewValue(objType, newPlanStateValues(nil, "/nonexistent/path/to/file.json", nil, []interface{}{"user@example.com"}, nil))
+	emptyState := tftypes.NewValue(objType, newPlanStateValues(nil, nil, nil, nil, nil))
 
 	req := resource.CreateRequest{Plan: tfsdk.Plan{Schema: sch, Raw: rawPlan}}
 	resp := resource.CreateResponse{State: tfsdk.State{Schema: sch, Raw: emptyState}}
@@ -127,7 +127,7 @@ func TestEnterprisePushResource_Create_FileReadFails(t *testing.T) {
 }
 
 func TestEnterprisePushResource_Create_ApiError(t *testing.T) {
-	_, filePath := createTempJSONFile(t, `{"records":[]}`)
+	filePath := createTempJSONFile(t)
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 		_, _ = w.Write([]byte(`{"error":"failed"}`))
@@ -136,7 +136,7 @@ func TestEnterprisePushResource_Create_ApiError(t *testing.T) {
 
 	r := newConfiguredResource(t, server)
 	sch, objType := getSchema(t)
-	rawPlan := tftypes.NewValue(objType, newPlanStateValues(nil, filePath, nil, nil, []interface{}{"user@example.com"}, nil))
+	rawPlan := tftypes.NewValue(objType, newPlanStateValues(nil, filePath, nil, []interface{}{"user@example.com"}, nil))
 
 	req := resource.CreateRequest{Plan: tfsdk.Plan{Schema: sch, Raw: rawPlan}}
 	var resp resource.CreateResponse

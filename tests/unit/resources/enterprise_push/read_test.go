@@ -18,7 +18,7 @@ import (
 func TestEnterprisePushResource_Read_Success(t *testing.T) {
 	r := enterprisepush.NewEnterprisePushResource().(*enterprisepush.EnterprisePushResource)
 	sch, objType := getSchema(t)
-	rawState := tftypes.NewValue(objType, newPlanStateValues("id123", "/path/to/file.json", "sha256hash", nil, []interface{}{"user@example.com"}, []interface{}{"Team1"}))
+	rawState := tftypes.NewValue(objType, newPlanStateValues("id123", "/path/to/file.json", "sha256hash", []interface{}{"user@example.com"}, []interface{}{"Team1"}))
 
 	req := resource.ReadRequest{State: tfsdk.State{Schema: sch, Raw: rawState}}
 	resp := resource.ReadResponse{State: tfsdk.State{Schema: sch, Raw: rawState}}

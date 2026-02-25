@@ -18,7 +18,7 @@ import (
 )
 
 func TestEnterprisePushResource_Update_Success_WithAddedEmail(t *testing.T) {
-	_, filePath := createTempJSONFile(t, `{"records":[]}`)
+	filePath := createTempJSONFile(t)
 	mock := &helpers.CommandServer{}
 	responseForCommand := func(cmd string, idx int) (string, interface{}) {
 		if strings.Contains(cmd, "enterprise-push") && strings.Contains(cmd, "--email=") {
@@ -32,8 +32,8 @@ func TestEnterprisePushResource_Update_Success_WithAddedEmail(t *testing.T) {
 	r := newConfiguredResource(t, server)
 	sch, objType := getSchema(t)
 	// Plan: add one email (carol). State: alice, bob.
-	rawPlan := tftypes.NewValue(objType, newPlanStateValues("id1", filePath, "sha256abc", nil, []interface{}{"alice@ex.com", "bob@ex.com", "carol@ex.com"}, []interface{}{"Engineering"}))
-	rawState := tftypes.NewValue(objType, newPlanStateValues("id1", filePath, "sha256abc", nil, []interface{}{"alice@ex.com", "bob@ex.com"}, []interface{}{"Engineering"}))
+	rawPlan := tftypes.NewValue(objType, newPlanStateValues("id1", filePath, "sha256abc", []interface{}{"alice@ex.com", "bob@ex.com", "carol@ex.com"}, []interface{}{"Engineering"}))
+	rawState := tftypes.NewValue(objType, newPlanStateValues("id1", filePath, "sha256abc", []interface{}{"alice@ex.com", "bob@ex.com"}, []interface{}{"Engineering"}))
 
 	req := resource.UpdateRequest{
 		Plan:  tfsdk.Plan{Schema: sch, Raw: rawPlan},
@@ -47,7 +47,7 @@ func TestEnterprisePushResource_Update_Success_WithAddedEmail(t *testing.T) {
 }
 
 func TestEnterprisePushResource_Update_NoPushWhenOnlyRemovals(t *testing.T) {
-	_, filePath := createTempJSONFile(t, `{"records":[]}`)
+	filePath := createTempJSONFile(t)
 	mock := &helpers.CommandServer{}
 	server := startMockServer(mock, nil)
 	defer server.Close()
@@ -55,8 +55,8 @@ func TestEnterprisePushResource_Update_NoPushWhenOnlyRemovals(t *testing.T) {
 	r := newConfiguredResource(t, server)
 	sch, objType := getSchema(t)
 	// Plan: remove one email. State has two emails. No new targets → no push.
-	rawPlan := tftypes.NewValue(objType, newPlanStateValues("id1", filePath, "sha256abc", nil, []interface{}{"alice@ex.com"}, nil))
-	rawState := tftypes.NewValue(objType, newPlanStateValues("id1", filePath, "sha256abc", nil, []interface{}{"alice@ex.com", "bob@ex.com"}, nil))
+	rawPlan := tftypes.NewValue(objType, newPlanStateValues("id1", filePath, "sha256abc", []interface{}{"alice@ex.com"}, nil))
+	rawState := tftypes.NewValue(objType, newPlanStateValues("id1", filePath, "sha256abc", []interface{}{"alice@ex.com", "bob@ex.com"}, nil))
 
 	req := resource.UpdateRequest{
 		Plan:  tfsdk.Plan{Schema: sch, Raw: rawPlan},
@@ -70,11 +70,11 @@ func TestEnterprisePushResource_Update_NoPushWhenOnlyRemovals(t *testing.T) {
 }
 
 func TestEnterprisePushResource_Update_NoApiManager(t *testing.T) {
-	_, filePath := createTempJSONFile(t, `{"records":[]}`)
+	filePath := createTempJSONFile(t)
 	r := enterprisepush.NewEnterprisePushResource().(*enterprisepush.EnterprisePushResource)
 	sch, objType := getSchema(t)
-	rawPlan := tftypes.NewValue(objType, newPlanStateValues("id1", filePath, "sha256abc", nil, []interface{}{"a@ex.com"}, nil))
-	rawState := tftypes.NewValue(objType, newPlanStateValues("id1", filePath, "sha256abc", nil, []interface{}{"a@ex.com"}, nil))
+	rawPlan := tftypes.NewValue(objType, newPlanStateValues("id1", filePath, "sha256abc", []interface{}{"a@ex.com"}, nil))
+	rawState := tftypes.NewValue(objType, newPlanStateValues("id1", filePath, "sha256abc", []interface{}{"a@ex.com"}, nil))
 
 	req := resource.UpdateRequest{
 		Plan:  tfsdk.Plan{Schema: sch, Raw: rawPlan},
@@ -94,8 +94,8 @@ func TestEnterprisePushResource_Update_FileReadFails(t *testing.T) {
 
 	r := newConfiguredResource(t, server)
 	sch, objType := getSchema(t)
-	rawPlan := tftypes.NewValue(objType, newPlanStateValues("id1", "/nonexistent/file.json", "sha256abc", nil, []interface{}{"a@ex.com"}, nil))
-	rawState := tftypes.NewValue(objType, newPlanStateValues("id1", "/nonexistent/file.json", "sha256abc", nil, []interface{}{"a@ex.com"}, nil))
+	rawPlan := tftypes.NewValue(objType, newPlanStateValues("id1", "/nonexistent/file.json", "sha256abc", []interface{}{"a@ex.com"}, nil))
+	rawState := tftypes.NewValue(objType, newPlanStateValues("id1", "/nonexistent/file.json", "sha256abc", []interface{}{"a@ex.com"}, nil))
 
 	req := resource.UpdateRequest{
 		Plan:  tfsdk.Plan{Schema: sch, Raw: rawPlan},
@@ -109,7 +109,7 @@ func TestEnterprisePushResource_Update_FileReadFails(t *testing.T) {
 }
 
 func TestEnterprisePushResource_Update_ApiError(t *testing.T) {
-	_, filePath := createTempJSONFile(t, `{"records":[]}`)
+	filePath := createTempJSONFile(t)
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 		_, _ = w.Write([]byte(`{"error":"failed"}`))
@@ -118,8 +118,8 @@ func TestEnterprisePushResource_Update_ApiError(t *testing.T) {
 
 	r := newConfiguredResource(t, server)
 	sch, objType := getSchema(t)
-	rawPlan := tftypes.NewValue(objType, newPlanStateValues("id1", filePath, "sha256abc", nil, []interface{}{"a@ex.com", "b@ex.com"}, nil))
-	rawState := tftypes.NewValue(objType, newPlanStateValues("id1", filePath, "sha256abc", nil, []interface{}{"a@ex.com"}, nil))
+	rawPlan := tftypes.NewValue(objType, newPlanStateValues("id1", filePath, "sha256abc", []interface{}{"a@ex.com", "b@ex.com"}, nil))
+	rawState := tftypes.NewValue(objType, newPlanStateValues("id1", filePath, "sha256abc", []interface{}{"a@ex.com"}, nil))
 
 	req := resource.UpdateRequest{
 		Plan:  tfsdk.Plan{Schema: sch, Raw: rawPlan},

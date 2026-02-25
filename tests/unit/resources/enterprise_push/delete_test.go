@@ -18,7 +18,7 @@ import (
 func TestEnterprisePushResource_Delete_Success(t *testing.T) {
 	r := enterprisepush.NewEnterprisePushResource().(*enterprisepush.EnterprisePushResource)
 	sch, objType := getSchema(t)
-	rawState := tftypes.NewValue(objType, newPlanStateValues("id123", "/path/to/file.json", "sha256hash", nil, []interface{}{"user@example.com"}, nil))
+	rawState := tftypes.NewValue(objType, newPlanStateValues("id123", "/path/to/file.json", "sha256hash", []interface{}{"user@example.com"}, nil))
 
 	req := resource.DeleteRequest{State: tfsdk.State{Schema: sch, Raw: rawState}}
 	var resp resource.DeleteResponse
