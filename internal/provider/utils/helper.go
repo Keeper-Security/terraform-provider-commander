@@ -55,6 +55,13 @@ func EnterpriseDown(ctx context.Context, apiManager *api.ApiManager) error {
 	return err
 }
 
+// Perform sync down.
+func SyncDown(ctx context.Context, apiManager *api.ApiManager) error {
+	command := "sync-down -f"
+	_, err := apiManager.ExecuteCommand(ctx, command, "Unable to perform sync down")
+	return err
+}
+
 // ExecuteWithManagedCompanyContext executes a function with managed company context switching
 // If managedCompany is provided and not null, it switches to MC before execution and back to MSP after
 // If managedCompany is not provided, it ensures we're in the correct base context (MSP for MSP accounts, Enterprise for Enterprise)
