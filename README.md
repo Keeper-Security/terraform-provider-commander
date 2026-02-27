@@ -23,7 +23,7 @@
 | `commander_enterprise_role` | Create and manage enterprise roles and policies. |
 | `commander_enterprise_team` | Create and manage enterprise teams. |
 | `commander_enterprise_user` | Create and manage enterprise users. |
-| `commander_manage_company` | Create and manage managed companies (MSP only). |
+| `commander_managed_company` | Create and manage managed companies (MSP only). |
 
 ### Data sources
 
@@ -33,7 +33,7 @@
 | `commander_enterprise_role` | Look up an enterprise role by name or ID. |
 | `commander_enterprise_team` | Look up an enterprise team by name or ID. |
 | `commander_enterprise_user` | Look up an enterprise user by email or ID. |
-| `commander_manage_company` | Look up a managed company by name or ID (MSP only). |
+| `commander_managed_company` | Look up a managed company by name or ID (MSP only). |
 
 ## Prerequisites
 
