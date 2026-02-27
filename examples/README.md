@@ -17,7 +17,7 @@ Other `.tf` files in these directories are ignored by the docs tool but can be u
 
 ## Resources
 
-- **commander_manage_company** — Managed company (MSP)
+- **commander_managed_company** — Managed company (MSP)
 - **commander_enterprise_node** — Enterprise node
 - **commander_enterprise_team** — Enterprise team
 - **commander_enterprise_role** — Enterprise role
@@ -25,7 +25,7 @@ Other `.tf` files in these directories are ignored by the docs tool but can be u
 
 ## Data sources
 
-- **commander_manage_company** — Look up a managed company
+- **commander_managed_company** — Look up a managed company
 - **commander_enterprise_node** — Look up an enterprise node
 - **commander_enterprise_team** — Look up an enterprise team
 - **commander_enterprise_role** — Look up an enterprise role

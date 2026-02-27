@@ -22,8 +22,8 @@ import (
 // and has been removed from state. The caller should return without calling State.Set.
 var ErrResourceRemoved = errors.New("resource removed from state")
 
-// SwitchToManageCompany switches to the specified managed company.
-func SwitchToManageCompany(ctx context.Context, apiManager *api.ApiManager, manageCompany string) error {
+// SwitchToManagedCompany switches to the specified managed company.
+func SwitchToManagedCompany(ctx context.Context, apiManager *api.ApiManager, manageCompany string) error {
 	command := fmt.Sprintf("switch-to-mc '%s'", manageCompany)
 	_, err := apiManager.ExecuteCommand(ctx, command, "Unable to switch to manage company")
 	return err
@@ -76,7 +76,7 @@ func ExecuteWithManagedCompanyContext(
 		}
 
 		// Switch to managed company
-		if err := SwitchToManageCompany(ctx, apiManager, managedCompany.ValueString()); err != nil {
+		if err := SwitchToManagedCompany(ctx, apiManager, managedCompany.ValueString()); err != nil {
 			return fmt.Errorf("failed to switch to managed company: %w", err)
 		}
 		switchedToMC = true
@@ -553,7 +553,7 @@ func FetchEnterpriseUserByEmailOrId(ctx context.Context, apiManager *api.ApiMana
 	return userInfo, nil
 }
 
-func FetchManageCompanyByNameOrId(ctx context.Context, apiManager *api.ApiManager, nameOrId string) (*ManageCompanyResponse, error) {
+func FetchManagedCompanyByNameOrId(ctx context.Context, apiManager *api.ApiManager, nameOrId string) (*ManagedCompanyResponse, error) {
 	// Build command to get all companies info
 	command := fmt.Sprintf("msp-info -m '%s' --format json -v", nameOrId)
 
@@ -563,13 +563,13 @@ func FetchManageCompanyByNameOrId(ctx context.Context, apiManager *api.ApiManage
 	}
 
 	// Parse the JSON response - it's an array of company objects
-	var companies []ManageCompanyResponse
+	var companies []ManagedCompanyResponse
 
 	if err := UnmarshalApiResponse(apiResp.Data, &companies); err != nil {
 		return nil, fmt.Errorf("unable to parse managed companies list from API response: %w", err)
 	}
 
-	var companyInfo *ManageCompanyResponse
+	var companyInfo *ManagedCompanyResponse
 
 	for i := range companies {
 		if strconv.Itoa(companies[i].CompanyId) == nameOrId || companies[i].CompanyName == nameOrId {

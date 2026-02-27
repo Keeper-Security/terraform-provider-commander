@@ -12,7 +12,7 @@ type EnterpriseNodeResponse struct {
 	Isolated       bool   `json:"isolated"`
 }
 
-type ManageCompanyResponse struct {
+type ManagedCompanyResponse struct {
 	CompanyId   int      `json:"company_id"`
 	CompanyName string   `json:"company_name"`
 	Node        string   `json:"node"`
