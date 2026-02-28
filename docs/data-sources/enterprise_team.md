@@ -3,12 +3,12 @@
 page_title: "commander_enterprise_team Data Source - commander"
 subcategory: ""
 description: |-
-  Use this data source to look up an enterprise team by name or ID. Returns the team's ID, name, users, and roles so you can reference them in other resources.
+  Use this data source to look up an enterprise team by name / ID or managed company (MSP only) so you can reference it from other resources.
 ---
 
 # commander_enterprise_team (Data Source)
 
-Use this data source to look up an enterprise team by name or ID. Returns the team's ID, name, users, and roles so you can reference them in other resources.
+Use this data source to look up an enterprise team by **name** / **ID** or **managed company** (MSP only) so you can reference it from other resources.
 
 ## Example Usage
 
@@ -45,15 +45,15 @@ output "team_roles" {
 
 ### Required
 
-- `team` (String) Enterprise team name or ID to find the team.
+- `team` (String) **Enterprise team name** or **ID** to find the team.
 
 ### Optional
 
-- `managed_company` (String) Only applies to **MSP accounts**. Name or ID of the managed company to scope this resource or data source to. Omit to use the logged-in account context.
+- `managed_company` (String) Only applies to **MSP accounts**. **Name** or **ID** of the managed company to scope this resource or data source to. Omit to use the logged-in account context.
 
 ### Read-Only
 
-- `id` (String) ID of the found enterprise team.
-- `name` (String) Name of the found enterprise team.
-- `roles` (Set of String) Roles of the found enterprise team.
-- `users` (Set of String) Users of the found enterprise team.
+- `id` (String) **ID** of the found enterprise team.
+- `name` (String) **Name** of the found enterprise team.
+- `roles` (Set of String) **Roles** of the found enterprise team.
+- `users` (Set of String) **Users** of the found enterprise team.

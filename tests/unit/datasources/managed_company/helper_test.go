@@ -21,8 +21,11 @@ var manageCompanyDataSourceAttrTypes = map[string]tftypes.Type{
 	"id":              tftypes.String,
 	"name":            tftypes.String,
 	"node":            tftypes.String,
+	"node_name":       tftypes.String,
 	"plan":            tftypes.String,
 	"file_plan":       tftypes.String,
+	"seats":           tftypes.Number,
+	"add_ons":         tftypes.Set{ElementType: tftypes.String},
 }
 
 func manageCompanyDataSourceObjectType() tftypes.Object {
@@ -36,8 +39,11 @@ func newConfigValues(managedCompany interface{}) map[string]tftypes.Value {
 		"id":              tftypes.NewValue(tftypes.String, nil),
 		"name":            tftypes.NewValue(tftypes.String, nil),
 		"node":            tftypes.NewValue(tftypes.String, nil),
+		"node_name":       tftypes.NewValue(tftypes.String, nil),
 		"plan":            tftypes.NewValue(tftypes.String, nil),
 		"file_plan":       tftypes.NewValue(tftypes.String, nil),
+		"seats":           tftypes.NewValue(tftypes.Number, nil),
+		"add_ons":         tftypes.NewValue(tftypes.Set{ElementType: tftypes.String}, nil),
 	}
 }
 

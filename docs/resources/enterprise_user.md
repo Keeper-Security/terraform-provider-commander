@@ -3,12 +3,12 @@
 page_title: "commander_enterprise_user Resource - commander"
 subcategory: ""
 description: |-
-  Manages an enterprise user. Use this resource to create and manage users in the MSP or Enterprise account
+  Creates and manages an enterprise user in your Keeper MSP or Enterprise account.All employees or users you choose to deploy Keeper to are responsible for managing their own encrypted vault. Every user's vault can be made up of private records or shared records. Users can be provisioned many different ways. Users can be required to set up a Master Password or they can be provisioned and authenticated through your SSO provider.For more information, see Enterprise Users documentation https://docs.keeper.io/en/enterprise-guide/getting-started-with-keeper-admin-console#users.
 ---
 
 # commander_enterprise_user (Resource)
 
-Manages an enterprise user. Use this resource to create and manage users in the MSP or Enterprise account
+Creates and manages an **enterprise user** in your Keeper MSP or Enterprise account.<br><br>All employees or users you choose to deploy Keeper to are responsible for managing their own encrypted vault. Every user's vault can be made up of private records or shared records. Users can be provisioned many different ways. Users can be required to set up a Master Password or they can be provisioned and authenticated through your SSO provider.<br><br>For more information, see [Enterprise Users documentation](https://docs.keeper.io/en/enterprise-guide/getting-started-with-keeper-admin-console#users).
 
 ## Example Usage
 
@@ -22,8 +22,8 @@ resource "commander_enterprise_user" "example" {
   job_title = "Software Engineer"
   node      = "Engineering"
 
-  roles = ["Developer"]
-  teams = ["Backend Developers"]
+  roles = ["Developer", "1234567890"]
+  teams = ["Backend Developers", "1234567890"]
 
   # Optional, MSP only: scope to a specific managed company
   # managed_company = "Acme Corp"
@@ -35,21 +35,21 @@ resource "commander_enterprise_user" "example" {
 
 ### Required
 
-- `email` (String) Email address of the enterprise user.
-- `node` (String) Managing node name or ID of the enterprise user.
+- `email` (String) Set the **email address** for the enterprise user.
+- `node` (String) The **node** that will manage this enterprise user. Provide the **node name** or **node ID**.
 
 ### Optional
 
-- `job_title` (String) Job title of the enterprise user.
-- `managed_company` (String) Only applies to **MSP accounts**. Name or ID of the managed company to scope this resource or data source to. Omit to use the logged-in account context.
-- `name` (String) Name of the enterprise user.
-- `roles` (Set of String) Manage roles to the enterprise user.
-- `teams` (Set of String) Manage teams to the enterprise user.
+- `job_title` (String) Set the **job title** for the enterprise user. Must be at least **one character**.
+- `managed_company` (String) Only applies to **MSP accounts**. **Name** or **ID** of the managed company to scope this resource or data source to. Omit to use the logged-in account context.
+- `name` (String) Set the **display name** for the enterprise user. Must be at least **one character**.
+- `roles` (Set of String) Set of **roles** assigned to this enterprise user. Provide **role names** or **role IDs**.
+- `teams` (Set of String) Set of **teams** assigned to this enterprise user. Provide **team names** or **team IDs**.
 
 ### Read-Only
 
-- `id` (String) The ID of the user.
-- `status` (String) User status (e.g. Active, Inactive). Set by the provider from the API; do not set in configuration.
+- `id` (String) **User ID** assigned by Keeper to the role after it is created. Use this value to **import** an existing user into Terraform state or to reference the user from other resources.
+- `status` (String) User **current status** (e.g. Active, Inactive). Set by the provider from the API and used for internal tracking; **do not set in configuration**.
 
 ## Import
 

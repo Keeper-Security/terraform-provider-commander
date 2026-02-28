@@ -53,7 +53,6 @@ func (d *EnterpriseUserDataSource) Read(ctx context.Context, req datasource.Read
 			return fmt.Errorf("failed to create teams set: %v", teamsDiags.Errors())
 		}
 		data.Teams = teams
-		data.Status = types.StringValue(userInfo.Status)
 		data.ManagedCompany = types.StringNull()
 		return nil
 	}, "Read Enterprise User Failed", &resp.Diagnostics); err != nil {

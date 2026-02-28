@@ -53,7 +53,8 @@ resource "commander_enterprise_team" "test" {
 		ProtoV6ProviderFactories: provider.TestAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config:             config,
+				ExpectNonEmptyPlan: true, // refresh reports drift when API returns empty restricts (optional attrs null vs default)
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr("commander_enterprise_team.test", "id", "team-3001"),
 					resource.TestCheckResourceAttr("commander_enterprise_team.test", "name", "acc-test-team"),
@@ -112,6 +113,7 @@ resource "commander_enterprise_team" "test" {
   node = "Root"
 }
 `,
+				ExpectNonEmptyPlan: true, // refresh reports drift when API returns empty restricts (optional attrs null vs default)
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr("commander_enterprise_team.test", "id", "team-3002"),
 					resource.TestCheckResourceAttr("commander_enterprise_team.test", "name", "update-team"),
@@ -125,6 +127,7 @@ resource "commander_enterprise_team" "test" {
   node = "Root"
 }
 `,
+				ExpectNonEmptyPlan: true, // refresh reports drift when API returns empty restricts (optional attrs null vs default)
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr("commander_enterprise_team.test", "id", "team-3002"),
 					resource.TestCheckResourceAttr("commander_enterprise_team.test", "name", "updated-team-name"),

@@ -16,20 +16,20 @@ import (
 
 func (r *ManagedCompanyResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		Description: "Creates and manages a managed company within your Keeper MSP account. " +
-			"Use this resource to define the company name, product plan, license count, file storage, and optional add-ons. " +
-			"This resource only works when the provider is configured for an MSP account.\n\n" +
+		Description: "Creates and manages a managed company within your Keeper MSP account.<br><br>" +
+			"Managed Companies (MCs) are the independent tenants that MSPs manage through the central console; each MC can be administered by the MSP (full service), by an MC administrator (reseller model), or both (hybrid model).<br><br>" +
+			"This resource only works when the provider is configured for an MSP account.<br><br>" +
 			"For more information, see https://docs.keeper.io/en/enterprise-guide/keeper-msp",
-		MarkdownDescription: "Creates and manages a **managed company** within your Keeper MSP account. " +
-			"Use this resource to define the company name, product plan, license count, file storage, and optional add-ons. " +
-			"This resource only works when the provider is configured for an MSP account.\n\n" +
-			"For more information, see [Keeper MSP](https://docs.keeper.io/en/enterprise-guide/keeper-msp).",
+		MarkdownDescription: "Creates and manages a **managed company** within your Keeper MSP account.<br><br>" +
+			"**Managed Companies (MCs)** are the independent tenants that MSPs manage through the central console; each MC can be administered by the MSP (full service), by an MC administrator (reseller model), or both (hybrid model).<br><br>" +
+			"This resource **only works when the provider is configured for an MSP account**.<br><br>" +
+			"For more information, see [Keeper MSP documentation](https://docs.keeper.io/en/enterprise-guide/keeper-msp).",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed: true,
 				Description: "Company ID assigned by Keeper to the managed company after it is created. " +
 					"Use this value to import an existing managed company into Terraform state or to reference the company from other resources.",
-				MarkdownDescription: "Company ID assigned by Keeper to the managed company after it is created. " +
+				MarkdownDescription: "**Company ID** assigned by Keeper to the managed company after it is created. " +
 					"Use this value to **import** an existing managed company into Terraform state or to reference the company from other resources.",
 			},
 			"name": schema.StringAttribute{
@@ -37,20 +37,16 @@ func (r *ManagedCompanyResource) Schema(ctx context.Context, req resource.Schema
 				Validators: []validator.String{
 					utils.StringMinLengthValidator("Managed Company Name", 1, false),
 				},
-				Description: "Display name of the managed company. " +
-					"Use a name that identifies the Managed Company. Must be at least one character.",
-				MarkdownDescription: "Display name of the managed company. " +
-					"Use a name that identifies the Managed Company. Must be at least one character.",
+				Description:         "Set the display name for the managed company. Must be at least one character.",
+				MarkdownDescription: "Set the **display name** for the managed company. Must be at least **one character**.",
 			},
 			"node": schema.StringAttribute{
 				Required: true,
 				Validators: []validator.String{
 					utils.NodeValidator,
 				},
-				Description: "The node that will manage this managed company. Provide the node name or node ID. " +
-					"This defines where the managed company sits in your MSP organizational hierarchy.",
-				MarkdownDescription: "The node that will **manage** this managed company. Provide the **node name** or **node ID**. " +
-					"This defines where the managed company sits in your MSP organizational hierarchy.",
+				Description:         "The node that will manage this managed company. Provide the node name or node ID. ",
+				MarkdownDescription: "The **node** that will **manage** this managed company. Provide the **node name** or **node ID**. ",
 			},
 			"seats": schema.Int64Attribute{
 				Required: true,

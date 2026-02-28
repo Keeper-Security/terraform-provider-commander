@@ -13,6 +13,5 @@ type EnterpriseUserDataSourceModel struct {
 	JobTitle       types.String `tfsdk:"job_title"`
 	Roles          types.Set    `tfsdk:"roles"`
 	Teams          types.Set    `tfsdk:"teams"`
-	Status         types.String `tfsdk:"status"`
 	ManagedCompany types.String `tfsdk:"managed_company"`
 }

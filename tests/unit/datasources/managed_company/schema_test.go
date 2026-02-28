@@ -28,10 +28,19 @@ func TestManagedCompanyDataSource_Schema(t *testing.T) {
 	if resp.Schema.Attributes["node"] == nil {
 		t.Error("expected node attribute")
 	}
+	if resp.Schema.Attributes["node_name"] == nil {
+		t.Error("expected node_name attribute")
+	}
 	if resp.Schema.Attributes["plan"] == nil {
 		t.Error("expected plan attribute")
 	}
 	if resp.Schema.Attributes["file_plan"] == nil {
 		t.Error("expected file_plan attribute")
+	}
+	if resp.Schema.Attributes["seats"] == nil {
+		t.Error("expected seats attribute")
+	}
+	if resp.Schema.Attributes["add_ons"] == nil {
+		t.Error("expected add_ons attribute")
 	}
 }

@@ -3,15 +3,12 @@
 page_title: "commander_managed_company Resource - commander"
 subcategory: ""
 description: |-
-  Creates and manages a managed company within your Keeper MSP account. Use this resource to define the company name, product plan, license count, file storage, and optional add-ons. This resource only works when the provider is configured for an MSP account.
-  For more information, see Keeper MSP https://docs.keeper.io/en/enterprise-guide/keeper-msp.
+  Creates and manages a managed company within your Keeper MSP account.Managed Companies (MCs) are the independent tenants that MSPs manage through the central console; each MC can be administered by the MSP (full service), by an MC administrator (reseller model), or both (hybrid model).This resource only works when the provider is configured for an MSP account.For more information, see Keeper MSP documentation https://docs.keeper.io/en/enterprise-guide/keeper-msp.
 ---
 
 # commander_managed_company (Resource)
 
-Creates and manages a **managed company** within your Keeper MSP account. Use this resource to define the company name, product plan, license count, file storage, and optional add-ons. This resource only works when the provider is configured for an MSP account.
-
-For more information, see [Keeper MSP](https://docs.keeper.io/en/enterprise-guide/keeper-msp).
+Creates and manages a **managed company** within your Keeper MSP account.<br><br>**Managed Companies (MCs)** are the independent tenants that MSPs manage through the central console; each MC can be administered by the MSP (full service), by an MC administrator (reseller model), or both (hybrid model).<br><br>This resource **only works when the provider is configured for an MSP account**.<br><br>For more information, see [Keeper MSP documentation](https://docs.keeper.io/en/enterprise-guide/keeper-msp).
 
 ## Example Usage
 
@@ -46,8 +43,8 @@ resource "commander_managed_company" "example" {
 
 ### Required
 
-- `name` (String) Display name of the managed company. Use a name that identifies the Managed Company. Must be at least one character.
-- `node` (String) The node that will **manage** this managed company. Provide the **node name** or **node ID**. This defines where the managed company sits in your MSP organizational hierarchy.
+- `name` (String) Set the **display name** for the managed company. Must be at least **one character**.
+- `node` (String) The **node** that will **manage** this managed company. Provide the **node name** or **node ID**.
 - `plan` (String) The Keeper **base plan** for this managed company. The plan determines which features and limits apply. Must be one of: `business`, `businessPlus`, `enterprise`, `enterprisePlus`
 - `seats` (Number) Maximum number of user **licenses** for this managed company. Use `-1` for unlimited licenses, `0` to create the company without provisioning any users yet, or a positive number for a fixed license cap.
 
@@ -58,7 +55,7 @@ resource "commander_managed_company" "example" {
 
 ### Read-Only
 
-- `id` (String) Company ID assigned by Keeper to the managed company after it is created. Use this value to **import** an existing managed company into Terraform state or to reference the company from other resources.
+- `id` (String) **Company ID** assigned by Keeper to the managed company after it is created. Use this value to **import** an existing managed company into Terraform state or to reference the company from other resources.
 
 ## Import
 

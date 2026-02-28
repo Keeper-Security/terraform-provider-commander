@@ -37,9 +37,6 @@ func TestEnterpriseUserDataSource_Schema(t *testing.T) {
 	if resp.Schema.Attributes["teams"] == nil {
 		t.Error("expected teams attribute")
 	}
-	if resp.Schema.Attributes["status"] == nil {
-		t.Error("expected status attribute")
-	}
 	if resp.Schema.Attributes["managed_company"] == nil {
 		t.Error("expected managed_company attribute")
 	}

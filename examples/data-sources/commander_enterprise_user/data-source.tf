@@ -31,7 +31,3 @@ output "user_roles" {
 output "user_teams" {
   value = data.commander_enterprise_user.example.teams
 }
-
-output "user_status" {
-  value = data.commander_enterprise_user.example.status
-}
