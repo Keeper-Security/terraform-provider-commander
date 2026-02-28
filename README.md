@@ -1,4 +1,4 @@
-# Terraform Provider Commander
+# Terraform Provider For Commander
 
 ## About
 
