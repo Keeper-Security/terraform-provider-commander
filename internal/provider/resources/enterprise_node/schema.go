@@ -15,26 +15,36 @@ import (
 
 func (r *EnterpriseNodeResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		Description:         "Manages a enterprise node. Use this resource to create and manage nodes in the MSP or Enterprise account.",
-		MarkdownDescription: "Manages a enterprise node. Use this resource to create and manage nodes in the MSP or Enterprise account.",
+		Description: "Creates and manages an enterprise node in your Keeper MSP or Enterprise account.<br><br>" +
+			"Nodes organize users, roles, teams and administrators into distinct groupings, similar to organizational units in Active Directory. " +
+			"You can structure nodes by location, department, division, or any other hierarchy that fits your organization. " +
+			"The top-level node (Root) is set to the organization name; create child nodes under it or under other nodes as needed.<br><br>" +
+			"For more information, see https://docs.keeper.io/en/enterprise-guide/getting-started-with-keeper-admin-console#nodes",
+		MarkdownDescription: "Creates and manages an **enterprise node** in your Keeper MSP or Enterprise account.<br><br>" +
+			"Nodes organize users, roles, teams and administrators into distinct groupings, similar to organizational units in Active Directory. " +
+			"You can structure nodes by location, department, division, or any other hierarchy that fits your organization. " +
+			"The top-level node (**Root**) is set to the organization name; create child nodes under it or under other nodes as needed.<br><br>" +
+			"For more information, see [Enterprise Nodes documentation](https://docs.keeper.io/en/enterprise-guide/getting-started-with-keeper-admin-console#nodes).",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
-				Computed:            true,
-				Description:         "ID of the enterprise node.",
-				MarkdownDescription: "ID of the enterprise node.",
+				Computed: true,
+				Description: "Node ID assigned by Keeper to the node after it is created. " +
+					"Use this value to import an existing node into Terraform state or to reference the node from other resources.",
+				MarkdownDescription: "**Node ID** assigned by Keeper to the node after it is created. " +
+					"Use this value to **import** an existing node into Terraform state or to reference the node from other resources.",
 			},
 			"name": schema.StringAttribute{
 				Required:            true,
-				Description:         "Set enterprise node's display name.",
-				MarkdownDescription: "Set enterprise node's display name.",
+				Description:         "Set the display name for the enterprise node. Must be at least one character.",
+				MarkdownDescription: "Set the **display name** for the enterprise node. Must be at least one character.",
 				Validators: []validator.String{
 					utils.StringMinLengthValidator("Enterprise Node Name", 1, false),
 				},
 			},
 			"parent": schema.StringAttribute{
 				Required:            true,
-				Description:         "Parent node name or ID. Make given node the parent of this node.",
-				MarkdownDescription: "Parent node name or ID. Make given node the parent of this node.",
+				Description:         "The parent node that will manage this enterprise node. Provide the node name or node ID. ",
+				MarkdownDescription: "The **parent node** that will manage this enterprise node. Provide the **node name** or **node ID**. ",
 				Validators: []validator.String{
 					utils.StringMinLengthValidator("Enterprise Node Parent Name", 1, true),
 				},
@@ -43,8 +53,8 @@ func (r *EnterpriseNodeResource) Schema(ctx context.Context, req resource.Schema
 				Optional:            true,
 				Computed:            true,
 				Default:             booldefault.StaticBool(false),
-				Description:         "Make node visible or invisible to people in other nodes. Defaults to false. Not supported on create; on update set to true or false to turn isolation on or off.",
-				MarkdownDescription: "Make node visible or invisible to people in other nodes. Defaults to false. Not supported on create; on update set to true or false to turn isolation on or off.",
+				Description:         "When true, this node is isolated: users in this node cannot see or be seen by users in other nodes. When false, the node is visible across the organization. Defaults to false.<br>" + "Not supported on create; set on update to turn isolation on or off.",
+				MarkdownDescription: "When `true`, this node is **isolated**: users in this node cannot see or be seen by users in other nodes. When `false`, the node is visible across the organization. Defaults to `false`.<br>" + "**Not supported** on **create**; set on **update** to turn isolation on or off.",
 			},
 			"managed_company": schema.StringAttribute{
 				Optional:            true,

@@ -7,8 +7,8 @@ resource "commander_enterprise_user" "example" {
   job_title = "Software Engineer"
   node      = "Engineering"
 
-  roles = ["Developer"]
-  teams = ["Backend Developers"]
+  roles = ["Developer", "1234567890"]
+  teams = ["Backend Developers", "1234567890"]
 
   # Optional, MSP only: scope to a specific managed company
   # managed_company = "Acme Corp"

@@ -24,7 +24,6 @@ var enterpriseUserDataSourceAttrTypes = map[string]tftypes.Type{
 	"job_title":       tftypes.String,
 	"roles":           tftypes.Set{ElementType: tftypes.String},
 	"teams":           tftypes.Set{ElementType: tftypes.String},
-	"status":          tftypes.String,
 	"managed_company": tftypes.String,
 }
 
@@ -44,7 +43,6 @@ func newConfigValues(user, managedCompany interface{}) map[string]tftypes.Value 
 		"job_title":       tftypes.NewValue(tftypes.String, nil),
 		"roles":           tftypes.NewValue(tftypes.Set{ElementType: tftypes.String}, nil),
 		"teams":           tftypes.NewValue(tftypes.Set{ElementType: tftypes.String}, nil),
-		"status":          tftypes.NewValue(tftypes.String, nil),
 		"managed_company": tftypes.NewValue(tftypes.String, managedCompany),
 	}
 }

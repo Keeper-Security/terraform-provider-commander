@@ -3,12 +3,12 @@
 page_title: "commander_enterprise_role Data Source - commander"
 subcategory: ""
 description: |-
-  Use this data source to look up an enterprise role by name or ID. Returns the role's ID, name, users, teams, managing nodes, and enforcement policies so you can reference them in other resources.
+  Use this data source to look up an enterprise role by name / ID or managed company (MSP only) so you can reference it from other resources.
 ---
 
 # commander_enterprise_role (Data Source)
 
-Use this data source to look up an enterprise role by name or ID. Returns the role's ID, name, users, teams, managing nodes, and enforcement policies so you can reference them in other resources.
+Use this data source to look up an enterprise role by **name** / **ID** or **managed company** (MSP only) so you can reference it from other resources.
 
 ## Example Usage
 
@@ -53,20 +53,20 @@ output "role_enforcement_policies" {
 
 ### Required
 
-- `role` (String) Enterprise role name or ID to find the role.
+- `role` (String) **Enterprise role name** or **ID** to find the role.
 
 ### Optional
 
-- `managed_company` (String) Only applies to **MSP accounts**. Name or ID of the managed company to scope this resource or data source to. Omit to use the logged-in account context.
+- `managed_company` (String) Only applies to **MSP accounts**. **Name** or **ID** of the managed company to scope this resource or data source to. Omit to use the logged-in account context.
 
 ### Read-Only
 
-- `enforcement_policies` (Map of String) Enforcement policies for the role. Map key is policy name (e.g. `REQUIRE_TWO_FACTOR`); value is the policy value string.
-- `id` (String) ID of the found enterprise role.
-- `managing_nodes` (Map of Object) Managing nodes (admin privileges) for the role. Map key is node name/ID; value is object with `privileges` (set of strings) and `cascade` (bool). (see [below for nested schema](#nestedatt--managing_nodes))
-- `name` (String) Name of the found enterprise role.
-- `teams` (Set of String) Teams of the found enterprise role.
-- `users` (Set of String) Users of the found enterprise role.
+- `enforcement_policies` (Map of String) Enforcement policies of the found enterprise role. Map **key** is policy name, **value** is the policy value string.<br>For valid keys and value types, see the <i>**commander_enterprise_role**</i> **resource** documentation.
+- `id` (String) **ID** of the found enterprise role.
+- `managing_nodes` (Map of Object) Managing nodes with **privileges** and **cascade** options of the found enterprise role. Map **key** is node name/ID, value is object with **privileges** (set of strings) and **cascade** (bool). (see [below for nested schema](#nestedatt--managing_nodes))
+- `name` (String) **Name** of the found enterprise role.
+- `teams` (Set of String) **Teams** of the found enterprise role.
+- `users` (Set of String) **Users** of the found enterprise role.
 
 <a id="nestedatt--managing_nodes"></a>
 ### Nested Schema for `managing_nodes`

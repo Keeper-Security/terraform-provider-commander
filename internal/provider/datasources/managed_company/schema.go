@@ -13,7 +13,8 @@ import (
 
 func (d *ManagedCompanyDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		Description: "Use this data source to look up a managed company by name or ID. Returns the company's ID, name, node, base plan, and file storage plan so you can reference them in other resources.",
+		Description:         "Use this data source to look up a managed company by name or ID so you can reference it from other resources.",
+		MarkdownDescription: "Use this data source to look up a managed company by **name** or **ID** so you can reference it from other resources.",
 		Attributes: map[string]schema.Attribute{
 			"managed_company": schema.StringAttribute{
 				Required:            true,
@@ -35,6 +36,11 @@ func (d *ManagedCompanyDataSource) Schema(ctx context.Context, req datasource.Sc
 				Description:         "Node ID of the found managed company.",
 				MarkdownDescription: "**Node ID** of the found managed company.",
 			},
+			"node_name": schema.StringAttribute{
+				Computed:            true,
+				Description:         "Node name of the found managed company.",
+				MarkdownDescription: "**Node name** of the found managed company.",
+			},
 			"plan": schema.StringAttribute{
 				Computed:            true,
 				Description:         "Keeper base plan of the found managed company.",
@@ -48,7 +54,7 @@ func (d *ManagedCompanyDataSource) Schema(ctx context.Context, req datasource.Sc
 			"seats": schema.Int64Attribute{
 				Computed:            true,
 				Description:         "Maximum number of user licenses of the found managed company.",
-				MarkdownDescription: "Maximum number of user **licenses** of the found managed company.",
+				MarkdownDescription: "Maximum number of **user licenses** of the found managed company.",
 			},
 			"add_ons": schema.SetAttribute{
 				ElementType:         types.StringType,

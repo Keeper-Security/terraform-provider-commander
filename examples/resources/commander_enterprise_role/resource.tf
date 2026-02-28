@@ -1,15 +1,11 @@
-# Enterprise role: name and node (required). Optional: users, teams, managing_nodes, enforcement_policies, managed_company (MSP only).
-# enforcement_policies: key = policy name (e.g. REQUIRE_TWO_FACTOR), value = string.
-#   - GENERATED_PASSWORD_COMPLEXITY: use jsonencode([...]) with a non-empty array of rule objects.
-#   - TWO_FACTOR_DURATION_*: one of login, 12_hours, 24_hours, 30_days, forever.
-#   - KEEPER_FILL_*: one of enforce, disable, null.
+# Enterprise role: name and node (required). Optional: users, teams, managing_nodes, enforcement_policies.
 
 resource "commander_enterprise_role" "example" {
   name = "Developer"
   node = "Engineering"
 
-  users = ["alice@example.com", "bob@example.com"]
-  teams = ["Backend Developers"]
+  users = ["alice@example.com", "1234567890"]
+  teams = ["1234567890", "Backend Developers"]
 
   # Grant admin privileges on specific nodes (map key = node name/ID)
   managing_nodes = {
@@ -27,8 +23,8 @@ resource "commander_enterprise_role" "example" {
     "KEEPER_FILL_AUTO_FILL"          = "enforce"  # enforce | disable | null
     "GENERATED_PASSWORD_COMPLEXITY" = jsonencode([
       {
-        domains                 = ["_default_"]
-        length                  = 40
+        "domains"               = ["_default_"]
+        "length"                = 40
         "lower-use"             = true
         "lower-min"             = 2
         "upper-use"             = true
@@ -37,7 +33,7 @@ resource "commander_enterprise_role" "example" {
         "digit-min"             = 2
         "special-use"           = true
         "special-min"           = 2
-        special                 = "!@#$%^?();'\",=+[]<>{}&"
+        "special"               = "!@#$%^?();'\",=+[]<>{}&"
         "passphrase-allow"      = true
         "passphrase-length"     = 5
         "passphrase-capitalize" = false

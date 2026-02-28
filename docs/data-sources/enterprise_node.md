@@ -3,12 +3,12 @@
 page_title: "commander_enterprise_node Data Source - commander"
 subcategory: ""
 description: |-
-  Use this data source to look up an enterprise node by name or ID. Returns the node's ID, name, parent, and parent ID so you can reference them in other resources.
+  Use this data source to look up an enterprise node by name / ID or managed company (MSP only) so you can reference it from other resources.
 ---
 
 # commander_enterprise_node (Data Source)
 
-Use this data source to look up an enterprise node by name or ID. Returns the node's ID, name, parent, and parent ID so you can reference them in other resources.
+Use this data source to look up an enterprise node by **name** / **ID** or **managed company** (MSP only) so you can reference it from other resources.
 
 ## Example Usage
 
@@ -45,15 +45,15 @@ output "node_parent_id" {
 
 ### Required
 
-- `node` (String) Enterprise node name or ID to find the node.
+- `node` (String) **Enterprise node name** or **ID** to find the node.
 
 ### Optional
 
-- `managed_company` (String) Only applies to **MSP accounts**. Name or ID of the managed company to scope this resource or data source to. Omit to use the logged-in account context.
+- `managed_company` (String) Only applies to **MSP accounts**. **Name** or **ID** of the managed company to scope this resource or data source to. Omit to use the logged-in account context.
 
 ### Read-Only
 
-- `id` (String) ID of the found enterprise node.
-- `name` (String) Name of the found enterprise node.
-- `parent` (String) Parent of selected enterprise node.
-- `parent_id` (String) ID of the parent of the found enterprise node.
+- `id` (String) **ID** of the found enterprise node.
+- `name` (String) **Name** of the found enterprise node.
+- `parent` (String) **Parent node name** of the found enterprise node.
+- `parent_id` (String) **Parent node ID** of the found enterprise node.

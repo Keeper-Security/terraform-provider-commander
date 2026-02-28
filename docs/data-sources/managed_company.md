@@ -3,17 +3,17 @@
 page_title: "commander_managed_company Data Source - commander"
 subcategory: ""
 description: |-
-  Use this data source to look up a managed company by name or ID. Returns the company's ID, name, node, base plan, and file storage plan so you can reference them in other resources.
+  Use this data source to look up a managed company by name or ID so you can reference it from other resources.
 ---
 
 # commander_managed_company (Data Source)
 
-Use this data source to look up a managed company by name or ID. Returns the company's ID, name, node, base plan, and file storage plan so you can reference them in other resources.
+Use this data source to look up a managed company by **name** or **ID** so you can reference it from other resources.
 
 ## Example Usage
 
 ```terraform
-# Look up a managed company by name or ID. Returns id, name, node, plan, file_plan.
+# Look up a managed company by name or ID. Returns id, name, node, node_name, plan, file_plan, seats, add_ons.
 
 data "commander_managed_company" "example" {
   managed_company = "Acme Corp"
@@ -27,12 +27,28 @@ output "managed_company_name" {
   value = data.commander_managed_company.example.name
 }
 
+output "managed_company_node" {
+  value = data.commander_managed_company.example.node
+}
+
+output "managed_company_node_name" {
+  value = data.commander_managed_company.example.node_name
+}
+
 output "managed_company_plan" {
   value = data.commander_managed_company.example.plan
 }
 
 output "managed_company_file_plan" {
   value = data.commander_managed_company.example.file_plan
+}
+
+output "managed_company_seats" {
+  value = data.commander_managed_company.example.seats
+}
+
+output "managed_company_add_ons" {
+  value = data.commander_managed_company.example.add_ons
 }
 ```
 
@@ -50,5 +66,6 @@ output "managed_company_file_plan" {
 - `id` (String) **Company ID** of the found managed company.
 - `name` (String) **Name** of the found managed company.
 - `node` (String) **Node ID** of the found managed company.
+- `node_name` (String) **Node name** of the found managed company.
 - `plan` (String) Keeper **base plan** of the found managed company.
-- `seats` (Number) Maximum number of user **licenses** of the found managed company.
+- `seats` (Number) Maximum number of **user licenses** of the found managed company.

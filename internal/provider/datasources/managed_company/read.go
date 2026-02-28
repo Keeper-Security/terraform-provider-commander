@@ -46,6 +46,7 @@ func (d *ManagedCompanyDataSource) Read(ctx context.Context, req datasource.Read
 		data.Id = types.StringValue(strconv.Itoa(companyInfo.CompanyId))
 		data.Name = types.StringValue(companyInfo.CompanyName)
 		data.Node = types.StringValue(companyInfo.Node)
+		data.NodeName = types.StringValue(companyInfo.NodeName)
 		data.Plan = types.StringValue(companyInfo.Plan)
 
 		storageLower := strings.ToLower(companyInfo.Storage)

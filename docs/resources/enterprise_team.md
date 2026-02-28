@@ -3,12 +3,12 @@
 page_title: "commander_enterprise_team Resource - commander"
 subcategory: ""
 description: |-
-  Manages an enterprise team. Use this resource to create and manage teams in the MSP or Enterprise account
+  Creates and manages an enterprise team in your Keeper MSP or Enterprise account.The purpose of creating Teams is to give users the ability to share the records and folders within their vaults with logical groupings of individuals. The administrator simply creates the team, sets any Team Restrictions (edit/viewing/sharing of passwords) and adds individual users to the team. Teams can also be used to easily assign Roles to entire groups of users to ensure the consistency of enforcement policies across a collective group of individuals.For more information, see Enterprise Teams documentation https://docs.keeper.io/en/enterprise-guide/getting-started-with-keeper-admin-console#teams.
 ---
 
 # commander_enterprise_team (Resource)
 
-Manages an enterprise team. Use this resource to create and manage teams in the MSP or Enterprise account
+Creates and manages an enterprise team in your Keeper MSP or Enterprise account.<br><br>The purpose of creating Teams is to give users the ability to share the records and folders within their vaults with logical groupings of individuals. The administrator simply creates the team, sets any Team Restrictions (edit/viewing/sharing of passwords) and adds individual users to the team. Teams can also be used to easily assign Roles to entire groups of users to ensure the consistency of enforcement policies across a collective group of individuals.<br><br>For more information, see [Enterprise Teams documentation](https://docs.keeper.io/en/enterprise-guide/getting-started-with-keeper-admin-console#teams).
 
 ## Example Usage
 
@@ -19,12 +19,12 @@ resource "commander_enterprise_team" "example" {
   name = "Backend Developers"
   node = "Engineering"
 
-  users = ["alice@example.com", "bob@example.com"]
-  roles = ["Developer"]
+  users = ["alice@example.com", "1234567890"]
+  roles = ["1234567890", "Developer"]
 
-  restrict_record_edit     = true
-  restrict_record_re_share = true
-  enable_privacy_screen    = false
+  restrict_record_edit     = true  # false by default
+  restrict_record_re_share = true  # false by default
+  enable_privacy_screen    = false # false by default
 
   # Optional, MSP only
   # managed_company = "Acme Corp"
@@ -36,21 +36,21 @@ resource "commander_enterprise_team" "example" {
 
 ### Required
 
-- `name` (String) Enterprise Team Name.
-- `node` (String) Managing Node name or ID of the enterprise team.
+- `name` (String) Set the **display name** for the enterprise team. Must be at least **one character**.
+- `node` (String) The **node** that will manage this enterprise team. Provide the **node name** or **node ID**.
 
 ### Optional
 
-- `enable_privacy_screen` (Boolean) Enable privacy screen. Decide if users in this team can view record passwords
-- `managed_company` (String) Only applies to **MSP accounts**. Name or ID of the managed company to scope this resource or data source to. Omit to use the logged-in account context.
-- `restrict_record_edit` (Boolean) Restrict record editing. Decide if users in this team can edit records
-- `restrict_record_re_share` (Boolean) Restrict record re-sharing. Decide if users in this team can share records
-- `roles` (Set of String) Manage roles to the enterprise team.
-- `users` (Set of String) Manage users to the enterprise team.
+- `enable_privacy_screen` (Boolean) Enable privacy screen. Decide if **users in this team can view record passwords**. Defaults to `false`.
+- `managed_company` (String) Only applies to **MSP accounts**. **Name** or **ID** of the managed company to scope this resource or data source to. Omit to use the logged-in account context.
+- `restrict_record_edit` (Boolean) Restrict record editing. Decide if **users in this team can edit records**. Defaults to `false`.
+- `restrict_record_re_share` (Boolean) Restrict record re-sharing. Decide if **users in this team can share records**. Defaults to `false`.
+- `roles` (Set of String) Set of **roles** assigned to this enterprise team. Provide **role names** or **role IDs**.
+- `users` (Set of String) Set of **users** assigned to this enterprise team. Provide **user email addresses** or **user IDs**.
 
 ### Read-Only
 
-- `id` (String) The ID of the enterprise team.
+- `id` (String) **Team ID** assigned by Keeper to the team after it is created. Use this value to **import** an existing team into Terraform state or to reference the team from other resources.
 
 ## Import
 

@@ -3,22 +3,23 @@
 page_title: "commander_enterprise_node Resource - commander"
 subcategory: ""
 description: |-
-  Manages a enterprise node. Use this resource to create and manage nodes in the MSP or Enterprise account.
+  Creates and manages an enterprise node in your Keeper MSP or Enterprise account.Nodes organize users, roles, teams and administrators into distinct groupings, similar to organizational units in Active Directory. You can structure nodes by location, department, division, or any other hierarchy that fits your organization. The top-level node (Root) is set to the organization name; create child nodes under it or under other nodes as needed.For more information, see Enterprise Nodes documentation https://docs.keeper.io/en/enterprise-guide/getting-started-with-keeper-admin-console#nodes.
 ---
 
 # commander_enterprise_node (Resource)
 
-Manages a enterprise node. Use this resource to create and manage nodes in the MSP or Enterprise account.
+Creates and manages an **enterprise node** in your Keeper MSP or Enterprise account.<br><br>Nodes organize users, roles, teams and administrators into distinct groupings, similar to organizational units in Active Directory. You can structure nodes by location, department, division, or any other hierarchy that fits your organization. The top-level node (**Root**) is set to the organization name; create child nodes under it or under other nodes as needed.<br><br>For more information, see [Enterprise Nodes documentation](https://docs.keeper.io/en/enterprise-guide/getting-started-with-keeper-admin-console#nodes).
 
 ## Example Usage
 
 ```terraform
-# Enterprise node: name, parent (required). Optional: managed_company (MSP only).
+# Enterprise node: name, parent (required). Optional: toggle_isolated.
 # toggle_isolated defaults to false and is not supported on create; set it on update to turn isolation on or off.
 
 resource "commander_enterprise_node" "example" {
-  name   = "Engineering"
-  parent = "Root"
+  name            = "Engineering"
+  parent          = "Root"
+  toggle_isolated = true
 
   # Optional, MSP only: scope to a specific managed company
   # managed_company = "Acme Corp"
@@ -30,17 +31,17 @@ resource "commander_enterprise_node" "example" {
 
 ### Required
 
-- `name` (String) Set enterprise node's display name.
-- `parent` (String) Parent node name or ID. Make given node the parent of this node.
+- `name` (String) Set the **display name** for the enterprise node. Must be at least one character.
+- `parent` (String) The **parent node** that will manage this enterprise node. Provide the **node name** or **node ID**.
 
 ### Optional
 
-- `managed_company` (String) Only applies to **MSP accounts**. Name or ID of the managed company to scope this resource or data source to. Omit to use the logged-in account context.
-- `toggle_isolated` (Boolean) Make node visible or invisible to people in other nodes. Defaults to false. Not supported on create; on update set to true or false to turn isolation on or off.
+- `managed_company` (String) Only applies to **MSP accounts**. **Name** or **ID** of the managed company to scope this resource or data source to. Omit to use the logged-in account context.
+- `toggle_isolated` (Boolean) When `true`, this node is **isolated**: users in this node cannot see or be seen by users in other nodes. When `false`, the node is visible across the organization. Defaults to `false`.<br>**Not supported** on **create**; set on **update** to turn isolation on or off.
 
 ### Read-Only
 
-- `id` (String) ID of the enterprise node.
+- `id` (String) **Node ID** assigned by Keeper to the node after it is created. Use this value to **import** an existing node into Terraform state or to reference the node from other resources.
 
 ## Import
 
