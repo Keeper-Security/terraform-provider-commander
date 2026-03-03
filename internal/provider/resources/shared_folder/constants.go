@@ -1,7 +1,7 @@
 // Copyright (c) Keeper Security, Inc.
 // SPDX-License-Identifier: MPL-2.0
 
-package sharefolder
+package sharedfolder
 
 // Commander CLI commands for shared folder operations.
 const (

@@ -1,7 +1,7 @@
 // Copyright (c) Keeper Security, Inc.
 // SPDX-License-Identifier: MPL-2.0
 
-package sharefolder
+package sharedfolder
 
 import "github.com/hashicorp/terraform-plugin-framework/types"
 
@@ -28,19 +28,19 @@ type RecordPermissionEntryModel struct {
 
 // UserPermissionEntryModel is the per-user permission (map value in users).
 // Keys: manage_users, manage_records, expiration.
-// Expiration: "never" | ISO date/datetime (yyyy-MM-dd or yyyy-MM-dd HH:mm:ss) | relative period (e.g. 30d, 1y, 6mo, 24h).
+// Expiration: "never" | ISO date/datetime (yyyy-MM-dd or yyyy-MM-dd HH:mm:ss) | relative period (e.g. 30d, 1y, 6mo, 24h, 90days).
 type UserPermissionEntryModel struct {
 	ManageUsers   types.Bool   `tfsdk:"manage_users"`
 	ManageRecords types.Bool   `tfsdk:"manage_records"`
 	Expiration    types.String `tfsdk:"expiration"`
 }
 
-type ShareFolderResourceModel struct {
-	Id                types.String              `tfsdk:"id"`
-	Name              types.String              `tfsdk:"name"`
-	FolderLocation    types.String              `tfsdk:"folder_location"`
-	UserPermissions   *UserPermissionsModel     `tfsdk:"user_permissions"`
-	RecordPermissions *RecordPermissionsModel   `tfsdk:"record_permissions"`
-	Records           types.Map                 `tfsdk:"records"`
-	Users             types.Map                 `tfsdk:"users"`
+type SharedFolderResourceModel struct {
+	Id                types.String            `tfsdk:"id"`
+	Name              types.String            `tfsdk:"name"`
+	FolderLocation    types.String            `tfsdk:"folder_location"`
+	UserPermissions   *UserPermissionsModel   `tfsdk:"user_permissions"`
+	RecordPermissions *RecordPermissionsModel `tfsdk:"record_permissions"`
+	Records           types.Map               `tfsdk:"records"`
+	Users             types.Map               `tfsdk:"users"`
 }

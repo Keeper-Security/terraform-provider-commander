@@ -1,7 +1,7 @@
-# Share folder: name (required). Optional: folder_location, user_permissions, record_permissions, records, users.
+# Shared folder: name (required). Optional: folder_location, user_permissions, record_permissions, records, users.
 # Defaults when omitted: user_permissions { manage_users = false, manage_records = false }, record_permissions { can_share = false, can_edit = false }.
 
-resource "commander_share_folder" "example" {
+resource "commander_shared_folder" "example" {
   name            = "My Shared Folder"
   folder_location = "My Node/Subfolder"
 

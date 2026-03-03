@@ -1,7 +1,7 @@
 // Copyright (c) Keeper Security, Inc.
 // SPDX-License-Identifier: MPL-2.0
 
-package sharefolder
+package sharedfolder
 
 import (
 	"context"
@@ -14,7 +14,7 @@ import (
 // ImportState supports import by shared folder UID.
 // Import ID: the shared folder UID (e.g. "BTbjhOmqw9iYal3OQJ9UAQ").
 // After import, Terraform runs Read to refresh state from the API.
-func (r *ShareFolderResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+func (r *SharedFolderResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	if err := r.EnsureApiManager(); err != nil {
 		resp.Diagnostics.AddError(ErrSummaryProviderConfig, err.Error())
 		return
@@ -29,7 +29,7 @@ func (r *ShareFolderResource) ImportState(ctx context.Context, req resource.Impo
 		return
 	}
 
-	state := ShareFolderResourceModel{
+	state := SharedFolderResourceModel{
 		Id:                types.StringValue(importID),
 		Name:              types.StringNull(),
 		FolderLocation:    types.StringNull(),

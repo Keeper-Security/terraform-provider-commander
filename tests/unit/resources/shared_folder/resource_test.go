@@ -1,29 +1,29 @@
 // Copyright (c) Keeper Security, Inc.
 // SPDX-License-Identifier: MPL-2.0
 
-package sharefolder_test
+package sharedfolder_test
 
 import (
 	"context"
 	"testing"
 
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/api"
-	sharefolder "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/share_folder"
+	sharedfolder "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/shared_folder"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 )
 
-func TestShareFolderResource_Metadata(t *testing.T) {
-	r := sharefolder.NewShareFolderResource().(*sharefolder.ShareFolderResource)
+func TestSharedFolderResource_Metadata(t *testing.T) {
+	r := sharedfolder.NewSharedFolderResource().(*sharedfolder.SharedFolderResource)
 	req := resource.MetadataRequest{ProviderTypeName: "commander"}
 	var resp resource.MetadataResponse
 	r.Metadata(context.Background(), req, &resp)
-	if resp.TypeName != "commander_share_folder" {
-		t.Errorf("expected TypeName commander_share_folder, got %s", resp.TypeName)
+	if resp.TypeName != "commander_shared_folder" {
+		t.Errorf("expected TypeName commander_shared_folder, got %s", resp.TypeName)
 	}
 }
 
-func TestShareFolderResource_Configure_NilProviderData(t *testing.T) {
-	r := sharefolder.NewShareFolderResource().(*sharefolder.ShareFolderResource)
+func TestSharedFolderResource_Configure_NilProviderData(t *testing.T) {
+	r := sharedfolder.NewSharedFolderResource().(*sharedfolder.SharedFolderResource)
 	req := resource.ConfigureRequest{ProviderData: nil}
 	var resp resource.ConfigureResponse
 	r.Configure(context.Background(), req, &resp)
@@ -32,8 +32,8 @@ func TestShareFolderResource_Configure_NilProviderData(t *testing.T) {
 	}
 }
 
-func TestShareFolderResource_Configure_InvalidProviderData(t *testing.T) {
-	r := sharefolder.NewShareFolderResource().(*sharefolder.ShareFolderResource)
+func TestSharedFolderResource_Configure_InvalidProviderData(t *testing.T) {
+	r := sharedfolder.NewSharedFolderResource().(*sharedfolder.SharedFolderResource)
 	req := resource.ConfigureRequest{ProviderData: "not-api-manager"}
 	var resp resource.ConfigureResponse
 	r.Configure(context.Background(), req, &resp)
@@ -42,8 +42,8 @@ func TestShareFolderResource_Configure_InvalidProviderData(t *testing.T) {
 	}
 }
 
-func TestShareFolderResource_Configure_Success(t *testing.T) {
-	r := sharefolder.NewShareFolderResource().(*sharefolder.ShareFolderResource)
+func TestSharedFolderResource_Configure_Success(t *testing.T) {
+	r := sharedfolder.NewSharedFolderResource().(*sharedfolder.SharedFolderResource)
 	am := &api.ApiManager{ServiceModeUrl: "http://test", ServiceModeApiKey: "key"}
 	req := resource.ConfigureRequest{ProviderData: am}
 	var resp resource.ConfigureResponse
@@ -53,13 +53,13 @@ func TestShareFolderResource_Configure_Success(t *testing.T) {
 	}
 }
 
-func TestNewShareFolderResource(t *testing.T) {
-	res := sharefolder.NewShareFolderResource()
+func TestNewSharedFolderResource(t *testing.T) {
+	res := sharedfolder.NewSharedFolderResource()
 	if res == nil {
-		t.Fatal("NewShareFolderResource returned nil")
+		t.Fatal("NewSharedFolderResource returned nil")
 	}
-	_, ok := res.(*sharefolder.ShareFolderResource)
+	_, ok := res.(*sharedfolder.SharedFolderResource)
 	if !ok {
-		t.Errorf("expected *ShareFolderResource, got %T", res)
+		t.Errorf("expected *SharedFolderResource, got %T", res)
 	}
 }

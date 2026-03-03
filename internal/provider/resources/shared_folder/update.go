@@ -1,7 +1,7 @@
 // Copyright (c) Keeper Security, Inc.
 // SPDX-License-Identifier: MPL-2.0
 
-package sharefolder
+package sharedfolder
 
 import (
 	"context"
@@ -12,9 +12,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 )
 
-func (r *ShareFolderResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var plan ShareFolderResourceModel
-	var state ShareFolderResourceModel
+func (r *SharedFolderResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	var plan SharedFolderResourceModel
+	var state SharedFolderResourceModel
 
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 	if resp.Diagnostics.HasError() {
@@ -55,7 +55,7 @@ func (r *ShareFolderResource) Update(ctx context.Context, req resource.UpdateReq
 	planPerms := GetDefaultPermissions(&plan)
 	statePerms := GetDefaultPermissions(&state)
 	if planPerms != statePerms {
-		command := BuildShareFolderDefaultPermissionsCommand(folderUID, planPerms)
+		command := BuildSharedFolderDefaultPermissionsCommand(folderUID, planPerms)
 		if _, err := r.ApiManager.ExecuteCommand(ctx, command, ErrOpUpdateDefaultPerms); err != nil {
 			resp.Diagnostics.AddError(ErrSummaryUpdateFailed, err.Error())
 			return
@@ -63,12 +63,12 @@ func (r *ShareFolderResource) Update(ctx context.Context, req resource.UpdateReq
 	}
 
 	// Sync records: remove removed, grant new/updated
-	if err := SyncShareFolderRecords(ctx, r.ApiManager, folderUID, plan.Records, state.Records); err != nil {
+	if err := SyncSharedFolderRecords(ctx, r.ApiManager, folderUID, plan.Records, state.Records); err != nil {
 		resp.Diagnostics.AddError(ErrSummaryUpdateFailed, err.Error())
 		return
 	}
 	// Sync users: remove removed, grant new/updated
-	if err := SyncShareFolderUsers(ctx, r.ApiManager, folderUID, plan.Users, state.Users); err != nil {
+	if err := SyncSharedFolderUsers(ctx, r.ApiManager, folderUID, plan.Users, state.Users); err != nil {
 		resp.Diagnostics.AddError(ErrSummaryUpdateFailed, err.Error())
 		return
 	}
@@ -76,9 +76,9 @@ func (r *ShareFolderResource) Update(ctx context.Context, req resource.UpdateReq
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }
 
-// BuildShareFolderDefaultPermissionsCommand builds share-folder FOLDER_UID --email '*' --record '*' with --manage-users/--manage-records/--can-share/--can-edit on|off.
+// BuildSharedFolderDefaultPermissionsCommand builds share-folder FOLDER_UID --email '*' --record '*' with --manage-users/--manage-records/--can-share/--can-edit on|off.
 // Used to apply default user_permissions and record_permissions to the shared folder (create or update).
-func BuildShareFolderDefaultPermissionsCommand(folderUID string, f DefaultPermissionFlags) string {
+func BuildSharedFolderDefaultPermissionsCommand(folderUID string, f DefaultPermissionFlags) string {
 	onOff := func(b bool) string {
 		if b {
 			return ValueOn

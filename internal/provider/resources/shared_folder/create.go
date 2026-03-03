@@ -1,7 +1,7 @@
 // Copyright (c) Keeper Security, Inc.
 // SPDX-License-Identifier: MPL-2.0
 
-package sharefolder
+package sharedfolder
 
 import (
 	"context"
@@ -13,8 +13,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
-func (r *ShareFolderResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	var data ShareFolderResourceModel
+func (r *SharedFolderResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+	var data SharedFolderResourceModel
 
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
 	if resp.Diagnostics.HasError() {
@@ -55,11 +55,11 @@ func (r *ShareFolderResource) Create(ctx context.Context, req resource.CreateReq
 	data.Id = types.StringValue(folderUID)
 
 	// Phase 2: sync records and users (grant all; no prior state so nothing to remove)
-	if err := SyncShareFolderRecords(ctx, r.ApiManager, folderUID, data.Records, types.MapNull(RecordEntryMapElemType)); err != nil {
+	if err := SyncSharedFolderRecords(ctx, r.ApiManager, folderUID, data.Records, types.MapNull(RecordEntryMapElemType)); err != nil {
 		resp.Diagnostics.AddError(ErrSummaryCreateFailed, err.Error())
 		return
 	}
-	if err := SyncShareFolderUsers(ctx, r.ApiManager, folderUID, data.Users, types.MapNull(UserEntryMapElemType)); err != nil {
+	if err := SyncSharedFolderUsers(ctx, r.ApiManager, folderUID, data.Users, types.MapNull(UserEntryMapElemType)); err != nil {
 		resp.Diagnostics.AddError(ErrSummaryCreateFailed, err.Error())
 		return
 	}
@@ -69,7 +69,7 @@ func (r *ShareFolderResource) Create(ctx context.Context, req resource.CreateReq
 
 // buildMkdirCommand builds the "mkdir --shared-folder" command and the folder path used as NAME.
 // Folder path: if folder_location is set, "folder_location/name", otherwise "name".
-func buildCreateSharedFolderCommand(data *ShareFolderResourceModel) (command string, err error) {
+func buildCreateSharedFolderCommand(data *SharedFolderResourceModel) (command string, err error) {
 	name := data.Name.ValueString()
 	if name == "" {
 		return "", fmt.Errorf("name is required")

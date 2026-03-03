@@ -1,7 +1,7 @@
 // Copyright (c) Keeper Security, Inc.
 // SPDX-License-Identifier: MPL-2.0
 
-package sharefolder
+package sharedfolder
 
 import (
 	"context"
@@ -40,7 +40,7 @@ type DefaultPermissionFlags struct {
 }
 
 // GetDefaultPermissions returns the default permission flags from the resource model (nil/null = false).
-func GetDefaultPermissions(data *ShareFolderResourceModel) DefaultPermissionFlags {
+func GetDefaultPermissions(data *SharedFolderResourceModel) DefaultPermissionFlags {
 	var f DefaultPermissionFlags
 	if data.UserPermissions != nil {
 		if !data.UserPermissions.ManageUsers.IsNull() {
@@ -61,9 +61,9 @@ func GetDefaultPermissions(data *ShareFolderResourceModel) DefaultPermissionFlag
 	return f
 }
 
-// SyncShareFolderRecords syncs records with the shared folder: grants only added/updated, removes removed.
+// SyncSharedFolderRecords syncs records with the shared folder: grants only added/updated, removes removed.
 // Skips grant for items that exist in state with the same value (no change).
-func SyncShareFolderRecords(ctx context.Context, apiManager *api.ApiManager, folderUID string, planRecords, stateRecords types.Map) error {
+func SyncSharedFolderRecords(ctx context.Context, apiManager *api.ApiManager, folderUID string, planRecords, stateRecords types.Map) error {
 	planKeys := mapKeys(planRecords)
 	stateKeys := mapKeys(stateRecords)
 	stateElements := mapElements(stateRecords)
@@ -71,7 +71,7 @@ func SyncShareFolderRecords(ctx context.Context, apiManager *api.ApiManager, fol
 	// Remove: in state but not in plan
 	for recordID := range stateKeys {
 		if !planKeys[recordID] {
-			cmd := buildShareFolderRecordCommand(ActionRemove, folderUID, recordID, false, false)
+			cmd := buildSharedFolderRecordCommand(ActionRemove, folderUID, recordID, false, false)
 			if _, err := apiManager.ExecuteCommand(ctx, cmd, ErrOpRemoveRecord); err != nil {
 				return err
 			}
@@ -91,7 +91,7 @@ func SyncShareFolderRecords(ctx context.Context, apiManager *api.ApiManager, fol
 				}
 			}
 			canShare, canEdit := getRecordAttrs(planObj)
-			cmd := buildShareFolderRecordCommand(ActionGrant, folderUID, recordID, canShare, canEdit)
+			cmd := buildSharedFolderRecordCommand(ActionGrant, folderUID, recordID, canShare, canEdit)
 			if _, err := apiManager.ExecuteCommand(ctx, cmd, ErrOpAddUpdateRecord); err != nil {
 				return err
 			}
@@ -100,9 +100,9 @@ func SyncShareFolderRecords(ctx context.Context, apiManager *api.ApiManager, fol
 	return nil
 }
 
-// SyncShareFolderUsers syncs users with the shared folder: grants only added/updated, removes removed.
+// SyncSharedFolderUsers syncs users with the shared folder: grants only added/updated, removes removed.
 // Skips grant for items that exist in state with the same value (no change).
-func SyncShareFolderUsers(ctx context.Context, apiManager *api.ApiManager, folderUID string, planUsers, stateUsers types.Map) error {
+func SyncSharedFolderUsers(ctx context.Context, apiManager *api.ApiManager, folderUID string, planUsers, stateUsers types.Map) error {
 	planKeys := mapKeys(planUsers)
 	stateKeys := mapKeys(stateUsers)
 	stateElements := mapElements(stateUsers)
@@ -110,7 +110,7 @@ func SyncShareFolderUsers(ctx context.Context, apiManager *api.ApiManager, folde
 	// Remove: in state but not in plan
 	for emailOrID := range stateKeys {
 		if !planKeys[emailOrID] {
-			cmd := buildShareFolderUserCommand(ActionRemove, folderUID, emailOrID, false, false, "")
+			cmd := buildSharedFolderUserCommand(ActionRemove, folderUID, emailOrID, false, false, "")
 			if _, err := apiManager.ExecuteCommand(ctx, cmd, ErrOpRemoveUser); err != nil {
 				return err
 			}
@@ -130,7 +130,7 @@ func SyncShareFolderUsers(ctx context.Context, apiManager *api.ApiManager, folde
 				}
 			}
 			manageUsers, manageRecords, expiration := getUserAttrs(planObj)
-			cmd := buildShareFolderUserCommand(ActionGrant, folderUID, emailOrID, manageUsers, manageRecords, expiration)
+			cmd := buildSharedFolderUserCommand(ActionGrant, folderUID, emailOrID, manageUsers, manageRecords, expiration)
 			if _, err := apiManager.ExecuteCommand(ctx, cmd, ErrOpAddUpdateUser); err != nil {
 				return err
 			}
@@ -198,9 +198,9 @@ func getUserAttrs(obj types.Object) (manageUsers, manageRecords bool, expiration
 	return manageUsers, manageRecords, expiration
 }
 
-// buildShareFolderRecordCommand builds share-folder --action grant|remove SF_ID --record RECORD_ID [--can-share on|off --can-edit on|off].
+// buildSharedFolderRecordCommand builds share-folder --action grant|remove SF_ID --record RECORD_ID [--can-share on|off --can-edit on|off].
 // For remove, canShare/canEdit are ignored.
-func buildShareFolderRecordCommand(action, folderUID, recordID string, canShare, canEdit bool) string {
+func buildSharedFolderRecordCommand(action, folderUID, recordID string, canShare, canEdit bool) string {
 	base := fmt.Sprintf("%s %s %s '%s' %s '%s'", CmdShareFolder, FlagAction, action, folderUID, FlagRecord, recordID)
 	if action != ActionGrant {
 		return base
@@ -216,9 +216,9 @@ func buildShareFolderRecordCommand(action, folderUID, recordID string, canShare,
 	return fmt.Sprintf("%s %s %s %s %s", base, FlagCanShare, canShareVal, FlagCanEdit, canEditVal)
 }
 
-// buildShareFolderUserCommand builds share-folder --action grant|remove SF_ID --email EMAIL_OR_ID [--manage-users on|off --manage-records on|off [--expire-at|--expire-in VALUE]].
+// buildSharedFolderUserCommand builds share-folder --action grant|remove SF_ID --email EMAIL_OR_ID [--manage-users on|off --manage-records on|off [--expire-at|--expire-in VALUE]].
 // For remove, permission and expiration args are ignored.
-func buildShareFolderUserCommand(action, folderUID, emailOrID string, manageUsers, manageRecords bool, expiration string) string {
+func buildSharedFolderUserCommand(action, folderUID, emailOrID string, manageUsers, manageRecords bool, expiration string) string {
 	base := fmt.Sprintf("%s %s %s '%s' %s '%s'", CmdShareFolder, FlagAction, action, folderUID, FlagEmail, emailOrID)
 	if action != ActionGrant {
 		return base
@@ -286,10 +286,10 @@ func getBoolFromMap(m map[string]interface{}, key string) bool {
 	return false
 }
 
-// MapGetResponseToModel maps the "get ID --format json" API response (Data) to ShareFolderResourceModel.
+// MapGetResponseToModel maps the "get ID --format json" API response (Data) to SharedFolderResourceModel.
 // data is expected to be map[string]interface{} with shared_folder_uid, name, manage_users, manage_records,
 // can_edit, can_share, records ([]interface{}), users ([]interface{}). Folder_location is not in API and set null.
-func MapGetResponseToModel(ctx context.Context, data any) (*ShareFolderResourceModel, error) {
+func MapGetResponseToModel(ctx context.Context, data any) (*SharedFolderResourceModel, error) {
 	m, ok := data.(map[string]interface{})
 	if !ok || m == nil {
 		return nil, fmt.Errorf("get response data is not a map")
@@ -300,7 +300,7 @@ func MapGetResponseToModel(ctx context.Context, data any) (*ShareFolderResourceM
 		return nil, fmt.Errorf("get response missing %s", KeySharedFolderUID)
 	}
 
-	model := &ShareFolderResourceModel{
+	model := &SharedFolderResourceModel{
 		Id:             types.StringValue(uid),
 		Name:           types.StringValue(getStringFromMap(m, KeyName)),
 		FolderLocation: types.StringNull(),
@@ -315,7 +315,7 @@ func MapGetResponseToModel(ctx context.Context, data any) (*ShareFolderResourceM
 	}
 
 	// records: key = record_uid, value = { can_share, can_edit }
-	recordsRaw, _ := m[KeyRecords]
+	recordsRaw := m[KeyRecords]
 	recordsMap, err := buildRecordsMapFromGetResponse(recordsRaw)
 	if err != nil {
 		return nil, fmt.Errorf("records: %w", err)
@@ -323,7 +323,7 @@ func MapGetResponseToModel(ctx context.Context, data any) (*ShareFolderResourceM
 	model.Records = recordsMap
 
 	// users: key = username, value = { manage_users, manage_records, expiration }; expiration not in API => null
-	usersRaw, _ := m[KeyUsers]
+	usersRaw := m[KeyUsers]
 	usersMap, err := buildUsersMapFromGetResponse(usersRaw)
 	if err != nil {
 		return nil, fmt.Errorf("users: %w", err)

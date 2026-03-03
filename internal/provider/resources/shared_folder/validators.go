@@ -1,7 +1,7 @@
 // Copyright (c) Keeper Security, Inc.
 // SPDX-License-Identifier: MPL-2.0
 
-package sharefolder
+package sharedfolder
 
 import (
 	"context"
@@ -16,7 +16,7 @@ import (
 
 // Expiration format: "never" | ISO date (yyyy-MM-dd) or datetime (yyyy-MM-dd HH:mm:ss) | relative period (e.g. 30d, 1y, 6mo, 24h, 90days).
 var (
-	expirationNever   = regexp.MustCompile(`(?i)^never$`)
+	expirationNever    = regexp.MustCompile(`(?i)^never$`)
 	expirationRelative = regexp.MustCompile(`^\d+\s*(y|mo|d|h|mi|min|years?|months?|days?|hours?|minutes?)$`)
 	// ISO date only (yyyy-MM-dd) or date + optional time (yyyy-MM-dd HH:mm or yyyy-MM-dd HH:mm:ss).
 	expirationISO = regexp.MustCompile(`^\d{4}-\d{2}-\d{2}(\s+\d{1,2}:\d{2}(:\d{2})?)?$`)

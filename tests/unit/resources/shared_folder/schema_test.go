@@ -1,18 +1,18 @@
 // Copyright (c) Keeper Security, Inc.
 // SPDX-License-Identifier: MPL-2.0
 
-package sharefolder_test
+package sharedfolder_test
 
 import (
 	"context"
 	"testing"
 
-	sharefolder "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/share_folder"
+	sharedfolder "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/shared_folder"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 )
 
-func TestShareFolderResource_Schema(t *testing.T) {
-	r := sharefolder.NewShareFolderResource().(*sharefolder.ShareFolderResource)
+func TestSharedFolderResource_Schema(t *testing.T) {
+	r := sharedfolder.NewSharedFolderResource().(*sharedfolder.SharedFolderResource)
 	req := resource.SchemaRequest{}
 	var resp resource.SchemaResponse
 	r.Schema(context.Background(), req, &resp)

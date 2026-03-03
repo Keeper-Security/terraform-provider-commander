@@ -1,7 +1,7 @@
 // Copyright (c) Keeper Security, Inc.
 // SPDX-License-Identifier: MPL-2.0
 
-package sharefolder
+package sharedfolder
 
 import (
 	"context"
@@ -13,7 +13,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 )
 
-func (r *ShareFolderResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
+func (r *SharedFolderResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		Description:         DescResource,
 		MarkdownDescription: DescResource,
@@ -37,8 +37,8 @@ func (r *ShareFolderResource) Schema(ctx context.Context, req resource.SchemaReq
 				MarkdownDescription: DescFolderLocation,
 			},
 			"user_permissions": schema.SingleNestedAttribute{
-				Optional:            true,
-				Computed:            true,
+				Optional: true,
+				Computed: true,
 				PlanModifiers: []planmodifier.Object{
 					userPermissionsDefaultPlanModifier{},
 				},
@@ -58,8 +58,8 @@ func (r *ShareFolderResource) Schema(ctx context.Context, req resource.SchemaReq
 				},
 			},
 			"record_permissions": schema.SingleNestedAttribute{
-				Optional:            true,
-				Computed:            true,
+				Optional: true,
+				Computed: true,
 				PlanModifiers: []planmodifier.Object{
 					recordPermissionsDefaultPlanModifier{},
 				},
