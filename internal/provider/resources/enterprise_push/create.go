@@ -21,7 +21,7 @@ func (r *EnterprisePushResource) Create(ctx context.Context, req resource.Create
 
 	if err := r.EnsureApiManager(); err != nil {
 		resp.Diagnostics.AddError(
-			"Provider Configuration Error",
+			utils.ERR_MSG_PROVIDER_CONFIGURATION_ERROR,
 			err.Error(),
 		)
 		return

@@ -310,7 +310,7 @@ resource "commander_enterprise_push" "example" {
 ### Optional
 
 - `email` (Set of String) Users to assign records to.
-- `managed_company` (String) Only applies to **MSP accounts**. Name or ID of the managed company to scope this resource or data source to. Omit to use the logged-in account context.
+- `managed_company` (String) Only applies to **MSP accounts**. **Name** or **ID** of the managed company to scope this resource or data source to. Omit to use the logged-in account context.
 - `team` (Set of String) Teams to assign records to.
 
 ### Read-Only

@@ -27,7 +27,7 @@ func (r *SharedFolderResource) Update(ctx context.Context, req resource.UpdateRe
 
 	if err := r.EnsureApiManager(); err != nil {
 		resp.Diagnostics.AddError(
-			ErrSummaryProviderConfig,
+			utils.ERR_MSG_PROVIDER_CONFIGURATION_ERROR,
 			err.Error(),
 		)
 		return

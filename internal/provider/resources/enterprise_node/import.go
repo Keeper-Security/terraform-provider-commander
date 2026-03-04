@@ -19,7 +19,7 @@ import (
 func (r *EnterpriseNodeResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	if err := r.EnsureApiManager(); err != nil {
 		resp.Diagnostics.AddError(
-			"Provider Configuration Error",
+			utils.ERR_MSG_PROVIDER_CONFIGURATION_ERROR,
 			err.Error(),
 		)
 		return

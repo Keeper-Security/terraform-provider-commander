@@ -20,7 +20,7 @@ func (r *SharedFolderResource) Read(ctx context.Context, req resource.ReadReques
 	}
 
 	if err := r.EnsureApiManager(); err != nil {
-		resp.Diagnostics.AddError(ErrSummaryProviderConfig, err.Error())
+		resp.Diagnostics.AddError(utils.ERR_MSG_PROVIDER_CONFIGURATION_ERROR, err.Error())
 		return
 	}
 

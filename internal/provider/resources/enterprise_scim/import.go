@@ -1,7 +1,7 @@
 // Copyright (c) Keeper Security, Inc.
 // SPDX-License-Identifier: MPL-2.0
 
-package enterpriseuser
+package enterprisescim
 
 import (
 	"context"
@@ -11,12 +11,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
-// ImportState supports import ID formats:
-//   - User only: user email or user ID (e.g. user@example.com or 1326075447607317)
-//   - With managed company: "managed_company_name_or_id,user_email_or_id" (comma-separated, e.g. "Test Company,1326075447607317" or "1169425105420462,user@example.com")
+// ImportState supports import ID format:
+//   - scim_id (e.g. "1169425105420640")
+//   - managed_company,scim_id (e.g. "My MC,1169425105420640")
 //
 // After import, Terraform runs Read to refresh state from the API.
-func (r *EnterpriseUserResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+func (r *EnterpriseScimResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	if err := r.EnsureApiManager(); err != nil {
 		resp.Diagnostics.AddError(
 			utils.ERR_MSG_PROVIDER_CONFIGURATION_ERROR,
@@ -25,22 +25,20 @@ func (r *EnterpriseUserResource) ImportState(ctx context.Context, req resource.I
 		return
 	}
 
-	resourceID, managedCompany, diags := utils.ParseManagedCompanyImportID(req.ID, "user")
+	resourceID, managedCompany, diags := utils.ParseManagedCompanyImportID(req.ID, ImportResourceType)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	state := EnterpriseUserResourceModel{
+	state := EnterpriseScimResourceModel{
 		Id:             types.StringValue(resourceID),
-		Email:          types.StringNull(),
-		Name:           types.StringNull(),
-		JobTitle:       types.StringNull(),
-		Roles:          types.SetNull(types.StringType),
-		Teams:          types.SetNull(types.StringType),
+		ScimURL:        types.StringNull(),
 		Node:           types.StringNull(),
-		ManagedCompany: types.StringNull(),
 		Status:         types.StringNull(),
+		Prefix:         types.StringNull(),
+		UniqueGroups:   types.BoolNull(),
+		ManagedCompany: types.StringNull(),
 	}
 	if managedCompany != "" {
 		state.ManagedCompany = types.StringValue(managedCompany)

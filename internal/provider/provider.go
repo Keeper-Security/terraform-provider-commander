@@ -17,6 +17,7 @@ import (
 	enterprisenode "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/enterprise_node"
 	enterprisepush "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/enterprise_push"
 	enterpriserole "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/enterprise_role"
+	enterprisescim "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/enterprise_scim"
 	enterpriseteam "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/enterprise_team"
 	enterpriseuser "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/enterprise_user"
 	managedcompany "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/managed_company"
@@ -135,6 +136,7 @@ func (p *CommanderProvider) Resources(ctx context.Context) []func() resource.Res
 		managedcompany.NewManagedCompanyResource,
 		enterprisenode.NewEnterpriseNodeResource,
 		enterprisepush.NewEnterprisePushResource,
+		enterprisescim.NewEnterpriseScimResource,
 		enterpriseteam.NewEnterpriseTeamResource,
 		enterpriserole.NewEnterpriseRoleResource,
 		enterpriseuser.NewEnterpriseUserResource,

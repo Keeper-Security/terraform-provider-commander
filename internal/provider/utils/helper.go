@@ -592,6 +592,29 @@ func FetchManagedCompanyByNameOrId(ctx context.Context, apiManager *api.ApiManag
 	return companyInfo, nil
 }
 
+// FetchEnterpriseScimById retrieves a single SCIM configuration by scim_id.
+// The API returns a single object. Returns (nil, nil) if not found so Read can remove from state.
+func FetchEnterpriseScimById(ctx context.Context, apiManager *api.ApiManager, scimId string) (*EnterpriseScimResponse, error) {
+	command := fmt.Sprintf("scim view '%s' --format json", scimId)
+
+	apiResp, err := apiManager.ExecuteCommand(ctx, command, "Failed to retrieve enterprise SCIM information")
+	if err != nil {
+		return nil, err
+	}
+
+	var scimInfo EnterpriseScimResponse
+	if err := UnmarshalApiResponse(apiResp.Data, &scimInfo); err != nil {
+		return nil, fmt.Errorf("unable to parse enterprise SCIM from API response: %w", err)
+	}
+
+	// Treat empty or zero scim_id as not found
+	if scimInfo.ScimID == 0 {
+		return nil, nil
+	}
+
+	return &scimInfo, nil
+}
+
 // ParseManagedCompanyImportID parses an import ID that may be "resource_id" or "managed_company,resource_id".
 // resourceName is used in error messages (e.g. "node" or "role").
 // Returns resourceID, managedCompany (empty if not in ID), and any diagnostics.
@@ -599,7 +622,7 @@ func ParseManagedCompanyImportID(importID string, resourceName string) (resource
 	importID = strings.TrimSpace(importID)
 	if importID == "" {
 		diags = append(diags, diag.NewErrorDiagnostic(
-			"Invalid Import ID",
+			ERR_MSG_INVALID_IMPORT_ID,
 			"Import ID cannot be empty. Use: (1) "+resourceName+" name or "+resourceName+" ID alone; or (2) for a "+resourceName+" in a managed company, use \"managed_company_name_or_id,"+resourceName+"_name_or_id\" (comma-separated).",
 		))
 		return "", "", diags
@@ -614,7 +637,7 @@ func ParseManagedCompanyImportID(importID string, resourceName string) (resource
 
 	if resourceID == "" {
 		diags = append(diags, diag.NewErrorDiagnostic(
-			"Invalid Import ID",
+			ERR_MSG_INVALID_IMPORT_ID,
 			"When using managed company format \"managed_company_name_or_id,"+resourceName+"\", the "+resourceName+" part cannot be empty.",
 		))
 		return "", "", diags

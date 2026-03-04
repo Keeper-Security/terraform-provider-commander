@@ -1,26 +1,25 @@
 // Copyright (c) Keeper Security, Inc.
 // SPDX-License-Identifier: MPL-2.0
 
-package enterprisenode
+package enterprisescim
 
 import (
 	"context"
-	"fmt"
+	"errors"
 
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/utils"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 )
 
-func (r *EnterpriseNodeResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-	var state EnterpriseNodeResourceModel
+func (r *EnterpriseScimResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+	var state EnterpriseScimResourceModel
 
-	// Get state from Terraform
+	// Get current state (old values)
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	// Validate ApiManager is configured
 	if err := r.EnsureApiManager(); err != nil {
 		resp.Diagnostics.AddError(
 			utils.ERR_MSG_PROVIDER_CONFIGURATION_ERROR,
@@ -29,17 +28,23 @@ func (r *EnterpriseNodeResource) Delete(ctx context.Context, req resource.Delete
 		return
 	}
 
-	// Execute with managed company context if provided
 	if err := utils.RunWithManagedCompanyContext(ctx, r.ApiManager, state.ManagedCompany, func() error {
-		command := fmt.Sprintf("enterprise-node --delete '%s'", state.Id.ValueString())
-		if _, err := r.ApiManager.ExecuteCommand(ctx, command, "Unable to delete enterprise node"); err != nil {
+		scimInfo, err := utils.FetchEnterpriseScimById(ctx, r.ApiManager, state.Id.ValueString())
+		if err != nil {
 			return err
 		}
+		if scimInfo == nil {
+			resp.State.RemoveResource(ctx)
+			return utils.ErrResourceRemoved
+		}
+		mapScimReadResponseToModel(scimInfo, &state)
 		return nil
-	}, "Delete Enterprise Node Failed", &resp.Diagnostics); err != nil {
+	}, ErrSummaryReadFailed, &resp.Diagnostics); err != nil && errors.Is(err, utils.ErrResourceRemoved) {
 		return
 	}
 	if resp.Diagnostics.HasError() {
 		return
 	}
+
+	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
 }
