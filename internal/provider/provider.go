@@ -18,6 +18,7 @@ import (
 	enterprisepush "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/enterprise_push"
 	enterpriserole "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/enterprise_role"
 	enterprisescim "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/enterprise_scim"
+	enterprisescimpush "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/enterprise_scim_push"
 	enterpriseteam "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/enterprise_team"
 	enterpriseuser "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/enterprise_user"
 	managedcompany "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/managed_company"
@@ -60,7 +61,7 @@ func (p *CommanderProvider) Metadata(ctx context.Context, req provider.MetadataR
 func (p *CommanderProvider) Schema(ctx context.Context, req provider.SchemaRequest, resp *provider.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		Description:         "Manage Keeper enterprise and MSP configuration as code via the Commander Service Mode API. See the detailed documentation https://docs.keeper.io/en/keeperpam/secrets-manager/integrations/terraform-provider-commander for information about features, prerequisites, setup and installation, and examples.",
-		MarkdownDescription: "Manage Keeper **enterprise** and **MSP** configuration as code via the [Commander Service Mode API](https://docs.keeper.io/en/keeperpam/commander-cli/service-mode-rest-api).<br><br><i>**New to the Commander provider?**</i> See the detailed [documentation](https://docs.keeper.io/en/keeperpam/secrets-manager/integrations/terraform-provider-commander) for information about features, prerequisites, setup and installation, and examples.",
+		MarkdownDescription: "Manage Keeper **enterprise** and **MSP** configuration as code via the [Commander Service Mode API](https://docs.keeper.io/en/keeperpam/commander-cli/service-mode-rest-api).\n\n" + "-> <i>**New to the Commander provider?**</i> See the detailed [documentation](https://docs.keeper.io/en/keeperpam/secrets-manager/integrations/terraform-provider-commander) for information about features, prerequisites, setup and installation.",
 		Attributes: map[string]schema.Attribute{
 			"service_mode_url": schema.StringAttribute{
 				MarkdownDescription: "The URL of the running Keeper Commander Service Mode.",
@@ -136,6 +137,7 @@ func (p *CommanderProvider) Resources(ctx context.Context) []func() resource.Res
 		managedcompany.NewManagedCompanyResource,
 		enterprisenode.NewEnterpriseNodeResource,
 		enterprisepush.NewEnterprisePushResource,
+		enterprisescimpush.NewEnterpriseScimPushResource,
 		enterprisescim.NewEnterpriseScimResource,
 		enterpriseteam.NewEnterpriseTeamResource,
 		enterpriserole.NewEnterpriseRoleResource,

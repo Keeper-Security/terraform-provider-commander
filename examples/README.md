@@ -23,6 +23,7 @@ Other `.tf` files in these directories are ignored by the docs tool but can be u
 - **commander_enterprise_role** — Enterprise role
 - **commander_enterprise_user** — Enterprise user
 - **commander_enterprise_push** — One-time push of records to user vaults (write-only; see `resources/commander_enterprise_push/README.md` for details)
+- **commander_enterprise_scim_push** — One-time push of SCIM data (Google, AD, or record) to a SCIM endpoint
 
 ## Data sources
 

@@ -3,13 +3,13 @@
 page_title: "commander_enterprise_push Resource - commander"
 subcategory: ""
 description: |-
-  One-time action resource that pushes JSON file content to user vaults via the enterprise-push Commander CLI.
-  Write-only resource
-  The API does not support read or delete operations.Terraform cannot detect drift. If the file or targets change outside Terraform, Terraform will not see it.email and team are updatable: adding emails/teams triggers Update and pushes only to newly added targets; removing emails/teams only updates state (no push).Changes to file_path, file content, or managed_company trigger replace (destroy + create) and a full push.Delete only removes the resource from Terraform state; nothing is deleted on the server.
-  Behavior
-  Deterministic ID: id is computed as sha256(file_content + sorted_emails + sorted_teams + managed_company).Create: Push runs to all configured email/team. Update (when only email/team change): push runs only to newly added emails/teams; if only removals, state is updated and no push runs.No-op Read: Read does not call the API; state is left as-is.No-op Delete: Delete does not call the API; the resource is only removed from state.
-  Example push-data.json
-  Create a file that will be pushed (e.g. push-data.json). It must be valid JSON. The entire file content is sent as filedata to the enterprise-push command.
+  Use this resource to push record data from a JSON file into your users' or teams' Keeper vaults. You choose the file and who receives it (by email and/or team).
+  What this resource does
+  On first apply, it pushes the file contents to everyone you list in email and team.Terraform does not read or delete anything on the server—it only runs the push and tracks it.If you add more emails or teams later, Terraform pushes only to the new recipients (existing ones are not pushed again).If you remove emails or teams, Terraform only updates its state; no push runs.If you change the file (same or different path), Terraform runs a full push to all current recipients again.
+  What you need to provide
+  file_path — Path to a JSON file on the machine running Terraform. The file must be valid JSON (see example below).email and/or team — At least one is required. List the users (by email) and/or teams that should receive the records.managed_company — (Optional, MSP only) Name or ID of the managed company. Omit to use your current account.
+  Example JSON file
+  Create a file (e.g. push-data.json) with your records. It must be valid JSON. The whole file is sent as the push payload.
   
   {
     "records": [{
@@ -48,96 +48,38 @@ description: |-
     }]
   }
   
-  Place the file where Terraform can read it (e.g. "${path.module}/push-data.json").
-  See Enterprise Push documentation https://docs.keeper.io/en/keeperpam/commander-cli/command-reference/enterprise-management-commands#enterprise-push-command for more information.
-  Adding or removing email/team: Update behavior
-  email and team do not use ForceNew. When you change only those attributes, Terraform runs Update (not replace).
-  When you add one or more emails or teams: Update runs and pushes the file content only to the newly added emails/teams.When you remove emails or teams: Update runs and only updates state; no push is performed.
-  Example: adding one email
-  Step 1 — Initial config and apply
-  
-  resource "commander_enterprise_push" "example" {
-    file_path = "${path.module}/data.json"
-    email     = ["alice@example.com", "bob@example.com"]
-    team      = ["Engineering"]
-  }
-  
-  First terraform apply: push runs to alice@example.com, bob@example.com, and Engineering. Resource is created.
-  Step 2 — Add one email and apply again
-  
-  resource "commander_enterprise_push" "example" {
-    file_path = "${path.module}/data.json"
-    email     = ["alice@example.com", "bob@example.com", "carol@example.com"]  # added carol
-    team      = ["Engineering"]
-  }
-  
-  terraform plan: Terraform sees email changed → in-place update (no replace).terraform apply: Update runs. Push runs only to carol@example.com (the newly added email). alice, bob, and Engineering do not receive another push.
-  Example: adding one team
-  If you add ["Support"] to team, Update runs and the push goes only to the Support team (and any other newly added emails/teams). Existing targets are not pushed again.
-  Example: removing email/team
-  If you remove bob@example.com from email (and leave alice and Engineering), Update runs and only state is updated; no push is performed.
-  Summary
-  | Change | What Terraform does | Who gets the push |
-  |--------|---------------------|-------------------|
-  | Add email(s) and/or team(s) | Update | **Only newly added** emails/teams |
-  | Remove email(s) and/or team(s) | Update | **No push** (state only) |
-  When does a push happen?
-  | Situation | Result |
-  |-----------|--------|
-  | First `terraform apply` with this resource | Push runs to all configured email/team; resource created. |
-  | No change to file or attributes | No re-push. |
-  | File content changed (same path) | Replace → push runs again to **all** current email/team. |
-  | `file_path` or `managed_company` changed | Replace → push runs again to all email/team. |
-  | **Add** email(s) and/or team(s) | Update → push runs **only to newly added** targets. |
-  | **Remove** email(s) and/or team(s) | Update → **no push** (state only). |
-  | Resource removed from config and applied | Resource removed from state only; no API delete. |
-  All scenarios: how the resource behaves
-  Below are all scenarios and what Terraform and the provider do. Attributes that use ForceNew (file_path, file content via file_content_sha256, managed_company) trigger replace (destroy + create). Only email and team are updatable in place.
-  | # | Scenario | Terraform operation | API / push behavior | State after apply |
-  |---|----------|---------------------|----------------------|-------------------|
-  | 1 | **First time** adding the resource and applying | **Create** | Read file → push to **all** configured email + team | Resource created; `id` and `file_content_sha256` set |
-  | 2 | **No change** to config or file, apply again | No change | No API call | Unchanged |
-  | 3 | **Add one or more emails** (same file_path, content, team, managed_company) | **Update** | Push **only to the newly added** email(s) | State updated with new email set and new `id` |
-  | 4 | **Add one or more teams** (same file_path, content, email, managed_company) | **Update** | Push **only to the newly added** team(s) | State updated with new team set and new `id` |
-  | 5 | **Add both emails and teams** in one change | **Update** | Push **only to all newly added** emails and teams (one push with all new targets) | State updated with new email/team sets and new `id` |
-  | 6 | **Remove one or more emails** (keep at least one target in config) | **Update** | **No push**; only state updated | State updated with smaller email set and new `id` |
-  | 7 | **Remove one or more teams** (keep at least one target in config) | **Update** | **No push**; only state updated | State updated with smaller team set and new `id` |
-  | 8 | **Remove some emails and some teams** (still have at least one email or team) | **Update** | **No push**; only state updated | State updated; new `id` |
-  | 9 | **Add emails and remove teams** (or add teams and remove emails) in same change | **Update** | Push **only to newly added** emails/teams; removals do not trigger push | State updated; new `id` |
-  | 10 | **File content changed** (same `file_path`, file edited on disk) | **Replace** (destroy + create) | Destroy: no-op. Create: read new file → push to **all** current email + team | New resource instance; new `id`, new `file_content_sha256` |
-  | 11 | **`file_path` changed** (different file, same or different content) | **Replace** (destroy + create) | Destroy: no-op. Create: read new path → push to **all** current email + team | New resource instance; new `id`, new `file_content_sha256` |
-  | 12 | **`managed_company` changed** (MSP) | **Replace** (destroy + create) | Destroy: no-op. Create: push to **all** current email + team in new company context | New resource instance; new `id` |
-  | 13 | **File content + add email** in same apply | **Replace** (content change wins) | Destroy: no-op. Create: push to **all** plan email + team (including the new email) with **new** file content | New resource; full push to all targets with new content |
-  | 14 | **Refresh** (e.g. `terraform refresh` or during plan/apply) | **Read** | No API call; state left as-is (no-op Read) | Unchanged |
-  | 15 | **Resource removed from config** and apply | **Delete** | No API call; resource removed from state only | Resource gone from state |
-  Notes on scenarios
-  Scenarios 3–5: Only new emails/teams receive the push; existing targets are not pushed again.Scenarios 6–8: Removals never trigger a push; the provider only updates Terraform state.Scenarios 10–12: Any change to file_path, file content (detected via file_content_sha256), or managed_company causes replace. Create then pushes to all current email and team in the plan.Scenario 13: When replace is forced by file content (or file_path/managed_company), Create runs with the full plan (all emails/teams); there is no "delta" push on replace.At least one target required on Create: You must specify at least one of email or team when creating the resource; otherwise Terraform will report an error. On Update, you may remove all emails and teams (state is updated, no push is performed).
+  Point file_path at this file (e.g. "${path.module}/push-data.json").
+  See Enterprise Push documentation https://docs.keeper.io/en/keeperpam/commander-cli/command-reference/enterprise-management-commands#enterprise-push-command for more details.
+  Adding or removing recipients
+  Add one or more emails or teams → Terraform updates in place → push goes only to the newly added emails/teams.Remove one or more emails or teams → Terraform updates in place → no push (state only).Change the file or file_path → Terraform replaces the resource → all current email and team get the push.Change managed_company (MSP) → Terraform replaces the resource → all current email and team in the new company get the push.
+  Tip: When you add people or teams, only they receive the push. When you remove people or teams, nothing is pushed—Terraform just stops tracking them.
+  When does a push run?
+  First apply — Push runs to everyone in email and team; resource is created.No change to file or config — No push.You add email(s) or team(s) — Push runs only to the new email(s)/team(s).You remove email(s) or team(s) — No push; only Terraform state is updated.You edit the file or change file_path — Full push runs again to all current email and team.You remove the resource from config and apply — Resource is removed from state only; nothing is deleted on the server.
   Import
-  Import is not supported. This is a write-only resource with no server-side identity. To "re-import" a push, add the resource again with the same file_path, email, team, and managed_company; Terraform will compute the same id and will not re-push if the file content is unchanged.
+  Import is not supported. This resource has no server-side identity. To run the same push again with the same settings, add the resource again with the same file_path, email, team, and managed_company; Terraform will use the same computed id and will not re-push if the file content is unchanged.
 ---
 
 # commander_enterprise_push (Resource)
 
-One-time action resource that pushes JSON file content to user vaults via the **enterprise-push** Commander CLI.
+Use this resource to **push record data** from a JSON file into your users' or teams' Keeper vaults. You choose the file and who receives it (by email and/or team).
 
-## Write-only resource
+## What this resource does
 
-- The API does **not** support read or delete operations.
-- Terraform **cannot** detect drift. If the file or targets change outside Terraform, Terraform will not see it.
-- **email** and **team** are **updatable**: adding emails/teams triggers **Update** and pushes only to **newly added** targets; **removing** emails/teams only updates state (no push).
-- Changes to **file_path**, file content, or **managed_company** trigger **replace** (destroy + create) and a full push.
-- **Delete** only removes the resource from Terraform state; nothing is deleted on the server.
+- On **first apply**, it pushes the file contents to everyone you list in **email** and **team**.
+- Terraform does **not** read or delete anything on the server—it only runs the push and tracks it.
+- If you **add** more emails or teams later, Terraform pushes **only to the new recipients** (existing ones are not pushed again).
+- If you **remove** emails or teams, Terraform only updates its state; **no push** runs.
+- If you **change the file** (same or different path), Terraform runs a **full push** to all current recipients again.
 
-## Behavior
+## What you need to provide
 
-- **Deterministic ID**: `id` is computed as `sha256(file_content + sorted_emails + sorted_teams + managed_company)`.
-- **Create**: Push runs to all configured email/team. **Update** (when only email/team change): push runs **only to newly added** emails/teams; if only removals, state is updated and **no push** runs.
-- **No-op Read**: Read does not call the API; state is left as-is.
-- **No-op Delete**: Delete does not call the API; the resource is only removed from state.
+- **file_path** — Path to a JSON file on the machine running Terraform. The file must be valid JSON (see example below).
+- **email** and/or **team** — At least one is required. List the users (by email) and/or teams that should receive the records.
+- **managed_company** — (Optional, MSP only) Name or ID of the managed company. Omit to use your current account.
 
-## Example push-data.json
+## Example JSON file
 
-Create a file that will be pushed (e.g. `push-data.json`). It must be **valid JSON**. The entire file content is sent as `filedata` to the enterprise-push command.
+Create a file (e.g. `push-data.json`) with your records. It must be **valid JSON**. The whole file is sent as the push payload.
 
 ```json
 {
@@ -178,104 +120,31 @@ Create a file that will be pushed (e.g. `push-data.json`). It must be **valid JS
 }
 ```
 
-Place the file where Terraform can read it (e.g. `"${path.module}/push-data.json"`).
+Point **file_path** at this file (e.g. `"${path.module}/push-data.json"`).
 
-See [Enterprise Push documentation](https://docs.keeper.io/en/keeperpam/commander-cli/command-reference/enterprise-management-commands#enterprise-push-command) for more information.
+See [Enterprise Push documentation](https://docs.keeper.io/en/keeperpam/commander-cli/command-reference/enterprise-management-commands#enterprise-push-command) for more details.
 
-## Adding or removing email/team: Update behavior
+## Adding or removing recipients
 
-**email** and **team** do **not** use ForceNew. When you change only those attributes, Terraform runs **Update** (not replace).
+- **Add** one or more emails or teams → Terraform updates in place → push goes **only to the newly added** emails/teams.
+- **Remove** one or more emails or teams → Terraform updates in place → **no push** (state only).
+- **Change** the file or file_path → Terraform replaces the resource → **all** current email and team get the push.
+- **Change** managed_company (MSP) → Terraform replaces the resource → **all** current email and team in the new company get the push.
 
-- **When you add** one or more emails or teams: Update runs and pushes the file content **only to the newly added** emails/teams.
-- **When you remove** emails or teams: Update runs and **only updates state**; no push is performed.
+**Tip:** When you add people or teams, only they receive the push. When you remove people or teams, nothing is pushed—Terraform just stops tracking them.
 
-### Example: adding one email
+## When does a push run?
 
-**Step 1 — Initial config and apply**
-
-```terraform
-resource "commander_enterprise_push" "example" {
-  file_path = "${path.module}/data.json"
-  email     = ["alice@example.com", "bob@example.com"]
-  team      = ["Engineering"]
-}
-```
-
-- First `terraform apply`: push runs to **alice@example.com**, **bob@example.com**, and **Engineering**. Resource is created.
-
-**Step 2 — Add one email and apply again**
-
-```terraform
-resource "commander_enterprise_push" "example" {
-  file_path = "${path.module}/data.json"
-  email     = ["alice@example.com", "bob@example.com", "carol@example.com"]  # added carol
-  team      = ["Engineering"]
-}
-```
-
-- `terraform plan`: Terraform sees `email` changed → **in-place update** (no replace).
-- `terraform apply`: **Update** runs. Push runs **only to carol@example.com** (the newly added email). alice, bob, and Engineering do **not** receive another push.
-
-### Example: adding one team
-
-If you add `["Support"]` to `team`, Update runs and the push goes **only to the Support team** (and any other newly added emails/teams). Existing targets are not pushed again.
-
-### Example: removing email/team
-
-If you remove `bob@example.com` from `email` (and leave alice and Engineering), **Update** runs and **only state is updated**; no push is performed.
-
-### Summary
-
-| Change | What Terraform does | Who gets the push |
-|--------|---------------------|-------------------|
-| Add email(s) and/or team(s) | Update | **Only newly added** emails/teams |
-| Remove email(s) and/or team(s) | Update | **No push** (state only) |
-
-## When does a push happen?
-
-| Situation | Result |
-|-----------|--------|
-| First `terraform apply` with this resource | Push runs to all configured email/team; resource created. |
-| No change to file or attributes | No re-push. |
-| File content changed (same path) | Replace → push runs again to **all** current email/team. |
-| `file_path` or `managed_company` changed | Replace → push runs again to all email/team. |
-| **Add** email(s) and/or team(s) | Update → push runs **only to newly added** targets. |
-| **Remove** email(s) and/or team(s) | Update → **no push** (state only). |
-| Resource removed from config and applied | Resource removed from state only; no API delete. |
-
-## All scenarios: how the resource behaves
-
-Below are **all** scenarios and what Terraform and the provider do. Attributes that use **ForceNew** (`file_path`, file content via `file_content_sha256`, `managed_company`) trigger **replace** (destroy + create). Only **email** and **team** are updatable in place.
-
-| # | Scenario | Terraform operation | API / push behavior | State after apply |
-|---|----------|---------------------|----------------------|-------------------|
-| 1 | **First time** adding the resource and applying | **Create** | Read file → push to **all** configured email + team | Resource created; `id` and `file_content_sha256` set |
-| 2 | **No change** to config or file, apply again | No change | No API call | Unchanged |
-| 3 | **Add one or more emails** (same file_path, content, team, managed_company) | **Update** | Push **only to the newly added** email(s) | State updated with new email set and new `id` |
-| 4 | **Add one or more teams** (same file_path, content, email, managed_company) | **Update** | Push **only to the newly added** team(s) | State updated with new team set and new `id` |
-| 5 | **Add both emails and teams** in one change | **Update** | Push **only to all newly added** emails and teams (one push with all new targets) | State updated with new email/team sets and new `id` |
-| 6 | **Remove one or more emails** (keep at least one target in config) | **Update** | **No push**; only state updated | State updated with smaller email set and new `id` |
-| 7 | **Remove one or more teams** (keep at least one target in config) | **Update** | **No push**; only state updated | State updated with smaller team set and new `id` |
-| 8 | **Remove some emails and some teams** (still have at least one email or team) | **Update** | **No push**; only state updated | State updated; new `id` |
-| 9 | **Add emails and remove teams** (or add teams and remove emails) in same change | **Update** | Push **only to newly added** emails/teams; removals do not trigger push | State updated; new `id` |
-| 10 | **File content changed** (same `file_path`, file edited on disk) | **Replace** (destroy + create) | Destroy: no-op. Create: read new file → push to **all** current email + team | New resource instance; new `id`, new `file_content_sha256` |
-| 11 | **`file_path` changed** (different file, same or different content) | **Replace** (destroy + create) | Destroy: no-op. Create: read new path → push to **all** current email + team | New resource instance; new `id`, new `file_content_sha256` |
-| 12 | **`managed_company` changed** (MSP) | **Replace** (destroy + create) | Destroy: no-op. Create: push to **all** current email + team in new company context | New resource instance; new `id` |
-| 13 | **File content + add email** in same apply | **Replace** (content change wins) | Destroy: no-op. Create: push to **all** plan email + team (including the new email) with **new** file content | New resource; full push to all targets with new content |
-| 14 | **Refresh** (e.g. `terraform refresh` or during plan/apply) | **Read** | No API call; state left as-is (no-op Read) | Unchanged |
-| 15 | **Resource removed from config** and apply | **Delete** | No API call; resource removed from state only | Resource gone from state |
-
-### Notes on scenarios
-
-- **Scenarios 3–5:** Only **new** emails/teams receive the push; existing targets are not pushed again.
-- **Scenarios 6–8:** Removals never trigger a push; the provider only updates Terraform state.
-- **Scenarios 10–12:** Any change to `file_path`, file content (detected via `file_content_sha256`), or `managed_company` causes **replace**. Create then pushes to **all** current email and team in the plan.
-- **Scenario 13:** When replace is forced by file content (or file_path/managed_company), Create runs with the **full** plan (all emails/teams); there is no "delta" push on replace.
-- **At least one target required on Create:** You must specify at least one of `email` or `team` when creating the resource; otherwise Terraform will report an error. On **Update**, you may remove all emails and teams (state is updated, no push is performed).
+- **First apply** — Push runs to everyone in email and team; resource is created.
+- **No change** to file or config — No push.
+- **You add** email(s) or team(s) — Push runs only to the new email(s)/team(s).
+- **You remove** email(s) or team(s) — No push; only Terraform state is updated.
+- **You edit** the file or change file_path — Full push runs again to all current email and team.
+- **You remove** the resource from config and apply — Resource is removed from state only; nothing is deleted on the server.
 
 ## Import
 
-**Import is not supported.** This is a write-only resource with no server-side identity. To "re-import" a push, add the resource again with the same `file_path`, `email`, `team`, and `managed_company`; Terraform will compute the same `id` and will not re-push if the file content is unchanged.
+Import is not supported. This resource has no server-side identity. To run the same push again with the same settings, add the resource again with the same **file_path**, **email**, **team**, and **managed_company**; Terraform will use the same computed `id` and will not re-push if the file content is unchanged.
 
 ## Example Usage
 
