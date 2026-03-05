@@ -20,7 +20,8 @@ type ApiManager struct {
 	ServiceModeUrl    string
 	ServiceModeApiKey string
 	HttpClient        *http.Client
-	IsMspAccount      bool // true for MSP accounts, false for Enterprise accounts
+	IsMspAccount      bool          // true for MSP accounts, false for Enterprise accounts
+	RequestTimeout    time.Duration // used for HTTP client and for polling command result (default 60s)
 }
 
 // SubmitRequestResponse represents the response structure when we submit new requests.
@@ -385,8 +386,8 @@ func (a *ApiManager) ExecuteCommand(ctx context.Context, command string, errorSu
 		return nil, fmt.Errorf("%s: %w", errorSummary, err)
 	}
 
-	// Poll for the result
-	apiResp, err := a.PollRequestResult(ctx, submitResp.RequestId)
+	// Poll for the result (uses same timeout as HTTP client by default)
+	apiResp, err := a.PollRequestResult(ctx, submitResp.RequestId, a.RequestTimeout)
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", errorSummary, err)
 	}
@@ -401,10 +402,12 @@ func (a *ApiManager) ExecuteCommand(ctx context.Context, command string, errorSu
 
 // PollRequestResult polls RequestResult directly until the request is completed.
 // Uses exponential backoff for polling intervals.
-// Default timeout is 10 seconds if not specified.
+// If no timeout is passed, uses ApiManager.RequestTimeout (default 60s from provider config).
 func (a *ApiManager) PollRequestResult(ctx context.Context, requestId string, timeout ...time.Duration) (*RequestResultResponse, error) {
-	// Set default timeout to 10 seconds
-	pollTimeout := 60 * time.Second
+	pollTimeout := a.RequestTimeout
+	if pollTimeout <= 0 {
+		pollTimeout = 60 * time.Second
+	}
 	if len(timeout) > 0 && timeout[0] > 0 {
 		pollTimeout = timeout[0]
 	}

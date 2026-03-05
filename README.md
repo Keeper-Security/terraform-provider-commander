@@ -2,7 +2,7 @@
 
 ## About
 
-**Terraform Provider Commander** lets you manage Keeper Security enterprise and MSP configuration as infrastructure-as-code. The provider uses the **Keeper Commander Service Mode REST API** to manage your Keeper resources from Terraform, so you get declarative config, version control, and a clear audit trail while staying on Keeper’s zero-knowledge infrastructure. See [Available resources and data sources](#available-resources-and-data-sources) for the full list.
+**Terraform Provider For Commander** lets you manage your Keeper Security enterprise or MSP configuration as infrastructure-as-code. The provider uses the **Keeper Commander Service Mode REST API** to manage your Keeper resources from Terraform, so you get declarative config, version control, and a clear audit trail while staying on Keeper’s zero-knowledge infrastructure. See [Available resources and data sources](#available-resources-and-data-sources) for the full list.
 
 ## Features
 
@@ -13,7 +13,7 @@
 
 ## Available resources and data sources
 
-> Full resource and data source documentation on the [Terraform Registry](https://registry.terraform.io/providers/Keeper-Security/commander/latest/docs).
+> Full resource and data source documentation on the [Terraform Registry](https://registry.terraform.io/providers/keeper-security/commander/latest/docs).
 
 ### Resources
 
@@ -136,8 +136,11 @@ terraform {
 provider "commander" {
   service_mode_url     = "http://localhost:8080/api/v2/"
   service_mode_api_key = "XXXXXXXXXXXXXX"
+  timeout              = 60  # optional; defaults to 60 seconds for HTTP and async command polling
 }
 ```
+
+You can omit `service_mode_url` and `service_mode_api_key` in the configuration and set them via environment variables instead: `COMMANDER_SERVICE_MODE_URL` and `COMMANDER_SERVICE_MODE_API_KEY`. Config values take precedence over environment variables.
 
 > **Note: Using managed companies (MSP accounts)**  
 > Many resources and data sources support an optional `managed_company` attribute. When your account is an MSP, set `managed_company` to a managed company name or ID to manage that resource inside that company. Omit it to work in the logged-in account context (MSP or single enterprise).
