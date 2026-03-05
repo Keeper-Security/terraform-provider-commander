@@ -6,6 +6,5 @@ partition: tf-ecosystem
 summary:
   owner: keeper-security
   description: |
-    Terraform provider for Keeper Security. Manages enterprise nodes,
-    roles, teams, users, and companies via the Keeper Commander Service Mode REST API.
+    Terraform provider for Commander lets you manage your Keeper Security enterprise or MSP configuration as infrastructure-as-code
   visibility: public
