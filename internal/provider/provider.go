@@ -60,7 +60,7 @@ func (p *CommanderProvider) Metadata(ctx context.Context, req provider.MetadataR
 func (p *CommanderProvider) Schema(ctx context.Context, req provider.SchemaRequest, resp *provider.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		Description:         "Manage Keeper enterprise and MSP configuration as code via the Commander Service Mode API. See the detailed documentation https://docs.keeper.io/en/keeperpam/secrets-manager/integrations/terraform-provider-commander for information about features, prerequisites, setup and installation, and examples.",
-		MarkdownDescription: "Manage Keeper **enterprise** and **MSP** configuration as code via the [Commander Service Mode API](https://docs.keeper.io/en/keeperpam/commander-cli/service-mode-rest-api).<br><br> " + "<i>**New to the Commander provider?**</i> See the detailed [documentation](https://docs.keeper.io/en/keeperpam/secrets-manager/integrations/terraform-provider-commander) for information about features, prerequisites, setup and installation, and examples.",
+		MarkdownDescription: "Manage Keeper **enterprise** and **MSP** configuration as code via the [Commander Service Mode API](https://docs.keeper.io/en/keeperpam/commander-cli/service-mode-rest-api).\n\n" + "-> <i>**New to the Commander provider?**</i> See the detailed [documentation](https://docs.keeper.io/en/keeperpam/secrets-manager/integrations/terraform-provider-commander) for information about features, prerequisites, setup and installation.",
 		Attributes: map[string]schema.Attribute{
 			"service_mode_url": schema.StringAttribute{
 				MarkdownDescription: "The URL of the running Keeper Commander Service Mode. Can also be set via the `COMMANDER_SERVICE_MODE_URL` environment variable.",
