@@ -423,6 +423,9 @@ func FetchEnterpriseNodeByNameOrId(ctx context.Context, apiManager *api.ApiManag
 
 	apiResp, err := apiManager.ExecuteCommand(ctx, command, "Failed to retrieve enterprise node information")
 	if err != nil {
+		if errors.Is(err, api.ErrResourceNotFound) {
+			return nil, nil
+		}
 		return nil, err
 	}
 
@@ -459,6 +462,9 @@ func FetchEnterpriseRoleByNameOrId(ctx context.Context, apiManager *api.ApiManag
 
 	apiResp, err := apiManager.ExecuteCommand(ctx, command, "Failed to retrieve enterprise role information")
 	if err != nil {
+		if errors.Is(err, api.ErrResourceNotFound) {
+			return nil, nil
+		}
 		return nil, err
 	}
 
@@ -493,6 +499,9 @@ func FetchEnterpriseTeamByNameOrId(ctx context.Context, apiManager *api.ApiManag
 	// Execute the command
 	apiResp, err := apiManager.ExecuteCommand(ctx, command, "Failed to retrieve enterprise team information")
 	if err != nil {
+		if errors.Is(err, api.ErrResourceNotFound) {
+			return nil, nil
+		}
 		return nil, err
 	}
 
@@ -526,6 +535,9 @@ func FetchEnterpriseUserByEmailOrId(ctx context.Context, apiManager *api.ApiMana
 
 	apiResp, err := apiManager.ExecuteCommand(ctx, command, "Failed to retrieve enterprise user information")
 	if err != nil {
+		if errors.Is(err, api.ErrResourceNotFound) {
+			return nil, nil
+		}
 		return nil, err
 	}
 
@@ -559,6 +571,9 @@ func FetchManagedCompanyByNameOrId(ctx context.Context, apiManager *api.ApiManag
 
 	apiResp, err := apiManager.ExecuteCommand(ctx, command, "Failed to retrieve managed company information")
 	if err != nil {
+		if errors.Is(err, api.ErrResourceNotFound) {
+			return nil, nil
+		}
 		return nil, err
 	}
 
