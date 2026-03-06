@@ -50,6 +50,38 @@ func extractEnforcementPolicies(ctx context.Context, enforcementPoliciesMap type
 	return enforcementPoliciesMapValue, nil
 }
 
+// enforcementPolicyRemovalDefault returns the value to send to the CLI when a policy is removed from config
+// (in state but not in plan), so the backend clears it. Matches value types from schema.go.
+func enforcementPolicyRemovalDefault(key string) string {
+	if TwoFactorDurationPolicyKeys[key] {
+		return "" // empty after colon: --enforcement 'TWO_FACTOR_DURATION_WEB:'
+	}
+	if KeeperFillPolicyKeys[key] {
+		return "null"
+	}
+	if key == GeneratedPasswordComplexity {
+		return "" // caller should skip; GPC needs JSON/file, not a simple string
+	}
+	// String(Integer) keys — default 0
+	switch key {
+	case MasterPasswordMinimumLength, MasterPasswordMinimumSpecial, MasterPasswordMinimumUpper,
+		MasterPasswordMinimumLower, MasterPasswordMinimumDigits, MasterPasswordRestrictDaysBeforeReuse,
+		MasterPasswordMaximumDaysBeforeChange, MasterPasswordExpiredAsOf, MinimumPbkdf2Iterations,
+		MaxSessionLoginTime, AutomaticBackupEveryXDays, LogoutTimerWeb, LogoutTimerMobile, LogoutTimerDesktop,
+		DaysBeforeDeletedRecordsClearedPerm, DaysBeforeDeletedRecordsAutoCleared, ResendEnterpriseInviteInXDays,
+		MaximumRecordSize, RestrictClipboardExpireInXSecs:
+		return "0"
+	}
+	// String (plain) keys — default empty
+	switch key {
+	case RequireAccountShare, RestrictIpAddresses, RestrictVaultIpAddresses, TipZoneRestrictAllowedIpRanges,
+		RestrictRecordTypes, GeneratedSecurityQuestionComplexity, RestrictDomainAccess, RestrictDomainCreate:
+		return ""
+	}
+	// Boolean and everything else
+	return "false"
+}
+
 // buildUpdateEnforcementPoliciesCommand builds a command to set enforcement policy values for a role.
 // Format: enterprise-role 'Role ID/Name' --enforcement 'KEY:VALUE' --enforcement 'KEY2:VALUE2' ...
 // For GENERATED_PASSWORD_COMPLEXITY the command uses --enforcement 'GENERATED_PASSWORD_COMPLEXITY:$FILE=FILEDATA'
@@ -95,9 +127,7 @@ func buildUpdateEnforcementPoliciesCommand(roleId string, policies map[string]ty
 			if v.IsNull() || v.IsUnknown() {
 				return "", nil, fmt.Errorf("enforcement policy value for key '%s' is null/unknown", key)
 			}
-			if v.ValueString() == "" {
-				return "", nil, fmt.Errorf("enforcement policy value for key '%s' cannot be an empty string", key)
-			}
+			// Empty string is allowed for removal defaults (e.g. TWO_FACTOR_DURATION_*) -> --enforcement 'KEY:'
 			parts = append(parts, fmt.Sprintf("--enforcement '%s:%s'", key, v.ValueString()))
 		}
 	}

@@ -690,8 +690,18 @@ func CanonicalizeGeneratedPasswordComplexityJSON(s string) string {
 	return string(out)
 }
 
+const (
+	restrictSharingAll                = "RESTRICT_SHARING_ALL"
+	restrictSharingAllIncoming        = "RESTRICT_SHARING_ALL_INCOMING"
+	restrictSharingAllOutgoing        = "RESTRICT_SHARING_ALL_OUTGOING"
+	restrictSharingEnterprise         = "RESTRICT_SHARING_ENTERPRISE"
+	restrictSharingEnterpriseIncoming = "RESTRICT_SHARING_ENTERPRISE_INCOMING"
+	restrictSharingEnterpriseOutgoing = "RESTRICT_SHARING_ENTERPRISE_OUTGOING"
+)
+
 // MapEnforcementsToState converts API enforcements (key -> string value) to a types.Map for state.
 // Keys are normalized to UPPER_SNAKE_CASE. GENERATED_PASSWORD_COMPLEXITY value is canonicalized.
+// Commander expands RESTRICT_SHARING_ALL into _INCOMING and _OUTGOING; when both are "true" we collapse back to RESTRICT_SHARING_ALL for stable plan.
 func MapEnforcementsToState(enforcements map[string]string, GeneratedPasswordComplexityKey string) (types.Map, error) {
 	if len(enforcements) == 0 {
 		return types.MapNull(types.StringType), nil
@@ -707,6 +717,31 @@ func MapEnforcementsToState(enforcements map[string]string, GeneratedPasswordCom
 			val = CanonicalizeGeneratedPasswordComplexityJSON(val)
 		}
 		elements[normalizedKey] = types.StringValue(val)
+	}
+	// Collapse RESTRICT_SHARING_ALL_INCOMING + RESTRICT_SHARING_ALL_OUTGOING (both "true") -> RESTRICT_SHARING_ALL = "true"
+	if incoming, okIn := elements[restrictSharingAllIncoming]; okIn {
+		if outgoing, okOut := elements[restrictSharingAllOutgoing]; okOut {
+			if sIn, ok := incoming.(types.String); ok && sIn.ValueString() == "true" {
+				if sOut, ok := outgoing.(types.String); ok && sOut.ValueString() == "true" {
+					elements[restrictSharingAll] = types.StringValue("true")
+					delete(elements, restrictSharingAllIncoming)
+					delete(elements, restrictSharingAllOutgoing)
+				}
+			}
+
+		}
+	}
+	// Collapse RESTRICT_SHARING_ENTERPRISE_INCOMING + RESTRICT_SHARING_ENTERPRISE_OUTGOING (both "true") -> RESTRICT_SHARING_ENTERPRISE = "true"
+	if incoming, okIn := elements[restrictSharingEnterpriseIncoming]; okIn {
+		if outgoing, okOut := elements[restrictSharingEnterpriseOutgoing]; okOut {
+			if sIn, ok := incoming.(types.String); ok && sIn.ValueString() == "true" {
+				if sOut, ok := outgoing.(types.String); ok && sOut.ValueString() == "true" {
+					elements[restrictSharingEnterprise] = types.StringValue("true")
+					delete(elements, restrictSharingEnterpriseIncoming)
+					delete(elements, restrictSharingEnterpriseOutgoing)
+				}
+			}
+		}
 	}
 	if len(elements) == 0 {
 		return types.MapNull(types.StringType), nil
