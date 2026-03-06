@@ -6,12 +6,19 @@ package api
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
 	"strings"
 	"time"
 )
+
+// ErrResourceNotFound is returned when the API returns 500 with a message
+// indicating the requested entity does not exist (e.g. out-of-band deletion).
+// Callers can use errors.Is(err, api.ErrResourceNotFound) to detect and handle
+// by removing the resource from state.
+var ErrResourceNotFound = errors.New("resource not found")
 
 // ApiManager manages API interactions with the Commander Service Mode.
 // Resources and data sources use this struct to make API calls without
@@ -128,6 +135,9 @@ func handleAPIErrorResponse(resp *http.Response) error {
 			return fmt.Errorf("request id not found (404)")
 
 		case http.StatusInternalServerError: // 500 - Command execution failed
+			if strings.Contains(strings.ToLower(errorMsg), "not found") {
+				return fmt.Errorf("%w: %s", ErrResourceNotFound, errorMsg)
+			}
 			return fmt.Errorf("internal server error (500): %s", errorMsg)
 
 		case http.StatusBadRequest: // 400 - Bad request

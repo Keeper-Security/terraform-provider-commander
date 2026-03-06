@@ -219,10 +219,12 @@ func (v enforcementPoliciesMapKeyValidator) ValidateMap(ctx context.Context, req
 			}
 		}
 		if !isValidKey {
+			detailedErrorMessage := fmt.Sprintf("Enforcement policy key '%s' is not valid. Must be one of: %s\n\nFor more information, see Terraform Registry docs for commander_enterprise_role resource.", key, strings.Join(ValidEnforcementPolicyKeys, ", "))
+
 			resp.Diagnostics.AddAttributeError(
 				pathForKey,
 				"Invalid Enforcement Policy Key",
-				fmt.Sprintf("Enforcement policy key '%s' is not valid. Must be one of: %s", key, strings.Join(ValidEnforcementPolicyKeys, ", ")),
+				detailedErrorMessage,
 			)
 			continue
 		}
