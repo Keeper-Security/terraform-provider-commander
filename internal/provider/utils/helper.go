@@ -55,69 +55,66 @@ func EnterpriseDown(ctx context.Context, apiManager *api.ApiManager) error {
 	return err
 }
 
-// ExecuteWithManagedCompanyContext executes a function with managed company context switching
-// If managedCompany is provided and not null, it switches to MC before execution and back to MSP after
-// If managedCompany is not provided, it ensures we're in the correct base context (MSP for MSP accounts, Enterprise for Enterprise)
-// This prevents race conditions when Terraform runs resources in parallel or different orders.
+// ExecuteWithManagedCompanyContext executes a function with managed company context switching.
+// Context-changing operations are serialized and current context is tracked so we skip
+// redundant switch-to-msp API calls when already in MSP (reduces "Already MSP" 500s).
+// If managedCompany is provided and not null, it switches to MC before execution and back to MSP after.
+// If managedCompany is not provided, it ensures we're in the correct base context (MSP for MSP accounts).
 func ExecuteWithManagedCompanyContext(
 	ctx context.Context,
 	apiManager *api.ApiManager,
 	managedCompany types.String,
 	operation func() error,
 ) (err error) {
-	// Track whether we switched to MC so we know to switch back
+	apiManager.LockContext()
+	defer apiManager.UnlockContext()
+
 	switchedToMC := false
 
-	if !managedCompany.IsNull() && !managedCompany.IsUnknown() {
-		// Has managed_company - switch to it
-		// Sync enterprise data first
+	hasManagedCompany := !managedCompany.IsNull() && !managedCompany.IsUnknown() && managedCompany.ValueString() != ""
+
+	if hasManagedCompany {
+		// Has managed_company (non-empty) - switch to it
 		if err := EnterpriseDown(ctx, apiManager); err != nil {
 			return fmt.Errorf("failed to sync enterprise data: %w", err)
 		}
-
-		// Switch to managed company
 		if err := SwitchToManagedCompany(ctx, apiManager, managedCompany.ValueString()); err != nil {
 			return fmt.Errorf("failed to switch to managed company: %w", err)
 		}
+		apiManager.SetCurrentContext(managedCompany.ValueString())
 		switchedToMC = true
 	} else {
-		// No managed_company provided - ensure we're in the correct base context
-		// This prevents race conditions where another resource might have switched to MC
-		// For MSP accounts: switch to MSP context
-		// For Enterprise accounts: just sync data (already in Enterprise context)
+		// No managed_company - ensure we're in MSP context only when needed
 		if apiManager.IsMspAccount {
-			// MSP account - explicitly switch to MSP to ensure clean state
-			if err := SwitchToMsp(ctx, apiManager); err != nil {
-				return fmt.Errorf("failed to switch to MSP context: %w", err)
+			if apiManager.GetCurrentContext() != "" {
+				// We think we're in MC (e.g. previous op failed to switch back); switch to MSP
+				if err := SwitchToMsp(ctx, apiManager); err != nil {
+					return fmt.Errorf("failed to switch to MSP context: %w", err)
+				}
+				apiManager.SetCurrentContext("")
 			}
+			// Else already in MSP - skip redundant switch-to-msp API call
 		}
-		// For both MSP and Enterprise accounts, sync enterprise data
+		// Always run EnterpriseDown to sync with backend (e.g. external changes); we only skip switch-to-msp above.
 		if err := EnterpriseDown(ctx, apiManager); err != nil {
 			return fmt.Errorf("failed to sync enterprise data: %w", err)
 		}
 	}
 
-	// Always switch back to MSP after the operation if we switched to MC
-	// This ensures clean state for subsequent operations
 	defer func() {
-		if switchedToMC {
-			// Only switch back to MSP if it's an MSP account
-			if apiManager.IsMspAccount {
-				if switchErr := SwitchToMsp(ctx, apiManager); switchErr != nil {
-					if err != nil {
-						// Both operation and switch-back failed - combine errors
-						err = fmt.Errorf("operation failed: %w; also failed to switch back to MSP: %w", err, switchErr)
-					} else {
-						// Operation succeeded but switch-back failed - this is critical
-						err = fmt.Errorf("failed to switch back to MSP: %w", switchErr)
-					}
+		if switchedToMC && apiManager.IsMspAccount {
+			if switchErr := SwitchToMsp(ctx, apiManager); switchErr != nil {
+				if err != nil {
+					err = fmt.Errorf("operation failed: %w; also failed to switch back to MSP: %w", err, switchErr)
+				} else {
+					err = fmt.Errorf("failed to switch back to MSP: %w", switchErr)
 				}
+			} else {
+				apiManager.SetCurrentContext("")
 			}
 		}
-
 	}()
 
-	// Execute the actual operation
 	err = operation()
 	return err
 }

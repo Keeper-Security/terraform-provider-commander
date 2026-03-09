@@ -153,6 +153,9 @@ func (p *CommanderProvider) Configure(ctx context.Context, req provider.Configur
 		// This prevents MSP commands from being called on Enterprise accounts
 		apiManager.IsMspAccount = false
 	}
+	// Ensure we start with a clean context (MSP). Avoids a no-MC op wrongly calling switch-to-msp
+	// when currentContext was left set from a previous run or from plan/apply ordering.
+	apiManager.SetCurrentContext("")
 
 	resp.DataSourceData = apiManager
 	resp.ResourceData = apiManager
