@@ -11,6 +11,7 @@ import (
 	"io"
 	"net/http"
 	"strings"
+	"sync"
 	"time"
 )
 
@@ -29,6 +30,33 @@ type ApiManager struct {
 	HttpClient        *http.Client
 	IsMspAccount      bool          // true for MSP accounts, false for Enterprise accounts
 	RequestTimeout    time.Duration // used for HTTP client and for polling command result (default 60s)
+
+	// contextMu serializes all context-changing operations (switch-to-msp / switch-to-mc).
+	// currentContext tracks backend context: "" = MSP, non-empty = managed company name/id.
+	// Used to skip redundant switch-to-msp API calls when already in MSP.
+	contextMu      sync.Mutex
+	currentContext string
+}
+
+// LockContext acquires the context mutex. Call UnlockContext when done (e.g. defer).
+// Serializes switch-to-msp / switch-to-mc operations so only one runs at a time.
+func (a *ApiManager) LockContext() {
+	a.contextMu.Lock()
+}
+
+// UnlockContext releases the context mutex.
+func (a *ApiManager) UnlockContext() {
+	a.contextMu.Unlock()
+}
+
+// GetCurrentContext returns the tracked backend context: "" = MSP, non-empty = managed company.
+func (a *ApiManager) GetCurrentContext() string {
+	return a.currentContext
+}
+
+// SetCurrentContext sets the tracked backend context. Call with "" for MSP.
+func (a *ApiManager) SetCurrentContext(s string) {
+	a.currentContext = s
 }
 
 // SubmitRequestResponse represents the response structure when we submit new requests.
@@ -410,9 +438,19 @@ func (a *ApiManager) ExecuteCommand(ctx context.Context, command string, errorSu
 	return apiResp, nil
 }
 
-// PollRequestResult polls RequestResult directly until the request is completed.
-// Uses exponential backoff for polling intervals.
-// If no timeout is passed, uses ApiManager.RequestTimeout (default 60s from provider config).
+// Polling constants: balance fewer GET calls with quick result delivery.
+// - initialDelay: wait before first GET (backend rarely has result in first few hundred ms; avoids a GET that almost always returns 202).
+// - initialInterval: first wait between polls after a 202.
+// - backoffMultiplier / maxInterval: exponential backoff to limit GET rate for long-running commands.
+const (
+	pollInitialDelay      = 400 * time.Millisecond
+	pollInitialInterval   = 800 * time.Millisecond
+	pollBackoffMultiplier = 1.5
+	pollMaxInterval       = 4 * time.Second
+)
+
+// PollRequestResult polls RequestResult until the request is completed.
+// Uses an initial delay (skip immediate GET that usually returns 202), then exponential backoff.
 func (a *ApiManager) PollRequestResult(ctx context.Context, requestId string, timeout ...time.Duration) (*RequestResultResponse, error) {
 	pollTimeout := a.RequestTimeout
 	if pollTimeout <= 0 {
@@ -422,60 +460,34 @@ func (a *ApiManager) PollRequestResult(ctx context.Context, requestId string, ti
 		pollTimeout = timeout[0]
 	}
 
-	// Create a context with timeout
 	pollCtx, cancel := context.WithTimeout(ctx, pollTimeout)
 	defer cancel()
 
-	// Initial polling interval (starts at 500ms)
-	initialInterval := 500 * time.Millisecond
-	maxInterval := 5 * time.Second
-	currentInterval := initialInterval
+	currentInterval := pollInitialInterval
 
-	// First attempt immediately
-	result, err := a.RequestResult(pollCtx, requestId)
-	if err == nil && result.Status == "success" {
-		return result, nil
+	// Wait briefly before first GET (most commands are not ready in the first few hundred ms)
+	select {
+	case <-pollCtx.Done():
+		return nil, fmt.Errorf("timeout waiting for request %s to complete (timeout: %v)", requestId, pollTimeout)
+	case <-time.After(pollInitialDelay):
 	}
 
-	// If first attempt returned an error that's not "still processing", return immediately
-	if err != nil && !strings.Contains(err.Error(), "still in queued/processing") {
-		return nil, err
-	}
-
-	// If first attempt failed, start polling with exponential backoff
 	for {
+		result, err := a.RequestResult(pollCtx, requestId)
+		if err == nil && result.Status == "success" {
+			return result, nil
+		}
+		if err != nil && !strings.Contains(err.Error(), "still in queued/processing") {
+			return nil, err
+		}
+
 		select {
 		case <-pollCtx.Done():
-			// Timeout reached
 			return nil, fmt.Errorf("timeout waiting for request %s to complete (timeout: %v)", requestId, pollTimeout)
-
-		default:
-			// Wait before next attempt (exponential backoff)
-			select {
-			case <-pollCtx.Done():
-				return nil, fmt.Errorf("timeout waiting for request %s to complete (timeout: %v)", requestId, pollTimeout)
-			case <-time.After(currentInterval):
-				// Continue to poll
-			}
-
-			// Try to get result
-			result, err := a.RequestResult(pollCtx, requestId)
-			if err == nil {
-				// Check if result is ready
-				if result.Status == "success" {
-					return result, nil
-				}
-			} else {
-				// If error is not "still processing", stop polling and return error immediately
-				if !strings.Contains(err.Error(), "still in queued/processing") {
-					return nil, err
-				}
-				// Otherwise, continue polling (it's still processing)
-			}
-
-			// Increase interval exponentially (but cap at maxInterval)
-			currentInterval = min(time.Duration(float64(currentInterval)*1.5), maxInterval)
+		case <-time.After(currentInterval):
 		}
+
+		currentInterval = min(time.Duration(float64(currentInterval)*pollBackoffMultiplier), pollMaxInterval)
 	}
 }
 
