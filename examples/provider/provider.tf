@@ -4,4 +4,5 @@
 provider "commander" {
   service_mode_url     = "https://your-commander-service.example.com"
   service_mode_api_key = "your-api-key"
+  timeout              = 60 # optional; defaults to 60 seconds for HTTP Client and API Call timeout
 }

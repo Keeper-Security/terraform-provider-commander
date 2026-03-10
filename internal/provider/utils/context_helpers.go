@@ -35,9 +35,8 @@ func RunWithManagedCompanyContext(
 	return nil
 }
 
-// RunWithMspContext switches to MSP context if apiManager.IsMspAccount, then runs op.
-// If switch or op fails, adds error to diags with the given summary and returns the error.
-// ErrResourceRemoved is not added to diags (caller should return without setting state).
+// RunWithMspContext ensures MSP context (when needed) then runs op.
+// Serializes with other context operations and skips switch-to-msp when already in MSP.
 func RunWithMspContext(
 	ctx context.Context,
 	apiManager *api.ApiManager,
@@ -45,11 +44,15 @@ func RunWithMspContext(
 	errorSummary string,
 	diags *diag.Diagnostics,
 ) error {
-	if apiManager.IsMspAccount {
+	apiManager.LockContext()
+	defer apiManager.UnlockContext()
+
+	if apiManager.IsMspAccount && apiManager.GetCurrentContext() != "" {
 		if err := SwitchToMsp(ctx, apiManager); err != nil {
 			diags.AddError(errorSummary, fmt.Sprintf("Failed to switch to MSP: %s", err.Error()))
 			return err
 		}
+		apiManager.SetCurrentContext("")
 	}
 	if err := op(); err != nil {
 		if !errors.Is(err, ErrResourceRemoved) {

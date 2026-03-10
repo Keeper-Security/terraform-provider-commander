@@ -6,7 +6,9 @@ package provider
 import (
 	"context"
 	"net/http"
+	"os"
 	"strings"
+	"time"
 
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/api"
 	enterprisenodedatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/enterprise_node"
@@ -51,6 +53,7 @@ type CommanderProvider struct {
 type CommanderProviderModel struct {
 	ServiceModeUrl    types.String `tfsdk:"service_mode_url"`
 	ServiceModeApiKey types.String `tfsdk:"service_mode_api_key"`
+	Timeout           types.Int64  `tfsdk:"timeout"`
 }
 
 func (p *CommanderProvider) Metadata(ctx context.Context, req provider.MetadataRequest, resp *provider.MetadataResponse) {
@@ -64,19 +67,29 @@ func (p *CommanderProvider) Schema(ctx context.Context, req provider.SchemaReque
 		MarkdownDescription: "Manage Keeper **enterprise** and **MSP** configuration as code via the [Commander Service Mode API](https://docs.keeper.io/en/keeperpam/commander-cli/service-mode-rest-api).\n\n" + "-> <i>**New to the Commander provider?**</i> See the detailed [documentation](https://docs.keeper.io/en/keeperpam/secrets-manager/integrations/terraform-provider-commander) for information about features, prerequisites, setup and installation.",
 		Attributes: map[string]schema.Attribute{
 			"service_mode_url": schema.StringAttribute{
-				MarkdownDescription: "The URL of the running Keeper Commander Service Mode.",
-				Description:         "The URL of the running Keeper Commander Service Mode.",
-				Required:            true,
+				MarkdownDescription: "The URL of the running Keeper Commander Service Mode. Can also be set via the `COMMANDER_SERVICE_MODE_URL` environment variable.",
+				Description:         "The URL of the running Keeper Commander Service Mode. Can also be set via the COMMANDER_SERVICE_MODE_URL environment variable.",
+				Optional:            true,
 			},
 			"service_mode_api_key": schema.StringAttribute{
-				MarkdownDescription: "The API key for the running Keeper Commander Service Mode.",
-				Description:         "The API key for the running Keeper Commander Service Mode.",
-				Required:            true,
+				MarkdownDescription: "The API key for the running Keeper Commander Service Mode. Can also be set via the `COMMANDER_SERVICE_MODE_API_KEY` environment variable.",
+				Description:         "The API key for the running Keeper Commander Service Mode. Can also be set via the COMMANDER_SERVICE_MODE_API_KEY environment variable.",
+				Optional:            true,
 				Sensitive:           true,
+			},
+			"timeout": schema.Int64Attribute{
+				MarkdownDescription: "Timeout in seconds for HTTP requests to the Commander Service Mode and for waiting on async command results. Omit or set to 0 to use the default of 60 seconds.",
+				Description:         "Timeout in seconds for HTTP requests and for waiting on async command results. Omit or set to 0 to use the default of 60 seconds.",
+				Optional:            true,
 			},
 		},
 	}
 }
+
+const (
+	envServiceModeURL    = "COMMANDER_SERVICE_MODE_URL"
+	envServiceModeAPIKey = "COMMANDER_SERVICE_MODE_API_KEY"
+)
 
 func (p *CommanderProvider) Configure(ctx context.Context, req provider.ConfigureRequest, resp *provider.ConfigureResponse) {
 	var data CommanderProviderModel
@@ -87,26 +100,43 @@ func (p *CommanderProvider) Configure(ctx context.Context, req provider.Configur
 		return
 	}
 
-	// Configuration values are now available.
-	if data.ServiceModeUrl.IsNull() || data.ServiceModeUrl.ValueString() == "" {
-		resp.Diagnostics.AddError("Missing Service Mode URL", "The Service Mode URL is required and cannot be empty")
+	// Resolve URL and API key: config takes precedence over environment variables.
+	serviceModeUrl := data.ServiceModeUrl.ValueString()
+	if serviceModeUrl == "" {
+		serviceModeUrl = os.Getenv(envServiceModeURL)
 	}
-	if data.ServiceModeApiKey.IsNull() || data.ServiceModeApiKey.ValueString() == "" {
-		resp.Diagnostics.AddError("Missing Service Mode API Key", "The Service Mode API Key is required and cannot be empty")
+	serviceModeApiKey := data.ServiceModeApiKey.ValueString()
+	if serviceModeApiKey == "" {
+		serviceModeApiKey = os.Getenv(envServiceModeAPIKey)
 	}
 
-	// Return early if validation failed
+	if serviceModeUrl == "" {
+		resp.Diagnostics.AddError("Missing Service Mode URL", "The Service Mode URL is required. Set the service_mode_url attribute or the COMMANDER_SERVICE_MODE_URL environment variable.")
+	}
+	if serviceModeApiKey == "" {
+		resp.Diagnostics.AddError("Missing Service Mode API Key", "The Service Mode API Key is required. Set the service_mode_api_key attribute or the COMMANDER_SERVICE_MODE_API_KEY environment variable.")
+	}
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	// Create HTTP Client with request timeout
+	// Timeout: config value or default 60 seconds
+	timeoutSec := int64(60)
+	if !data.Timeout.IsNull() && !data.Timeout.IsUnknown() {
+		timeoutSec = data.Timeout.ValueInt64()
+	}
+	if timeoutSec <= 0 {
+		timeoutSec = 60
+	}
+	requestTimeout := time.Duration(timeoutSec) * time.Second
+
+	// Create HTTP Client with request timeout (same as poll timeout by default)
 	httpClient := &http.Client{
-		// Timeout: 60 * time.Second,
+		Timeout: requestTimeout,
 	}
 
 	// Normalize the Service Mode URL to always end with "/api/v2/"
-	serviceModeUrl := strings.TrimSuffix(data.ServiceModeUrl.ValueString(), "/")
+	serviceModeUrl = strings.TrimSuffix(serviceModeUrl, "/")
 	if before, found := strings.CutSuffix(serviceModeUrl, "/api/v2"); found {
 		serviceModeUrl = before
 	}
@@ -115,9 +145,10 @@ func (p *CommanderProvider) Configure(ctx context.Context, req provider.Configur
 	// Create ApiManager with configuration
 	apiManager := &api.ApiManager{
 		ServiceModeUrl:    processedServiceModeUrl,
-		ServiceModeApiKey: data.ServiceModeApiKey.ValueString(),
+		ServiceModeApiKey: serviceModeApiKey,
 		HttpClient:        httpClient,
 		IsMspAccount:      false,
+		RequestTimeout:    requestTimeout,
 	}
 
 	// Detect account type during provider configuration
@@ -126,6 +157,9 @@ func (p *CommanderProvider) Configure(ctx context.Context, req provider.Configur
 		// This prevents MSP commands from being called on Enterprise accounts
 		apiManager.IsMspAccount = false
 	}
+	// Ensure we start with a clean context (MSP). Avoids a no-MC op wrongly calling switch-to-msp
+	// when currentContext was left set from a previous run or from plan/apply ordering.
+	apiManager.SetCurrentContext("")
 
 	resp.DataSourceData = apiManager
 	resp.ResourceData = apiManager

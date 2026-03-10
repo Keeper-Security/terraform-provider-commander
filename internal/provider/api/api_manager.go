@@ -6,12 +6,20 @@ package api
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
 	"strings"
+	"sync"
 	"time"
 )
+
+// ErrResourceNotFound is returned when the API returns 500 with a message
+// indicating the requested entity does not exist (e.g. out-of-band deletion).
+// Callers can use errors.Is(err, api.ErrResourceNotFound) to detect and handle
+// by removing the resource from state.
+var ErrResourceNotFound = errors.New("resource not found")
 
 // ApiManager manages API interactions with the Commander Service Mode.
 // Resources and data sources use this struct to make API calls without
@@ -20,7 +28,35 @@ type ApiManager struct {
 	ServiceModeUrl    string
 	ServiceModeApiKey string
 	HttpClient        *http.Client
-	IsMspAccount      bool // true for MSP accounts, false for Enterprise accounts
+	IsMspAccount      bool          // true for MSP accounts, false for Enterprise accounts
+	RequestTimeout    time.Duration // used for HTTP client and for polling command result (default 60s)
+
+	// contextMu serializes all context-changing operations (switch-to-msp / switch-to-mc).
+	// currentContext tracks backend context: "" = MSP, non-empty = managed company name/id.
+	// Used to skip redundant switch-to-msp API calls when already in MSP.
+	contextMu      sync.Mutex
+	currentContext string
+}
+
+// LockContext acquires the context mutex. Call UnlockContext when done (e.g. defer).
+// Serializes switch-to-msp / switch-to-mc operations so only one runs at a time.
+func (a *ApiManager) LockContext() {
+	a.contextMu.Lock()
+}
+
+// UnlockContext releases the context mutex.
+func (a *ApiManager) UnlockContext() {
+	a.contextMu.Unlock()
+}
+
+// GetCurrentContext returns the tracked backend context: "" = MSP, non-empty = managed company.
+func (a *ApiManager) GetCurrentContext() string {
+	return a.currentContext
+}
+
+// SetCurrentContext sets the tracked backend context. Call with "" for MSP.
+func (a *ApiManager) SetCurrentContext(s string) {
+	a.currentContext = s
 }
 
 // SubmitRequestResponse represents the response structure when we submit new requests.
@@ -127,6 +163,9 @@ func handleAPIErrorResponse(resp *http.Response) error {
 			return fmt.Errorf("request id not found (404)")
 
 		case http.StatusInternalServerError: // 500 - Command execution failed
+			if strings.Contains(strings.ToLower(errorMsg), "not found") {
+				return fmt.Errorf("%w: %s", ErrResourceNotFound, errorMsg)
+			}
 			return fmt.Errorf("internal server error (500): %s", errorMsg)
 
 		case http.StatusBadRequest: // 400 - Bad request
@@ -385,8 +424,8 @@ func (a *ApiManager) ExecuteCommand(ctx context.Context, command string, errorSu
 		return nil, fmt.Errorf("%s: %w", errorSummary, err)
 	}
 
-	// Poll for the result
-	apiResp, err := a.PollRequestResult(ctx, submitResp.RequestId)
+	// Poll for the result (uses same timeout as HTTP client by default)
+	apiResp, err := a.PollRequestResult(ctx, submitResp.RequestId, a.RequestTimeout)
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", errorSummary, err)
 	}
@@ -399,70 +438,56 @@ func (a *ApiManager) ExecuteCommand(ctx context.Context, command string, errorSu
 	return apiResp, nil
 }
 
-// PollRequestResult polls RequestResult directly until the request is completed.
-// Uses exponential backoff for polling intervals.
-// Default timeout is 10 seconds if not specified.
+// Polling constants: balance fewer GET calls with quick result delivery.
+// - initialDelay: wait before first GET (backend rarely has result in first few hundred ms; avoids a GET that almost always returns 202).
+// - initialInterval: first wait between polls after a 202.
+// - backoffMultiplier / maxInterval: exponential backoff to limit GET rate for long-running commands.
+const (
+	pollInitialDelay      = 400 * time.Millisecond
+	pollInitialInterval   = 800 * time.Millisecond
+	pollBackoffMultiplier = 1.5
+	pollMaxInterval       = 4 * time.Second
+)
+
+// PollRequestResult polls RequestResult until the request is completed.
+// Uses an initial delay (skip immediate GET that usually returns 202), then exponential backoff.
 func (a *ApiManager) PollRequestResult(ctx context.Context, requestId string, timeout ...time.Duration) (*RequestResultResponse, error) {
-	// Set default timeout to 10 seconds
-	pollTimeout := 60 * time.Second
+	pollTimeout := a.RequestTimeout
+	if pollTimeout <= 0 {
+		pollTimeout = 60 * time.Second
+	}
 	if len(timeout) > 0 && timeout[0] > 0 {
 		pollTimeout = timeout[0]
 	}
 
-	// Create a context with timeout
 	pollCtx, cancel := context.WithTimeout(ctx, pollTimeout)
 	defer cancel()
 
-	// Initial polling interval (starts at 500ms)
-	initialInterval := 500 * time.Millisecond
-	maxInterval := 5 * time.Second
-	currentInterval := initialInterval
+	currentInterval := pollInitialInterval
 
-	// First attempt immediately
-	result, err := a.RequestResult(pollCtx, requestId)
-	if err == nil && result.Status == "success" {
-		return result, nil
+	// Wait briefly before first GET (most commands are not ready in the first few hundred ms)
+	select {
+	case <-pollCtx.Done():
+		return nil, fmt.Errorf("timeout waiting for request %s to complete (timeout: %v)", requestId, pollTimeout)
+	case <-time.After(pollInitialDelay):
 	}
 
-	// If first attempt returned an error that's not "still processing", return immediately
-	if err != nil && !strings.Contains(err.Error(), "still in queued/processing") {
-		return nil, err
-	}
-
-	// If first attempt failed, start polling with exponential backoff
 	for {
+		result, err := a.RequestResult(pollCtx, requestId)
+		if err == nil && result.Status == "success" {
+			return result, nil
+		}
+		if err != nil && !strings.Contains(err.Error(), "still in queued/processing") {
+			return nil, err
+		}
+
 		select {
 		case <-pollCtx.Done():
-			// Timeout reached
 			return nil, fmt.Errorf("timeout waiting for request %s to complete (timeout: %v)", requestId, pollTimeout)
-
-		default:
-			// Wait before next attempt (exponential backoff)
-			select {
-			case <-pollCtx.Done():
-				return nil, fmt.Errorf("timeout waiting for request %s to complete (timeout: %v)", requestId, pollTimeout)
-			case <-time.After(currentInterval):
-				// Continue to poll
-			}
-
-			// Try to get result
-			result, err := a.RequestResult(pollCtx, requestId)
-			if err == nil {
-				// Check if result is ready
-				if result.Status == "success" {
-					return result, nil
-				}
-			} else {
-				// If error is not "still processing", stop polling and return error immediately
-				if !strings.Contains(err.Error(), "still in queued/processing") {
-					return nil, err
-				}
-				// Otherwise, continue polling (it's still processing)
-			}
-
-			// Increase interval exponentially (but cap at maxInterval)
-			currentInterval = min(time.Duration(float64(currentInterval)*1.5), maxInterval)
+		case <-time.After(currentInterval):
 		}
+
+		currentInterval = min(time.Duration(float64(currentInterval)*pollBackoffMultiplier), pollMaxInterval)
 	}
 }
 

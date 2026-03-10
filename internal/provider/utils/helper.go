@@ -72,59 +72,55 @@ func ExecuteWithManagedCompanyContext(
 	managedCompany types.String,
 	operation func() error,
 ) (err error) {
-	// Track whether we switched to MC so we know to switch back
+	apiManager.LockContext()
+	defer apiManager.UnlockContext()
+
 	switchedToMC := false
 
-	if !managedCompany.IsNull() && !managedCompany.IsUnknown() {
-		// Has managed_company - switch to it
-		// Sync enterprise data first
+	hasManagedCompany := !managedCompany.IsNull() && !managedCompany.IsUnknown() && managedCompany.ValueString() != ""
+
+	if hasManagedCompany {
+		// Has managed_company (non-empty) - switch to it
 		if err := EnterpriseDown(ctx, apiManager); err != nil {
 			return fmt.Errorf("failed to sync enterprise data: %w", err)
 		}
-
-		// Switch to managed company
 		if err := SwitchToManagedCompany(ctx, apiManager, managedCompany.ValueString()); err != nil {
 			return fmt.Errorf("failed to switch to managed company: %w", err)
 		}
+		apiManager.SetCurrentContext(managedCompany.ValueString())
 		switchedToMC = true
 	} else {
-		// No managed_company provided - ensure we're in the correct base context
-		// This prevents race conditions where another resource might have switched to MC
-		// For MSP accounts: switch to MSP context
-		// For Enterprise accounts: just sync data (already in Enterprise context)
+		// No managed_company - ensure we're in MSP context only when needed
 		if apiManager.IsMspAccount {
-			// MSP account - explicitly switch to MSP to ensure clean state
-			if err := SwitchToMsp(ctx, apiManager); err != nil {
-				return fmt.Errorf("failed to switch to MSP context: %w", err)
+			if apiManager.GetCurrentContext() != "" {
+				// We think we're in MC (e.g. previous op failed to switch back); switch to MSP
+				if err := SwitchToMsp(ctx, apiManager); err != nil {
+					return fmt.Errorf("failed to switch to MSP context: %w", err)
+				}
+				apiManager.SetCurrentContext("")
 			}
+			// Else already in MSP - skip redundant switch-to-msp API call
 		}
-		// For both MSP and Enterprise accounts, sync enterprise data
+		// Always run EnterpriseDown to sync with backend (e.g. external changes); we only skip switch-to-msp above.
 		if err := EnterpriseDown(ctx, apiManager); err != nil {
 			return fmt.Errorf("failed to sync enterprise data: %w", err)
 		}
 	}
 
-	// Always switch back to MSP after the operation if we switched to MC
-	// This ensures clean state for subsequent operations
 	defer func() {
-		if switchedToMC {
-			// Only switch back to MSP if it's an MSP account
-			if apiManager.IsMspAccount {
-				if switchErr := SwitchToMsp(ctx, apiManager); switchErr != nil {
-					if err != nil {
-						// Both operation and switch-back failed - combine errors
-						err = fmt.Errorf("operation failed: %w; also failed to switch back to MSP: %w", err, switchErr)
-					} else {
-						// Operation succeeded but switch-back failed - this is critical
-						err = fmt.Errorf("failed to switch back to MSP: %w", switchErr)
-					}
+		if switchedToMC && apiManager.IsMspAccount {
+			if switchErr := SwitchToMsp(ctx, apiManager); switchErr != nil {
+				if err != nil {
+					err = fmt.Errorf("operation failed: %w; also failed to switch back to MSP: %w", err, switchErr)
+				} else {
+					err = fmt.Errorf("failed to switch back to MSP: %w", switchErr)
 				}
+			} else {
+				apiManager.SetCurrentContext("")
 			}
 		}
-
 	}()
 
-	// Execute the actual operation
 	err = operation()
 	return err
 }
@@ -430,6 +426,9 @@ func FetchEnterpriseNodeByNameOrId(ctx context.Context, apiManager *api.ApiManag
 
 	apiResp, err := apiManager.ExecuteCommand(ctx, command, "Failed to retrieve enterprise node information")
 	if err != nil {
+		if errors.Is(err, api.ErrResourceNotFound) {
+			return nil, nil
+		}
 		return nil, err
 	}
 
@@ -466,6 +465,9 @@ func FetchEnterpriseRoleByNameOrId(ctx context.Context, apiManager *api.ApiManag
 
 	apiResp, err := apiManager.ExecuteCommand(ctx, command, "Failed to retrieve enterprise role information")
 	if err != nil {
+		if errors.Is(err, api.ErrResourceNotFound) {
+			return nil, nil
+		}
 		return nil, err
 	}
 
@@ -500,6 +502,9 @@ func FetchEnterpriseTeamByNameOrId(ctx context.Context, apiManager *api.ApiManag
 	// Execute the command
 	apiResp, err := apiManager.ExecuteCommand(ctx, command, "Failed to retrieve enterprise team information")
 	if err != nil {
+		if errors.Is(err, api.ErrResourceNotFound) {
+			return nil, nil
+		}
 		return nil, err
 	}
 
@@ -533,6 +538,9 @@ func FetchEnterpriseUserByEmailOrId(ctx context.Context, apiManager *api.ApiMana
 
 	apiResp, err := apiManager.ExecuteCommand(ctx, command, "Failed to retrieve enterprise user information")
 	if err != nil {
+		if errors.Is(err, api.ErrResourceNotFound) {
+			return nil, nil
+		}
 		return nil, err
 	}
 
@@ -566,6 +574,9 @@ func FetchManagedCompanyByNameOrId(ctx context.Context, apiManager *api.ApiManag
 
 	apiResp, err := apiManager.ExecuteCommand(ctx, command, "Failed to retrieve managed company information")
 	if err != nil {
+		if errors.Is(err, api.ErrResourceNotFound) {
+			return nil, nil
+		}
 		return nil, err
 	}
 
@@ -705,8 +716,18 @@ func CanonicalizeGeneratedPasswordComplexityJSON(s string) string {
 	return string(out)
 }
 
+const (
+	restrictSharingAll                = "RESTRICT_SHARING_ALL"
+	restrictSharingAllIncoming        = "RESTRICT_SHARING_ALL_INCOMING"
+	restrictSharingAllOutgoing        = "RESTRICT_SHARING_ALL_OUTGOING"
+	restrictSharingEnterprise         = "RESTRICT_SHARING_ENTERPRISE"
+	restrictSharingEnterpriseIncoming = "RESTRICT_SHARING_ENTERPRISE_INCOMING"
+	restrictSharingEnterpriseOutgoing = "RESTRICT_SHARING_ENTERPRISE_OUTGOING"
+)
+
 // MapEnforcementsToState converts API enforcements (key -> string value) to a types.Map for state.
 // Keys are normalized to UPPER_SNAKE_CASE. GENERATED_PASSWORD_COMPLEXITY value is canonicalized.
+// Commander expands RESTRICT_SHARING_ALL into _INCOMING and _OUTGOING; when both are "true" we collapse back to RESTRICT_SHARING_ALL for stable plan.
 func MapEnforcementsToState(enforcements map[string]string, GeneratedPasswordComplexityKey string) (types.Map, error) {
 	if len(enforcements) == 0 {
 		return types.MapNull(types.StringType), nil
@@ -722,6 +743,31 @@ func MapEnforcementsToState(enforcements map[string]string, GeneratedPasswordCom
 			val = CanonicalizeGeneratedPasswordComplexityJSON(val)
 		}
 		elements[normalizedKey] = types.StringValue(val)
+	}
+	// Collapse RESTRICT_SHARING_ALL_INCOMING + RESTRICT_SHARING_ALL_OUTGOING (both "true") -> RESTRICT_SHARING_ALL = "true"
+	if incoming, okIn := elements[restrictSharingAllIncoming]; okIn {
+		if outgoing, okOut := elements[restrictSharingAllOutgoing]; okOut {
+			if sIn, ok := incoming.(types.String); ok && sIn.ValueString() == "true" {
+				if sOut, ok := outgoing.(types.String); ok && sOut.ValueString() == "true" {
+					elements[restrictSharingAll] = types.StringValue("true")
+					delete(elements, restrictSharingAllIncoming)
+					delete(elements, restrictSharingAllOutgoing)
+				}
+			}
+
+		}
+	}
+	// Collapse RESTRICT_SHARING_ENTERPRISE_INCOMING + RESTRICT_SHARING_ENTERPRISE_OUTGOING (both "true") -> RESTRICT_SHARING_ENTERPRISE = "true"
+	if incoming, okIn := elements[restrictSharingEnterpriseIncoming]; okIn {
+		if outgoing, okOut := elements[restrictSharingEnterpriseOutgoing]; okOut {
+			if sIn, ok := incoming.(types.String); ok && sIn.ValueString() == "true" {
+				if sOut, ok := outgoing.(types.String); ok && sOut.ValueString() == "true" {
+					elements[restrictSharingEnterprise] = types.StringValue("true")
+					delete(elements, restrictSharingEnterpriseIncoming)
+					delete(elements, restrictSharingEnterpriseOutgoing)
+				}
+			}
+		}
 	}
 	if len(elements) == 0 {
 		return types.MapNull(types.StringType), nil

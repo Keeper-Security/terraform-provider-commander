@@ -36,9 +36,12 @@ func TestCommanderProvider_Schema(t *testing.T) {
 	if resp.Schema.Attributes["service_mode_api_key"] == nil {
 		t.Error("expected service_mode_api_key attribute in schema")
 	}
+	if resp.Schema.Attributes["timeout"] == nil {
+		t.Error("expected timeout attribute in schema")
+	}
 	urlAttr, ok := resp.Schema.Attributes["service_mode_url"].(schema.StringAttribute)
-	if !ok || !urlAttr.Required {
-		t.Error("service_mode_url should be required StringAttribute")
+	if !ok || !urlAttr.Optional {
+		t.Error("service_mode_url should be optional StringAttribute (config or env)")
 	}
 }
 

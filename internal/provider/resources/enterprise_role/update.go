@@ -419,13 +419,26 @@ func processEnforcementPoliciesUpdate(ctx context.Context, apiManager *api.ApiMa
 		return err
 	}
 
-	// Only send the policies that changed (or are newly added).
 	toSet := make(map[string]types.String)
+
+	// Changed or newly added: keys in plan (and different from state).
 	for key, planValue := range planPolicies {
 		stateValue, exists := statePolicies[key]
 		if !exists || !stateValue.Equal(planValue) {
 			toSet[key] = planValue
 		}
+	}
+
+	// Removed: keys in state but not in plan — send type-appropriate default so the backend clears them.
+	for key := range statePolicies {
+		if _, inPlan := planPolicies[key]; inPlan {
+			continue
+		}
+		// Skip GENERATED_PASSWORD_COMPLEXITY; clearing would need JSON/file, not a simple string.
+		if key == GeneratedPasswordComplexity {
+			continue
+		}
+		toSet[key] = types.StringValue(enforcementPolicyRemovalDefault(key))
 	}
 
 	cmd, filedata, err := buildUpdateEnforcementPoliciesCommand(roleId, toSet)
