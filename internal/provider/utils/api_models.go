@@ -69,11 +69,12 @@ type EnterpriseUserResponse struct {
 
 // EnterpriseScimResponse represents the SCIM configuration from the read API response.
 type EnterpriseScimResponse struct {
-	ScimID       int    `json:"scim_id"`
-	ScimURL      string `json:"scim_url"`
-	NodeID       int    `json:"node_id"`
-	NodeName     string `json:"node_name"`
-	Status       string `json:"status"`
-	Prefix       string `json:"prefix"`
-	UniqueGroups bool   `json:"unique_groups"`
+	ScimID            int    `json:"scim_id"`
+	ScimURL           string `json:"scim_url"`
+	NodeID            int    `json:"node_id"`
+	NodeName          string `json:"node_name"`
+	Status            string `json:"status"`
+	Prefix            string `json:"prefix"`
+	UniqueGroups      bool   `json:"unique_groups"`
+	ProvisioningToken string `json:"provisioning_token"`
 }

@@ -21,7 +21,10 @@ func (r *EnterpriseScimPushResource) Schema(ctx context.Context, req resource.Sc
 		MarkdownDescription: ResourceMarkdownDescription,
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
-				Computed:            true,
+				Computed: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 				Description:         "Deterministic ID computed from scim_id, source, record, auto_approve, and managed_company.",
 				MarkdownDescription: "Deterministic ID computed from scim_id, source, record, auto_approve, and managed_company.",
 			},

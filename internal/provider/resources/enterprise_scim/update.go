@@ -34,12 +34,21 @@ func (r *EnterpriseScimResource) Update(ctx context.Context, req resource.Update
 		return
 	}
 
-	// managed_company cannot be changed on update (schema has RequiresReplace; this is a safety check).
-	if !plan.ManagedCompany.Equal(state.ManagedCompany) {
-		resp.Diagnostics.AddError(
-			ErrSummaryManagedCompanyCannotBeUpdated,
-			ErrDetailManagedCompany,
-		)
+	utils.RestrictAttributeUpdate(&resp.Diagnostics, []utils.ImmutableAttributeCheck{
+		{
+			PlanValue:  plan.ManagedCompany,
+			StateValue: state.ManagedCompany,
+			Summary:    ErrSummaryManagedCompanyCannotBeUpdated,
+			Detail:     ErrDetailManagedCompany,
+		},
+		{
+			PlanValue:  plan.Node,
+			StateValue: state.Node,
+			Summary:    ErrSummaryNodeCannotBeUpdated,
+			Detail:     ErrDetailNode,
+		},
+	})
+	if resp.Diagnostics.HasError() {
 		return
 	}
 

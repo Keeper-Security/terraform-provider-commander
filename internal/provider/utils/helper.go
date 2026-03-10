@@ -732,3 +732,24 @@ func MapEnforcementsToState(enforcements map[string]string, GeneratedPasswordCom
 	}
 	return mapVal, nil
 }
+
+// ImmutableAttributeCheck represents one "plan vs state must be equal" check.
+type ImmutableAttributeCheck struct {
+	PlanValue  attr.Value
+	StateValue attr.Value
+	Summary    string
+	Detail     string
+}
+
+// AddErrorIfImmutableAttributesChanged checks each attribute; for any where plan != state
+// it adds a diagnostic error to diags. Returns diags so caller can Append() or check HasError().
+func RestrictAttributeUpdate(diags *diag.Diagnostics, checks []ImmutableAttributeCheck) {
+	for _, c := range checks {
+		if c.PlanValue == nil || c.StateValue == nil {
+			continue
+		}
+		if !c.PlanValue.Equal(c.StateValue) {
+			diags.AddError(c.Summary, c.Detail)
+		}
+	}
+}

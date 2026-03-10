@@ -6,9 +6,11 @@ package enterprisescim
 import (
 	"context"
 	"errors"
+	"strconv"
 
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/utils"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
 func (r *EnterpriseScimResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
@@ -37,7 +39,16 @@ func (r *EnterpriseScimResource) Read(ctx context.Context, req resource.ReadRequ
 			resp.State.RemoveResource(ctx)
 			return utils.ErrResourceRemoved
 		}
-		mapScimReadResponseToModel(scimInfo, &state)
+
+		state.Id = types.StringValue(strconv.Itoa(scimInfo.ScimID))
+		state.ScimURL = types.StringValue(scimInfo.ScimURL)
+		// use same state.node value as it is immutable
+		state.Node = types.StringValue(state.Node.ValueString())
+		state.Status = types.StringValue(scimInfo.Status)
+		state.Prefix = types.StringValue(scimInfo.Prefix)
+		state.UniqueGroups = types.BoolValue(scimInfo.UniqueGroups)
+		state.ProvisioningToken = types.StringValue(scimInfo.ProvisioningToken)
+
 		return nil
 	}, ErrSummaryReadFailed, &resp.Diagnostics); err != nil && errors.Is(err, utils.ErrResourceRemoved) {
 		return

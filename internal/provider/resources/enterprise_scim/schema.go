@@ -9,6 +9,8 @@ import (
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/utils"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 )
 
@@ -18,12 +20,18 @@ func (r *EnterpriseScimResource) Schema(ctx context.Context, req resource.Schema
 		MarkdownDescription: "Creates and manages an enterprise SCIM configuration in your Keeper Enterprise or MSP account.<br><br>" + "Automatically provision users and teams through Entra ID, Okta, Google Workspace and other popular identity platforms by establishing a SCIM connection.<br><br>" + "For more information, see [KeeperSCIM documentation](https://docs.keeper.io/en/enterprise-guide/user-and-team-provisioning/automated-provisioning-with-scim#what-is-scim).",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
-				Computed:            true,
+				Computed: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 				Description:         "SCIM configuration ID assigned by Keeper to the scim after it is created.",
 				MarkdownDescription: "SCIM configuration **ID** assigned by Keeper to the scim after it is created.",
 			},
 			"scim_url": schema.StringAttribute{
-				Computed:            true,
+				Computed: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 				Description:         "The SCIM endpoint URL for this configuration. Use this URL to configure your SCIM client.",
 				MarkdownDescription: "The SCIM **endpoint URL** for this configuration. Use this URL to configure your SCIM client.",
 			},
@@ -36,7 +44,10 @@ func (r *EnterpriseScimResource) Schema(ctx context.Context, req resource.Schema
 				MarkdownDescription: "The **node** that will manage this SCIM configuration. Provide the **node name** or **node ID**. ",
 			},
 			"status": schema.StringAttribute{
-				Computed:            true,
+				Computed: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 				Description:         "Current status of the SCIM configuration (for example, active or inactive)",
 				MarkdownDescription: "**Current status** of the SCIM configuration (for example, `active` or `inactive`)",
 			},
@@ -49,6 +60,14 @@ func (r *EnterpriseScimResource) Schema(ctx context.Context, req resource.Schema
 				Required:            true,
 				Description:         "Whether to use unique groups.",
 				MarkdownDescription: "Whether to use **unique groups**.",
+			},
+			"provisioning_token": schema.StringAttribute{
+				Computed: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
+				Description:         "Provisioning token for the SCIM configuration. Use this token to configure your SCIM client.",
+				MarkdownDescription: "Provisioning token for the SCIM configuration. Use this token to configure your SCIM client.",
 			},
 			"managed_company": schema.StringAttribute{
 				Optional:            true,
