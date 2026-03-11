@@ -72,59 +72,55 @@ func ExecuteWithManagedCompanyContext(
 	managedCompany types.String,
 	operation func() error,
 ) (err error) {
-	// Track whether we switched to MC so we know to switch back
+	apiManager.LockContext()
+	defer apiManager.UnlockContext()
+
 	switchedToMC := false
 
-	if !managedCompany.IsNull() && !managedCompany.IsUnknown() {
-		// Has managed_company - switch to it
-		// Sync enterprise data first
+	hasManagedCompany := !managedCompany.IsNull() && !managedCompany.IsUnknown() && managedCompany.ValueString() != ""
+
+	if hasManagedCompany {
+		// Has managed_company (non-empty) - switch to it
 		if err := EnterpriseDown(ctx, apiManager); err != nil {
 			return fmt.Errorf("failed to sync enterprise data: %w", err)
 		}
-
-		// Switch to managed company
 		if err := SwitchToManagedCompany(ctx, apiManager, managedCompany.ValueString()); err != nil {
 			return fmt.Errorf("failed to switch to managed company: %w", err)
 		}
+		apiManager.SetCurrentContext(managedCompany.ValueString())
 		switchedToMC = true
 	} else {
-		// No managed_company provided - ensure we're in the correct base context
-		// This prevents race conditions where another resource might have switched to MC
-		// For MSP accounts: switch to MSP context
-		// For Enterprise accounts: just sync data (already in Enterprise context)
+		// No managed_company - ensure we're in MSP context only when needed
 		if apiManager.IsMspAccount {
-			// MSP account - explicitly switch to MSP to ensure clean state
-			if err := SwitchToMsp(ctx, apiManager); err != nil {
-				return fmt.Errorf("failed to switch to MSP context: %w", err)
+			if apiManager.GetCurrentContext() != "" {
+				// We think we're in MC (e.g. previous op failed to switch back); switch to MSP
+				if err := SwitchToMsp(ctx, apiManager); err != nil {
+					return fmt.Errorf("failed to switch to MSP context: %w", err)
+				}
+				apiManager.SetCurrentContext("")
 			}
+			// Else already in MSP - skip redundant switch-to-msp API call
 		}
-		// For both MSP and Enterprise accounts, sync enterprise data
+		// Always run EnterpriseDown to sync with backend (e.g. external changes); we only skip switch-to-msp above.
 		if err := EnterpriseDown(ctx, apiManager); err != nil {
 			return fmt.Errorf("failed to sync enterprise data: %w", err)
 		}
 	}
 
-	// Always switch back to MSP after the operation if we switched to MC
-	// This ensures clean state for subsequent operations
 	defer func() {
-		if switchedToMC {
-			// Only switch back to MSP if it's an MSP account
-			if apiManager.IsMspAccount {
-				if switchErr := SwitchToMsp(ctx, apiManager); switchErr != nil {
-					if err != nil {
-						// Both operation and switch-back failed - combine errors
-						err = fmt.Errorf("operation failed: %w; also failed to switch back to MSP: %w", err, switchErr)
-					} else {
-						// Operation succeeded but switch-back failed - this is critical
-						err = fmt.Errorf("failed to switch back to MSP: %w", switchErr)
-					}
+		if switchedToMC && apiManager.IsMspAccount {
+			if switchErr := SwitchToMsp(ctx, apiManager); switchErr != nil {
+				if err != nil {
+					err = fmt.Errorf("operation failed: %w; also failed to switch back to MSP: %w", err, switchErr)
+				} else {
+					err = fmt.Errorf("failed to switch back to MSP: %w", switchErr)
 				}
+			} else {
+				apiManager.SetCurrentContext("")
 			}
 		}
-
 	}()
 
-	// Execute the actual operation
 	err = operation()
 	return err
 }
@@ -430,6 +426,9 @@ func FetchEnterpriseNodeByNameOrId(ctx context.Context, apiManager *api.ApiManag
 
 	apiResp, err := apiManager.ExecuteCommand(ctx, command, "Failed to retrieve enterprise node information")
 	if err != nil {
+		if errors.Is(err, api.ErrResourceNotFound) {
+			return nil, nil
+		}
 		return nil, err
 	}
 
@@ -466,6 +465,9 @@ func FetchEnterpriseRoleByNameOrId(ctx context.Context, apiManager *api.ApiManag
 
 	apiResp, err := apiManager.ExecuteCommand(ctx, command, "Failed to retrieve enterprise role information")
 	if err != nil {
+		if errors.Is(err, api.ErrResourceNotFound) {
+			return nil, nil
+		}
 		return nil, err
 	}
 
@@ -500,6 +502,9 @@ func FetchEnterpriseTeamByNameOrId(ctx context.Context, apiManager *api.ApiManag
 	// Execute the command
 	apiResp, err := apiManager.ExecuteCommand(ctx, command, "Failed to retrieve enterprise team information")
 	if err != nil {
+		if errors.Is(err, api.ErrResourceNotFound) {
+			return nil, nil
+		}
 		return nil, err
 	}
 
@@ -533,6 +538,9 @@ func FetchEnterpriseUserByEmailOrId(ctx context.Context, apiManager *api.ApiMana
 
 	apiResp, err := apiManager.ExecuteCommand(ctx, command, "Failed to retrieve enterprise user information")
 	if err != nil {
+		if errors.Is(err, api.ErrResourceNotFound) {
+			return nil, nil
+		}
 		return nil, err
 	}
 
@@ -566,6 +574,9 @@ func FetchManagedCompanyByNameOrId(ctx context.Context, apiManager *api.ApiManag
 
 	apiResp, err := apiManager.ExecuteCommand(ctx, command, "Failed to retrieve managed company information")
 	if err != nil {
+		if errors.Is(err, api.ErrResourceNotFound) {
+			return nil, nil
+		}
 		return nil, err
 	}
 
@@ -592,6 +603,29 @@ func FetchManagedCompanyByNameOrId(ctx context.Context, apiManager *api.ApiManag
 	return companyInfo, nil
 }
 
+// FetchEnterpriseScimById retrieves a single SCIM configuration by scim_id.
+// The API returns a single object. Returns (nil, nil) if not found so Read can remove from state.
+func FetchEnterpriseScimById(ctx context.Context, apiManager *api.ApiManager, scimId string) (*EnterpriseScimResponse, error) {
+	command := fmt.Sprintf("scim view '%s' --format json", scimId)
+
+	apiResp, err := apiManager.ExecuteCommand(ctx, command, "Failed to retrieve enterprise SCIM information")
+	if err != nil {
+		return nil, err
+	}
+
+	var scimInfo EnterpriseScimResponse
+	if err := UnmarshalApiResponse(apiResp.Data, &scimInfo); err != nil {
+		return nil, fmt.Errorf("unable to parse enterprise SCIM from API response: %w", err)
+	}
+
+	// Treat empty or zero scim_id as not found
+	if scimInfo.ScimID == 0 {
+		return nil, nil
+	}
+
+	return &scimInfo, nil
+}
+
 // ParseManagedCompanyImportID parses an import ID that may be "resource_id" or "managed_company,resource_id".
 // resourceName is used in error messages (e.g. "node" or "role").
 // Returns resourceID, managedCompany (empty if not in ID), and any diagnostics.
@@ -599,7 +633,7 @@ func ParseManagedCompanyImportID(importID string, resourceName string) (resource
 	importID = strings.TrimSpace(importID)
 	if importID == "" {
 		diags = append(diags, diag.NewErrorDiagnostic(
-			"Invalid Import ID",
+			ERR_MSG_INVALID_IMPORT_ID,
 			"Import ID cannot be empty. Use: (1) "+resourceName+" name or "+resourceName+" ID alone; or (2) for a "+resourceName+" in a managed company, use \"managed_company_name_or_id,"+resourceName+"_name_or_id\" (comma-separated).",
 		))
 		return "", "", diags
@@ -614,7 +648,7 @@ func ParseManagedCompanyImportID(importID string, resourceName string) (resource
 
 	if resourceID == "" {
 		diags = append(diags, diag.NewErrorDiagnostic(
-			"Invalid Import ID",
+			ERR_MSG_INVALID_IMPORT_ID,
 			"When using managed company format \"managed_company_name_or_id,"+resourceName+"\", the "+resourceName+" part cannot be empty.",
 		))
 		return "", "", diags
@@ -682,8 +716,18 @@ func CanonicalizeGeneratedPasswordComplexityJSON(s string) string {
 	return string(out)
 }
 
+const (
+	restrictSharingAll                = "RESTRICT_SHARING_ALL"
+	restrictSharingAllIncoming        = "RESTRICT_SHARING_ALL_INCOMING"
+	restrictSharingAllOutgoing        = "RESTRICT_SHARING_ALL_OUTGOING"
+	restrictSharingEnterprise         = "RESTRICT_SHARING_ENTERPRISE"
+	restrictSharingEnterpriseIncoming = "RESTRICT_SHARING_ENTERPRISE_INCOMING"
+	restrictSharingEnterpriseOutgoing = "RESTRICT_SHARING_ENTERPRISE_OUTGOING"
+)
+
 // MapEnforcementsToState converts API enforcements (key -> string value) to a types.Map for state.
 // Keys are normalized to UPPER_SNAKE_CASE. GENERATED_PASSWORD_COMPLEXITY value is canonicalized.
+// Commander expands RESTRICT_SHARING_ALL into _INCOMING and _OUTGOING; when both are "true" we collapse back to RESTRICT_SHARING_ALL for stable plan.
 func MapEnforcementsToState(enforcements map[string]string, GeneratedPasswordComplexityKey string) (types.Map, error) {
 	if len(enforcements) == 0 {
 		return types.MapNull(types.StringType), nil
@@ -700,6 +744,31 @@ func MapEnforcementsToState(enforcements map[string]string, GeneratedPasswordCom
 		}
 		elements[normalizedKey] = types.StringValue(val)
 	}
+	// Collapse RESTRICT_SHARING_ALL_INCOMING + RESTRICT_SHARING_ALL_OUTGOING (both "true") -> RESTRICT_SHARING_ALL = "true"
+	if incoming, okIn := elements[restrictSharingAllIncoming]; okIn {
+		if outgoing, okOut := elements[restrictSharingAllOutgoing]; okOut {
+			if sIn, ok := incoming.(types.String); ok && sIn.ValueString() == "true" {
+				if sOut, ok := outgoing.(types.String); ok && sOut.ValueString() == "true" {
+					elements[restrictSharingAll] = types.StringValue("true")
+					delete(elements, restrictSharingAllIncoming)
+					delete(elements, restrictSharingAllOutgoing)
+				}
+			}
+
+		}
+	}
+	// Collapse RESTRICT_SHARING_ENTERPRISE_INCOMING + RESTRICT_SHARING_ENTERPRISE_OUTGOING (both "true") -> RESTRICT_SHARING_ENTERPRISE = "true"
+	if incoming, okIn := elements[restrictSharingEnterpriseIncoming]; okIn {
+		if outgoing, okOut := elements[restrictSharingEnterpriseOutgoing]; okOut {
+			if sIn, ok := incoming.(types.String); ok && sIn.ValueString() == "true" {
+				if sOut, ok := outgoing.(types.String); ok && sOut.ValueString() == "true" {
+					elements[restrictSharingEnterprise] = types.StringValue("true")
+					delete(elements, restrictSharingEnterpriseIncoming)
+					delete(elements, restrictSharingEnterpriseOutgoing)
+				}
+			}
+		}
+	}
 	if len(elements) == 0 {
 		return types.MapNull(types.StringType), nil
 	}
@@ -708,4 +777,25 @@ func MapEnforcementsToState(enforcements map[string]string, GeneratedPasswordCom
 		return types.MapNull(types.StringType), fmt.Errorf("failed to build enforcement_policies map: %v", diags)
 	}
 	return mapVal, nil
+}
+
+// ImmutableAttributeCheck represents one "plan vs state must be equal" check.
+type ImmutableAttributeCheck struct {
+	PlanValue  attr.Value
+	StateValue attr.Value
+	Summary    string
+	Detail     string
+}
+
+// AddErrorIfImmutableAttributesChanged checks each attribute; for any where plan != state
+// it adds a diagnostic error to diags. Returns diags so caller can Append() or check HasError().
+func RestrictAttributeUpdate(diags *diag.Diagnostics, checks []ImmutableAttributeCheck) {
+	for _, c := range checks {
+		if c.PlanValue == nil || c.StateValue == nil {
+			continue
+		}
+		if !c.PlanValue.Equal(c.StateValue) {
+			diags.AddError(c.Summary, c.Detail)
+		}
+	}
 }

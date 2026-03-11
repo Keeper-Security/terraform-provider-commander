@@ -75,7 +75,6 @@ const (
 
 // Error summaries (first argument to AddError).
 const (
-	ErrSummaryProviderConfig = "Provider Configuration Error"
 	ErrSummaryCreateFailed   = "Create Shared Folder Failed"
 	ErrSummaryReadFailed     = "Read Shared Folder Failed"
 	ErrSummaryUpdateFailed   = "Update Shared Folder Failed"

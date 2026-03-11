@@ -21,7 +21,10 @@ func (r *EnterprisePushResource) Schema(ctx context.Context, req resource.Schema
 		MarkdownDescription: ResourceMarkdownDescription,
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
-				Computed:            true,
+				Computed: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 				Description:         "Deterministic ID: sha256(content + sorted emails + sorted teams + managed_company). Same inputs → same ID (no re-push); any change → new ID → replace → push again.",
 				MarkdownDescription: "Deterministic ID: `sha256(content + sorted emails + sorted teams + managed_company)`. Same inputs → same ID (no re-push); any change → new ID → replace → push again.",
 			},

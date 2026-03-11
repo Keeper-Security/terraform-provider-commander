@@ -21,7 +21,7 @@ func (r *SharedFolderResource) Delete(ctx context.Context, req resource.DeleteRe
 
 	if err := r.EnsureApiManager(); err != nil {
 		resp.Diagnostics.AddError(
-			ErrSummaryProviderConfig,
+			utils.ERR_MSG_PROVIDER_CONFIGURATION_ERROR,
 			err.Error(),
 		)
 		return

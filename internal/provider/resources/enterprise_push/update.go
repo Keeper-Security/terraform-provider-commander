@@ -22,7 +22,7 @@ func (r *EnterprisePushResource) Update(ctx context.Context, req resource.Update
 
 	if err := r.EnsureApiManager(); err != nil {
 		resp.Diagnostics.AddError(
-			"Provider Configuration Error",
+			utils.ERR_MSG_PROVIDER_CONFIGURATION_ERROR,
 			err.Error(),
 		)
 		return

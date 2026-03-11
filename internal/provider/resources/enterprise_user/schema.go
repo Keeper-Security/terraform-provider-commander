@@ -9,6 +9,8 @@ import (
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/utils"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
@@ -20,7 +22,10 @@ func (r *EnterpriseUserResource) Schema(ctx context.Context, req resource.Schema
 		MarkdownDescription: "Creates and manages an **enterprise user** in your Keeper MSP or Enterprise account.<br><br>" + "All employees or users you choose to deploy Keeper to are responsible for managing their own encrypted vault. Every user's vault can be made up of private records or shared records. Users can be provisioned many different ways. Users can be required to set up a Master Password or they can be provisioned and authenticated through your SSO provider.<br><br>" + "For more information, see [Enterprise Users documentation](https://docs.keeper.io/en/enterprise-guide/getting-started-with-keeper-admin-console#users).",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
-				Computed:            true,
+				Computed: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 				Description:         "User ID assigned by Keeper to the role after it is created. Use this value to import an existing user into Terraform state or to reference the user from other resources.",
 				MarkdownDescription: "**User ID** assigned by Keeper to the role after it is created. Use this value to **import** an existing user into Terraform state or to reference the user from other resources.",
 			},
@@ -84,7 +89,10 @@ func (r *EnterpriseUserResource) Schema(ctx context.Context, req resource.Schema
 				},
 			},
 			"status": schema.StringAttribute{
-				Computed:            true,
+				Computed: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 				Description:         "User current status (e.g. Active, Inactive). Set by the provider from the API and used for internal tracking; do not set in configuration.",
 				MarkdownDescription: "User **current status** (e.g. Active, Inactive). Set by the provider from the API and used for internal tracking; **do not set in configuration**.",
 			},

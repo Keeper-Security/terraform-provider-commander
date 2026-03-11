@@ -7,6 +7,7 @@ import (
 	"context"
 	"strings"
 
+	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/utils"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
@@ -16,15 +17,15 @@ import (
 // After import, Terraform runs Read to refresh state from the API.
 func (r *SharedFolderResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	if err := r.EnsureApiManager(); err != nil {
-		resp.Diagnostics.AddError(ErrSummaryProviderConfig, err.Error())
+		resp.Diagnostics.AddError(utils.ERR_MSG_PROVIDER_CONFIGURATION_ERROR, err.Error())
 		return
 	}
 
 	importID := strings.TrimSpace(req.ID)
 	if importID == "" {
 		resp.Diagnostics.AddError(
-			"Invalid Import ID",
-			"Import ID cannot be empty. Use the shared folder UID (e.g. \"BTbjhOmqw9iYal3OQJ9UAQ\").",
+			utils.ERR_MSG_INVALID_IMPORT_ID,
+			"Import ID cannot be empty. Use the shared folder name or UID.",
 		)
 		return
 	}
