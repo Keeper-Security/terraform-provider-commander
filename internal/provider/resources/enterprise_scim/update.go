@@ -8,6 +8,7 @@ import (
 
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/utils"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
 // Update allows only prefix and unique_groups to be changed.
@@ -55,8 +56,13 @@ func (r *EnterpriseScimResource) Update(ctx context.Context, req resource.Update
 	// Use state's managed_company for API context (plan equals state here; state is source of truth for identity).
 	if err := utils.RunWithManagedCompanyContext(ctx, r.ApiManager, plan.ManagedCompany, func() error {
 		command := buildUpdateCommand(state.Id.ValueString(), &plan)
-		_, err := r.ApiManager.ExecuteCommand(ctx, command, ErrOpUpdateScim)
-		return err
+		updatedScimResponse, err := r.ApiManager.ExecuteCommand(ctx, command, ErrOpUpdateScim)
+		if err != nil {
+			return err
+		}
+		// Update returns a new provisioning token in res.message; store it so state has the current token.
+		plan.ProvisioningToken = types.StringValue(string(updatedScimResponse.Message))
+		return nil
 	}, ErrSummaryUpdateFailed, &resp.Diagnostics); err != nil {
 		return
 	}
@@ -64,7 +70,7 @@ func (r *EnterpriseScimResource) Update(ctx context.Context, req resource.Update
 		return
 	}
 
-	// Preserve id, node, managed_company from state
+	// Preserve id, node, scim_url from state (provisioning_token already set from API response above).
 	plan.Id = state.Id
 	plan.Node = state.Node
 	plan.ScimURL = state.ScimURL

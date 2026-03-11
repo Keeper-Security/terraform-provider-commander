@@ -17,8 +17,12 @@ import (
 
 func (r *EnterpriseScimPushResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		Description:         ResourceDescription,
-		MarkdownDescription: ResourceMarkdownDescription,
+		Description: "Push SCIM (Google, AD, or record-based) data to a Keeper SCIM endpoint in one step. Changing any value runs the push again.",
+		MarkdownDescription: "Use this resource to **push SCIM data** to a Keeper SCIM endpoint in a single step. You choose where the data comes from (Google Workspace, Active Directory, or a record) and whether to auto-approve teams.\n\n" +
+			"## What this resource does\n\n" +
+			"- When you **apply**, it runs a one-time SCIM push with your settings.\n" +
+			"- Terraform does **not** read or delete anything on the server. It only runs the push and tracks that it happened.\n" +
+			"- If you change **scim_id**, **source**, **record**, **auto_approve**, or **managed_company**, Terraform will run the push again with the new values.\n\n",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed: true,

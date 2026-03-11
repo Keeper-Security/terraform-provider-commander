@@ -28,5 +28,6 @@ Creates and manages an enterprise SCIM configuration in your Keeper Enterprise o
 ### Read-Only
 
 - `id` (String) SCIM configuration **ID** assigned by Keeper to the scim after it is created.
+- `provisioning_token` (String) Provisioning token for the SCIM configuration. Use this token to configure your SCIM client.
 - `scim_url` (String) The SCIM **endpoint URL** for this configuration. Use this URL to configure your SCIM client.
 - `status` (String) **Current status** of the SCIM configuration (for example, `active` or `inactive`)

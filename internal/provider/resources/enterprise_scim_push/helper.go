@@ -11,7 +11,7 @@ import (
 )
 
 // buildScimPushCommand builds the scim push command from the model.
-// Format: scim push [scim_id] --source {google,ad,record} --record RECORD --auto-approve {on,off}
+// Format: scim push [scim_id] --source {google,ad,record} --record RECORD --auto-approve {on,off}.
 func buildScimPushCommand(data *EnterpriseScimPushResourceModel) string {
 	source := strings.TrimSpace(strings.ToLower(data.Source.ValueString()))
 	autoApprove := AutoApproveOff
