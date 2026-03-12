@@ -528,7 +528,7 @@ func FetchEnterpriseTeamByNameOrId(ctx context.Context, apiManager *api.ApiManag
 
 func FetchEnterpriseUserByEmailOrId(ctx context.Context, apiManager *api.ApiManager, emailOrId string) (*EnterpriseUserResponse, error) {
 	// Build the Commander command string
-	command := fmt.Sprintf("enterprise-info '%s' -u --format json --columns='name,status,node,teams,roles,alias' -q", emailOrId)
+	command := fmt.Sprintf("enterprise-info '%s' -u --format json --columns='name,status,node,teams,roles,alias,job_title' -q", emailOrId)
 
 	apiResp, err := apiManager.ExecuteCommand(ctx, command, "Failed to retrieve enterprise user information")
 	if err != nil {
