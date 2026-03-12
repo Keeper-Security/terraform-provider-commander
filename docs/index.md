@@ -32,4 +32,4 @@ provider "commander" {
 
 - `service_mode_api_key` (String, Sensitive) The API key for the running Keeper Commander Service Mode. Can also be set via the `COMMANDER_SERVICE_MODE_API_KEY` environment variable.
 - `service_mode_url` (String) The URL of the running Keeper Commander Service Mode. Can also be set via the `COMMANDER_SERVICE_MODE_URL` environment variable.
-- `timeout` (Number) Timeout in seconds for HTTP requests to the Commander Service Mode and for waiting on async command results. Omit or set to 0 to use the default of 60 seconds.
+- `timeout` (Number) Timeout in seconds for HTTP requests to the Commander Service Mode and for waiting on async command results. If this value is **not provided or is set to 0 or less**, the provider will use the default timeout of `60` seconds.

@@ -37,7 +37,7 @@
 
 ## Prerequisites
 
-- **Keeper Commander Service Mode**: A service account running Commander Service Mode REST API.
+- **Keeper Commander Service Mode**: A service account running latest version of Commander Service Mode REST API.
 - [Terraform](https://developer.hashicorp.com/terraform/downloads) >= 1.0
 
 ## Setup and Installation
@@ -136,7 +136,7 @@ terraform {
 provider "commander" {
   service_mode_url     = "http://localhost:8080/api/v2/"
   service_mode_api_key = "XXXXXXXXXXXXXX"
-  timeout              = 60  # optional; defaults to 60 seconds for HTTP and async command polling
+  timeout              = 60  # optional; defaults to 60 seconds (if not provided or is set to 0 or less) for HTTP and async command polling
 }
 ```
 
