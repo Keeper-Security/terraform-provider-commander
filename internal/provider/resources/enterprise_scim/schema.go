@@ -52,9 +52,12 @@ func (r *EnterpriseScimResource) Schema(ctx context.Context, req resource.Schema
 				MarkdownDescription: "**Current status** of the SCIM configuration (for example, `active` or `inactive`)",
 			},
 			"prefix": schema.StringAttribute{
-				Required:            true,
+				Optional:            true,
 				Description:         "Role Prefix. SCIM groups staring with prefix will be imported to Keeper as Roles.",
 				MarkdownDescription: "**Role Prefix**. SCIM groups staring with prefix will be imported to Keeper as Roles.",
+				Validators: []validator.String{
+					utils.StringMinLengthValidator("Role Prefix", 1, true),
+				},
 			},
 			"unique_groups": schema.BoolAttribute{
 				Required:            true,

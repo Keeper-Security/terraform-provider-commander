@@ -45,7 +45,12 @@ func (r *EnterpriseScimResource) Read(ctx context.Context, req resource.ReadRequ
 		// use same state.node value as it is immutable
 		state.Node = types.StringValue(state.Node.ValueString())
 		state.Status = types.StringValue(scimInfo.Status)
-		state.Prefix = types.StringValue(scimInfo.Prefix)
+		// Store empty prefix as null so state matches config (prefix = null) and plan shows no change.
+		if scimInfo.Prefix == "" {
+			state.Prefix = types.StringNull()
+		} else {
+			state.Prefix = types.StringValue(scimInfo.Prefix)
+		}
 		state.UniqueGroups = types.BoolValue(scimInfo.UniqueGroups)
 		// Use token from API so Read matches Update (API may rotate token on update); avoids "inconsistent result after apply"
 		state.ProvisioningToken = types.StringValue(scimInfo.ProvisioningToken)

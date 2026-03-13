@@ -60,8 +60,14 @@ func (r *EnterpriseScimResource) Update(ctx context.Context, req resource.Update
 		if err != nil {
 			return err
 		}
+
+		var updatedScimInfo utils.EnterpriseScimResponse
+		if err := utils.UnmarshalApiResponse(updatedScimResponse.Data, &updatedScimInfo); err != nil {
+			return err
+		}
+
 		// Update returns a new provisioning token in res.message; store it so state has the current token.
-		plan.ProvisioningToken = types.StringValue(string(updatedScimResponse.Message))
+		plan.ProvisioningToken = types.StringValue(updatedScimInfo.ProvisioningToken)
 		return nil
 	}, ErrSummaryUpdateFailed, &resp.Diagnostics); err != nil {
 		return
