@@ -18,12 +18,12 @@ Creates and manages an enterprise SCIM configuration in your Keeper Enterprise o
 ### Required
 
 - `node` (String) The **node** that will manage this SCIM configuration. Provide the **node name** or **node ID**.
-- `prefix` (String) **Role Prefix**. SCIM groups staring with prefix will be imported to Keeper as Roles.
 - `unique_groups` (Boolean) Whether to use **unique groups**.
 
 ### Optional
 
 - `managed_company` (String) Only applies to **MSP accounts**. **Name** or **ID** of the managed company to scope this resource or data source to. Omit to use the logged-in account context.
+- `prefix` (String) **Role Prefix**. SCIM groups staring with prefix will be imported to Keeper as Roles.
 
 ### Read-Only
 

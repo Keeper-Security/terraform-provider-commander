@@ -45,10 +45,22 @@ func (r *EnterpriseScimResource) ModifyPlan(ctx context.Context, req resource.Mo
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	prefixChanged := !plan.Prefix.Equal(state.Prefix)
+	// Treat null and empty string as equivalent for prefix (API returns "" when unset; config may use null).
+	prefixChanged := !prefixEqual(plan.Prefix, state.Prefix)
 	uniqueGroupsChanged := !plan.UniqueGroups.Equal(state.UniqueGroups)
 	if prefixChanged || uniqueGroupsChanged {
 		plan.ProvisioningToken = types.StringUnknown()
 		resp.Diagnostics.Append(resp.Plan.Set(ctx, &plan)...)
 	}
+}
+
+// prefixEqual returns true if the two prefix values are equivalent for change-detection.
+// Null and empty string are treated as the same (no prefix).
+func prefixEqual(a, b types.String) bool {
+	if a.Equal(b) {
+		return true
+	}
+	aEmpty := a.IsNull() || a.ValueString() == ""
+	bEmpty := b.IsNull() || b.ValueString() == ""
+	return aEmpty && bEmpty
 }
