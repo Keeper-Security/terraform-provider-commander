@@ -1,0 +1,10 @@
+---
+schema: 1.1
+
+partition: tf-ecosystem
+
+summary:
+  owner: keeper-security
+  description: |
+    Terraform provider for Commander lets you manage your Keeper Security enterprise or MSP configuration as infrastructure-as-code
+  visibility: public
