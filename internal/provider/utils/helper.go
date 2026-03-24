@@ -62,6 +62,13 @@ func SyncDown(ctx context.Context, apiManager *api.ApiManager) error {
 	return err
 }
 
+// Perform epm sync down.
+func EpmSyncDown(ctx context.Context, apiManager *api.ApiManager) error {
+	command := "epm sync-down"
+	_, err := apiManager.ExecuteCommand(ctx, command, "Unable to perform epm sync down")
+	return err
+}
+
 // ExecuteWithManagedCompanyContext executes a function with managed company context switching
 // If managedCompany is provided and not null, it switches to MC before execution and back to MSP after
 // If managedCompany is not provided, it ensures we're in the correct base context (MSP for MSP accounts, Enterprise for Enterprise)
@@ -624,6 +631,30 @@ func FetchEnterpriseScimById(ctx context.Context, apiManager *api.ApiManager, sc
 	}
 
 	return &scimInfo, nil
+}
+
+func FetchEpmPolicyById(ctx context.Context, apiManager *api.ApiManager, policyId string) (*EpmPolicyResponse, error) {
+	command := fmt.Sprintf("epm policy view '%s' --format json", policyId)
+	apiResp, err := apiManager.ExecuteCommand(ctx, command, "Unable to read EPM policy")
+	if err != nil {
+		if errors.Is(err, api.ErrResourceNotFound) {
+			return nil, nil
+		}
+		return nil, err
+	}
+
+	// Parse the JSON response - it's an array of company objects
+	var policyInfo *EpmPolicyResponse
+
+	if err := UnmarshalApiResponse(apiResp.Data, &policyInfo); err != nil {
+		return nil, fmt.Errorf("unable to parse EPM policy from API response: %w", err)
+	}
+
+	if policyInfo == nil {
+		return nil, nil
+	}
+
+	return policyInfo, nil
 }
 
 // ParseManagedCompanyImportID parses an import ID that may be "resource_id" or "managed_company,resource_id".
