@@ -9,6 +9,7 @@ const (
 	CmdMkdir       = "mkdir"
 	CmdRndir       = "rndir"
 	CmdRmdir       = "rmdir"
+	CmdMv          = "mv"
 	CmdShareFolder = "share-folder"
 )
 
@@ -58,6 +59,7 @@ const (
 const (
 	KeySharedFolderUID = "shared_folder_uid"
 	KeyName            = "name"
+	KeyPath            = "path"
 	KeyRecords         = "records"
 	KeyUsers           = "users"
 	KeyRecordUID       = "record_uid"
@@ -87,6 +89,7 @@ const (
 const (
 	ErrOpCreateSF           = "Unable to create shared folder"
 	ErrOpRenameSF           = "Unable to rename shared folder"
+	ErrOpMoveSF             = "Unable to move shared folder"
 	ErrOpUpdateDefaultPerms = "Unable to update shared folder default permissions"
 	ErrOpRemoveRecord       = "Unable to remove record from shared folder"
 	ErrOpAddUpdateRecord    = "Unable to add/update record in shared folder"
@@ -96,45 +99,43 @@ const (
 	ErrOpGetSF              = "Unable to get shared folder"
 )
 
-// Time layouts for expiration validation (Go reference time: 2006-01-02 15:04:05).
-const (
-	TimeLayoutDate          = "2006-01-02"
-	TimeLayoutDateTime      = "2006-01-02 15:04:05"
-	TimeLayoutDateTimeShort = "2006-01-02 15:04"
-)
+// TimeLayoutExpiration is the expiration datetime format for Terraform config and share-folder --expire-at (yyyy-MM-ddTHH:mm:ss).
+const TimeLayoutExpiration = "2006-01-02T15:04:05"
 
 // Schema and validator descriptions (resource and attribute level).
 const (
-	DescResource                   = "Manages a shared folder. Use this resource to create and manage shared folders."
-	DescId                         = "The ID of the shared folder."
-	DescName                       = "Shared folder name."
-	DescFolderLocation             = "Folder path or identifier where the shared folder is located."
-	DescUserPermissions            = "Default user permissions for the shared folder. When omitted, defaults to manage_users = false, manage_records = false. Allowed keys: manage_users, manage_records."
-	DescUserPermissionsMD          = "Default user permissions for the shared folder. When omitted, defaults to `manage_users = false`, `manage_records = false`. Allowed keys: `manage_users`, `manage_records`."
-	DescUserPermissionsManage      = "Allow managing users in the shared folder."
-	DescUserPermissionsRecords     = "Allow managing records in the shared folder."
-	DescRecordPermissions          = "Default record permissions for the shared folder. When omitted, defaults to can_share = false, can_edit = false. Allowed keys: can_share, can_edit."
-	DescRecordPermissionsMD        = "Default record permissions for the shared folder. When omitted, defaults to `can_share = false`, `can_edit = false`. Allowed keys: `can_share`, `can_edit`."
-	DescRecordPermissionsShare     = "Allow sharing records."
-	DescRecordPermissionsEdit      = "Allow editing records."
-	DescRecords                    = "Per-record permissions. Map key is record UID or name; value is an object with can_share and can_edit."
-	DescRecordsMD                  = "Per-record permissions. Map key is record UID or name; value is an object with `can_share` and `can_edit`."
-	DescRecordShare                = "Allow sharing this record."
-	DescRecordEdit                 = "Allow editing this record."
-	DescUsers                      = "Per-user permissions. Map key is user email or UID; value is an object with manage_users, manage_records, and expiration (\"never\" | ISO date/datetime | relative e.g. 30d, 1y)."
-	DescUsersMD                    = "Per-user permissions. Map key is user email or UID; value is an object with `manage_users`, `manage_records`, and `expiration` (\"never\" | ISO date/datetime | relative e.g. 30d, 1y)."
-	DescUserManageUsers            = "Allow this user to manage users."
-	DescUserManageRecords          = "Allow this user to manage records."
-	DescExpiration                 = "Access expiration: \"never\", ISO date/datetime (yyyy-MM-dd or yyyy-MM-dd HH:mm:ss), or relative period (e.g. 30d, 1y, 6mo, 24h, 90days)."
-	ExpirationDoc                  = "Must be \"never\", an ISO date/datetime (yyyy-MM-dd or yyyy-MM-dd HH:mm:ss), or a relative period (e.g. 30d, 1y, 6mo, 24h, 90days, 30minutes)."
-	DescUserPermissionsDefault     = "When null, defaults to manage_users = false, manage_records = false."
-	DescUserPermissionsDefaultMD   = "When null, defaults to `manage_users = false`, `manage_records = false`."
-	DescRecordPermissionsDefault   = "When null, defaults to can_share = false, can_edit = false."
-	DescRecordPermissionsDefaultMD = "When null, defaults to `can_share = false`, `can_edit = false`."
+	DescResource               = "Manages a shared folder. Use this resource to create and manage shared folders."
+	DescId                     = "The ID of the shared folder."
+	DescName                   = "Shared folder name."
+	DescFolderLocation         = "Folder path or identifier where the shared folder is located."
+	DescUserPermissions        = "Default user permissions for the shared folder. When omitted, defaults to manage_users = false, manage_records = false. Allowed keys: manage_users, manage_records."
+	DescUserPermissionsMD      = "Default user permissions for the shared folder. When omitted, defaults to `manage_users = false`, `manage_records = false`. Allowed keys: `manage_users`, `manage_records`."
+	DescUserPermissionsManage  = "Allow managing users in the shared folder."
+	DescUserPermissionsRecords = "Allow managing records in the shared folder."
+	DescRecordPermissions      = "Default record permissions for the shared folder. When omitted, defaults to can_share = false, can_edit = false. Allowed keys: can_share, can_edit."
+	DescRecordPermissionsMD    = "Default record permissions for the shared folder. When omitted, defaults to `can_share = false`, `can_edit = false`. Allowed keys: `can_share`, `can_edit`."
+	DescRecordPermissionsShare = "Allow sharing records."
+	DescRecordPermissionsEdit  = "Allow editing records."
+	DescRecords                = "Per-record permissions. Map key is record UID or name; value is an object with can_share and can_edit."
+	DescRecordsMD              = "Per-record permissions. Map key is record UID or name; value is an object with `can_share` and `can_edit`."
+	DescRecordShare            = "Allow sharing this record."
+	DescRecordEdit             = "Allow editing this record."
+	DescUsers                  = "Per-user permissions. Map key is user email or UID; value is an object with manage_users, manage_records, and expiration (\"never\" or yyyy-MM-ddTHH:mm:ss)."
+	DescUsersMD                = "Per-user permissions. Map key is user email or UID; value is an object with `manage_users`, `manage_records`, and `expiration` (`\"never\"` or `yyyy-MM-ddTHH:mm:ss`)."
+	DescUserManageUsers        = "Allow this user to manage users. Defaults to `false` if not set."
+	DescUserManageRecords      = "Allow this user to manage records. Defaults to `false` if not set."
+	DescExpiration             = "Access expiration: \"never\" or absolute datetime as yyyy-MM-ddTHH:mm:ss (e.g. 2026-04-02T11:11:00). Defaults to `never` if not set."
+	ExpirationDoc              = "Must be \"never\" or yyyy-MM-ddTHH:mm:ss (e.g. 2026-04-02T11:11:00). Defaults to `never` if not set."
 )
 
 // Expiration validator error messages.
 const (
 	ErrMsgInvalidExpiration = "Invalid expiration"
 	ErrMsgExpirationEmpty   = "expiration cannot be empty. Use \"never\" for no expiration."
+)
+
+// User map entry: manage_users vs expiration.
+const (
+	ErrMsgManageUsersWithTimeLimitedExpiration = "The ability to manage users is restricted for users with time-limited access. manage_users cannot be true when expiration is a datetime; use \"never\" for users who manage other users."
+	ErrMsgInvalidUserPermissionsCombo          = "Invalid user permissions"
 )
