@@ -3,27 +3,15 @@
 
 package sharedfolder
 
-import "github.com/hashicorp/terraform-plugin-framework/types"
+import (
+	commonsharedfolder "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/shared_folder"
+)
 
-// UserPermissionsModel is the default/global user permissions for the shared folder.
-// Allowed keys: manage_users, manage_records. Default when omitted: both false.
-type UserPermissionsModel struct {
-	ManageUsers   types.Bool `tfsdk:"manage_users"`
-	ManageRecords types.Bool `tfsdk:"manage_records"`
-}
+// UserPermissionsModel is re-exported for call sites that reference the resource nested type by name.
+type UserPermissionsModel = commonsharedfolder.UserPermissionsModel
 
-// RecordPermissionsModel is the default/global record permissions for the shared folder.
-// Allowed keys: can_share, can_edit. Default when omitted: both false.
-type RecordPermissionsModel struct {
-	CanShare types.Bool `tfsdk:"can_share"`
-	CanEdit  types.Bool `tfsdk:"can_edit"`
-}
+// RecordPermissionsModel is re-exported for call sites that reference the resource nested type by name.
+type RecordPermissionsModel = commonsharedfolder.RecordPermissionsModel
 
-type SharedFolderResourceModel struct {
-	Id                types.String            `tfsdk:"id"`
-	Name              types.String            `tfsdk:"name"`
-	UserPermissions   *UserPermissionsModel   `tfsdk:"user_permissions"`
-	RecordPermissions *RecordPermissionsModel `tfsdk:"record_permissions"`
-	Records           types.Map               `tfsdk:"records"`
-	Users             types.Map               `tfsdk:"users"`
-}
+// SharedFolderResourceModel is the resource state model (same fields as the data source).
+type SharedFolderResourceModel = commonsharedfolder.Model

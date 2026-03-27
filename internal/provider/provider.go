@@ -17,6 +17,7 @@ import (
 	enterpriseteamdatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/enterprise_team"
 	enterpriseuserdatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/enterprise_user"
 	managedcompanydatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/managed_company"
+	sharedfolderdatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/shared_folder"
 	enterprisenode "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/enterprise_node"
 	enterprisepush "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/enterprise_push"
 	enterpriserole "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/enterprise_role"
@@ -194,6 +195,7 @@ func (p *CommanderProvider) DataSources(ctx context.Context) []func() datasource
 		enterprisescimdatasource.NewEnterpriseScimDataSource,
 		enterpriseteamdatasource.NewEnterpriseTeamDataSource,
 		enterpriseuserdatasource.NewEnterpriseUserDataSource,
+		sharedfolderdatasource.NewSharedFolderDataSource,
 	}
 }
 
