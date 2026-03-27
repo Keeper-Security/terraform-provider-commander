@@ -55,11 +55,17 @@ func EnterpriseDown(ctx context.Context, apiManager *api.ApiManager) error {
 	return err
 }
 
-// ExecuteWithManagedCompanyContext executes a function with managed company context switching.
-// Context-changing operations are serialized and current context is tracked so we skip
-// redundant switch-to-msp API calls when already in MSP (reduces "Already MSP" 500s).
-// If managedCompany is provided and not null, it switches to MC before execution and back to MSP after.
-// If managedCompany is not provided, it ensures we're in the correct base context (MSP for MSP accounts).
+// Perform sync down.
+func SyncDown(ctx context.Context, apiManager *api.ApiManager) error {
+	command := "sync-down -f"
+	_, err := apiManager.ExecuteCommand(ctx, command, "Unable to perform sync down")
+	return err
+}
+
+// ExecuteWithManagedCompanyContext executes a function with managed company context switching
+// If managedCompany is provided and not null, it switches to MC before execution and back to MSP after
+// If managedCompany is not provided, it ensures we're in the correct base context (MSP for MSP accounts, Enterprise for Enterprise)
+// This prevents race conditions when Terraform runs resources in parallel or different orders.
 func ExecuteWithManagedCompanyContext(
 	ctx context.Context,
 	apiManager *api.ApiManager,
@@ -597,6 +603,29 @@ func FetchManagedCompanyByNameOrId(ctx context.Context, apiManager *api.ApiManag
 	return companyInfo, nil
 }
 
+// FetchEnterpriseScimById retrieves a single SCIM configuration by scim_id.
+// The API returns a single object. Returns (nil, nil) if not found so Read can remove from state.
+func FetchEnterpriseScimById(ctx context.Context, apiManager *api.ApiManager, scimId string) (*EnterpriseScimResponse, error) {
+	command := fmt.Sprintf("scim view '%s' --format json", scimId)
+
+	apiResp, err := apiManager.ExecuteCommand(ctx, command, "Failed to retrieve enterprise SCIM information")
+	if err != nil {
+		return nil, err
+	}
+
+	var scimInfo EnterpriseScimResponse
+	if err := UnmarshalApiResponse(apiResp.Data, &scimInfo); err != nil {
+		return nil, fmt.Errorf("unable to parse enterprise SCIM from API response: %w", err)
+	}
+
+	// Treat empty or zero scim_id as not found
+	if scimInfo.ScimID == 0 {
+		return nil, nil
+	}
+
+	return &scimInfo, nil
+}
+
 // ParseManagedCompanyImportID parses an import ID that may be "resource_id" or "managed_company,resource_id".
 // resourceName is used in error messages (e.g. "node" or "role").
 // Returns resourceID, managedCompany (empty if not in ID), and any diagnostics.
@@ -604,7 +633,7 @@ func ParseManagedCompanyImportID(importID string, resourceName string) (resource
 	importID = strings.TrimSpace(importID)
 	if importID == "" {
 		diags = append(diags, diag.NewErrorDiagnostic(
-			"Invalid Import ID",
+			ERR_MSG_INVALID_IMPORT_ID,
 			"Import ID cannot be empty. Use: (1) "+resourceName+" name or "+resourceName+" ID alone; or (2) for a "+resourceName+" in a managed company, use \"managed_company_name_or_id,"+resourceName+"_name_or_id\" (comma-separated).",
 		))
 		return "", "", diags
@@ -619,7 +648,7 @@ func ParseManagedCompanyImportID(importID string, resourceName string) (resource
 
 	if resourceID == "" {
 		diags = append(diags, diag.NewErrorDiagnostic(
-			"Invalid Import ID",
+			ERR_MSG_INVALID_IMPORT_ID,
 			"When using managed company format \"managed_company_name_or_id,"+resourceName+"\", the "+resourceName+" part cannot be empty.",
 		))
 		return "", "", diags
@@ -748,4 +777,25 @@ func MapEnforcementsToState(enforcements map[string]string, GeneratedPasswordCom
 		return types.MapNull(types.StringType), fmt.Errorf("failed to build enforcement_policies map: %v", diags)
 	}
 	return mapVal, nil
+}
+
+// ImmutableAttributeCheck represents one "plan vs state must be equal" check.
+type ImmutableAttributeCheck struct {
+	PlanValue  attr.Value
+	StateValue attr.Value
+	Summary    string
+	Detail     string
+}
+
+// AddErrorIfImmutableAttributesChanged checks each attribute; for any where plan != state
+// it adds a diagnostic error to diags. Returns diags so caller can Append() or check HasError().
+func RestrictAttributeUpdate(diags *diag.Diagnostics, checks []ImmutableAttributeCheck) {
+	for _, c := range checks {
+		if c.PlanValue == nil || c.StateValue == nil {
+			continue
+		}
+		if !c.PlanValue.Equal(c.StateValue) {
+			diags.AddError(c.Summary, c.Detail)
+		}
+	}
 }

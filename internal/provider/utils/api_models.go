@@ -66,3 +66,43 @@ type EnterpriseUserResponse struct {
 	Teams    []string `json:"teams"`
 	Node     string   `json:"node"`
 }
+
+// EnterpriseScimResponse represents the SCIM configuration from the read API response.
+type EnterpriseScimResponse struct {
+	ScimID            int    `json:"scim_id"`
+	ScimURL           string `json:"scim_url"`
+	NodeID            int    `json:"node_id"`
+	NodeName          string `json:"node_name"`
+	Status            string `json:"status"`
+	Prefix            string `json:"prefix"`
+	UniqueGroups      bool   `json:"unique_groups"`
+	ProvisioningToken string `json:"provisioning_token"`
+}
+
+// SharedFolderRecordEntry is one element of the records array from get shared folder --format json.
+type SharedFolderRecordEntry struct {
+	RecordUID string `json:"record_uid"`
+	CanShare  bool   `json:"can_share"`
+	CanEdit   bool   `json:"can_edit"`
+}
+
+// SharedFolderUserEntry is one element of the users array from get shared folder --format json.
+type SharedFolderUserEntry struct {
+	Username      string `json:"username"`
+	UserID        string `json:"user_id"`
+	ManageUsers   bool   `json:"manage_users"`
+	ManageRecords bool   `json:"manage_records"`
+	Expiration    string `json:"expiration"`
+}
+
+// SharedFolderResponse is the data payload from get SHARED_FOLDER_ID --format json.
+type SharedFolderResponse struct {
+	SharedFolderUID string                    `json:"shared_folder_uid"`
+	Path            string                    `json:"path"`
+	ManageUsers     bool                      `json:"manage_users"`
+	ManageRecords   bool                      `json:"manage_records"`
+	CanShare        bool                      `json:"can_share"`
+	CanEdit         bool                      `json:"can_edit"`
+	Records         []SharedFolderRecordEntry `json:"records"`
+	Users           []SharedFolderUserEntry   `json:"users"`
+}
