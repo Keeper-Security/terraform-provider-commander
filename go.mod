@@ -1,6 +1,6 @@
 module github.com/Keeper-Security/terraform-provider-commander
 
-go 1.24.13
+go 1.25.8
 
 require (
 	github.com/hashicorp/terraform-plugin-framework v1.17.0
