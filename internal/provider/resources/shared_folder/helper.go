@@ -7,8 +7,10 @@ import (
 	"context"
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/api"
+	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/utils"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
@@ -29,6 +31,64 @@ var UserEntryMapElemType = types.ObjectType{
 		AttrManageRecords: types.BoolType,
 		AttrExpiration:    types.StringType,
 	},
+}
+
+// SplitSharedFolderPath splits a full vault path into parent (all but the last segment) and leaf (shared folder name).
+// Example: "Templates/My Shared Folder 1" -> parent "Templates", leaf "My Shared Folder 1".
+// A path with no "/" has an empty parent and the whole string as leaf.
+func SplitSharedFolderPath(full string) (parent, leaf string) {
+	full = strings.TrimSpace(full)
+	if full == "" {
+		return "", ""
+	}
+	i := strings.LastIndex(full, "/")
+	if i < 0 {
+		return "", full
+	}
+	return strings.TrimSpace(full[:i]), strings.TrimSpace(full[i+1:])
+}
+
+// EscapeDoubleQuotesForCLI escapes double quotes for use inside double-quoted shell arguments.
+func EscapeDoubleQuotesForCLI(s string) string {
+	return strings.ReplaceAll(s, `"`, `\"`)
+}
+
+// MvPathForCommander normalizes a vault path for Commander `mv`. Paths with no parent
+// (no `/` — e.g. "My Shared Folder 1" at vault root) are prefixed with `/` so the CLI
+// targets the root folder. Paths that already start with `/` or contain `/` are unchanged.
+func MvPathForCommander(full string) string {
+	full = strings.TrimSpace(full)
+	if full == "" {
+		return full
+	}
+	if strings.HasPrefix(full, "/") {
+		return full
+	}
+	parent, leaf := SplitSharedFolderPath(full)
+	if parent == "" {
+		return "/" + leaf
+	}
+	return full
+}
+
+// MvMoveTargetParent returns the second argument to Commander `mv`: the destination parent folder only
+// (not the shared folder leaf). Example: plan "Templates/test4/My Shared Folder 1" -> "Templates/test4".
+// Plan "My Shared Folder 1" (vault root, no parent path) -> "/".
+func MvMoveTargetParent(planPath string) string {
+	planPath = strings.TrimSpace(planPath)
+	if planPath == "" {
+		return planPath
+	}
+	trim := planPath
+	if strings.HasPrefix(trim, "/") {
+		trim = strings.TrimSpace(trim[1:])
+	}
+	parent, _ := SplitSharedFolderPath(trim)
+	parent = strings.TrimSpace(parent)
+	if parent == "" {
+		return "/"
+	}
+	return parent
 }
 
 // DefaultPermissionFlags holds the four default permission booleans (user_permissions + record_permissions).
@@ -241,127 +301,62 @@ func buildSharedFolderUserCommand(action, folderUID, emailOrID string, manageUse
 	return strings.Join(parts, " ")
 }
 
-// expirationFlagAndValue returns (--expire-at, value) for ISO date/datetime, (--expire-in, value) for relative or "never", or ("", "") when empty.
+// expirationFlagAndValue returns (--expire-at, value) for yyyy-MM-ddTHH:mm:ss, or ("", "") when empty.
 func expirationFlagAndValue(exp string) (flag string, value string) {
 	exp = strings.TrimSpace(exp)
 	if exp == "" {
 		return "", ""
 	}
 	if expirationNever.MatchString(exp) {
-		return FlagExpireIn, ValueNever
+		return FlagExpireAt, ValueNever
 	}
-	if expirationRelative.MatchString(exp) {
-		return FlagExpireIn, exp
-	}
-	if expirationISO.MatchString(exp) {
-		return FlagExpireAt, exp
+	if t, err := time.Parse(TimeLayoutExpiration, exp); err == nil {
+		return FlagExpireAt, t.Format(TimeLayoutExpiration)
 	}
 	return "", ""
 }
 
-// getStringFromMap returns a string value from m[key], or empty string if missing/invalid.
-func getStringFromMap(m map[string]interface{}, key string) string {
-	v, ok := m[key]
-	if !ok || v == nil {
-		return ""
-	}
-	if s, ok := v.(string); ok {
-		return s
-	}
-	return fmt.Sprintf("%v", v)
-}
+// MapSharedFolderApiResponseToModel maps unmarshaled get shared folder API data to SharedFolderResourceModel.
+func MapSharedFolderApiResponseToModel(api *utils.SharedFolderResponse, state *SharedFolderResourceModel) error {
 
-// getBoolFromMap returns a bool from m[key]; JSON may give bool or number. Missing/nil => false.
-func getBoolFromMap(m map[string]interface{}, key string) bool {
-	v, ok := m[key]
-	if !ok || v == nil {
-		return false
+	state.Id = types.StringValue(api.SharedFolderUID)
+	state.Name = types.StringValue(api.Path)
+	state.UserPermissions = &UserPermissionsModel{
+		ManageUsers:   types.BoolValue(api.ManageUsers),
+		ManageRecords: types.BoolValue(api.ManageRecords),
 	}
-	if b, ok := v.(bool); ok {
-		return b
-	}
-	if n, ok := v.(float64); ok {
-		return n != 0
-	}
-	return false
-}
-
-// MapGetResponseToModel maps the "get ID --format json" API response (Data) to SharedFolderResourceModel.
-// data is expected to be map[string]interface{} with shared_folder_uid, name, manage_users, manage_records,
-// can_edit, can_share, records ([]interface{}), users ([]interface{}). Folder_location is not in API and set null.
-func MapGetResponseToModel(ctx context.Context, data any) (*SharedFolderResourceModel, error) {
-	m, ok := data.(map[string]interface{})
-	if !ok || m == nil {
-		return nil, fmt.Errorf("get response data is not a map")
+	state.RecordPermissions = &RecordPermissionsModel{
+		CanShare: types.BoolValue(api.CanShare),
+		CanEdit:  types.BoolValue(api.CanEdit),
 	}
 
-	uid := getStringFromMap(m, KeySharedFolderUID)
-	if uid == "" {
-		return nil, fmt.Errorf("get response missing %s", KeySharedFolderUID)
-	}
-
-	model := &SharedFolderResourceModel{
-		Id:             types.StringValue(uid),
-		Name:           types.StringValue(getStringFromMap(m, KeyName)),
-		FolderLocation: types.StringNull(),
-		UserPermissions: &UserPermissionsModel{
-			ManageUsers:   types.BoolValue(getBoolFromMap(m, AttrManageUsers)),
-			ManageRecords: types.BoolValue(getBoolFromMap(m, AttrManageRecords)),
-		},
-		RecordPermissions: &RecordPermissionsModel{
-			CanShare: types.BoolValue(getBoolFromMap(m, AttrCanShare)),
-			CanEdit:  types.BoolValue(getBoolFromMap(m, AttrCanEdit)),
-		},
-	}
-
-	// records: key = record_uid, value = { can_share, can_edit }
-	recordsRaw := m[KeyRecords]
-	recordsMap, err := buildRecordsMapFromGetResponse(recordsRaw)
+	recordsMap, err := buildRecordsMapFromAPIResponse(api.Records)
 	if err != nil {
-		return nil, fmt.Errorf("records: %w", err)
+		return fmt.Errorf("records: %w", err)
 	}
-	model.Records = recordsMap
+	state.Records = recordsMap
 
-	// users: key = username, value = { manage_users, manage_records, expiration }; expiration not in API => null
-	usersRaw := m[KeyUsers]
-	usersMap, err := buildUsersMapFromGetResponse(usersRaw)
+	usersMap, err := buildUsersMapFromAPIResponse(api.Users, state.Users)
 	if err != nil {
-		return nil, fmt.Errorf("users: %w", err)
+		return fmt.Errorf("users: %w", err)
 	}
-	model.Users = usersMap
+	state.Users = usersMap
 
-	return model, nil
+	return nil
 }
 
-func buildRecordsMapFromGetResponse(recordsRaw interface{}) (types.Map, error) {
+func buildRecordsMapFromAPIResponse(entries []utils.SharedFolderRecordEntry) (types.Map, error) {
 	elements := make(map[string]attr.Value)
-	if recordsRaw == nil {
-		mapVal, diags := types.MapValue(RecordEntryMapElemType, elements)
-		if diags.HasError() {
-			return types.MapNull(RecordEntryMapElemType), fmt.Errorf("failed to build records map: %v", diags)
-		}
-		return mapVal, nil
-	}
-	slice, ok := recordsRaw.([]interface{})
-	if !ok {
-		return types.MapNull(RecordEntryMapElemType), fmt.Errorf("records is not an array")
-	}
-	for _, item := range slice {
-		rec, ok := item.(map[string]interface{})
-		if !ok {
+	for _, rec := range entries {
+		if rec.RecordUID == "" {
 			continue
 		}
-		key := getStringFromMap(rec, KeyRecordUID)
-		if key == "" {
-			continue
-		}
-		canShare := getBoolFromMap(rec, AttrCanShare)
-		canEdit := getBoolFromMap(rec, AttrCanEdit)
-		elements[key] = types.ObjectValueMust(
+
+		elements[rec.RecordUID] = types.ObjectValueMust(
 			map[string]attr.Type{AttrCanShare: types.BoolType, AttrCanEdit: types.BoolType},
 			map[string]attr.Value{
-				AttrCanShare: types.BoolValue(canShare),
-				AttrCanEdit:  types.BoolValue(canEdit),
+				AttrCanShare: types.BoolValue(rec.CanShare),
+				AttrCanEdit:  types.BoolValue(rec.CanEdit),
 			},
 		)
 	}
@@ -372,30 +367,32 @@ func buildRecordsMapFromGetResponse(recordsRaw interface{}) (types.Map, error) {
 	return mapVal, nil
 }
 
-func buildUsersMapFromGetResponse(usersRaw interface{}) (types.Map, error) {
+// userEntryMapKey picks the users map key for an API row. If prior state already keys this user
+// by user_id or username, the same key is reused; otherwise username is preferred, then user_id.
+func userEntryMapKey(u utils.SharedFolderUserEntry, priorUsers types.Map) string {
+	if !priorUsers.IsNull() && !priorUsers.IsUnknown() {
+		for k := range priorUsers.Elements() {
+			if u.UserID != "" && k == u.UserID {
+				return k
+			}
+			if u.Username != "" && k == u.Username {
+				return k
+			}
+		}
+	}
+	if u.Username != "" {
+		return u.Username
+	}
+	return u.UserID
+}
+
+func buildUsersMapFromAPIResponse(entries []utils.SharedFolderUserEntry, priorUsers types.Map) (types.Map, error) {
 	elements := make(map[string]attr.Value)
-	if usersRaw == nil {
-		mapVal, diags := types.MapValue(UserEntryMapElemType, elements)
-		if diags.HasError() {
-			return types.MapNull(UserEntryMapElemType), fmt.Errorf("failed to build users map: %v", diags)
-		}
-		return mapVal, nil
-	}
-	slice, ok := usersRaw.([]interface{})
-	if !ok {
-		return types.MapNull(UserEntryMapElemType), fmt.Errorf("users is not an array")
-	}
-	for _, item := range slice {
-		u, ok := item.(map[string]interface{})
-		if !ok {
-			continue
-		}
-		key := getStringFromMap(u, KeyUsername)
+	for _, u := range entries {
+		key := userEntryMapKey(u, priorUsers)
 		if key == "" {
 			continue
 		}
-		manageUsers := getBoolFromMap(u, AttrManageUsers)
-		manageRecords := getBoolFromMap(u, AttrManageRecords)
 		elements[key] = types.ObjectValueMust(
 			map[string]attr.Type{
 				AttrManageUsers:   types.BoolType,
@@ -403,9 +400,9 @@ func buildUsersMapFromGetResponse(usersRaw interface{}) (types.Map, error) {
 				AttrExpiration:    types.StringType,
 			},
 			map[string]attr.Value{
-				AttrManageUsers:   types.BoolValue(manageUsers),
-				AttrManageRecords: types.BoolValue(manageRecords),
-				AttrExpiration:    types.StringNull(),
+				AttrManageUsers:   types.BoolValue(u.ManageUsers),
+				AttrManageRecords: types.BoolValue(u.ManageRecords),
+				AttrExpiration:    types.StringValue(u.Expiration),
 			},
 		)
 	}

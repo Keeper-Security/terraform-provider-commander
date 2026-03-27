@@ -47,11 +47,21 @@ func (r *SharedFolderResource) Read(ctx context.Context, req resource.ReadReques
 		return
 	}
 
-	model, err := MapGetResponseToModel(ctx, apiResp.Data)
+	var apiData utils.SharedFolderResponse
+	if err := utils.UnmarshalApiResponse(apiResp.Data, &apiData); err != nil {
+		resp.Diagnostics.AddError(ErrSummaryReadFailed, err.Error())
+		return
+	}
+
+	err = MapSharedFolderApiResponseToModel(&apiData, &state)
 	if err != nil {
 		resp.Diagnostics.AddError(ErrSummaryReadFailed, err.Error())
 		return
 	}
 
-	resp.Diagnostics.Append(resp.State.Set(ctx, model)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
 }
