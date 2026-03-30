@@ -1,6 +1,25 @@
 # Changelog
 
-## 1.0.0 (YYYY-MM-DD)
+## 1.0.3 (Unreleased)
+
+NOTES:
+
+- Updated module and tool dependencies.
+- Updated copyright year in file headers.
+
+## 1.0.2 (March 28, 2026)
+
+NOTES:
+
+- Updated module and tool dependencies.
+
+## 1.0.1 (March 27, 2026)
+
+NOTES:
+
+- Updated module and tool dependencies.
+
+## 1.0.0 (March 27, 2026)
 
 FEATURES:
 
