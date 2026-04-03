@@ -179,14 +179,14 @@ const (
 	DescGcp   = "Use this block if you are using the `gcp` as environment type for your PAM configuration."
 	DescGcpMD = "Use this block if you are using the `gcp` as environment type for your PAM configuration."
 
-	/** Local Network */
+	// Local Network.
 	DescNetworkId   = "Unique ID for the network. This is for the user's reference, Ex: My Network"
 	DescNetworkIdMD = "`Unique ID` for the network. This is for the user's reference, Ex: `My Network`"
 
 	DescNetworkCidr   = "Subnet of the IP address. Ex: 192.168.0.15/24"
 	DescNetworkCidrMD = "`Subnet` of the IP address, Ex: `192.168.0.15/24`. Refer to [this](https://en.wikipedia.org/wiki/Classless_Inter-Domain_Routing) for more info"
 
-	/** AWS */
+	// AWS.
 
 	DescAwsId   = "A unique id for the instance of AWS."
 	DescAwsIdMD = "A `Unique ID` for the instance of AWS."
@@ -200,7 +200,7 @@ const (
 	DescRegionNames   = "AWS region names used for discovery. Separate newline per region. Ex: us-east-2"
 	DescRegionNamesMD = "AWS region names used for discovery. Separate newline per region. Ex: `us-east-2`"
 
-	/** Azure */
+	// Azure.
 
 	DescAzureId   = "A unique id for your instance of Azure."
 	DescAzureIdMD = "A `Unique ID` for your instance of Azure."
@@ -220,7 +220,7 @@ const (
 	DescResourceGroups   = "A list of resource groups to be checked. If left blank, all resource groups will be checked. "
 	DescResourceGroupsMD = "A list of `resource groups` to be checked. If left blank, all resource groups will be checked. "
 
-	/** Domain */
+	// Domain.
 
 	DescDomainId   = "The FQDN domain used by the Domain Controller. For example, EXAMPLE.COM and not EXAMPLE."
 	DescDomainIdMD = "The `FQDN` domain used by the Domain Controller. For example, `EXAMPLE.COM` and not `EXAMPLE`."
@@ -243,7 +243,7 @@ const (
 	DescDomainAdmin   = "Credentials of a domain administrator or an account with equivalent privileges, required to perform full discovery and access all domain resources."
 	DescDomainAdminMD = "Credentials of a `domain administrator` or an account with equivalent privileges, required to perform full discovery and access all domain resources."
 
-	/** GCP */
+	// GCP.
 
 	DescGcpId   = "A unique id for the instance of Google Cloud. This is for the user's reference. Example: GCP-US-CENTRAL1"
 	DescGcpIdMD = "A `unique id` for the instance of Google Cloud. This is for the user's reference. Example: `GCP-US-CENTRAL1`"
