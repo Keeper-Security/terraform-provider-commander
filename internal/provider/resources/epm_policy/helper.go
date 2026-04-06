@@ -59,7 +59,14 @@ func appendEpmPolicyAttributeFlags(parts []string, data *EpmPolicyResourceModel,
 	if !isUpdate {
 		parts = append(parts, fmt.Sprintf("%s '%s'", commonepm.FlagPolicyType, data.PolicyType.ValueString()))
 	}
-	parts = append(parts, fmt.Sprintf("%s '%s'", commonepm.FlagStatus, data.Status.ValueString()))
+
+	// If status is off, set enable to off otherwise set status
+	if data.Status.ValueString() == commonepm.StatusOff {
+		parts = append(parts, fmt.Sprintf("%s '%s'", commonepm.FlagEnable, commonepm.StatusOff))
+	} else {
+		parts = append(parts, fmt.Sprintf("%s '%s'", commonepm.FlagStatus, data.Status.ValueString()))
+	}
+
 	parts = appendListFlags(parts, commonepm.FlagControl, setToStrings(data.Control))
 	parts = appendListFlags(parts, commonepm.FlagDayFilter, setToStrings(data.DayFilter))
 	parts = appendListFlags(parts, commonepm.FlagUserFilter, setToStrings(data.UserGroups))

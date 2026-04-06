@@ -330,7 +330,7 @@ func MapSharedFolderApiResponseToModel(api *utils.SharedFolderResponse, state *S
 		CanEdit:  types.BoolValue(api.CanEdit),
 	}
 
-	recordsMap, err := buildRecordsMapFromAPIResponse(api.Records)
+	recordsMap, err := buildRecordsMapFromAPIResponse(api.Records, state.Records)
 	if err != nil {
 		return fmt.Errorf("records: %w", err)
 	}
@@ -345,14 +345,34 @@ func MapSharedFolderApiResponseToModel(api *utils.SharedFolderResponse, state *S
 	return nil
 }
 
-func buildRecordsMapFromAPIResponse(entries []utils.SharedFolderRecordEntry) (types.Map, error) {
+// recordEntryMapKey picks the records map key for an API row. If prior state already keys this record
+// by record_uid or record_name, the same key is reused; otherwise record_name is preferred, then record_uid.
+func recordEntryMapKey(rec utils.SharedFolderRecordEntry, priorRecords types.Map) string {
+	if !priorRecords.IsNull() && !priorRecords.IsUnknown() {
+		for k := range priorRecords.Elements() {
+			if rec.RecordUID != "" && k == rec.RecordUID {
+				return k
+			}
+			if rec.RecordName != "" && k == rec.RecordName {
+				return k
+			}
+		}
+	}
+	if rec.RecordName != "" {
+		return rec.RecordName
+	}
+	return rec.RecordUID
+}
+
+func buildRecordsMapFromAPIResponse(entries []utils.SharedFolderRecordEntry, priorRecords types.Map) (types.Map, error) {
 	elements := make(map[string]attr.Value)
 	for _, rec := range entries {
-		if rec.RecordUID == "" {
+		key := recordEntryMapKey(rec, priorRecords)
+		if key == "" {
 			continue
 		}
 
-		elements[rec.RecordUID] = types.ObjectValueMust(
+		elements[key] = types.ObjectValueMust(
 			map[string]attr.Type{AttrCanShare: types.BoolType, AttrCanEdit: types.BoolType},
 			map[string]attr.Value{
 				AttrCanShare: types.BoolValue(rec.CanShare),

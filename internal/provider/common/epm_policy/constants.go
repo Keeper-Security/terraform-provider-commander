@@ -130,6 +130,7 @@ const (
 	FlagPolicyName    = "--policy-name"    // Policy name
 	FlagControl       = "--control"        // Control action
 	FlagStatus        = "--status"         // Policy status
+	FlagEnable        = "--enable"         // Policy enable
 )
 
 // Flag for view command output format.
