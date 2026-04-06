@@ -85,8 +85,8 @@ func (d *EpmPolicyDataSource) Schema(ctx context.Context, req datasource.SchemaR
 			"time_filter": schema.SetAttribute{
 				Computed:            true,
 				ElementType:         types.StringType,
-				Description:         "Time filter ranges in 24h format HH:MM-HH:MM.",
-				MarkdownDescription: "**Time filter** ranges in **24h format** `HH:MM-HH:MM`.",
+				Description:         "Time filter ranges as start-end hours (0–23), e.g. 9-12.",
+				MarkdownDescription: "**Time filter** ranges as **start-end** hours (**0–23**), e.g. `9-12`.",
 			},
 			"date_filter": schema.SetAttribute{
 				Computed:            true,

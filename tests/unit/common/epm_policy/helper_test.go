@@ -113,13 +113,18 @@ func TestTimeSpansToTerraformTimeFilter(t *testing.T) {
 		{StartTime: "", EndTime: ""},
 		{StartTime: "09:00:00", EndTime: "17:30:00"},
 	})
-	if err != nil || len(got) != 1 || got[0] != "09:00-17:30" {
+	if err != nil || len(got) != 1 || got[0] != "9-17" {
 		t.Fatalf("got %v, %v", got, err)
 	}
 	if _, err := commonepm.TimeSpansToTerraformTimeFilter([]utils.EpmPolicyTimeSpan{
 		{StartTime: "09:00", EndTime: ""},
 	}); err == nil {
 		t.Fatal("incomplete: want error")
+	}
+	if _, err := commonepm.TimeSpansToTerraformTimeFilter([]utils.EpmPolicyTimeSpan{
+		{StartTime: "12:00:00", EndTime: "09:00:00"},
+	}); err == nil {
+		t.Fatal("start after end: want error")
 	}
 }
 
@@ -207,6 +212,9 @@ func TestMapPolicyViewToAttributes(t *testing.T) {
 	}
 	if len(mapped.Control) != 1 || mapped.Control[0] != "notify" {
 		t.Fatal(mapped.Control)
+	}
+	if len(mapped.TimeFilter) != 1 || mapped.TimeFilter[0] != "10-11" {
+		t.Fatalf("TimeFilter: %#v", mapped.TimeFilter)
 	}
 
 	noActions, err := commonepm.MapPolicyViewToAttributes(&utils.EpmPolicyResponse{

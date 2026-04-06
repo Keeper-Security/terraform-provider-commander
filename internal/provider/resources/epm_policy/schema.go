@@ -109,8 +109,8 @@ func (r *EpmPolicyResource) Schema(ctx context.Context, req resource.SchemaReque
 			"time_filter": schema.SetAttribute{
 				Optional:            true,
 				ElementType:         types.StringType,
-				Description:         "Policy time filter. Set of time ranges in 24h format HH:MM-HH:MM. Ranges must not overlap. Not allowed for " + commonepm.PolicyTypeLeastPrivilege + " policy type.",
-				MarkdownDescription: "**Time filter**. Set of time ranges in **24h format** `HH:MM-HH:MM`. Ranges must **not overlap**. Not allowed for **" + commonepm.PolicyTypeLeastPrivilege + "** policy type.",
+				Description:         "Policy time filter. Set of hour ranges as start-end (hours 0–23), e.g. \"9-12\". Ranges must not overlap. Not allowed for " + commonepm.PolicyTypeLeastPrivilege + " policy type.",
+				MarkdownDescription: "**Time filter**. Set of hour ranges as **start-end** (hours **0–23**), e.g. `9-12`. Ranges must **not overlap**. Not allowed for **" + commonepm.PolicyTypeLeastPrivilege + "** policy type.",
 				Validators: []validator.Set{
 					commonepm.TimeFilterSetValidator{},
 				},

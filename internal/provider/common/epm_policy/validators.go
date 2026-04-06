@@ -5,7 +5,6 @@ package epmpolicy
 
 import (
 	"context"
-	"regexp"
 	"strconv"
 	"strings"
 	"time"
@@ -178,37 +177,37 @@ func (v DayFilterSetValidator) ValidateSet(ctx context.Context, req validator.Se
 	}
 }
 
-// ----- Time filter list: format HH:MM-HH:MM (24h) and no overlapping ranges -----
+// ----- Time filter list: format start-end (hours 0–23) and no overlapping ranges -----
 
-var timeRangeRegex = regexp.MustCompile(`^([0-1]?[0-9]|2[0-3]):([0-5][0-9])-([0-1]?[0-9]|2[0-3]):([0-5][0-9])$`)
-
-// timeRangeToMinutes parses "HH:MM-HH:MM" into (startMinutes, endMinutes) since midnight. Returns ok=false if invalid.
-func timeRangeToMinutes(s string) (start, end int, ok bool) {
-	matches := timeRangeRegex.FindStringSubmatch(s)
-	if len(matches) != 5 {
+// timeHourRangeToHalfOpenMinutes parses "H-H" or "HH-HH" (hours 0–23 inclusive on each side)
+// into half-open minutes-from-midnight [start, end) for overlap checks. end is exclusive.
+func timeHourRangeToHalfOpenMinutes(s string) (startM, endM int, ok bool) {
+	parts := strings.SplitN(strings.TrimSpace(s), "-", 2)
+	if len(parts) != 2 {
 		return 0, 0, false
 	}
-	startH, _ := strconv.Atoi(matches[1])
-	startM, _ := strconv.Atoi(matches[2])
-	endH, _ := strconv.Atoi(matches[3])
-	endM, _ := strconv.Atoi(matches[4])
-	start = startH*60 + startM
-	end = endH*60 + endM
-	if start > end {
+	sh, err1 := strconv.Atoi(strings.TrimSpace(parts[0]))
+	eh, err2 := strconv.Atoi(strings.TrimSpace(parts[1]))
+	if err1 != nil || err2 != nil {
 		return 0, 0, false
 	}
-	return start, end, true
+	if sh < 0 || sh > 23 || eh < 0 || eh > 23 || sh > eh {
+		return 0, 0, false
+	}
+	startM = sh * 60
+	endM = (eh + 1) * 60
+	return startM, endM, true
 }
 
-// TimeFilterSetValidator validates each element is HH:MM-HH:MM and that no two ranges overlap.
+// TimeFilterSetValidator validates each element is start-end (hours 0–23) and that no two ranges overlap.
 type TimeFilterSetValidator struct{}
 
 func (TimeFilterSetValidator) Description(ctx context.Context) string {
-	return "Each time filter must be in 24h format HH:MM-HH:MM. Ranges must not overlap."
+	return "Each time filter must be a range of hours 0–23 in format start-end (e.g. 9-12). Ranges must not overlap."
 }
 
 func (TimeFilterSetValidator) MarkdownDescription(ctx context.Context) string {
-	return "Each time filter must be in **24h format** `HH:MM-HH:MM`. Ranges must **not overlap**."
+	return "Each time filter must be a range of hours **0–23** in format **start-end** (e.g. `9-12`). Ranges must **not overlap**."
 }
 
 func (v TimeFilterSetValidator) ValidateSet(ctx context.Context, req validator.SetRequest, resp *validator.SetResponse) {
@@ -223,7 +222,7 @@ func (v TimeFilterSetValidator) ValidateSet(ctx context.Context, req validator.S
 			resp.Diagnostics.AddAttributeError(
 				req.Path,
 				"Invalid time filter element",
-				"Each element must be a string in format HH:MM-HH:MM (24 hours).",
+				"Each element must be a string in format start-end (hours 0–23, e.g. 9-12).",
 			)
 			continue
 		}
@@ -234,18 +233,18 @@ func (v TimeFilterSetValidator) ValidateSet(ctx context.Context, req validator.S
 		if s == "" {
 			continue
 		}
-		start, end, ok := timeRangeToMinutes(s)
+		start, end, ok := timeHourRangeToHalfOpenMinutes(s)
 		if !ok {
 			resp.Diagnostics.AddAttributeError(
 				req.Path.AtSetValue(strVal),
 				"Invalid time filter format",
-				"Time filter must be in 24h format HH:MM-HH:MM (e.g. 09:00-17:00). Got: "+s,
+				"Time filter must be start-end with hours from 0 to 23 (e.g. 9-12). Got: "+s,
 			)
 			continue
 		}
 		ranges = append(ranges, struct{ start, end int }{start, end})
 	}
-	// Check overlaps: two ranges [a,b] and [c,d] overlap if a < d && c < b
+	// Check overlaps: half-open [a,b) and [c,d) overlap if a < d && c < b
 	for i := 0; i < len(ranges); i++ {
 		for j := i + 1; j < len(ranges); j++ {
 			a, b := ranges[i].start, ranges[i].end

@@ -5,6 +5,7 @@ package epmpolicy
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/utils"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -30,12 +31,16 @@ func (r *EpmPolicyResource) Create(ctx context.Context, req resource.CreateReque
 	if err := utils.RunWithManagedCompanyContext(ctx, r.ApiManager, data.ManagedCompany, func() error {
 		command := buildCreateCommand(&data)
 
-		_, err := r.ApiManager.ExecuteCommand(ctx, command, ErrOpCreateEpmPolicy)
+		response, err := r.ApiManager.ExecuteCommand(ctx, command, ErrOpCreateEpmPolicy)
 		if err != nil {
 			return err
 		}
 
-		data.Id = types.StringValue("123")
+		var createdEPMPolicy utils.EpmPolicyCreateResponse
+		if err := utils.UnmarshalApiResponse(response.Data, &createdEPMPolicy); err != nil {
+			return fmt.Errorf("parse create response: %w", err)
+		}
+		data.Id = types.StringValue(createdEPMPolicy.PolicyID)
 		return nil
 	}, ErrSummaryCreateFailed, &resp.Diagnostics); err != nil {
 		return

@@ -139,17 +139,25 @@ func TestTimeFilterSetValidator(t *testing.T) {
 	var v commonepm.TimeFilterSetValidator
 	badFmt := &validator.SetResponse{}
 	v.ValidateSet(ctx, validator.SetRequest{
-		ConfigValue: mustStringSet(t, types.StringValue("25:00-26:00")),
+		ConfigValue: mustStringSet(t, types.StringValue("25-26")),
 		Path:        p,
 	}, badFmt)
 	if !badFmt.Diagnostics.HasError() {
 		t.Fatal("bad format")
 	}
+	oldClockFmt := &validator.SetResponse{}
+	v.ValidateSet(ctx, validator.SetRequest{
+		ConfigValue: mustStringSet(t, types.StringValue("09:00-17:00")),
+		Path:        p,
+	}, oldClockFmt)
+	if !oldClockFmt.Diagnostics.HasError() {
+		t.Fatal("HH:MM format should be rejected")
+	}
 	overlap := &validator.SetResponse{}
 	v.ValidateSet(ctx, validator.SetRequest{
 		ConfigValue: mustStringSet(t,
-			types.StringValue("09:00-12:00"),
-			types.StringValue("11:00-13:00"),
+			types.StringValue("9-12"),
+			types.StringValue("11-13"),
 		),
 		Path: p,
 	}, overlap)
@@ -158,7 +166,7 @@ func TestTimeFilterSetValidator(t *testing.T) {
 	}
 	ok := &validator.SetResponse{}
 	v.ValidateSet(ctx, validator.SetRequest{
-		ConfigValue: mustStringSet(t, types.StringValue("09:00-12:00")),
+		ConfigValue: mustStringSet(t, types.StringValue("9-12")),
 		Path:        p,
 	}, ok)
 	if ok.Diagnostics.HasError() {

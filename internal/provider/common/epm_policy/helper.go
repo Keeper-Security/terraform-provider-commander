@@ -6,6 +6,7 @@ package epmpolicy
 import (
 	"fmt"
 	"sort"
+	"strconv"
 	"strings"
 	"time"
 
@@ -20,29 +21,12 @@ func PolicyTypeFromAPI(api string) (string, error) {
 	if key == "" {
 		return "", fmt.Errorf("empty PolicyType in API response")
 	}
-	// Exact common API enums
-	switch key {
-	case "PrivilegeElevation":
-		return PolicyTypeElevation, nil
-	case "FileAccess":
-		return PolicyTypeFileAccess, nil
-	case "Command":
-		return PolicyTypeCommand, nil
-	case "LeastPrivilege":
-		return PolicyTypeLeastPrivilege, nil
+
+	v, ok := ApiPolicyTypeToTerraformMap[key]
+	if !ok {
+		return "", fmt.Errorf("Unknown API policy type from Commander: %q", api)
 	}
-	lower := strings.ToLower(strings.ReplaceAll(key, " ", ""))
-	switch lower {
-	case "privilegeelevation", "elevation", "privilege_elevation":
-		return PolicyTypeElevation, nil
-	case "fileaccess", "file_access":
-		return PolicyTypeFileAccess, nil
-	case "command":
-		return PolicyTypeCommand, nil
-	case "leastprivilege", "least_privilege":
-		return PolicyTypeLeastPrivilege, nil
-	}
-	return "", fmt.Errorf("unknown API policy type %q", api)
+	return v, nil
 }
 
 // StatusFromAPI maps API status to Terraform status values.
@@ -182,32 +166,39 @@ func RestoreDateFilterSliceOrder(apiRanges []string, prior []string) []string {
 	return append(out, rest...)
 }
 
-// clockToHHMM strips seconds from API times like "09:00:00" to Terraform "09:00".
-func clockToHHMM(clock string) string {
+// clockToHour returns the hour (0–23) from API clock strings like "09:00:00" or "9:30".
+func clockToHour(clock string) (int, bool) {
 	clock = strings.TrimSpace(clock)
-	parts := strings.Split(clock, ":")
-	if len(parts) >= 2 {
-		return parts[0] + ":" + parts[1]
+	if clock == "" {
+		return 0, false
 	}
-	return clock
+	parts := strings.Split(clock, ":")
+	h, err := strconv.Atoi(strings.TrimSpace(parts[0]))
+	if err != nil || h < 0 || h > 23 {
+		return 0, false
+	}
+	return h, true
 }
 
-// TimeSpansToTerraformTimeFilter converts TimeCheck to "HH:MM-HH:MM" strings (sorted).
+// TimeSpansToTerraformTimeFilter converts TimeCheck to "start-end" hour strings (sorted), e.g. "9-17".
 func TimeSpansToTerraformTimeFilter(spans []utils.EpmPolicyTimeSpan) ([]string, error) {
 	if len(spans) == 0 {
 		return nil, nil
 	}
 	out := make([]string, 0, len(spans))
 	for _, s := range spans {
-		start := clockToHHMM(s.StartTime)
-		end := clockToHHMM(s.EndTime)
-		if start == "" && end == "" {
+		sh, ok1 := clockToHour(s.StartTime)
+		eh, ok2 := clockToHour(s.EndTime)
+		if !ok1 && !ok2 {
 			continue
 		}
-		if start == "" || end == "" {
+		if !ok1 || !ok2 {
 			return nil, fmt.Errorf("incomplete time range: StartTime=%q EndTime=%q", s.StartTime, s.EndTime)
 		}
-		out = append(out, start+"-"+end)
+		if sh > eh {
+			return nil, fmt.Errorf("invalid time range: start hour %d after end hour %d", sh, eh)
+		}
+		out = append(out, fmt.Sprintf("%d-%d", sh, eh))
 	}
 	sort.Strings(out)
 	return out, nil

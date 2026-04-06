@@ -89,24 +89,23 @@ type EnterpriseScimResponse struct {
 }
 
 // EpmPolicyCreateResponse represents the response from the EPM policy add command.
-// The Commander API may return policy_id as number or string; PolicyID is used for state.
 type EpmPolicyCreateResponse struct {
-	PolicyID interface{} `json:"policy_id"` // number or string from API; format as string for state
+	PolicyID string `json:"policy_id"`
 }
 
 // EpmPolicyResponse is the JSON from `epm policy view <id> --format json` (apiResp.Data).
 type EpmPolicyResponse struct {
-	PolicyName       string                `json:"PolicyName"`
-	PolicyType       string                `json:"PolicyType"`
-	PolicyId         string                `json:"PolicyId"`
-	Status           string                `json:"Status"`
-	Actions          *EpmPolicyActions     `json:"Actions"`
-	UserCheck        []string              `json:"UserCheck"`
-	MachineCheck     []string              `json:"MachineCheck"`
-	ApplicationCheck []string              `json:"ApplicationCheck"`
-	DayCheck         []int                 `json:"DayCheck"`
-	DateCheck        []EpmPolicyDateSpan   `json:"DateCheck"`
-	TimeCheck        []EpmPolicyTimeSpan   `json:"TimeCheck"`
+	PolicyName       string              `json:"PolicyName"`
+	PolicyType       string              `json:"PolicyType"`
+	PolicyId         string              `json:"PolicyId"`
+	Status           string              `json:"Status"`
+	Actions          *EpmPolicyActions   `json:"Actions"`
+	UserCheck        []string            `json:"UserCheck"`
+	MachineCheck     []string            `json:"MachineCheck"`
+	ApplicationCheck []string            `json:"ApplicationCheck"`
+	DayCheck         []int               `json:"DayCheck"`
+	DateCheck        []EpmPolicyDateSpan `json:"DateCheck"`
+	TimeCheck        []EpmPolicyTimeSpan `json:"TimeCheck"`
 }
 
 // EpmPolicyActions mirrors API "Actions" (controls live under OnSuccess).

@@ -16,6 +16,14 @@ var PolicyTypeValues = []string{
 	PolicyTypeElevation, PolicyTypeFileAccess, PolicyTypeCommand, PolicyTypeLeastPrivilege,
 }
 
+// ApiPolicyTypeToTerraform maps Commander API policy type strings to Terraform policy_type values.
+var ApiPolicyTypeToTerraformMap = map[string]string{
+	"PrivilegeElevation": PolicyTypeElevation,
+	"LeastPrivilege":     PolicyTypeLeastPrivilege,
+	"FileAccess":         PolicyTypeFileAccess,
+	"CommandLine":        PolicyTypeCommand,
+}
+
 // Status values for EPM policy.
 const (
 	StatusEnforce          = "enforce"
@@ -92,8 +100,8 @@ var WeekdayNumberToDayName = map[int]string{
 	WeekdaySaturday: DaySaturday,
 }
 
-// TimeFilterFormat is 24h range "HH:MM-HH:MM".
-const TimeFilterFormat = "15:04-15:04"
+// TimeFilterFormat describes each time_filter value: start-end hours (0–23), e.g. "9-12".
+const TimeFilterFormat = "start-end"
 
 // DateFilterFormat is ISO date range "YYYY-MM-DD:YYYY-MM-DD".
 const DateFilterDateFormat = "2006-01-02"
@@ -115,7 +123,7 @@ const (
 	FlagMachineFilter = "--machine-filter" // Policy machine filter. Machine collection UID
 	FlagAppFilter     = "--app-filter"     // Policy application filter. Application collection UID
 	FlagDateFilter    = "--date-filter"    // Policy date filter. Date range in ISO format. YYYY-MM-DD:YYYY-MM-DD
-	FlagTimeFilter    = "--time-filter"    // Policy time filter. Time. 24 hours format: HH:MM-HH:MM
+	FlagTimeFilter    = "--time-filter"    // Policy time filter. Hours 0–23 as start-end (e.g. 9-12)
 	FlagDayFilter     = "--day-filter"     // Policy day filter. Day of Week
 	FlagRiskLevel     = "--risk-level"     // Policy risk level
 	FlagPolicyType    = "--policy-type"    // Policy type
