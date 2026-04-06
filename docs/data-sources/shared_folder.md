@@ -75,7 +75,7 @@ output "folder_user_overrides" {
 
 ### Read-Only
 
-- `id` (String) The shared folder **UID** after lookup.
+- `id` (String) **ID** of the found shared folder.
 - `name` (String) Shared folder name.
 - `record_permissions` (Attributes) (see [below for nested schema](#nestedatt--record_permissions))
 - `records` (Attributes Map) Per-record permissions. Map key is record UID or name; value is an object with `can_share` and `can_edit`. (see [below for nested schema](#nestedatt--records))
