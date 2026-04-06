@@ -48,8 +48,8 @@ func TestCommanderProvider_Schema(t *testing.T) {
 func TestCommanderProvider_Resources(t *testing.T) {
 	p := commander.New("test")()
 	resources := p.Resources(context.Background())
-	if len(resources) != 9 {
-		t.Errorf("expected 9 resources, got %d", len(resources))
+	if len(resources) != 10 {
+		t.Errorf("expected 10 resources, got %d", len(resources))
 	}
 	for i, factory := range resources {
 		r := factory()
@@ -62,8 +62,8 @@ func TestCommanderProvider_Resources(t *testing.T) {
 func TestCommanderProvider_DataSources(t *testing.T) {
 	p := commander.New("test")()
 	dataSources := p.DataSources(context.Background())
-	if len(dataSources) != 6 {
-		t.Errorf("expected 6 data sources, got %d", len(dataSources))
+	if len(dataSources) != 8 {
+		t.Errorf("expected 8 data sources, got %d", len(dataSources))
 	}
 	for i, factory := range dataSources {
 		ds := factory()

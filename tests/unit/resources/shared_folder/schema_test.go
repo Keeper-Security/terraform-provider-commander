@@ -17,7 +17,6 @@ func TestSharedFolderResource_Schema(t *testing.T) {
 	req := resource.SchemaRequest{}
 	var resp resource.SchemaResponse
 	r.Schema(context.Background(), req, &resp)
-
 	if resp.Schema.Attributes["id"] == nil {
 		t.Error("expected id attribute")
 	}
