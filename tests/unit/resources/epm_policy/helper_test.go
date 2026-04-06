@@ -119,7 +119,7 @@ func samplePolicyViewData() map[string]interface{} {
 	return map[string]interface{}{
 		"PolicyId":         "55",
 		"PolicyName":       "Synced",
-		"PolicyType":       "Command",
+		"PolicyType":       "CommandLine",
 		"Status":           "enforce",
 		"UserCheck":        []string{"u1"},
 		"MachineCheck":     []string{"m1"},

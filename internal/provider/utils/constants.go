@@ -18,11 +18,9 @@ const (
 // Error summaries (first argument to AddError).
 const (
 	ErrSummaryManagedCompanyCannotBeUpdated = "Managed Company Cannot Be Updated"
-	ErrSummaryPolicyTypeCannotBeUpdated     = "Policy Type Cannot Be Updated"
 )
 
 // Error details.
 const (
 	ErrDetailManagedCompany = "Cannot update the managed_company field. Once an EPM policy is created, the managed company cannot be changed. Remove and recreate the resource to use a different managed company."
-	ErrDetailPolicyType     = "Cannot update the policy_type field. Once an EPM policy is created, the policy type cannot be changed. Remove and recreate the resource to use a different policy type."
 )

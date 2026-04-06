@@ -3,9 +3,25 @@
 
 package sharedfolder
 
+import commonsharedfolder "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/shared_folder"
+
+// Re-export map/Terraform attribute keys and element types for the resource package (shared with common).
+const (
+	AttrCanShare      = commonsharedfolder.AttrCanShare
+	AttrCanEdit       = commonsharedfolder.AttrCanEdit
+	AttrManageUsers   = commonsharedfolder.AttrManageUsers
+	AttrManageRecords = commonsharedfolder.AttrManageRecords
+	AttrExpiration    = commonsharedfolder.AttrExpiration
+)
+
+// RecordEntryMapElemType and UserEntryMapElemType match users/records nested map schemas.
+var (
+	RecordEntryMapElemType = commonsharedfolder.RecordEntryMapElemType
+	UserEntryMapElemType   = commonsharedfolder.UserEntryMapElemType
+)
+
 // Commander CLI commands for shared folder operations.
 const (
-	CmdGet         = "get"
 	CmdMkdir       = "mkdir"
 	CmdRndir       = "rndir"
 	CmdRmdir       = "rmdir"
@@ -28,12 +44,6 @@ const (
 	FlagExpireIn      = "--expire-in"
 	FlagForce         = "-f"
 	FlagQuiet         = "-q"
-	FlagFormat        = "--format"
-)
-
-// Format values for get command.
-const (
-	FormatJSON = "json"
 )
 
 // share-folder --action values.
@@ -66,15 +76,6 @@ const (
 	KeyUsername        = "username"
 )
 
-// Object attribute names (match tfsdk/schema: record and user permission entries).
-const (
-	AttrCanShare      = "can_share"
-	AttrCanEdit       = "can_edit"
-	AttrManageUsers   = "manage_users"
-	AttrManageRecords = "manage_records"
-	AttrExpiration    = "expiration"
-)
-
 // Error summaries (first argument to AddError).
 const (
 	ErrSummaryCreateFailed   = "Create Shared Folder Failed"
@@ -104,28 +105,34 @@ const TimeLayoutExpiration = "2006-01-02T15:04:05"
 
 // Schema and validator descriptions (resource and attribute level).
 const (
-	DescResource               = "Manages a shared folder. Use this resource to create and manage shared folders."
-	DescId                     = "The ID of the shared folder."
-	DescName                   = "Shared folder name."
-	DescFolderLocation         = "Folder path or identifier where the shared folder is located."
-	DescUserPermissions        = "Default user permissions for the shared folder. When omitted, defaults to manage_users = false, manage_records = false. Allowed keys: manage_users, manage_records."
-	DescUserPermissionsMD      = "Default user permissions for the shared folder. When omitted, defaults to `manage_users = false`, `manage_records = false`. Allowed keys: `manage_users`, `manage_records`."
-	DescUserPermissionsManage  = "Allow managing users in the shared folder."
-	DescUserPermissionsRecords = "Allow managing records in the shared folder."
-	DescRecordPermissions      = "Default record permissions for the shared folder. When omitted, defaults to can_share = false, can_edit = false. Allowed keys: can_share, can_edit."
-	DescRecordPermissionsMD    = "Default record permissions for the shared folder. When omitted, defaults to `can_share = false`, `can_edit = false`. Allowed keys: `can_share`, `can_edit`."
-	DescRecordPermissionsShare = "Allow sharing records."
-	DescRecordPermissionsEdit  = "Allow editing records."
-	DescRecords                = "Per-record permissions. Map key is record UID or name; value is an object with can_share and can_edit."
-	DescRecordsMD              = "Per-record permissions. Map key is record UID or name; value is an object with `can_share` and `can_edit`."
-	DescRecordShare            = "Allow sharing this record."
-	DescRecordEdit             = "Allow editing this record."
-	DescUsers                  = "Per-user permissions. Map key is user email or UID; value is an object with manage_users, manage_records, and expiration (\"never\" or yyyy-MM-ddTHH:mm:ss)."
-	DescUsersMD                = "Per-user permissions. Map key is user email or UID; value is an object with `manage_users`, `manage_records`, and `expiration` (`\"never\"` or `yyyy-MM-ddTHH:mm:ss`)."
-	DescUserManageUsers        = "Allow this user to manage users. Defaults to `false` if not set."
-	DescUserManageRecords      = "Allow this user to manage records. Defaults to `false` if not set."
-	DescExpiration             = "Access expiration: \"never\" or absolute datetime as yyyy-MM-ddTHH:mm:ss (e.g. 2026-04-02T11:11:00). Defaults to `never` if not set."
-	ExpirationDoc              = "Must be \"never\" or yyyy-MM-ddTHH:mm:ss (e.g. 2026-04-02T11:11:00). Defaults to `never` if not set."
+	DescResource                 = "Manages a shared folder. Use this resource to create and manage shared folder."
+	DescDataSource               = "Look up an existing shared folder by UID or name."
+	DescDataSourceMD             = "Look up an existing shared folder by **UID** or **name**."
+	DescDataSourceSharedFolder   = "Shared folder UID or name to look up."
+	DescDataSourceSharedFolderMD = "Shared folder **UID** or **name** to look up."
+	DescDataSourceId             = "ID of the found shared folder."
+	DescDataSourceIdMD           = "**ID** of the found shared folder."
+	DescId                       = "The ID of the shared folder."
+	DescName                     = "Shared folder name."
+	DescFolderLocation           = "Folder path or identifier where the shared folder is located."
+	DescUserPermissions          = "Default user permissions for the shared folder. When omitted, defaults to manage_users = false, manage_records = false. Allowed keys: manage_users, manage_records."
+	DescUserPermissionsMD        = "Default user permissions for the shared folder. When omitted, defaults to `manage_users = false`, `manage_records = false`. Allowed keys: `manage_users`, `manage_records`."
+	DescUserPermissionsManage    = "Allow managing users in the shared folder."
+	DescUserPermissionsRecords   = "Allow managing records in the shared folder."
+	DescRecordPermissions        = "Default record permissions for the shared folder. When omitted, defaults to can_share = false, can_edit = false. Allowed keys: can_share, can_edit."
+	DescRecordPermissionsMD      = "Default record permissions for the shared folder. When omitted, defaults to `can_share = false`, `can_edit = false`. Allowed keys: `can_share`, `can_edit`."
+	DescRecordPermissionsShare   = "Allow sharing records."
+	DescRecordPermissionsEdit    = "Allow editing records."
+	DescRecords                  = "Per-record permissions. Map key is record UID or name; value is an object with can_share and can_edit."
+	DescRecordsMD                = "Per-record permissions. Map key is record UID or name; value is an object with `can_share` and `can_edit`."
+	DescRecordShare              = "Allow sharing this record."
+	DescRecordEdit               = "Allow editing this record."
+	DescUsers                    = "Per-user permissions. Map key is user email or UID; value is an object with manage_users, manage_records, and expiration (\"never\" or yyyy-MM-ddTHH:mm:ss)."
+	DescUsersMD                  = "Per-user permissions. Map key is user email or UID; value is an object with `manage_users`, `manage_records`, and `expiration` (`\"never\"` or `yyyy-MM-ddTHH:mm:ss`)."
+	DescUserManageUsers          = "Allow this user to manage users. Defaults to `false` if not set."
+	DescUserManageRecords        = "Allow this user to manage records. Defaults to `false` if not set."
+	DescExpiration               = "Access expiration: \"never\" or absolute datetime as yyyy-MM-ddTHH:mm:ss (e.g. 2026-04-02T11:11:00). Defaults to `never` if not set."
+	ExpirationDoc                = "Must be \"never\" or yyyy-MM-ddTHH:mm:ss (e.g. 2026-04-02T11:11:00). Defaults to `never` if not set."
 )
 
 // Expiration validator error messages.

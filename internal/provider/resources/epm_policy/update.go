@@ -34,12 +34,6 @@ func (r *EpmPolicyResource) Update(ctx context.Context, req resource.UpdateReque
 			Summary:    utils.ErrSummaryManagedCompanyCannotBeUpdated,
 			Detail:     utils.ErrDetailManagedCompany,
 		},
-		{
-			PlanValue:  plan.PolicyType,
-			StateValue: state.PolicyType,
-			Summary:    utils.ErrSummaryPolicyTypeCannotBeUpdated,
-			Detail:     utils.ErrDetailPolicyType,
-		},
 	})
 	if resp.Diagnostics.HasError() {
 		return

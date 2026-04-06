@@ -174,7 +174,7 @@ func TestEpmPolicyResource_Read_MapPolicyViewError(t *testing.T) {
 		if strings.Contains(cmd, "epm policy view") {
 			return "ok", map[string]interface{}{
 				"PolicyId":   "",
-				"PolicyType": "Command",
+				"PolicyType": "CommandLine",
 				"Status":     "enforce",
 			}
 		}
@@ -201,7 +201,7 @@ func TestEpmPolicyResource_Read_UnmarshalError(t *testing.T) {
 	mock := &helpers.CommandServer{}
 	server := startMockServer(mock, func(cmd string, idx int) (string, interface{}) {
 		if strings.Contains(cmd, "epm policy view") {
-			return "ok", map[string]interface{}{"PolicyId": true, "PolicyType": "Command", "Status": "enforce"}
+			return "ok", map[string]interface{}{"PolicyId": true, "PolicyType": "CommandLine", "Status": "enforce"}
 		}
 		return "ok", nil
 	})
@@ -552,9 +552,15 @@ func TestEpmPolicyResource_Update(t *testing.T) {
 	}
 }
 
-func TestEpmPolicyResource_Update_ImmutablePolicyType(t *testing.T) {
+func TestEpmPolicyResource_Update_PolicyTypeChange(t *testing.T) {
 	t.Parallel()
-	server := httptestNewServerOK(t)
+	mock := &helpers.CommandServer{}
+	server := startMockServer(mock, func(cmd string, idx int) (string, interface{}) {
+		if strings.Contains(cmd, "epm policy edit") {
+			return "ok", nil
+		}
+		return "ok", nil
+	})
 	defer server.Close()
 	r := newConfiguredResource(t, server)
 	sch, objType := getSchema(t)
@@ -572,10 +578,10 @@ func TestEpmPolicyResource_Update_ImmutablePolicyType(t *testing.T) {
 		Plan:  tfsdk.Plan{Schema: sch, Raw: planRaw},
 		State: tfsdk.State{Schema: sch, Raw: stateRaw},
 	}
-	var resp resource.UpdateResponse
+	resp := resource.UpdateResponse{State: tfsdk.State{Schema: sch, Raw: stateRaw}}
 	r.Update(context.Background(), req, &resp)
-	if !resp.Diagnostics.HasError() {
-		t.Fatal("want immutable error")
+	if resp.Diagnostics.HasError() {
+		t.Fatalf("Update: %v", resp.Diagnostics)
 	}
 }
 

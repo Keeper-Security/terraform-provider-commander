@@ -186,7 +186,7 @@ func TestEpmPolicyDataSource_Read_MapPolicyViewError(t *testing.T) {
 		if strings.Contains(cmd, "epm policy view") {
 			return "ok", map[string]interface{}{
 				"PolicyId":   "",
-				"PolicyType": "Command",
+				"PolicyType": "CommandLine",
 				"Status":     "enforce",
 			}
 		}

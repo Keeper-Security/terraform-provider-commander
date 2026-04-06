@@ -54,11 +54,9 @@ func appendListFlags(parts []string, flag string, values []string) []string {
 }
 
 // appendEpmPolicyAttributeFlags appends policy name, type, status, and optional list flags (shared by add and update).
-func appendEpmPolicyAttributeFlags(parts []string, data *EpmPolicyResourceModel, isUpdate bool) []string {
+func appendEpmPolicyAttributeFlags(parts []string, data *EpmPolicyResourceModel) []string {
 	parts = append(parts, fmt.Sprintf("%s '%s'", commonepm.FlagPolicyName, data.PolicyName.ValueString()))
-	if !isUpdate {
-		parts = append(parts, fmt.Sprintf("%s '%s'", commonepm.FlagPolicyType, data.PolicyType.ValueString()))
-	}
+	parts = append(parts, fmt.Sprintf("%s '%s'", commonepm.FlagPolicyType, data.PolicyType.ValueString()))
 
 	// If status is off, set enable to off otherwise set status
 	if data.Status.ValueString() == commonepm.StatusOff {
@@ -81,14 +79,14 @@ func appendEpmPolicyAttributeFlags(parts []string, data *EpmPolicyResourceModel,
 func buildCreateCommand(data *EpmPolicyResourceModel) string {
 	var parts []string
 	parts = append(parts, commonepm.CmdEpmPolicyAdd)
-	return strings.Join(appendEpmPolicyAttributeFlags(parts, data, false), " ")
+	return strings.Join(appendEpmPolicyAttributeFlags(parts, data), " ")
 }
 
 // buildUpdateCommand builds the "epm policy update <id>" command with the same flags as add.
 func buildUpdateCommand(policyID string, data *EpmPolicyResourceModel) string {
 	var parts []string
 	parts = append(parts, commonepm.CmdEpmPolicyEdit, policyID)
-	return strings.Join(appendEpmPolicyAttributeFlags(parts, data, true), " ")
+	return strings.Join(appendEpmPolicyAttributeFlags(parts, data), " ")
 }
 
 // buildViewCommand builds `epm policy view <id> --format json`.

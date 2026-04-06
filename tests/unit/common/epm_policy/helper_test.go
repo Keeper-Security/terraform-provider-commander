@@ -20,12 +20,8 @@ func TestPolicyTypeFromAPI(t *testing.T) {
 	}{
 		{"PrivilegeElevation", commonepm.PolicyTypeElevation},
 		{"FileAccess", commonepm.PolicyTypeFileAccess},
-		{"Command", commonepm.PolicyTypeCommand},
+		{"CommandLine", commonepm.PolicyTypeCommand},
 		{"LeastPrivilege", commonepm.PolicyTypeLeastPrivilege},
-		{"privilege elevation", commonepm.PolicyTypeElevation},
-		{"FILE_ACCESS", commonepm.PolicyTypeFileAccess},
-		{"least_privilege", commonepm.PolicyTypeLeastPrivilege},
-		{"Privilege Elevation", commonepm.PolicyTypeElevation},
 	}
 	for _, tc := range cases {
 		got, err := commonepm.PolicyTypeFromAPI(tc.in)
@@ -38,6 +34,9 @@ func TestPolicyTypeFromAPI(t *testing.T) {
 	}
 	if _, err := commonepm.PolicyTypeFromAPI("UnknownThing"); err == nil {
 		t.Error("unknown: want error")
+	}
+	if _, err := commonepm.PolicyTypeFromAPI("Command"); err == nil {
+		t.Error("Command (non-API key): want error; use CommandLine in API payloads")
 	}
 }
 
@@ -178,18 +177,18 @@ func TestMapPolicyViewToAttributes(t *testing.T) {
 	if _, err := commonepm.MapPolicyViewToAttributes(badType, nil); err == nil {
 		t.Fatal("bad policy type")
 	}
-	noStatus := &utils.EpmPolicyResponse{PolicyId: "1", PolicyType: "Command", Status: "  "}
+	noStatus := &utils.EpmPolicyResponse{PolicyId: "1", PolicyType: "CommandLine", Status: "  "}
 	if _, err := commonepm.MapPolicyViewToAttributes(noStatus, nil); err == nil {
 		t.Fatal("empty status")
 	}
-	badDay := &utils.EpmPolicyResponse{PolicyId: "1", PolicyType: "Command", Status: "enforce", DayCheck: []int{8}}
+	badDay := &utils.EpmPolicyResponse{PolicyId: "1", PolicyType: "CommandLine", Status: "enforce", DayCheck: []int{8}}
 	if _, err := commonepm.MapPolicyViewToAttributes(badDay, nil); err == nil {
 		t.Fatal("bad day")
 	}
 	view := &utils.EpmPolicyResponse{
 		PolicyId:     "42",
 		PolicyName:   "N",
-		PolicyType:   "Command",
+		PolicyType:   "CommandLine",
 		Status:       "Enforce",
 		UserCheck:    []string{"u1"},
 		MachineCheck: []string{"m1"},

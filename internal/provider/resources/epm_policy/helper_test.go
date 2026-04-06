@@ -11,11 +11,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
-func epmModelForCommand(policyName, policyType, status string) *EpmPolicyResourceModel {
+func epmModelForCommand(status string) *EpmPolicyResourceModel {
 	emptySet := types.SetNull(types.StringType)
 	return &EpmPolicyResourceModel{
-		PolicyName:         types.StringValue(policyName),
-		PolicyType:         types.StringValue(policyType),
+		PolicyName:         types.StringValue("p1"),
+		PolicyType:         types.StringValue("command"),
 		Status:             types.StringValue(status),
 		Control:            emptySet,
 		UserGroups:         emptySet,
@@ -28,7 +28,7 @@ func epmModelForCommand(policyName, policyType, status string) *EpmPolicyResourc
 }
 
 func TestBuildCreateCommand_StatusOffUsesEnableFlag(t *testing.T) {
-	cmd := buildCreateCommand(epmModelForCommand("p1", "command", commonepm.StatusOff))
+	cmd := buildCreateCommand(epmModelForCommand(commonepm.StatusOff))
 	if !strings.Contains(cmd, commonepm.FlagEnable+" '"+commonepm.StatusOff+"'") {
 		t.Fatalf("create with status off should use enable flag, got: %s", cmd)
 	}
@@ -38,7 +38,7 @@ func TestBuildCreateCommand_StatusOffUsesEnableFlag(t *testing.T) {
 }
 
 func TestBuildCreateCommand_NonOffStatusUsesStatusFlag(t *testing.T) {
-	cmd := buildCreateCommand(epmModelForCommand("p1", "command", commonepm.StatusEnforce))
+	cmd := buildCreateCommand(epmModelForCommand(commonepm.StatusEnforce))
 	if !strings.Contains(cmd, commonepm.FlagStatus+" '"+commonepm.StatusEnforce+"'") {
 		t.Fatalf("create with enforce should use status flag, got: %s", cmd)
 	}
@@ -48,17 +48,14 @@ func TestBuildCreateCommand_NonOffStatusUsesStatusFlag(t *testing.T) {
 }
 
 func TestBuildUpdateCommand_StatusOffUsesEnableFlag(t *testing.T) {
-	cmd := buildUpdateCommand("42", epmModelForCommand("p1", "command", commonepm.StatusOff))
+	cmd := buildUpdateCommand("42", epmModelForCommand(commonepm.StatusOff))
 	if !strings.Contains(cmd, commonepm.FlagEnable+" '"+commonepm.StatusOff+"'") {
 		t.Fatalf("update with status off should use enable flag, got: %s", cmd)
-	}
-	if strings.Contains(cmd, commonepm.FlagPolicyType) {
-		t.Fatalf("update should not set policy type flag, got: %s", cmd)
 	}
 }
 
 func TestBuildUpdateCommand_NonOffStatusUsesStatusFlag(t *testing.T) {
-	cmd := buildUpdateCommand("42", epmModelForCommand("p1", "command", commonepm.StatusMonitor))
+	cmd := buildUpdateCommand("42", epmModelForCommand(commonepm.StatusMonitor))
 	if !strings.Contains(cmd, commonepm.FlagStatus+" '"+commonepm.StatusMonitor+"'") {
 		t.Fatalf("update with monitor should use status flag, got: %s", cmd)
 	}
