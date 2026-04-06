@@ -6,21 +6,15 @@ package sharedfolder
 import (
 	"context"
 	"regexp"
+	"strings"
 	"time"
 
-	"github.com/hashicorp/terraform-plugin-framework/attr"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
-// Expiration format: "never" | ISO date (yyyy-MM-dd) or datetime (yyyy-MM-dd HH:mm:ss) | relative period (e.g. 30d, 1y, 6mo, 24h, 90days).
-var (
-	expirationNever    = regexp.MustCompile(`(?i)^never$`)
-	expirationRelative = regexp.MustCompile(`^\d+\s*(y|mo|d|h|mi|min|years?|months?|days?|hours?|minutes?)$`)
-	// ISO date only (yyyy-MM-dd) or date + optional time (yyyy-MM-dd HH:mm or yyyy-MM-dd HH:mm:ss).
-	expirationISO = regexp.MustCompile(`^\d{4}-\d{2}-\d{2}(\s+\d{1,2}:\d{2}(:\d{2})?)?$`)
-)
+// Expiration format: "never" | yyyy-MM-ddTHH:mm:ss (e.g. 2026-04-02T11:11:00).
+var expirationNever = regexp.MustCompile(`(?i)^never$`)
 
 // expirationValidator validates the expiration string for user permission entries.
 type expirationValidator struct{}
@@ -49,19 +43,8 @@ func (v expirationValidator) ValidateString(ctx context.Context, req validator.S
 	if expirationNever.MatchString(s) {
 		return
 	}
-	if expirationRelative.MatchString(s) {
+	if _, err := time.Parse(TimeLayoutExpiration, s); err == nil {
 		return
-	}
-	if expirationISO.MatchString(s) {
-		if _, err := time.Parse(TimeLayoutDate, s); err == nil {
-			return
-		}
-		if _, err := time.Parse(TimeLayoutDateTime, s); err == nil {
-			return
-		}
-		if _, err := time.Parse(TimeLayoutDateTimeShort, s); err == nil {
-			return
-		}
 	}
 	resp.Diagnostics.AddAttributeError(
 		req.Path,
@@ -75,56 +58,55 @@ func ExpirationValidator() expirationValidator {
 	return expirationValidator{}
 }
 
-// Default user_permissions when null: manage_users = false, manage_records = false.
-var userPermissionsDefaultAttrTypes = map[string]attr.Type{
-	AttrManageUsers:   types.BoolType,
-	AttrManageRecords: types.BoolType,
+// userExpirationManageUsersValidator rejects manage_users = true when expiration is a datetime (not "never").
+type userExpirationManageUsersValidator struct{}
+
+func (userExpirationManageUsersValidator) Description(ctx context.Context) string {
+	return "manage_users cannot be true when expiration is a datetime; use \"never\" for users who manage other users."
 }
 
-type userPermissionsDefaultPlanModifier struct{}
-
-func (userPermissionsDefaultPlanModifier) Description(ctx context.Context) string {
-	return DescUserPermissionsDefault
+func (userExpirationManageUsersValidator) MarkdownDescription(ctx context.Context) string {
+	return "`manage_users` cannot be `true` when `expiration` is a datetime; use `\"never\"` for users who manage other users."
 }
 
-func (userPermissionsDefaultPlanModifier) MarkdownDescription(ctx context.Context) string {
-	return DescUserPermissionsDefaultMD
+// expirationIsTimeLimited is true only when expiration is a valid yyyy-MM-ddTHH:mm:ss.
+// It is false when expiration is omitted (null/unknown), empty, "never", or invalid (leave that to ExpirationValidator).
+func expirationIsTimeLimited(expVal types.String) bool {
+	if expVal.IsNull() || expVal.IsUnknown() {
+		return false
+	}
+	s := strings.TrimSpace(expVal.ValueString())
+	if s == "" || expirationNever.MatchString(s) {
+		return false
+	}
+	_, err := time.Parse(TimeLayoutExpiration, s)
+	return err == nil
 }
 
-func (userPermissionsDefaultPlanModifier) PlanModifyObject(ctx context.Context, req planmodifier.ObjectRequest, resp *planmodifier.ObjectResponse) {
-	if !req.ConfigValue.IsNull() {
+func (userExpirationManageUsersValidator) ValidateObject(ctx context.Context, req validator.ObjectRequest, resp *validator.ObjectResponse) {
+	if req.ConfigValue.IsNull() || req.ConfigValue.IsUnknown() {
 		return
 	}
-	defaultVal := types.ObjectValueMust(userPermissionsDefaultAttrTypes, map[string]attr.Value{
-		AttrManageUsers:   types.BoolValue(false),
-		AttrManageRecords: types.BoolValue(false),
-	})
-	resp.PlanValue = defaultVal
-}
+	attrs := req.ConfigValue.Attributes()
 
-// Default record_permissions when null: can_share = false, can_edit = false.
-var recordPermissionsDefaultAttrTypes = map[string]attr.Type{
-	AttrCanShare: types.BoolType,
-	AttrCanEdit:  types.BoolType,
-}
+	expVal, expOk := attrs[AttrExpiration].(types.String)
+	if !expOk || !expirationIsTimeLimited(expVal) {
+		return // no error when expiration not set, "never", empty, or invalid
+	}
 
-type recordPermissionsDefaultPlanModifier struct{}
-
-func (recordPermissionsDefaultPlanModifier) Description(ctx context.Context) string {
-	return DescRecordPermissionsDefault
-}
-
-func (recordPermissionsDefaultPlanModifier) MarkdownDescription(ctx context.Context) string {
-	return DescRecordPermissionsDefaultMD
-}
-
-func (recordPermissionsDefaultPlanModifier) PlanModifyObject(ctx context.Context, req planmodifier.ObjectRequest, resp *planmodifier.ObjectResponse) {
-	if !req.ConfigValue.IsNull() {
+	muVal, muOk := attrs[AttrManageUsers].(types.Bool)
+	if !muOk || muVal.IsNull() || muVal.IsUnknown() || !muVal.ValueBool() {
 		return
 	}
-	defaultVal := types.ObjectValueMust(recordPermissionsDefaultAttrTypes, map[string]attr.Value{
-		AttrCanShare: types.BoolValue(false),
-		AttrCanEdit:  types.BoolValue(false),
-	})
-	resp.PlanValue = defaultVal
+
+	resp.Diagnostics.AddAttributeError(
+		req.Path.AtName(AttrManageUsers),
+		ErrMsgInvalidUserPermissionsCombo,
+		ErrMsgManageUsersWithTimeLimitedExpiration,
+	)
+}
+
+// UserExpirationManageUsersValidator returns a validator for each users map entry object.
+func UserExpirationManageUsersValidator() userExpirationManageUsersValidator {
+	return userExpirationManageUsersValidator{}
 }

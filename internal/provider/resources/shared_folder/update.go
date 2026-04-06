@@ -41,13 +41,28 @@ func (r *SharedFolderResource) Update(ctx context.Context, req resource.UpdateRe
 	plan.Id = state.Id
 	folderUID := plan.Id.ValueString()
 
-	// Rename shared folder if name changed
+	// Name is "parent/Shared Folder Name" or just "Shared Folder Name". Same parent + different leaf -> rndir; different parent -> mv.
 	if !plan.Name.Equal(state.Name) {
-		name := strings.ReplaceAll(plan.Name.ValueString(), `"`, `\"`)
-		command := fmt.Sprintf("%s '%s' %s \"%s\"", CmdRndir, folderUID, FlagName, name)
-		if _, err := r.ApiManager.ExecuteCommand(ctx, command, ErrOpRenameSF); err != nil {
-			resp.Diagnostics.AddError(ErrSummaryUpdateFailed, err.Error())
-			return
+		planPath := plan.Name.ValueString()
+		statePath := state.Name.ValueString()
+		planParent, planLeaf := SplitSharedFolderPath(planPath)
+		stateParent, stateLeaf := SplitSharedFolderPath(statePath)
+
+		if planParent == stateParent && planLeaf != stateLeaf {
+			leaf := EscapeDoubleQuotesForCLI(planLeaf)
+			command := fmt.Sprintf("%s '%s' %s \"%s\"", CmdRndir, folderUID, FlagName, leaf)
+			if _, err := r.ApiManager.ExecuteCommand(ctx, command, ErrOpRenameSF); err != nil {
+				resp.Diagnostics.AddError(ErrSummaryUpdateFailed, err.Error())
+				return
+			}
+		} else if planParent != stateParent {
+			src := EscapeDoubleQuotesForCLI(MvPathForCommander(statePath))
+			dst := EscapeDoubleQuotesForCLI(MvMoveTargetParent(planPath))
+			command := fmt.Sprintf(`%s "%s" "%s" %s %s`, CmdMv, src, dst, FlagForce, FlagSharedFolder)
+			if _, err := r.ApiManager.ExecuteCommand(ctx, command, ErrOpMoveSF); err != nil {
+				resp.Diagnostics.AddError(ErrSummaryUpdateFailed, err.Error())
+				return
+			}
 		}
 	}
 

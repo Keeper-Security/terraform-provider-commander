@@ -81,8 +81,8 @@ func (p *CommanderProvider) Schema(ctx context.Context, req provider.SchemaReque
 				Sensitive:           true,
 			},
 			"timeout": schema.Int64Attribute{
-				MarkdownDescription: "Timeout in seconds for HTTP requests to the Commander Service Mode and for waiting on async command results. Omit or set to 0 to use the default of 60 seconds.",
-				Description:         "Timeout in seconds for HTTP requests and for waiting on async command results. Omit or set to 0 to use the default of 60 seconds.",
+				MarkdownDescription: "Timeout in seconds for HTTP requests to the Commander Service Mode and for waiting on async command results. If this value is **not provided or is set to 0 or less**, the provider will use the default timeout of `60` seconds.",
+				Description:         "Timeout in seconds for HTTP requests to the Commander Service Mode and for waiting on async command results. If this value is not provided or is set to 0 or less, the provider will use the default timeout of 60 seconds.",
 				Optional:            true,
 			},
 		},

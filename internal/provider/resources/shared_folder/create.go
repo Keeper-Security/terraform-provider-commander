@@ -74,14 +74,8 @@ func buildCreateSharedFolderCommand(data *SharedFolderResourceModel) (command st
 	if name == "" {
 		return "", fmt.Errorf("name is required")
 	}
-	computedSharedFolderName := name
 
-	if !data.FolderLocation.IsNull() && strings.TrimSpace(data.FolderLocation.ValueString()) != "" {
-		loc := strings.TrimSuffix(strings.TrimSpace(data.FolderLocation.ValueString()), "/")
-		computedSharedFolderName = loc + "/" + name
-	}
-
-	parts := []string{CmdMkdir, FlagSharedFolder, fmt.Sprintf(`"%s"`, computedSharedFolderName)}
+	parts := []string{CmdMkdir, FlagSharedFolder, fmt.Sprintf(`"%s"`, name)}
 	permFlags := GetDefaultPermissions(data)
 	parts = append(parts, DefaultPermissionFlagsForMkdir(permFlags)...)
 

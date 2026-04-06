@@ -49,18 +49,18 @@ func TestEpmPolicyConfigValidator_ValidateResource(t *testing.T) {
 	sch := schResp.Schema
 
 	objType := tftypes.Object{AttributeTypes: map[string]tftypes.Type{
-		"id":                   tftypes.String,
-		"managed_company":      tftypes.String,
-		"policy_name":          tftypes.String,
-		"policy_type":          tftypes.String,
-		"status":               tftypes.String,
-		"control":              tftypes.Set{ElementType: tftypes.String},
-		"user_groups":          tftypes.Set{ElementType: tftypes.String},
-		"machine_collections":  tftypes.Set{ElementType: tftypes.String},
-		"applications":         tftypes.Set{ElementType: tftypes.String},
-		"day_filter":           tftypes.Set{ElementType: tftypes.String},
-		"time_filter":          tftypes.Set{ElementType: tftypes.String},
-		"date_filter":          tftypes.Set{ElementType: tftypes.String},
+		"id":                  tftypes.String,
+		"managed_company":     tftypes.String,
+		"policy_name":         tftypes.String,
+		"policy_type":         tftypes.String,
+		"status":              tftypes.String,
+		"control":             tftypes.Set{ElementType: tftypes.String},
+		"user_groups":         tftypes.Set{ElementType: tftypes.String},
+		"machine_collections": tftypes.Set{ElementType: tftypes.String},
+		"applications":        tftypes.Set{ElementType: tftypes.String},
+		"day_filter":          tftypes.Set{ElementType: tftypes.String},
+		"time_filter":         tftypes.Set{ElementType: tftypes.String},
+		"date_filter":         tftypes.Set{ElementType: tftypes.String},
 	}}
 
 	nullSet := tftypes.NewValue(tftypes.Set{ElementType: tftypes.String}, nil)

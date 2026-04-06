@@ -33,7 +33,6 @@ func (r *SharedFolderResource) ImportState(ctx context.Context, req resource.Imp
 	state := SharedFolderResourceModel{
 		Id:                types.StringValue(importID),
 		Name:              types.StringNull(),
-		FolderLocation:    types.StringNull(),
 		UserPermissions:   nil,
 		RecordPermissions: nil,
 		Records:           types.MapNull(RecordEntryMapElemType),

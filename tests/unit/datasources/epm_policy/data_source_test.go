@@ -74,8 +74,8 @@ func TestEpmPolicyDataSource_Read_Success(t *testing.T) {
 
 	d := newConfiguredDataSource(t, server)
 	sch, objType := getSchema(t)
-	configRaw := tftypes.NewValue(objType, newConfigValues("55", nil))
-	emptyState := tftypes.NewValue(objType, newConfigValues(nil, nil))
+	configRaw := tftypes.NewValue(objType, newConfigValues("55"))
+	emptyState := tftypes.NewValue(objType, newConfigValues(nil))
 	req := datasource.ReadRequest{Config: tfsdk.Config{Schema: sch, Raw: configRaw}}
 	resp := datasource.ReadResponse{State: tfsdk.State{Schema: sch, Raw: emptyState}}
 	d.Read(context.Background(), req, &resp)
@@ -104,7 +104,7 @@ func TestEpmPolicyDataSource_Read_EmptyPolicy(t *testing.T) {
 	defer server.Close()
 	d := newConfiguredDataSource(t, server)
 	sch, objType := getSchema(t)
-	configRaw := tftypes.NewValue(objType, newConfigValues("", nil))
+	configRaw := tftypes.NewValue(objType, newConfigValues(""))
 	req := datasource.ReadRequest{Config: tfsdk.Config{Schema: sch, Raw: configRaw}}
 	var resp datasource.ReadResponse
 	d.Read(context.Background(), req, &resp)
@@ -117,7 +117,7 @@ func TestEpmPolicyDataSource_Read_NoApiManager(t *testing.T) {
 	t.Parallel()
 	d := epmpolicy.NewEpmPolicyDataSource().(*epmpolicy.EpmPolicyDataSource)
 	sch, objType := getSchema(t)
-	configRaw := tftypes.NewValue(objType, newConfigValues("55", nil))
+	configRaw := tftypes.NewValue(objType, newConfigValues("55"))
 	req := datasource.ReadRequest{Config: tfsdk.Config{Schema: sch, Raw: configRaw}}
 	var resp datasource.ReadResponse
 	d.Read(context.Background(), req, &resp)
@@ -138,7 +138,7 @@ func TestEpmPolicyDataSource_Read_ExecuteError(t *testing.T) {
 	defer server.Close()
 	d := newConfiguredDataSource(t, server)
 	sch, objType := getSchema(t)
-	configRaw := tftypes.NewValue(objType, newConfigValues("55", nil))
+	configRaw := tftypes.NewValue(objType, newConfigValues("55"))
 	req := datasource.ReadRequest{Config: tfsdk.Config{Schema: sch, Raw: configRaw}}
 	var resp datasource.ReadResponse
 	d.Read(context.Background(), req, &resp)
@@ -154,7 +154,7 @@ func TestEpmPolicyDataSource_Read_EnterpriseDownError(t *testing.T) {
 	defer server.Close()
 	d := newConfiguredDataSource(t, server)
 	sch, objType := getSchema(t)
-	configRaw := tftypes.NewValue(objType, newConfigValues("55", nil))
+	configRaw := tftypes.NewValue(objType, newConfigValues("55"))
 	req := datasource.ReadRequest{Config: tfsdk.Config{Schema: sch, Raw: configRaw}}
 	var resp datasource.ReadResponse
 	d.Read(context.Background(), req, &resp)
@@ -170,7 +170,7 @@ func TestEpmPolicyDataSource_Read_EpmSyncDownError(t *testing.T) {
 	defer server.Close()
 	d := newConfiguredDataSource(t, server)
 	sch, objType := getSchema(t)
-	configRaw := tftypes.NewValue(objType, newConfigValues("55", nil))
+	configRaw := tftypes.NewValue(objType, newConfigValues("55"))
 	req := datasource.ReadRequest{Config: tfsdk.Config{Schema: sch, Raw: configRaw}}
 	var resp datasource.ReadResponse
 	d.Read(context.Background(), req, &resp)
@@ -195,7 +195,7 @@ func TestEpmPolicyDataSource_Read_MapPolicyViewError(t *testing.T) {
 	defer server.Close()
 	d := newConfiguredDataSource(t, server)
 	sch, objType := getSchema(t)
-	configRaw := tftypes.NewValue(objType, newConfigValues("55", nil))
+	configRaw := tftypes.NewValue(objType, newConfigValues("55"))
 	req := datasource.ReadRequest{Config: tfsdk.Config{Schema: sch, Raw: configRaw}}
 	var resp datasource.ReadResponse
 	d.Read(context.Background(), req, &resp)
@@ -216,7 +216,7 @@ func TestEpmPolicyDataSource_Read_UnmarshalError(t *testing.T) {
 	defer server.Close()
 	d := newConfiguredDataSource(t, server)
 	sch, objType := getSchema(t)
-	configRaw := tftypes.NewValue(objType, newConfigValues("55", nil))
+	configRaw := tftypes.NewValue(objType, newConfigValues("55"))
 	req := datasource.ReadRequest{Config: tfsdk.Config{Schema: sch, Raw: configRaw}}
 	var resp datasource.ReadResponse
 	d.Read(context.Background(), req, &resp)
@@ -232,7 +232,7 @@ func TestEpmPolicyDataSource_Read_PolicyNotFound(t *testing.T) {
 	defer server.Close()
 	d := newConfiguredDataSource(t, server)
 	sch, objType := getSchema(t)
-	configRaw := tftypes.NewValue(objType, newConfigValues("55", nil))
+	configRaw := tftypes.NewValue(objType, newConfigValues("55"))
 	req := datasource.ReadRequest{Config: tfsdk.Config{Schema: sch, Raw: configRaw}}
 	var resp datasource.ReadResponse
 	d.Read(context.Background(), req, &resp)
@@ -250,7 +250,7 @@ func TestEpmPolicyDataSource_Read_ApiError(t *testing.T) {
 	defer server.Close()
 	d := newConfiguredDataSource(t, server)
 	sch, objType := getSchema(t)
-	configRaw := tftypes.NewValue(objType, newConfigValues("55", nil))
+	configRaw := tftypes.NewValue(objType, newConfigValues("55"))
 	req := datasource.ReadRequest{Config: tfsdk.Config{Schema: sch, Raw: configRaw}}
 	var resp datasource.ReadResponse
 	d.Read(context.Background(), req, &resp)

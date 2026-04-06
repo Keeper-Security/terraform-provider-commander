@@ -38,11 +38,12 @@ func epmPolicyDSObjectType() tftypes.Object {
 	return tftypes.Object{AttributeTypes: epmPolicyDSAttrTypes}
 }
 
-func newConfigValues(policy, managedCompany interface{}) map[string]tftypes.Value {
+// newConfigValues builds tftypes values for datasource config. policy is required; computed fields null in config.
+func newConfigValues(policy interface{}) map[string]tftypes.Value {
 	nullSet := tftypes.NewValue(tftypes.Set{ElementType: tftypes.String}, nil)
 	return map[string]tftypes.Value{
 		"policy":              tftypes.NewValue(tftypes.String, policy),
-		"managed_company":     tftypes.NewValue(tftypes.String, managedCompany),
+		"managed_company":     tftypes.NewValue(tftypes.String, nil),
 		"id":                  tftypes.NewValue(tftypes.String, nil),
 		"policy_name":         tftypes.NewValue(tftypes.String, nil),
 		"policy_type":         tftypes.NewValue(tftypes.String, nil),

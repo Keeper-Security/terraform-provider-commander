@@ -40,3 +40,23 @@ examples/local-test/
 # Coverage
 coverage.out
 coverage.html
+
+# Compiled provider binary
+terraform-provider-commander
+
+# Environment files
+.env
+.env.*
+
+# Keys and certificates
+*.pem
+*.key
+*.p12
+*.pfx
+
+# Terraform variables (may contain secrets)
+*.tfvars
+*.tfvars.json
+
+# Claude Code local settings
+.claude/

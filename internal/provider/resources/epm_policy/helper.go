@@ -12,21 +12,21 @@ import (
 )
 
 // listToStrings returns non-empty string values from a types.List (e.g. user_groups, machine_collections).
-func listToStrings(l types.List) []string {
-	if l.IsNull() || l.IsUnknown() {
-		return nil
-	}
-	var out []string
-	for _, el := range l.Elements() {
-		if s, ok := el.(types.String); ok && !s.IsNull() && !s.IsUnknown() {
-			v := strings.TrimSpace(s.ValueString())
-			if v != "" {
-				out = append(out, v)
-			}
-		}
-	}
-	return out
-}
+// func listToStrings(l types.List) []string {
+// 	if l.IsNull() || l.IsUnknown() {
+// 		return nil
+// 	}
+// 	var out []string
+// 	for _, el := range l.Elements() {
+// 		if s, ok := el.(types.String); ok && !s.IsNull() && !s.IsUnknown() {
+// 			v := strings.TrimSpace(s.ValueString())
+// 			if v != "" {
+// 				out = append(out, v)
+// 			}
+// 		}
+// 	}
+// 	return out
+// }
 
 // setToStrings returns non-empty string values from a types.Set (e.g. control).
 func setToStrings(s types.Set) []string {

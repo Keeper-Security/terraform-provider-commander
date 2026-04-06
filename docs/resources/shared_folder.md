@@ -64,11 +64,10 @@ resource "commander_shared_folder" "example" {
 
 ### Optional
 
-- `folder_location` (String) Folder path or identifier where the shared folder is located.
 - `record_permissions` (Attributes) Default record permissions for the shared folder. When omitted, defaults to `can_share = false`, `can_edit = false`. Allowed keys: `can_share`, `can_edit`. (see [below for nested schema](#nestedatt--record_permissions))
 - `records` (Attributes Map) Per-record permissions. Map key is record UID or name; value is an object with `can_share` and `can_edit`. (see [below for nested schema](#nestedatt--records))
 - `user_permissions` (Attributes) Default user permissions for the shared folder. When omitted, defaults to `manage_users = false`, `manage_records = false`. Allowed keys: `manage_users`, `manage_records`. (see [below for nested schema](#nestedatt--user_permissions))
-- `users` (Attributes Map) Per-user permissions. Map key is user email or UID; value is an object with `manage_users`, `manage_records`, and `expiration` ("never" | ISO date/datetime | relative e.g. 30d, 1y). (see [below for nested schema](#nestedatt--users))
+- `users` (Attributes Map) Per-user permissions. Map key is user email or UID; value is an object with `manage_users`, `manage_records`, and `expiration` (`"never"` or `yyyy-MM-ddTHH:mm:ss`). (see [below for nested schema](#nestedatt--users))
 
 ### Read-Only
 
@@ -106,6 +105,6 @@ Optional:
 
 Optional:
 
-- `expiration` (String) Access expiration: "never", ISO date/datetime (yyyy-MM-dd or yyyy-MM-dd HH:mm:ss), or relative period (e.g. 30d, 1y, 6mo, 24h, 90days).
-- `manage_records` (Boolean) Allow this user to manage records.
-- `manage_users` (Boolean) Allow this user to manage users.
+- `expiration` (String) Access expiration: "never" or absolute datetime as yyyy-MM-ddTHH:mm:ss (e.g. 2026-04-02T11:11:00). Defaults to `never` if not set.
+- `manage_records` (Boolean) Allow this user to manage records. Defaults to `false` if not set.
+- `manage_users` (Boolean) Allow this user to manage users. Defaults to `false` if not set.

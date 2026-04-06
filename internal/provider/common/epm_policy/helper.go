@@ -24,7 +24,7 @@ func PolicyTypeFromAPI(api string) (string, error) {
 
 	v, ok := ApiPolicyTypeToTerraformMap[key]
 	if !ok {
-		return "", fmt.Errorf("Unknown API policy type from Commander: %q", api)
+		return "", fmt.Errorf("unknown API policy type from Commander: %q", api)
 	}
 	return v, nil
 }

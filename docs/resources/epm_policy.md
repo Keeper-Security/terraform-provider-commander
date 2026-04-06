@@ -23,14 +23,14 @@ Creates and manages an **EPM (Endpoint Policy Management) policy**.<br>Endpoint 
 
 ### Optional
 
-- `applications` (List of String) **Applications**: `"*"` to select all applications, or a list of application collection IDs.<br> Required (with user_groups and/or machine_collections) for elevation/file_access monitor/monitor_and_notify. Not allowed for **command** policy type.
-- `control` (String) **Control** action. One of: `audit`, `notify`, `mfa`, `justify`, `approval`. Required when status is **enforce** for elevation, file_access, or command. Not allowed for **least_privilege**.
-- `date_filter` (List of String) **Date filter**. List of date ranges in **ISO format** `YYYY-MM-DD:YYYY-MM-DD`. Ranges must **not overlap**. Not allowed for **least_privilege** policy type.
-- `day_filter` (String) **Day filter**. One of: Monday, Tuesday, Wednesday, Thursday, Friday, Saturday, Sunday (case-insensitive). Not allowed for **least_privilege** policy type.
-- `machine_collections` (List of String) **Machine collections**: `"*"` to select all machines, or a list of machine collection IDs.<br> Required (with user_groups and/or applications) for elevation/file_access monitor/monitor_and_notify; required with user_groups for command monitor/monitor_and_notify. Optional for **least_privilege**.
+- `applications` (Set of String) **Applications**: `"*"` to select all applications, or a set of application collection IDs. Cannot use **"*"** with other IDs.<br> Required (with user_groups and/or machine_collections) for elevation/file_access monitor/monitor_and_notify. Not allowed for **command** policy type.
+- `control` (Set of String) **Control** actions. Set of values, each one of: `audit`, `notify`, `mfa`, `justify`, `approval`. At least one required when status is **enforce** for elevation, file_access, or command. Not allowed for **least_privilege**.
+- `date_filter` (Set of String) **Date filter**. Set of date ranges in **ISO format** `YYYY-MM-DD:YYYY-MM-DD`. Ranges must **not overlap**. Not allowed for **least_privilege** policy type.
+- `day_filter` (Set of String) **Day filter**. Set of days, each one of: Monday, Tuesday, Wednesday, Thursday, Friday, Saturday, Sunday (case-insensitive). Not allowed for **least_privilege** policy type.
+- `machine_collections` (Set of String) **Machine collections**: `"*"` to select all machines, or a set of machine collection IDs. Cannot use **"*"** with other IDs.<br> Required (with user_groups and/or applications) for elevation/file_access monitor/monitor_and_notify; required with user_groups for command monitor/monitor_and_notify. Optional for **least_privilege**.
 - `managed_company` (String) Only applies to **MSP accounts**. **Name** or **ID** of the managed company to scope this resource or data source to. Omit to use the logged-in account context.
-- `time_filter` (List of String) **Time filter**. List of time ranges in **24h format** `HH:MM-HH:MM`. Ranges must **not overlap**. Not allowed for **least_privilege** policy type.
-- `user_groups` (List of String) **User groups**: `"*"` to select all users, or a list of user collection IDs.<br> Required (with machine_collections and/or applications) for elevation/file_access monitor/monitor_and_notify; required with machine_collections for command monitor/monitor_and_notify. Not allowed for **least_privilege**.
+- `time_filter` (Set of String) **Time filter**. Set of hour ranges as **start-end** (hours **0–23**), e.g. `9-12`. Ranges must **not overlap**. Not allowed for **least_privilege** policy type.
+- `user_groups` (Set of String) **User groups**: `"*"` to select all users, or a set of user collection IDs. Cannot use **"*"** with other IDs.<br> Required (with machine_collections and/or applications) for elevation/file_access monitor/monitor_and_notify; required with machine_collections for command monitor/monitor_and_notify. Not allowed for **least_privilege**.
 
 ### Read-Only
 
