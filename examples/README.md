@@ -24,6 +24,7 @@ Other `.tf` files in these directories are ignored by the docs tool but can be u
 - **commander_enterprise_user** — Enterprise user
 - **commander_enterprise_push** — One-time push of records to user vaults (write-only; see `resources/commander_enterprise_push/README.md` for details)
 - **commander_enterprise_scim_push** — One-time push of SCIM data (Google, AD, or record) to a SCIM endpoint
+- **commander_epm_policy** — EPM (Endpoint Policy Management) policy
 - **commander_shared_folder** — Shared folder (vault path, default and per-record/per-user permissions)
 
 ## Data sources
@@ -33,6 +34,7 @@ Other `.tf` files in these directories are ignored by the docs tool but can be u
 - **commander_enterprise_team** — Look up an enterprise team
 - **commander_enterprise_role** — Look up an enterprise role
 - **commander_enterprise_user** — Look up an enterprise user
+- **commander_epm_policy** — Look up an EPM policy by policy ID
 - **commander_shared_folder** — Look up a shared folder by UID or vault path
 
 ## Regenerating docs
