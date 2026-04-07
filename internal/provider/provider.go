@@ -17,6 +17,7 @@ import (
 	enterpriseteamdatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/enterprise_team"
 	enterpriseuserdatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/enterprise_user"
 	managedcompanydatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/managed_company"
+	secretsmanagerdatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/secrets_manager"
 	enterprisenode "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/enterprise_node"
 	enterprisepush "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/enterprise_push"
 	enterpriserole "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/enterprise_role"
@@ -26,6 +27,7 @@ import (
 	enterpriseuser "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/enterprise_user"
 	managedcompany "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/managed_company"
 	sharedfolder "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/shared_folder"
+	secretsmanager "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/secrets_manager"
 	"github.com/hashicorp/terraform-plugin-framework/action"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/ephemeral"
@@ -178,6 +180,7 @@ func (p *CommanderProvider) Resources(ctx context.Context) []func() resource.Res
 		enterpriserole.NewEnterpriseRoleResource,
 		enterpriseuser.NewEnterpriseUserResource,
 		sharedfolder.NewSharedFolderResource,
+		secretsmanager.NewSecretsManagerAppResource,
 	}
 }
 
@@ -194,6 +197,7 @@ func (p *CommanderProvider) DataSources(ctx context.Context) []func() datasource
 		enterprisescimdatasource.NewEnterpriseScimDataSource,
 		enterpriseteamdatasource.NewEnterpriseTeamDataSource,
 		enterpriseuserdatasource.NewEnterpriseUserDataSource,
+		secretsmanagerdatasource.NewSecretsManagerDataSource,
 	}
 }
 
