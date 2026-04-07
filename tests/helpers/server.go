@@ -31,6 +31,17 @@ func (c *CommandServer) CommandCount() int {
 // GET .../result/req-N -> 200 + JSON with message and data from responseForCommand.
 // responseForCommand(cmd, idx) is 1-based; pass nil to use default "ok", nil.
 func StartCommandServer(mock *CommandServer, responseForCommand func(cmd string, idx int) (message string, data interface{})) *httptest.Server {
+	return StartCommandServerWithResultHook(mock, responseForCommand, nil)
+}
+
+// StartCommandServerWithResultHook is like StartCommandServer, but resultHook can force a custom HTTP
+// response for GET .../result/req-N (e.g. 500 with "not found" to simulate api.ErrResourceNotFound).
+// If hook returns statusCode <= 0, the default success JSON from responseForCommand is used.
+func StartCommandServerWithResultHook(
+	mock *CommandServer,
+	responseForCommand func(cmd string, idx int) (message string, data interface{}),
+	resultHook func(cmd string, idx int) (statusCode int, body []byte),
+) *httptest.Server {
 	if responseForCommand == nil {
 		responseForCommand = func(string, int) (string, interface{}) { return "ok", nil }
 	}
@@ -62,6 +73,13 @@ func StartCommandServer(mock *CommandServer, responseForCommand func(cmd string,
 				cmd = mock.commands[idx-1]
 			}
 			mock.mu.Unlock()
+			if resultHook != nil {
+				if code, customBody := resultHook(cmd, idx); code > 0 {
+					w.WriteHeader(code)
+					_, _ = w.Write(customBody)
+					return
+				}
+			}
 			msg, data := responseForCommand(cmd, idx)
 			dataBytes, _ := json.Marshal(data)
 			if dataBytes == nil {
@@ -73,4 +91,19 @@ func StartCommandServer(mock *CommandServer, responseForCommand func(cmd string,
 		}
 		w.WriteHeader(http.StatusNotFound)
 	}))
+}
+
+// StartCommandServer500OnSubstring returns 500 on GET /result when the polled command contains needle.
+// Other commands use responseForCommand as usual (pass nil for default ok, nil).
+func StartCommandServer500OnSubstring(
+	mock *CommandServer,
+	needle string,
+	responseForCommand func(cmd string, idx int) (message string, data interface{}),
+) *httptest.Server {
+	return StartCommandServerWithResultHook(mock, responseForCommand, func(cmd string, idx int) (int, []byte) {
+		if needle != "" && strings.Contains(cmd, needle) {
+			return http.StatusInternalServerError, []byte(`{"message":"command execution failed"}`)
+		}
+		return 0, nil
+	})
 }

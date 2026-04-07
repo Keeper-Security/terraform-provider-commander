@@ -16,7 +16,9 @@ import (
 	enterprisescimdatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/enterprise_scim"
 	enterpriseteamdatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/enterprise_team"
 	enterpriseuserdatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/enterprise_user"
+	epmpolicydatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/epm_policy"
 	managedcompanydatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/managed_company"
+	sharedfolderdatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/shared_folder"
 	enterprisenode "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/enterprise_node"
 	enterprisepush "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/enterprise_push"
 	enterpriserole "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/enterprise_role"
@@ -24,6 +26,7 @@ import (
 	enterprisescimpush "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/enterprise_scim_push"
 	enterpriseteam "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/enterprise_team"
 	enterpriseuser "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/enterprise_user"
+	epmpolicy "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/epm_policy"
 	managedcompany "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/managed_company"
 	pamconfiguration "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/pam_configuration"
 	sharedfolder "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/shared_folder"
@@ -173,6 +176,7 @@ func (p *CommanderProvider) Resources(ctx context.Context) []func() resource.Res
 		managedcompany.NewManagedCompanyResource,
 		enterprisenode.NewEnterpriseNodeResource,
 		enterprisepush.NewEnterprisePushResource,
+		epmpolicy.NewEpmPolicyResource,
 		enterprisescimpush.NewEnterpriseScimPushResource,
 		enterprisescim.NewEnterpriseScimResource,
 		enterpriseteam.NewEnterpriseTeamResource,
@@ -196,6 +200,8 @@ func (p *CommanderProvider) DataSources(ctx context.Context) []func() datasource
 		enterprisescimdatasource.NewEnterpriseScimDataSource,
 		enterpriseteamdatasource.NewEnterpriseTeamDataSource,
 		enterpriseuserdatasource.NewEnterpriseUserDataSource,
+		epmpolicydatasource.NewEpmPolicyDataSource,
+		sharedfolderdatasource.NewSharedFolderDataSource,
 	}
 }
 

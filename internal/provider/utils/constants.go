@@ -14,3 +14,13 @@ const (
 	ERR_MSG_PROVIDER_CONFIGURATION_ERROR = "Provider Configuration Error"
 	ERR_MSG_INVALID_IMPORT_ID            = "Invalid Import ID"
 )
+
+// Error summaries (first argument to AddError).
+const (
+	ErrSummaryManagedCompanyCannotBeUpdated = "Managed Company Cannot Be Updated"
+)
+
+// Error details.
+const (
+	ErrDetailManagedCompany = "Cannot update the managed_company field. Once an EPM policy is created, the managed company cannot be changed. Remove and recreate the resource to use a different managed company."
+)

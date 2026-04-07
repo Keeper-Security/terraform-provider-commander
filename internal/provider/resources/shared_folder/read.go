@@ -5,8 +5,9 @@ package sharedfolder
 
 import (
 	"context"
-	"fmt"
+	"errors"
 
+	commonsharedfolder "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/shared_folder"
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/utils"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 )
@@ -35,26 +36,18 @@ func (r *SharedFolderResource) Read(ctx context.Context, req resource.ReadReques
 		return
 	}
 
-	command := fmt.Sprintf("%s '%s' %s %s", CmdGet, id, FlagFormat, FormatJSON)
-	apiResp, err := r.ApiManager.ExecuteCommand(ctx, command, ErrOpGetSF)
+	// State always stores the canonical UID; Commander get accepts UID or path, same as the data source.
+	apiData, err := commonsharedfolder.FetchSharedFolderByNameOrId(ctx, r.ApiManager, id)
 	if err != nil {
+		if errors.Is(err, commonsharedfolder.ErrSharedFolderNotFound) {
+			resp.State.RemoveResource(ctx)
+			return
+		}
 		resp.Diagnostics.AddError(ErrSummaryReadFailed, err.Error())
 		return
 	}
 
-	if apiResp == nil || apiResp.Data == nil {
-		resp.State.RemoveResource(ctx)
-		return
-	}
-
-	var apiData utils.SharedFolderResponse
-	if err := utils.UnmarshalApiResponse(apiResp.Data, &apiData); err != nil {
-		resp.Diagnostics.AddError(ErrSummaryReadFailed, err.Error())
-		return
-	}
-
-	err = MapSharedFolderApiResponseToModel(&apiData, &state)
-	if err != nil {
+	if err := commonsharedfolder.MapResponseToModel(apiData, &state, state.Users, state.Records); err != nil {
 		resp.Diagnostics.AddError(ErrSummaryReadFailed, err.Error())
 		return
 	}

@@ -3,6 +3,15 @@
 
 package utils
 
+import (
+	"bytes"
+	"encoding/json"
+	"fmt"
+	"strconv"
+	"strings"
+	"time"
+)
+
 // NodeInfo represents a node from the enterprise-info API response.
 type EnterpriseNodeResponse struct {
 	NodeId         int    `json:"node_id"`
@@ -79,11 +88,135 @@ type EnterpriseScimResponse struct {
 	ProvisioningToken string `json:"provisioning_token"`
 }
 
+// EpmPolicyCreateResponse represents the response from the EPM policy add command.
+type EpmPolicyCreateResponse struct {
+	PolicyID string `json:"policy_id"`
+}
+
+// EpmPolicyResponse is the JSON from `epm policy view <id> --format json` (apiResp.Data).
+type EpmPolicyResponse struct {
+	PolicyName       string              `json:"PolicyName"`
+	PolicyType       string              `json:"PolicyType"`
+	PolicyId         string              `json:"PolicyId"`
+	Status           string              `json:"Status"`
+	Actions          *EpmPolicyActions   `json:"Actions"`
+	UserCheck        []string            `json:"UserCheck"`
+	MachineCheck     []string            `json:"MachineCheck"`
+	ApplicationCheck []string            `json:"ApplicationCheck"`
+	DayCheck         []int               `json:"DayCheck"`
+	DateCheck        []EpmPolicyDateSpan `json:"DateCheck"`
+	TimeCheck        []EpmPolicyTimeSpan `json:"TimeCheck"`
+}
+
+// EpmPolicyActions mirrors API "Actions" (controls live under OnSuccess).
+type EpmPolicyActions struct {
+	OnSuccess *EpmPolicyOnSuccess `json:"OnSuccess"`
+}
+
+// EpmPolicyOnSuccess holds success-path controls from the API.
+type EpmPolicyOnSuccess struct {
+	Controls []string `json:"Controls"`
+}
+
+// EpmPolicyTimeSpan is one API time range (24h clock strings).
+type EpmPolicyTimeSpan struct {
+	StartTime string `json:"StartTime"`
+	EndTime   string `json:"EndTime"`
+}
+
+// EpmPolicyDateSpan holds normalized YYYY-MM-DD start/end after JSON unmarshal.
+type EpmPolicyDateSpan struct {
+	StartDate string
+	EndDate   string
+}
+
+const epmPolicyDateLayout = "2006-01-02"
+
+// UnmarshalJSON accepts StartDate/EndDate as ISO strings or numeric epoch milliseconds.
+func (d *EpmPolicyDateSpan) UnmarshalJSON(b []byte) error {
+	var aux struct {
+		StartDate json.RawMessage `json:"StartDate"`
+		EndDate   json.RawMessage `json:"EndDate"`
+	}
+	if err := json.Unmarshal(b, &aux); err != nil {
+		return err
+	}
+	var err error
+	d.StartDate, err = normalizeEpmPolicyDateField(aux.StartDate)
+	if err != nil {
+		return fmt.Errorf("StartDate: %w", err)
+	}
+	d.EndDate, err = normalizeEpmPolicyDateField(aux.EndDate)
+	if err != nil {
+		return fmt.Errorf("EndDate: %w", err)
+	}
+	return nil
+}
+
+func normalizeEpmPolicyDateField(raw json.RawMessage) (string, error) {
+	raw = bytes.TrimSpace(raw)
+	if len(raw) == 0 || string(raw) == "null" {
+		return "", nil
+	}
+	// ISO date string
+	if raw[0] == '"' {
+		var s string
+		if err := json.Unmarshal(raw, &s); err != nil {
+			return "", err
+		}
+		s = strings.TrimSpace(s)
+		if s == "" {
+			return "", nil
+		}
+		// Epoch milliseconds sent as a JSON string
+		if isDecimalDigits(s) {
+			if ms, err := strconv.ParseInt(s, 10, 64); err == nil {
+				return time.UnixMilli(ms).UTC().Format(epmPolicyDateLayout), nil
+			}
+		}
+		t, err := time.Parse(epmPolicyDateLayout, s)
+		if err != nil {
+			return "", fmt.Errorf("invalid date string %q: %w", s, err)
+		}
+		return t.Format(epmPolicyDateLayout), nil
+	}
+	// JSON number: epoch milliseconds (e.g. 1777228200000). Prefer json.Number for Int64.
+	var num json.Number
+	if err := json.Unmarshal(raw, &num); err == nil && num != "" {
+		if ms, err := num.Int64(); err == nil {
+			return time.UnixMilli(ms).UTC().Format(epmPolicyDateLayout), nil
+		}
+		f, err := num.Float64()
+		if err != nil {
+			return "", fmt.Errorf("invalid numeric date field: %w", err)
+		}
+		return time.UnixMilli(int64(f)).UTC().Format(epmPolicyDateLayout), nil
+	}
+	var n float64
+	if err := json.Unmarshal(raw, &n); err != nil {
+		return "", err
+	}
+	return time.UnixMilli(int64(n)).UTC().Format(epmPolicyDateLayout), nil
+}
+
+func isDecimalDigits(s string) bool {
+	if s == "" {
+		return false
+	}
+	for _, r := range s {
+		if r < '0' || r > '9' {
+			return false
+		}
+	}
+	return true
+}
+
 // SharedFolderRecordEntry is one element of the records array from get shared folder --format json.
 type SharedFolderRecordEntry struct {
-	RecordUID string `json:"record_uid"`
-	CanShare  bool   `json:"can_share"`
-	CanEdit   bool   `json:"can_edit"`
+	RecordUID  string `json:"record_uid"`
+	RecordName string `json:"record_name"`
+	CanShare   bool   `json:"can_share"`
+	CanEdit    bool   `json:"can_edit"`
 }
 
 // SharedFolderUserEntry is one element of the users array from get shared folder --format json.
