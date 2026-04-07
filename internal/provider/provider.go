@@ -29,6 +29,7 @@ import (
 	enterpriseuser "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/enterprise_user"
 	epmpolicy "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/epm_policy"
 	managedcompany "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/managed_company"
+	pamconfiguration "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/pam_configuration"
 	secretsmanager "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/secrets_manager"
 	sharedfolder "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/shared_folder"
 	"github.com/hashicorp/terraform-plugin-framework/action"
@@ -183,6 +184,7 @@ func (p *CommanderProvider) Resources(ctx context.Context) []func() resource.Res
 		enterpriseteam.NewEnterpriseTeamResource,
 		enterpriserole.NewEnterpriseRoleResource,
 		enterpriseuser.NewEnterpriseUserResource,
+		pamconfiguration.NewPamConfigurationResource,
 		sharedfolder.NewSharedFolderResource,
 		secretsmanager.NewSecretsManagerAppResource,
 	}

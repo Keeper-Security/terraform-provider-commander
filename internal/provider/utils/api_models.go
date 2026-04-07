@@ -239,3 +239,18 @@ type SharedFolderResponse struct {
 	Records         []SharedFolderRecordEntry `json:"records"`
 	Users           []SharedFolderUserEntry   `json:"users"`
 }
+
+// PamConfigListSharedFolder is the shared_folder object from pam config list --format json.
+type PamConfigListSharedFolder struct {
+	Name string `json:"name"`
+	UID  string `json:"uid"`
+}
+
+// PamConfigListResponse is the data payload from pam config list --config ID --format json.
+type PamConfigListResponse struct {
+	UID          string                    `json:"uid"`
+	Name         string                    `json:"name"`
+	ConfigType   string                    `json:"config_type"`
+	SharedFolder PamConfigListSharedFolder `json:"shared_folder"`
+	GatewayUID   string                    `json:"gateway_uid"`
+}
