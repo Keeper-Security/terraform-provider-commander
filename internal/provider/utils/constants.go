@@ -13,6 +13,8 @@ const (
 const (
 	ERR_MSG_PROVIDER_CONFIGURATION_ERROR = "Provider Configuration Error"
 	ERR_MSG_INVALID_IMPORT_ID            = "Invalid Import ID"
+	// ErrOpListVaultRecords is passed to ExecuteCommand when fetching the list for validation.
+	ErrOpListVaultRecords = "Unable to list vault records for validation"
 )
 
 // Error summaries (first argument to AddError).

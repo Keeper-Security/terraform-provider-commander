@@ -34,6 +34,11 @@ func (r *SharedFolderResource) Create(ctx context.Context, req resource.CreateRe
 		return
 	}
 
+	if err := validateSharedFolderRecordRefs(ctx, r.ApiManager, data.Records); err != nil {
+		resp.Diagnostics.AddError(ErrSummaryInvalidConfig, err.Error())
+		return
+	}
+
 	// Phase 1: create shared folder with name, folder_location, user_permissions, record_permissions
 	command, err := buildCreateSharedFolderCommand(&data)
 	if err != nil {

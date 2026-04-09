@@ -38,6 +38,11 @@ func (r *SharedFolderResource) Update(ctx context.Context, req resource.UpdateRe
 		return
 	}
 
+	if err := validateSharedFolderRecordRefs(ctx, r.ApiManager, plan.Records); err != nil {
+		resp.Diagnostics.AddError(ErrSummaryInvalidConfig, err.Error())
+		return
+	}
+
 	plan.Id = state.Id
 	folderUID := plan.Id.ValueString()
 

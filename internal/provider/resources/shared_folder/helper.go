@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/api"
+	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/utils"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
@@ -78,6 +79,25 @@ type DefaultPermissionFlags struct {
 	ManageRecords bool
 	CanShare      bool
 	CanEdit       bool
+}
+
+// validateSharedFolderRecordRefs ensures each records map key matches a vault record_uid or title (see `list --format json`).
+func validateSharedFolderRecordRefs(ctx context.Context, apiManager *api.ApiManager, records types.Map) error {
+	keys := recordKeysSlice(records)
+	if len(keys) == 0 {
+		return nil
+	}
+	return utils.ValidateVaultRecordIdentifiers(ctx, apiManager, keys)
+}
+
+// recordKeysSlice returns map keys of m in arbitrary order; empty if m is null/unknown.
+func recordKeysSlice(m types.Map) []string {
+	km := mapKeys(m)
+	out := make([]string, 0, len(km))
+	for k := range km {
+		out = append(out, k)
+	}
+	return out
 }
 
 // GetDefaultPermissions returns the default permission flags from the resource model (nil/null = false).

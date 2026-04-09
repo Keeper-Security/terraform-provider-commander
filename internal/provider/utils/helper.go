@@ -830,3 +830,80 @@ func RestrictAttributeUpdate(diags *diag.Diagnostics, checks []ImmutableAttribut
 		}
 	}
 }
+
+// VaultRecordListEntry is one element returned by `list --format json`.
+type VaultRecordListEntry struct {
+	RecordUID   string `json:"record_uid"`
+	Type        string `json:"type"`
+	Title       string `json:"title"`
+	Description string `json:"description,omitempty"`
+	Shared      bool   `json:"shared"`
+}
+
+// ValidateVaultRecordIdentifiers runs `list --format json` and ensures each non-empty identifier
+// matches some record's record_uid or title (exact string match). Duplicate identifiers are validated once.
+func ValidateVaultRecordIdentifiers(ctx context.Context, apiManager *api.ApiManager, identifiers []string) error {
+	entries, err := FetchVaultRecordList(ctx, apiManager)
+	if err != nil {
+		return err
+	}
+	return ValidateRecordIdentifiersAgainstList(identifiers, entries)
+}
+
+// FetchVaultRecordList returns vault records from Commander `list --format json`.
+func FetchVaultRecordList(ctx context.Context, apiManager *api.ApiManager) ([]VaultRecordListEntry, error) {
+	// Commander CLI: list vault records as JSON (array of objects with record_uid, title, etc.).
+	const CmdListVaultRecordsJSON = "list --format json"
+
+	apiResp, err := apiManager.ExecuteCommand(ctx, CmdListVaultRecordsJSON, ErrOpListVaultRecords)
+	if err != nil {
+		return nil, err
+	}
+	var entries []VaultRecordListEntry
+	if apiResp.Data == nil {
+		return entries, nil
+	}
+	if err := UnmarshalApiResponse(apiResp.Data, &entries); err != nil {
+		return nil, fmt.Errorf("%s: %w", ErrOpListVaultRecords, err)
+	}
+	return entries, nil
+}
+
+// ValidateRecordIdentifiersAgainstList returns an error if any non-empty identifier does not match
+// any entry's RecordUID or Title (exact match).
+func ValidateRecordIdentifiersAgainstList(identifiers []string, entries []VaultRecordListEntry) error {
+	seen := make(map[string]struct{})
+	var invalid []string
+	for _, raw := range identifiers {
+		id := strings.TrimSpace(raw)
+		if id == "" {
+			continue
+		}
+		if _, ok := seen[id]; ok {
+			continue
+		}
+		seen[id] = struct{}{}
+		if !recordIdentifierMatchesList(id, entries) {
+			invalid = append(invalid, id)
+		}
+	}
+	if len(invalid) == 0 {
+		return nil
+	}
+	return fmt.Errorf(
+		"invalid record reference(s): %s — each must match a vault record UID or title",
+		strings.Join(invalid, ", "),
+	)
+}
+
+func recordIdentifierMatchesList(ref string, entries []VaultRecordListEntry) bool {
+	for _, e := range entries {
+		if ref == e.RecordUID {
+			return true
+		}
+		if ref == e.Title {
+			return true
+		}
+	}
+	return false
+}
