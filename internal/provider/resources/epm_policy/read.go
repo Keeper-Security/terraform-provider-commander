@@ -126,5 +126,9 @@ func mapEpmPolicyResponseToModel(view *utils.EpmPolicyResponse, state *EpmPolicy
 		return fmt.Errorf("time_filter: %w", setErr)
 	}
 
+	state.Message, state.RequirePolicyAcknowledgement = commonepm.NotificationAttributesFromMapped(
+		mapped.Status, mapped.Message, mapped.RequirePolicyAcknowledgement,
+	)
+
 	return nil
 }

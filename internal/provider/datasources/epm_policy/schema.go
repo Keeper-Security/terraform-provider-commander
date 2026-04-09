@@ -52,6 +52,16 @@ func (d *EpmPolicyDataSource) Schema(ctx context.Context, req datasource.SchemaR
 				Description:         "Policy status. One of: " + commonepm.StatusDescription() + ".",
 				MarkdownDescription: "Policy **status**. One of: " + commonepm.StatusMarkdown() + ".",
 			},
+			"message": schema.StringAttribute{
+				Computed:            true,
+				Description:         "Notification message when status is " + commonepm.StatusMonitorAndNotify + "; otherwise empty.",
+				MarkdownDescription: "Notification **message** when status is **" + commonepm.StatusMonitorAndNotify + "**; otherwise unset.",
+			},
+			"require_policy_acknowledgement": schema.BoolAttribute{
+				Computed:            true,
+				Description:         "Whether acknowledgement is required when status is " + commonepm.StatusMonitorAndNotify + "; otherwise unset.",
+				MarkdownDescription: "Whether **acknowledgement** is required when status is **" + commonepm.StatusMonitorAndNotify + "**; otherwise unset.",
+			},
 			"control": schema.SetAttribute{
 				Computed:            true,
 				ElementType:         types.StringType,

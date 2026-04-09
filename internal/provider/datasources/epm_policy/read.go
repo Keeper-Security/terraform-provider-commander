@@ -99,6 +99,10 @@ func (d *EpmPolicyDataSource) Read(ctx context.Context, req datasource.ReadReque
 			return fmt.Errorf("time_filter: %w", setErr)
 		}
 
+		data.Message, data.RequirePolicyAcknowledgement = commonepm.NotificationAttributesFromMapped(
+			mapped.Status, mapped.Message, mapped.RequirePolicyAcknowledgement,
+		)
+
 		return nil
 	}, commonepm.ErrSummaryReadFailed, &resp.Diagnostics)
 	if err != nil {

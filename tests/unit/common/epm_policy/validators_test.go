@@ -9,6 +9,7 @@ import (
 
 	commonepm "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/epm_policy"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -47,6 +48,42 @@ func TestPolicyTypeValidator(t *testing.T) {
 	}
 	if !run(types.StringValue("nope")).Diagnostics.HasError() {
 		t.Fatal("invalid")
+	}
+}
+
+func TestValidateMonitorAndNotifyOnlyFields(t *testing.T) {
+	t.Parallel()
+	pMsg := path.Root("message")
+	pAck := path.Root("require_policy_acknowledgement")
+	var diags diag.Diagnostics
+	commonepm.ValidateMonitorAndNotifyOnlyFields(
+		commonepm.StatusMonitorAndNotify,
+		types.StringValue("x"),
+		types.BoolValue(true),
+		pMsg, pAck, &diags,
+	)
+	if diags.HasError() {
+		t.Fatal("monitor_and_notify should allow message and ack", diags)
+	}
+	diags = nil
+	commonepm.ValidateMonitorAndNotifyOnlyFields(
+		commonepm.StatusEnforce,
+		types.StringValue("x"),
+		types.BoolNull(),
+		pMsg, pAck, &diags,
+	)
+	if !diags.HasError() {
+		t.Fatal("enforce + message should error")
+	}
+	diags = nil
+	commonepm.ValidateMonitorAndNotifyOnlyFields(
+		commonepm.StatusEnforce,
+		types.StringNull(),
+		types.BoolValue(false),
+		pMsg, pAck, &diags,
+	)
+	if !diags.HasError() {
+		t.Fatal("enforce + require_ack false should error")
 	}
 }
 
@@ -94,6 +131,12 @@ func TestControlSetValidator(t *testing.T) {
 	}
 	if run(mustStringSet(t, types.StringValue("audit"))).Diagnostics.HasError() {
 		t.Fatal("valid")
+	}
+	if run(mustStringSet(t, types.StringValue("allow"))).Diagnostics.HasError() {
+		t.Fatal("allow is a valid control token")
+	}
+	if run(mustStringSet(t, types.StringValue("deny"))).Diagnostics.HasError() {
+		t.Fatal("deny is a valid control token")
 	}
 	if !run(mustStringSet(t, types.StringValue("badcontrol"))).Diagnostics.HasError() {
 		t.Fatal("invalid value")

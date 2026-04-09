@@ -24,3 +24,9 @@ const (
 const (
 	ErrDetailManagedCompany = "Cannot update the managed_company field. Once an EPM policy is created, the managed company cannot be changed. Remove and recreate the resource to use a different managed company."
 )
+
+// Flag value literals (on/off).
+const (
+	ValueOn  = "on"
+	ValueOff = "off"
+)

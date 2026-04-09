@@ -227,17 +227,19 @@ type PolicyViewPriorSets struct {
 
 // PolicyViewMappedAttributes is the API view mapped to Terraform string values (resource and data source).
 type PolicyViewMappedAttributes struct {
-	ID                 string
-	PolicyName         string
-	PolicyType         string
-	Status             string
-	Control            []string
-	UserGroups         []string
-	MachineCollections []string
-	Applications       []string
-	DayFilter          []string
-	DateFilter         []string
-	TimeFilter         []string
+	ID                           string
+	PolicyName                   string
+	PolicyType                   string
+	Status                       string
+	Control                      []string
+	UserGroups                   []string
+	MachineCollections           []string
+	Applications                 []string
+	DayFilter                    []string
+	DateFilter                   []string
+	TimeFilter                   []string
+	Message                      string
+	RequirePolicyAcknowledgement bool
 }
 
 // RestoreStringSliceOrder builds a slice from apiVals, preserving order from prior for values that still exist
@@ -308,18 +310,33 @@ func MapPolicyViewToAttributes(view *utils.EpmPolicyResponse, prior *PolicyViewP
 	}
 
 	return &PolicyViewMappedAttributes{
-		ID:                 id,
-		PolicyName:         strings.TrimSpace(view.PolicyName),
-		PolicyType:         policyType,
-		Status:             status,
-		Control:            RestoreStringSliceOrder(controlStrs, p.Control),
-		UserGroups:         RestoreStringSliceOrder(view.UserCheck, p.UserGroups),
-		MachineCollections: RestoreStringSliceOrder(view.MachineCheck, p.MachineCollections),
-		Applications:       RestoreStringSliceOrder(view.ApplicationCheck, p.Applications),
-		DayFilter:          RestoreStringSliceOrder(dayNames, p.DayFilter),
-		DateFilter:         RestoreDateFilterSliceOrder(dateRanges, p.DateFilter),
-		TimeFilter:         RestoreStringSliceOrder(timeRanges, p.TimeFilter),
+		ID:                           id,
+		PolicyName:                   strings.TrimSpace(view.PolicyName),
+		PolicyType:                   policyType,
+		Status:                       status,
+		Control:                      RestoreStringSliceOrder(controlStrs, p.Control),
+		UserGroups:                   RestoreStringSliceOrder(view.UserCheck, p.UserGroups),
+		MachineCollections:           RestoreStringSliceOrder(view.MachineCheck, p.MachineCollections),
+		Applications:                 RestoreStringSliceOrder(view.ApplicationCheck, p.Applications),
+		DayFilter:                    RestoreStringSliceOrder(dayNames, p.DayFilter),
+		DateFilter:                   RestoreDateFilterSliceOrder(dateRanges, p.DateFilter),
+		TimeFilter:                   RestoreStringSliceOrder(timeRanges, p.TimeFilter),
+		Message:                      strings.TrimSpace(view.Message),
+		RequirePolicyAcknowledgement: view.RequirePolicyAcknowledgement,
 	}, nil
+}
+
+// NotificationAttributesFromMapped sets message and require_policy_acknowledgement for Terraform state from API values.
+// When status is not monitor_and_notify, both attributes are null.
+func NotificationAttributesFromMapped(mappedStatus, apiMessage string, apiRequireAck bool) (types.String, types.Bool) {
+	if strings.TrimSpace(strings.ToLower(mappedStatus)) != StatusMonitorAndNotify {
+		return types.StringNull(), types.BoolNull()
+	}
+	msg := strings.TrimSpace(apiMessage)
+	if msg == "" {
+		return types.StringNull(), types.BoolValue(apiRequireAck)
+	}
+	return types.StringValue(msg), types.BoolValue(apiRequireAck)
 }
 
 // BuildPolicyViewCommand builds `epm policy view <id> --format json` for the given policy ID.

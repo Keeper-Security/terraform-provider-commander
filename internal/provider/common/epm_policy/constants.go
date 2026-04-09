@@ -44,6 +44,8 @@ var AllowedStatusValuesForLeastPrivilege = []string{
 
 // Control values for EPM policy.
 const (
+	ControlAllow    = "allow"
+	ControlDeny     = "deny"
 	ControlAudit    = "audit"
 	ControlNotify   = "notify"
 	ControlMfa      = "mfa"
@@ -53,7 +55,7 @@ const (
 
 // ControlValues is the set of allowed control values.
 var ControlValues = []string{
-	ControlAudit, ControlNotify, ControlMfa, ControlJustify, ControlApproval,
+	ControlAllow, ControlDeny, ControlAudit, ControlNotify, ControlMfa, ControlJustify, ControlApproval,
 }
 
 // DayFilter values (case-insensitive in validation; stored capitalized for display).
@@ -119,18 +121,20 @@ const (
 
 // Command flags for epm policy add.
 const (
-	FlagUserFilter    = "--user-filter"    // Policy user filter. User collection UID or *
-	FlagMachineFilter = "--machine-filter" // Policy machine filter. Machine collection UID
-	FlagAppFilter     = "--app-filter"     // Policy application filter. Application collection UID
-	FlagDateFilter    = "--date-filter"    // Policy date filter. Date range in ISO format. YYYY-MM-DD:YYYY-MM-DD
-	FlagTimeFilter    = "--time-filter"    // Policy time filter. Hours 0–23 as start-end (e.g. 9-12)
-	FlagDayFilter     = "--day-filter"     // Policy day filter. Day of Week
-	FlagRiskLevel     = "--risk-level"     // Policy risk level
-	FlagPolicyType    = "--policy-type"    // Policy type
-	FlagPolicyName    = "--policy-name"    // Policy name
-	FlagControl       = "--control"        // Control action
-	FlagStatus        = "--status"         // Policy status
-	FlagEnable        = "--enable"         // Policy enable
+	FlagUserFilter             = "--user-filter"             // Policy user filter. User collection UID or *
+	FlagMachineFilter          = "--machine-filter"          // Policy machine filter. Machine collection UID
+	FlagAppFilter              = "--app-filter"              // Policy application filter. Application collection UID
+	FlagDateFilter             = "--date-filter"             // Policy date filter. Date range in ISO format. YYYY-MM-DD:YYYY-MM-DD
+	FlagTimeFilter             = "--time-filter"             // Policy time filter. Hours 0–23 as start-end (e.g. 9-12)
+	FlagDayFilter              = "--day-filter"              // Policy day filter. Day of Week
+	FlagRiskLevel              = "--risk-level"              // Policy risk level
+	FlagPolicyType             = "--policy-type"             // Policy type
+	FlagPolicyName             = "--policy-name"             // Policy name
+	FlagControl                = "--control"                 // Control action
+	FlagStatus                 = "--status"                  // Policy status
+	FlagEnable                 = "--enable"                  // Policy enable
+	FlagMessage                = "--message"                 // Policy message (only for monitor_and_notify status)
+	FlagRequireAcknowledgement = "--require-acknowledgement" // Policy require acknowledgement (only for monitor_and_notify status)
 )
 
 // Flag for view command output format.

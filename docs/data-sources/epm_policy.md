@@ -95,7 +95,7 @@ output "epm_policy_time_filter" {
 ### Read-Only
 
 - `applications` (Set of String) Application collection IDs or **`"*"`** for all applications.
-- `control` (Set of String) **Control** actions. Each value is one of: `audit`, `notify`, `mfa`, `justify`, `approval`.
+- `control` (Set of String) **Control** actions. Each value is one of: `allow`, `deny`, `audit`, `notify`, `mfa`, `justify`, `approval`.
 - `date_filter` (Set of String) **Date filter** ranges in **ISO format** `YYYY-MM-DD:YYYY-MM-DD`.
 - `day_filter` (Set of String) **Day filter**. Each value is one of: Monday, Tuesday, Wednesday, Thursday, Friday, Saturday, Sunday.
 - `id` (String) EPM policy **ID** (same as `policy`).

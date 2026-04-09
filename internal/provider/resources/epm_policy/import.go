@@ -32,18 +32,20 @@ func (r *EpmPolicyResource) ImportState(ctx context.Context, req resource.Import
 	}
 
 	state := EpmPolicyResourceModel{
-		Id:                 types.StringValue(resourceID),
-		ManagedCompany:     types.StringNull(),
-		PolicyName:         types.StringNull(),
-		PolicyType:         types.StringNull(),
-		Status:             types.StringNull(),
-		Control:            types.SetNull(types.StringType),
-		UserGroups:         types.SetNull(types.StringType),
-		MachineCollections: types.SetNull(types.StringType),
-		Applications:       types.SetNull(types.StringType),
-		DayFilter:          types.SetNull(types.StringType),
-		TimeFilter:         types.SetNull(types.StringType),
-		DateFilter:         types.SetNull(types.StringType),
+		Id:                           types.StringValue(resourceID),
+		ManagedCompany:               types.StringNull(),
+		PolicyName:                   types.StringNull(),
+		PolicyType:                   types.StringNull(),
+		Status:                       types.StringNull(),
+		Message:                      types.StringNull(),
+		RequirePolicyAcknowledgement: types.BoolNull(),
+		Control:                      types.SetNull(types.StringType),
+		UserGroups:                   types.SetNull(types.StringType),
+		MachineCollections:           types.SetNull(types.StringType),
+		Applications:                 types.SetNull(types.StringType),
+		DayFilter:                    types.SetNull(types.StringType),
+		TimeFilter:                   types.SetNull(types.StringType),
+		DateFilter:                   types.SetNull(types.StringType),
 	}
 	if managedCompany != "" {
 		state.ManagedCompany = types.StringValue(managedCompany)

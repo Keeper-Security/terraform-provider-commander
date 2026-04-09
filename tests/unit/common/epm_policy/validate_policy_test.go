@@ -106,6 +106,19 @@ func TestValidatePolicyTypeAllowedFields_Command(t *testing.T) {
 	}
 
 	diags = nil
+	commonepm.ValidatePolicyTypeAllowedFields(
+		commonepm.PolicyTypeCommand, commonepm.StatusEnforce,
+		mustSetVals(t, "allow"), types.SetNull(types.StringType),
+		mustSetVals(t, "u"), mustSetVals(t, "m"), types.SetNull(types.StringType),
+		types.SetNull(types.StringType), types.SetNull(types.StringType),
+		p.status, p.control, p.day, p.user, p.machine, p.apps, p.time, p.date,
+		&diags,
+	)
+	if diags.HasError() {
+		t.Fatal("command enforce with allow control: want no error", diags)
+	}
+
+	diags = nil
 	appsPresent, _ := types.SetValue(types.StringType, []attr.Value{})
 	commonepm.ValidatePolicyTypeAllowedFields(
 		commonepm.PolicyTypeCommand, commonepm.StatusEnforce,

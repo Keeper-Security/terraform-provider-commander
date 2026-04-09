@@ -61,6 +61,16 @@ func (r *EpmPolicyResource) Schema(ctx context.Context, req resource.SchemaReque
 					commonepm.StatusValidator{},
 				},
 			},
+			"message": schema.StringAttribute{
+				Optional:            true,
+				Description:         "Notification message shown to users. Only allowed when status is " + commonepm.StatusMonitorAndNotify + ".",
+				MarkdownDescription: "Notification **message** shown to users. Only allowed when status is **" + commonepm.StatusMonitorAndNotify + "**.",
+			},
+			"require_policy_acknowledgement": schema.BoolAttribute{
+				Optional:            true,
+				Description:         "Whether users must acknowledge the notification. Only allowed when status is " + commonepm.StatusMonitorAndNotify + ".",
+				MarkdownDescription: "Whether users must **acknowledge** the notification. Only allowed when status is **" + commonepm.StatusMonitorAndNotify + "**.",
+			},
 			"control": schema.SetAttribute{
 				Optional:            true,
 				ElementType:         types.StringType,

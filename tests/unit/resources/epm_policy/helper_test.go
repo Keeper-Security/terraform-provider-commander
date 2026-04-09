@@ -19,18 +19,20 @@ import (
 )
 
 var epmPolicyAttrTypes = map[string]tftypes.Type{
-	"id":                  tftypes.String,
-	"managed_company":     tftypes.String,
-	"policy_name":         tftypes.String,
-	"policy_type":         tftypes.String,
-	"status":              tftypes.String,
-	"control":             tftypes.Set{ElementType: tftypes.String},
-	"user_groups":         tftypes.Set{ElementType: tftypes.String},
-	"machine_collections": tftypes.Set{ElementType: tftypes.String},
-	"applications":        tftypes.Set{ElementType: tftypes.String},
-	"day_filter":          tftypes.Set{ElementType: tftypes.String},
-	"time_filter":         tftypes.Set{ElementType: tftypes.String},
-	"date_filter":         tftypes.Set{ElementType: tftypes.String},
+	"id":                             tftypes.String,
+	"managed_company":                tftypes.String,
+	"policy_name":                    tftypes.String,
+	"policy_type":                    tftypes.String,
+	"status":                         tftypes.String,
+	"message":                        tftypes.String,
+	"require_policy_acknowledgement": tftypes.Bool,
+	"control":                        tftypes.Set{ElementType: tftypes.String},
+	"user_groups":                    tftypes.Set{ElementType: tftypes.String},
+	"machine_collections":            tftypes.Set{ElementType: tftypes.String},
+	"applications":                   tftypes.Set{ElementType: tftypes.String},
+	"day_filter":                     tftypes.Set{ElementType: tftypes.String},
+	"time_filter":                    tftypes.Set{ElementType: tftypes.String},
+	"date_filter":                    tftypes.Set{ElementType: tftypes.String},
 }
 
 func epmPolicyObjectType() tftypes.Object {
@@ -57,18 +59,20 @@ func newPlanValues(id, managedCompany, policyName, policyType, status interface{
 	control, userGroups, machineCollections, applications, dayFilter, timeFilter, dateFilter tftypes.Value,
 ) map[string]tftypes.Value {
 	return map[string]tftypes.Value{
-		"id":                  tftypes.NewValue(tftypes.String, id),
-		"managed_company":     tftypes.NewValue(tftypes.String, managedCompany),
-		"policy_name":         tftypes.NewValue(tftypes.String, policyName),
-		"policy_type":         tftypes.NewValue(tftypes.String, policyType),
-		"status":              tftypes.NewValue(tftypes.String, status),
-		"control":             control,
-		"user_groups":         userGroups,
-		"machine_collections": machineCollections,
-		"applications":        applications,
-		"day_filter":          dayFilter,
-		"time_filter":         timeFilter,
-		"date_filter":         dateFilter,
+		"id":                             tftypes.NewValue(tftypes.String, id),
+		"managed_company":                tftypes.NewValue(tftypes.String, managedCompany),
+		"policy_name":                    tftypes.NewValue(tftypes.String, policyName),
+		"policy_type":                    tftypes.NewValue(tftypes.String, policyType),
+		"status":                         tftypes.NewValue(tftypes.String, status),
+		"message":                        tftypes.NewValue(tftypes.String, nil),
+		"require_policy_acknowledgement": tftypes.NewValue(tftypes.Bool, nil),
+		"control":                        control,
+		"user_groups":                    userGroups,
+		"machine_collections":            machineCollections,
+		"applications":                   applications,
+		"day_filter":                     dayFilter,
+		"time_filter":                    timeFilter,
+		"date_filter":                    dateFilter,
 	}
 }
 

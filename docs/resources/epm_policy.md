@@ -210,7 +210,7 @@ output "epm_policy_id" {
 ### Optional
 
 - `applications` (Set of String) **Applications**: `"*"` to select all applications, or a set of application collection IDs. Cannot use **"*"** with other IDs.<br> Required (with user_groups and/or machine_collections) for elevation/file_access monitor/monitor_and_notify. Not allowed for **command** policy type.
-- `control` (Set of String) **Control** actions. Set of values, each one of: `audit`, `notify`, `mfa`, `justify`, `approval`. At least one required when status is **enforce** for elevation, file_access, or command. Not allowed for **least_privilege**.
+- `control` (Set of String) **Control** actions. Set of values, each one of: `allow`, `deny`, `audit`, `notify`, `mfa`, `justify`, `approval`. At least one required when status is **enforce** for elevation, file_access, or command. Not allowed for **least_privilege**.
 - `date_filter` (Set of String) **Date filter**. Set of date ranges in **ISO format** `YYYY-MM-DD:YYYY-MM-DD`. Ranges must **not overlap**. Not allowed for **least_privilege** policy type.
 - `day_filter` (Set of String) **Day filter**. Set of days, each one of: Monday, Tuesday, Wednesday, Thursday, Friday, Saturday, Sunday (case-insensitive). Not allowed for **least_privilege** policy type.
 - `machine_collections` (Set of String) **Machine collections**: `"*"` to select all machines, or a set of machine collection IDs. Cannot use **"*"** with other IDs.<br> Required (with user_groups and/or applications) for elevation/file_access monitor/monitor_and_notify; required with user_groups for command monitor/monitor_and_notify. Optional for **least_privilege**.
