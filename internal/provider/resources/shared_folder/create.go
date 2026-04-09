@@ -1,4 +1,4 @@
-// Copyright (c) Keeper Security, Inc.
+// Copyright Keeper Security, Inc. 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package sharedfolder
@@ -31,6 +31,11 @@ func (r *SharedFolderResource) Create(ctx context.Context, req resource.CreateRe
 
 	if err := utils.SyncDown(ctx, r.ApiManager); err != nil {
 		resp.Diagnostics.AddError(ErrSummarySyncDownFailed, err.Error())
+		return
+	}
+
+	if err := validateSharedFolderRecordRefs(ctx, r.ApiManager, data.Records); err != nil {
+		resp.Diagnostics.AddError(ErrSummaryInvalidConfig, err.Error())
 		return
 	}
 

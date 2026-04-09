@@ -1,4 +1,4 @@
-// Copyright (c) Keeper Security, Inc.
+// Copyright Keeper Security, Inc. 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package epmpolicy
@@ -7,17 +7,19 @@ import "github.com/hashicorp/terraform-plugin-framework/types"
 
 // EpmPolicyDataSourceModel is the Terraform model for the commander_epm_policy data source.
 type EpmPolicyDataSourceModel struct {
-	Policy             types.String `tfsdk:"policy"`
-	ManagedCompany     types.String `tfsdk:"managed_company"`
-	Id                 types.String `tfsdk:"id"`
-	PolicyName         types.String `tfsdk:"policy_name"`
-	PolicyType         types.String `tfsdk:"policy_type"`
-	Status             types.String `tfsdk:"status"`
-	Control            types.Set    `tfsdk:"control"`
-	UserGroups         types.Set    `tfsdk:"user_groups"`
-	MachineCollections types.Set    `tfsdk:"machine_collections"`
-	Applications       types.Set    `tfsdk:"applications"`
-	DayFilter          types.Set    `tfsdk:"day_filter"`
-	TimeFilter         types.Set    `tfsdk:"time_filter"`
-	DateFilter         types.Set    `tfsdk:"date_filter"`
+	Policy                       types.String `tfsdk:"policy"`
+	ManagedCompany               types.String `tfsdk:"managed_company"`
+	Id                           types.String `tfsdk:"id"`
+	PolicyName                   types.String `tfsdk:"policy_name"`
+	PolicyType                   types.String `tfsdk:"policy_type"`
+	Status                       types.String `tfsdk:"status"`
+	Message                      types.String `tfsdk:"message"`
+	RequirePolicyAcknowledgement types.Bool   `tfsdk:"require_policy_acknowledgement"`
+	Control                      types.Set    `tfsdk:"control"`
+	UserGroups                   types.Set    `tfsdk:"user_groups"`
+	MachineCollections           types.Set    `tfsdk:"machine_collections"`
+	Applications                 types.Set    `tfsdk:"applications"`
+	DayFilter                    types.Set    `tfsdk:"day_filter"`
+	TimeFilter                   types.Set    `tfsdk:"time_filter"`
+	DateFilter                   types.Set    `tfsdk:"date_filter"`
 }

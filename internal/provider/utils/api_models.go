@@ -1,4 +1,4 @@
-// Copyright (c) Keeper Security, Inc.
+// Copyright Keeper Security, Inc. 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package utils
@@ -95,17 +95,19 @@ type EpmPolicyCreateResponse struct {
 
 // EpmPolicyResponse is the JSON from `epm policy view <id> --format json` (apiResp.Data).
 type EpmPolicyResponse struct {
-	PolicyName       string              `json:"PolicyName"`
-	PolicyType       string              `json:"PolicyType"`
-	PolicyId         string              `json:"PolicyId"`
-	Status           string              `json:"Status"`
-	Actions          *EpmPolicyActions   `json:"Actions"`
-	UserCheck        []string            `json:"UserCheck"`
-	MachineCheck     []string            `json:"MachineCheck"`
-	ApplicationCheck []string            `json:"ApplicationCheck"`
-	DayCheck         []int               `json:"DayCheck"`
-	DateCheck        []EpmPolicyDateSpan `json:"DateCheck"`
-	TimeCheck        []EpmPolicyTimeSpan `json:"TimeCheck"`
+	PolicyName                   string              `json:"PolicyName"`
+	PolicyType                   string              `json:"PolicyType"`
+	PolicyId                     string              `json:"PolicyId"`
+	Status                       string              `json:"Status"`
+	Actions                      *EpmPolicyActions   `json:"Actions"`
+	UserCheck                    []string            `json:"UserCheck"`
+	MachineCheck                 []string            `json:"MachineCheck"`
+	ApplicationCheck             []string            `json:"ApplicationCheck"`
+	DayCheck                     []int               `json:"DayCheck"`
+	DateCheck                    []EpmPolicyDateSpan `json:"DateCheck"`
+	TimeCheck                    []EpmPolicyTimeSpan `json:"TimeCheck"`
+	Message                      string              `json:"NotificationMessage"`
+	RequirePolicyAcknowledgement bool                `json:"NotificationRequiresAcknowledge"`
 }
 
 // EpmPolicyActions mirrors API "Actions" (controls live under OnSuccess).

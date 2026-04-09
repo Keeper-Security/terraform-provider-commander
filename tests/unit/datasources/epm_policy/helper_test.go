@@ -1,4 +1,4 @@
-// Copyright (c) Keeper Security, Inc.
+// Copyright Keeper Security, Inc. 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package epmpolicy_test
@@ -19,19 +19,21 @@ import (
 )
 
 var epmPolicyDSAttrTypes = map[string]tftypes.Type{
-	"policy":              tftypes.String,
-	"managed_company":     tftypes.String,
-	"id":                  tftypes.String,
-	"policy_name":         tftypes.String,
-	"policy_type":         tftypes.String,
-	"status":              tftypes.String,
-	"control":             tftypes.Set{ElementType: tftypes.String},
-	"user_groups":         tftypes.Set{ElementType: tftypes.String},
-	"machine_collections": tftypes.Set{ElementType: tftypes.String},
-	"applications":        tftypes.Set{ElementType: tftypes.String},
-	"day_filter":          tftypes.Set{ElementType: tftypes.String},
-	"time_filter":         tftypes.Set{ElementType: tftypes.String},
-	"date_filter":         tftypes.Set{ElementType: tftypes.String},
+	"policy":                         tftypes.String,
+	"managed_company":                tftypes.String,
+	"id":                             tftypes.String,
+	"policy_name":                    tftypes.String,
+	"policy_type":                    tftypes.String,
+	"status":                         tftypes.String,
+	"message":                        tftypes.String,
+	"require_policy_acknowledgement": tftypes.Bool,
+	"control":                        tftypes.Set{ElementType: tftypes.String},
+	"user_groups":                    tftypes.Set{ElementType: tftypes.String},
+	"machine_collections":            tftypes.Set{ElementType: tftypes.String},
+	"applications":                   tftypes.Set{ElementType: tftypes.String},
+	"day_filter":                     tftypes.Set{ElementType: tftypes.String},
+	"time_filter":                    tftypes.Set{ElementType: tftypes.String},
+	"date_filter":                    tftypes.Set{ElementType: tftypes.String},
 }
 
 func epmPolicyDSObjectType() tftypes.Object {
@@ -42,19 +44,21 @@ func epmPolicyDSObjectType() tftypes.Object {
 func newConfigValues(policy interface{}) map[string]tftypes.Value {
 	nullSet := tftypes.NewValue(tftypes.Set{ElementType: tftypes.String}, nil)
 	return map[string]tftypes.Value{
-		"policy":              tftypes.NewValue(tftypes.String, policy),
-		"managed_company":     tftypes.NewValue(tftypes.String, nil),
-		"id":                  tftypes.NewValue(tftypes.String, nil),
-		"policy_name":         tftypes.NewValue(tftypes.String, nil),
-		"policy_type":         tftypes.NewValue(tftypes.String, nil),
-		"status":              tftypes.NewValue(tftypes.String, nil),
-		"control":             nullSet,
-		"user_groups":         nullSet,
-		"machine_collections": nullSet,
-		"applications":        nullSet,
-		"day_filter":          nullSet,
-		"time_filter":         nullSet,
-		"date_filter":         nullSet,
+		"policy":                         tftypes.NewValue(tftypes.String, policy),
+		"managed_company":                tftypes.NewValue(tftypes.String, nil),
+		"id":                             tftypes.NewValue(tftypes.String, nil),
+		"policy_name":                    tftypes.NewValue(tftypes.String, nil),
+		"policy_type":                    tftypes.NewValue(tftypes.String, nil),
+		"status":                         tftypes.NewValue(tftypes.String, nil),
+		"message":                        tftypes.NewValue(tftypes.String, nil),
+		"require_policy_acknowledgement": tftypes.NewValue(tftypes.Bool, nil),
+		"control":                        nullSet,
+		"user_groups":                    nullSet,
+		"machine_collections":            nullSet,
+		"applications":                   nullSet,
+		"day_filter":                     nullSet,
+		"time_filter":                    nullSet,
+		"date_filter":                    nullSet,
 	}
 }
 

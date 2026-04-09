@@ -1,4 +1,4 @@
-// Copyright (c) Keeper Security, Inc.
+// Copyright Keeper Security, Inc. 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package epmpolicy
@@ -73,6 +73,28 @@ func (v StatusValidator) ValidateString(ctx context.Context, req validator.Strin
 		"Invalid status",
 		"Status must be one of: "+StatusDescription()+". Got: "+req.ConfigValue.ValueString(),
 	)
+}
+
+// ValidateMonitorAndNotifyOnlyFields rejects message and require_policy_acknowledgement unless status is monitor_and_notify.
+func ValidateMonitorAndNotifyOnlyFields(status string, message types.String, requireAck types.Bool, pathMessage, pathRequireAck path.Path, diags *diag.Diagnostics) {
+	st := strings.TrimSpace(strings.ToLower(status))
+	if st == StatusMonitorAndNotify {
+		return
+	}
+	if !message.IsNull() && !message.IsUnknown() {
+		diags.AddAttributeError(
+			pathMessage,
+			"Invalid message for policy status",
+			"The message attribute is only allowed when status is "+StatusMonitorAndNotify+".",
+		)
+	}
+	if !requireAck.IsNull() && !requireAck.IsUnknown() {
+		diags.AddAttributeError(
+			pathRequireAck,
+			"Invalid require_policy_acknowledgement for policy status",
+			"The require_policy_acknowledgement attribute is only allowed when status is "+StatusMonitorAndNotify+".",
+		)
+	}
 }
 
 // ----- Control (set of enum values) -----

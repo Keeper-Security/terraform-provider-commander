@@ -1,4 +1,4 @@
-// Copyright (c) Keeper Security, Inc.
+// Copyright Keeper Security, Inc. 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package epmpolicy
@@ -98,6 +98,10 @@ func (d *EpmPolicyDataSource) Read(ctx context.Context, req datasource.ReadReque
 		if setErr != nil {
 			return fmt.Errorf("time_filter: %w", setErr)
 		}
+
+		data.Message, data.RequirePolicyAcknowledgement = commonepm.NotificationAttributesFromMapped(
+			mapped.Status, mapped.Message, mapped.RequirePolicyAcknowledgement,
+		)
 
 		return nil
 	}, commonepm.ErrSummaryReadFailed, &resp.Diagnostics)

@@ -1,4 +1,4 @@
-// Copyright (c) Keeper Security, Inc.
+// Copyright Keeper Security, Inc. 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package epmpolicy
@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	commonepm "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/epm_policy"
+	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/utils"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
@@ -63,6 +64,22 @@ func appendEpmPolicyAttributeFlags(parts []string, data *EpmPolicyResourceModel)
 		parts = append(parts, fmt.Sprintf("%s '%s'", commonepm.FlagEnable, commonepm.StatusOff))
 	} else {
 		parts = append(parts, fmt.Sprintf("%s '%s'", commonepm.FlagStatus, data.Status.ValueString()))
+	}
+
+	if data.Status.ValueString() == commonepm.StatusMonitorAndNotify {
+		if !data.Message.IsNull() && !data.Message.IsUnknown() {
+			msg := strings.TrimSpace(data.Message.ValueString())
+			if msg != "" {
+				parts = append(parts, fmt.Sprintf("%s '%s'", commonepm.FlagMessage, msg))
+			}
+		}
+		if !data.RequirePolicyAcknowledgement.IsNull() && !data.RequirePolicyAcknowledgement.IsUnknown() {
+			ack := utils.ValueOff
+			if data.RequirePolicyAcknowledgement.ValueBool() {
+				ack = utils.ValueOn
+			}
+			parts = append(parts, fmt.Sprintf("%s '%s'", commonepm.FlagRequireAcknowledgement, ack))
+		}
 	}
 
 	parts = appendListFlags(parts, commonepm.FlagControl, setToStrings(data.Control))

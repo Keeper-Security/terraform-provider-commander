@@ -1,4 +1,4 @@
-// Copyright (c) Keeper Security, Inc.
+// Copyright Keeper Security, Inc. 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package epmpolicy
@@ -18,8 +18,8 @@ import (
 
 func (r *EpmPolicyResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		Description:         "Creates and manages an EPM (Endpoint Policy Management) policy.<br>" + "Endpoint Privilege Manager can apply least privilege policies to applications, users and machines across the fleet of endpoints which are running the Keeper agent. Policies can be applied to any collections in the tenant.<br><br>" + "For more information, see https://docs.keeper.io/en/keeperpam/endpoint-privilege-manager/policies.",
-		MarkdownDescription: "Creates and manages an **EPM (Endpoint Policy Management) policy**.<br>" + "Endpoint Privilege Manager can apply least privilege policies to applications, users and machines across the fleet of endpoints which are running the Keeper agent. Policies can be applied to any collections in the tenant.<br><br>" + "For more information, see [EPM Policies](https://docs.keeper.io/en/keeperpam/endpoint-privilege-manager/policies).",
+		Description:         "Creates and manages an EPM (Endpoint Policy Management) policy.<br><br>" + "Endpoint Privilege Manager can apply least privilege policies to applications, users and machines across the fleet of endpoints which are running the Keeper agent. Policies can be applied to any collections in the tenant.<br><br>" + "For more information, see https://docs.keeper.io/en/keeperpam/endpoint-privilege-manager/policies.",
+		MarkdownDescription: "Creates and manages an **EPM (Endpoint Policy Management) policy**.<br><br>" + "Endpoint Privilege Manager can apply least privilege policies to applications, users and machines across the fleet of endpoints which are running the Keeper agent. Policies can be applied to any collections in the tenant.<br><br>" + "For more information, see [EPM Policies](https://docs.keeper.io/en/keeperpam/endpoint-privilege-manager/policies).",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed: true,
@@ -60,6 +60,16 @@ func (r *EpmPolicyResource) Schema(ctx context.Context, req resource.SchemaReque
 				Validators: []validator.String{
 					commonepm.StatusValidator{},
 				},
+			},
+			"message": schema.StringAttribute{
+				Optional:            true,
+				Description:         "Notification message shown to users. Only allowed when status is " + commonepm.StatusMonitorAndNotify + ".",
+				MarkdownDescription: "Notification **message** shown to users. Only allowed when status is **" + commonepm.StatusMonitorAndNotify + "**.",
+			},
+			"require_policy_acknowledgement": schema.BoolAttribute{
+				Optional:            true,
+				Description:         "Whether users must acknowledge the notification. Only allowed when status is " + commonepm.StatusMonitorAndNotify + ".",
+				MarkdownDescription: "Whether users must **acknowledge** the notification. Only allowed when status is **" + commonepm.StatusMonitorAndNotify + "**.",
 			},
 			"control": schema.SetAttribute{
 				Optional:            true,

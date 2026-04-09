@@ -95,13 +95,15 @@ output "epm_policy_time_filter" {
 ### Read-Only
 
 - `applications` (Set of String) Application collection IDs or **`"*"`** for all applications.
-- `control` (Set of String) **Control** actions. Each value is one of: `audit`, `notify`, `mfa`, `justify`, `approval`.
+- `control` (Set of String) **Control** actions. Each value is one of: `allow`, `deny`, `audit`, `notify`, `mfa`, `justify`, `approval`.
 - `date_filter` (Set of String) **Date filter** ranges in **ISO format** `YYYY-MM-DD:YYYY-MM-DD`.
 - `day_filter` (Set of String) **Day filter**. Each value is one of: Monday, Tuesday, Wednesday, Thursday, Friday, Saturday, Sunday.
 - `id` (String) EPM policy **ID** (same as `policy`).
 - `machine_collections` (Set of String) Machine collection IDs or **`"*"`** for all machines.
+- `message` (String) Notification **message** when status is **monitor_and_notify**; otherwise unset.
 - `policy_name` (String) **Display name** of the EPM policy.
 - `policy_type` (String) Policy type. One of: `elevation`, `file_access`, `command`, `least_privilege`.
+- `require_policy_acknowledgement` (Boolean) Whether **acknowledgement** is required when status is **monitor_and_notify**; otherwise unset.
 - `status` (String) Policy **status**. One of: `enforce`, `monitor`, `monitor_and_notify`, `off`.
 - `time_filter` (Set of String) **Time filter** ranges as **start-end** hours (**0–23**), e.g. `9-12`.
 - `user_groups` (Set of String) User collection IDs or **`"*"`** for all users.
