@@ -78,12 +78,12 @@ func TestEpmPolicyConfigValidator_ValidateResource(t *testing.T) {
 		"message":                        tftypes.NewValue(tftypes.String, nil),
 		"require_policy_acknowledgement": tftypes.NewValue(tftypes.Bool, nil),
 		"control":                        controlSet,
-		"user_groups":         nullSet,
-		"machine_collections": nullSet,
-		"applications":        nullSet,
-		"day_filter":          nullSet,
-		"time_filter":         nullSet,
-		"date_filter":         nullSet,
+		"user_groups":                    nullSet,
+		"machine_collections":            nullSet,
+		"applications":                   nullSet,
+		"day_filter":                     nullSet,
+		"time_filter":                    nullSet,
+		"date_filter":                    nullSet,
 	})
 
 	req := resource.ValidateConfigRequest{Config: tfsdk.Config{Schema: sch, Raw: raw}}

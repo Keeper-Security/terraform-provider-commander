@@ -215,6 +215,8 @@ output "epm_policy_id" {
 - `day_filter` (Set of String) **Day filter**. Set of days, each one of: Monday, Tuesday, Wednesday, Thursday, Friday, Saturday, Sunday (case-insensitive). Not allowed for **least_privilege** policy type.
 - `machine_collections` (Set of String) **Machine collections**: `"*"` to select all machines, or a set of machine collection IDs. Cannot use **"*"** with other IDs.<br> Required (with user_groups and/or applications) for elevation/file_access monitor/monitor_and_notify; required with user_groups for command monitor/monitor_and_notify. Optional for **least_privilege**.
 - `managed_company` (String) Only applies to **MSP accounts**. **Name** or **ID** of the managed company to scope this resource or data source to. Omit to use the logged-in account context.
+- `message` (String) Notification **message** shown to users. Only allowed when status is **monitor_and_notify**.
+- `require_policy_acknowledgement` (Boolean) Whether users must **acknowledge** the notification. Only allowed when status is **monitor_and_notify**.
 - `time_filter` (Set of String) **Time filter**. Set of hour ranges as **start-end** (hours **0–23**), e.g. `9-12`. Ranges must **not overlap**. Not allowed for **least_privilege** policy type.
 - `user_groups` (Set of String) **User groups**: `"*"` to select all users, or a set of user collection IDs. Cannot use **"*"** with other IDs.<br> Required (with machine_collections and/or applications) for elevation/file_access monitor/monitor_and_notify; required with machine_collections for command monitor/monitor_and_notify. Not allowed for **least_privilege**.
 
