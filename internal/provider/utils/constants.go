@@ -3,7 +3,7 @@
 
 package utils
 
-// Common Commander CLI commands
+// Common Commander CLI commands.
 const (
 	CmdRecordAdd    = "record-add"
 	CmdRecordUpdate = "record-update"
@@ -11,7 +11,7 @@ const (
 	CmdGetRecord    = "get"
 )
 
-// Commander CLI command flags
+// Commander CLI command flags.
 const (
 	FlagFormatJSON = "--format json"
 	FlagForce      = "--force"
@@ -24,13 +24,13 @@ const (
 	FlagRecord     = "--record"
 )
 
-// Commander CLI command flag values
+// Commander CLI command flag values.
 const (
 	ValueOn  = "on"
 	ValueOff = "off"
 )
 
-// Vault Record Types
+// Vault Record Types.
 const (
 	RecordTypePamDatabase      = "pamDatabase"
 	RecordTypePamDirectory     = "pamDirectory"

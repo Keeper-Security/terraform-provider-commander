@@ -8,6 +8,7 @@ import (
 	"sort"
 	"strings"
 
+	commonpamremotebrowser "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/pam_remote_browser"
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/utils"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
@@ -77,7 +78,7 @@ func sortedSetStrings(set types.Set) []string {
 }
 
 // appendPamRbiRepeatedStringFlags appends one or more `flag '<value>'` arguments.
-// Null set (attribute omitted) produces a single `flag ''` for CLI clear semantics.
+// Null set (attribute omitted) produces a single `flag ”` for CLI clear semantics.
 // Non-null sets must be non-empty per schema; unknown set is omitted.
 func appendPamRbiRepeatedStringFlags(parts *[]string, flag string, set types.Set) {
 	if set.IsUnknown() {
@@ -97,9 +98,9 @@ func appendPamRbiRepeatedStringFlags(parts *[]string, flag string, set types.Set
 }
 
 // AppendPamRbiEditSettingsFlags appends all `pam rbi edit` flags except the leading command and `--record`.
-// Shared by Create (phase 2) and Update. Bool attributes unset in config are sent as `off`; string attributes unset as `''`.
-// Set attributes omitted (null) send one `flag ''` per list field; non-null sets must be non-empty in schema.
-func AppendPamRbiEditSettingsFlags(parts *[]string, settings *PamRemoteBrowserSettingsModel) {
+// Shared by Create (phase 2) and Update. Bool attributes unset in config are sent as `off`; string attributes unset as `”`.
+// Set attributes omitted (null) send one `flag ”` per list field; non-null sets must be non-empty in schema.
+func AppendPamRbiEditSettingsFlags(parts *[]string, settings *commonpamremotebrowser.PamRemoteBrowserSettingsModel) {
 	if settings == nil {
 		return
 	}
@@ -128,7 +129,7 @@ func AppendPamRbiEditSettingsFlags(parts *[]string, settings *PamRemoteBrowserSe
 }
 
 // BuildPamRbiEditCommand builds `pam rbi edit --record <uid> ...` for Create phase 2 and Update.
-func BuildPamRbiEditCommand(recordUID string, settings *PamRemoteBrowserSettingsModel) string {
+func BuildPamRbiEditCommand(recordUID string, settings *commonpamremotebrowser.PamRemoteBrowserSettingsModel) string {
 	parts := []string{
 		CmdPamRbiEdit,
 		fmt.Sprintf("%s %s", FlagRecord, quoteShellSingle(recordUID)),
@@ -139,7 +140,7 @@ func BuildPamRbiEditCommand(recordUID string, settings *PamRemoteBrowserSettings
 
 // recordUpdateHasMutations is true when record-update will include at least one field flag besides --record
 // (omits notes/folder when plan clears them—no flag is sent).
-func recordUpdateHasMutations(plan, state PamRemoteBrowserResourceModel) bool {
+func recordUpdateHasMutations(plan, state commonpamremotebrowser.PamRemoteBrowserResourceModel) bool {
 	return !plan.Title.Equal(state.Title) ||
 		!plan.Url.Equal(state.Url) ||
 		(!plan.Notes.Equal(state.Notes) && !plan.Notes.IsNull() && !plan.Notes.IsUnknown()) ||
@@ -147,7 +148,7 @@ func recordUpdateHasMutations(plan, state PamRemoteBrowserResourceModel) bool {
 }
 
 // buildUpdatePamRemoteBrowserRecordCommand builds `record-update --record <uid> ...` with only flags for fields that changed.
-func buildUpdatePamRemoteBrowserRecordCommand(recordUID string, plan, state PamRemoteBrowserResourceModel) string {
+func buildUpdatePamRemoteBrowserRecordCommand(recordUID string, plan, state commonpamremotebrowser.PamRemoteBrowserResourceModel) string {
 	parts := []string{
 		utils.CmdRecordUpdate,
 		fmt.Sprintf("%s %s", utils.FlagRecord, quoteShellSingle(recordUID)),
@@ -168,7 +169,7 @@ func buildUpdatePamRemoteBrowserRecordCommand(recordUID string, plan, state PamR
 	return strings.Join(parts, " ")
 }
 
-func pamRemoteBrowserSettingsEqual(plan, state *PamRemoteBrowserSettingsModel) bool {
+func pamRemoteBrowserSettingsEqual(plan, state *commonpamremotebrowser.PamRemoteBrowserSettingsModel) bool {
 	if plan == nil && state == nil {
 		return true
 	}
@@ -194,7 +195,7 @@ func pamRemoteBrowserSettingsEqual(plan, state *PamRemoteBrowserSettingsModel) b
 }
 
 // pamRemoteBrowserSettingsNeedApply is true when plan has a settings block that differs from state (including first-time apply).
-func pamRemoteBrowserSettingsNeedApply(plan, state *PamRemoteBrowserSettingsModel) bool {
+func pamRemoteBrowserSettingsNeedApply(plan, state *commonpamremotebrowser.PamRemoteBrowserSettingsModel) bool {
 	if plan == nil {
 		return false
 	}

@@ -7,13 +7,14 @@ import (
 	"context"
 	"strings"
 
+	commonpamremotebrowser "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/pam_remote_browser"
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/utils"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 )
 
 func (r *PamRemoteBrowserResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var plan PamRemoteBrowserResourceModel
-	var state PamRemoteBrowserResourceModel
+	var plan commonpamremotebrowser.PamRemoteBrowserResourceModel
+	var state commonpamremotebrowser.PamRemoteBrowserResourceModel
 
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 	if resp.Diagnostics.HasError() {

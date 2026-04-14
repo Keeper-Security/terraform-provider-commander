@@ -8,13 +8,14 @@ import (
 	"fmt"
 	"strings"
 
+	commonpamremotebrowser "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/pam_remote_browser"
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/utils"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
 func (r *PamRemoteBrowserResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	var data PamRemoteBrowserResourceModel
+	var data commonpamremotebrowser.PamRemoteBrowserResourceModel
 
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
 	if resp.Diagnostics.HasError() {
@@ -58,7 +59,7 @@ func (r *PamRemoteBrowserResource) Create(ctx context.Context, req resource.Crea
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
 
-func buildAddPamRemoteBrowserRecordCommand(data PamRemoteBrowserResourceModel) string {
+func buildAddPamRemoteBrowserRecordCommand(data commonpamremotebrowser.PamRemoteBrowserResourceModel) string {
 	parts := []string{utils.CmdRecordAdd}
 
 	// Record type

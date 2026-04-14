@@ -5,13 +5,18 @@ package pamremotebrowser
 
 import (
 	"context"
+	"errors"
+	"fmt"
+	"strings"
 
+	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/api"
+	commonpamremotebrowser "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/pam_remote_browser"
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/utils"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 )
 
 func (r *PamRemoteBrowserResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-	var state PamRemoteBrowserResourceModel
+	var state commonpamremotebrowser.PamRemoteBrowserResourceModel
 
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
@@ -23,5 +28,51 @@ func (r *PamRemoteBrowserResource) Read(ctx context.Context, req resource.ReadRe
 		return
 	}
 
-	// resp.Diagnostics.AddError(ErrSummaryNotImplemented, ErrDetailNotImplemented)
+	id := strings.TrimSpace(state.Id.ValueString())
+	if id == "" {
+		resp.Diagnostics.AddError(ErrSummaryPamRemoteBrowserReadFailed, "PAM remote browser record id is empty")
+		return
+	}
+
+	if err := utils.SyncDown(ctx, r.ApiManager); err != nil {
+		resp.Diagnostics.AddError(utils.ErrSummarySyncDownFailed, err.Error())
+		return
+	}
+
+	command := fmt.Sprintf("%s '%s' %s", utils.CmdGetRecord, id, utils.FlagFormatJSON)
+	apiResp, err := r.ApiManager.ExecuteCommand(ctx, command, ErrDetailPamRemoteBrowserReadFailed)
+	if err != nil {
+		if errors.Is(err, api.ErrResourceNotFound) {
+			resp.State.RemoveResource(ctx)
+			return
+		}
+		resp.Diagnostics.AddError(ErrSummaryPamRemoteBrowserReadFailed, err.Error())
+		return
+	}
+
+	if apiResp == nil || apiResp.Data == nil {
+		resp.State.RemoveResource(ctx)
+		return
+	}
+
+	var rec utils.VaultRecordGetResponse
+	if err := utils.UnmarshalApiResponse(apiResp.Data, &rec); err != nil {
+		resp.Diagnostics.AddError(ErrSummaryPamRemoteBrowserReadFailed, err.Error())
+		return
+	}
+
+	if rec.Type != "" && rec.Type != utils.RecordTypePamRemoteBrowser {
+		resp.Diagnostics.AddError(
+			ErrSummaryPamRemoteBrowserReadFailed,
+			fmt.Sprintf("vault record type is %q, expected %q", rec.Type, utils.RecordTypePamRemoteBrowser),
+		)
+		return
+	}
+
+	resp.Diagnostics.Append(commonpamremotebrowser.MapVaultRecordGetResponseToPamRemoteBrowserModel(ctx, &rec, &state)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
 }
