@@ -61,38 +61,38 @@ resource "commander_pam_remote_browser" "intranet_app" {
 
 ### Required
 
-- `title` (String) **Title** of the remote browser configuration.
-- `url` (String) **Target URL** for the remote browser session.
+- `title` (String) **Title** of the PAM remote browser record.
+- `url` (String) **Target URL** for the PAM remote browser session.
 
 ### Optional
 
-- `folder` (String) Folder UID or name to store PAM remote browser record. If not provided, the record will be stored in the root path of vault.
-- `notes` (String) Optional **notes** for this configuration.
-- `pam_remote_browser_settings` (Attributes) Session and **isolation settings** for the remote browser. (see [below for nested schema](#nestedatt--pam_remote_browser_settings))
+- `folder` (String) Folder **UID** or path to store PAM remote browser record. If not provided, the record will be stored in the root path of vault.
+- `notes` (String) Optional **notes** for this PAM remote browser record.
+- `pam_remote_browser_settings` (Attributes) PAM **settings** for the PAM remote browser record. (see [below for nested schema](#nestedatt--pam_remote_browser_settings))
 
 ### Read-Only
 
-- `id` (String) **Remote browser configuration identifier** assigned by Keeper after creation.
+- `id` (String) The PAM remote browser record **UID** assigned by Keeper after create.
 
 <a id="nestedatt--pam_remote_browser_settings"></a>
 ### Nested Schema for `pam_remote_browser_settings`
 
 Required:
 
-- `configuration` (String) **PAM Configuration UID** for remote browser settings.
+- `configuration` (String) **PAM Configuration UID** for PAM remote browser settings.
 
 Optional:
 
 - `allow_copy` (Boolean) Can **copy** to clipboard.
 - `allow_paste` (Boolean) Can **paste** from clipboard.
 - `allow_url_navigation` (Boolean) Allow **navigation** via direct URL manipulation.
-- `allowed_resource_urls` (Set of String) **Allowed resource URL patterns.** When set, must contain at least one non-empty value. **Omit** the attribute to clear via the CLI; an empty list is not allowed.
-- `allowed_urls` (Set of String) **Allowed URL patterns.** When set, must contain at least one non-empty value. **Omit** the attribute to clear via the CLI; an empty list is not allowed.
+- `allowed_resource_urls` (Set of String) **Allowed resource URL patterns.**
+- `allowed_urls` (Set of String) **Allowed URL patterns.**
 - `audio_bit_depth` (Number) Audio **bit depth**; must be `8` for **8-bit** or `16` for **16-bit**.
 - `audio_channels` (Number) Number of **audio channels**; must be `1` for **mono** or `2` for **stereo**.
 - `audio_sample_rate` (Number) Audio **sample rate** in Hz (for example `48000`).
-- `auto_fill_credentials` (String) Record UID of **Credentials** stored in given pam configuration.
-- `auto_fill_targets` (Set of String) **Browser autofill targets.** When set, must contain at least one non-empty value. **Omit** the attribute to clear via the CLI; an empty list is not allowed.
+- `auto_fill_credentials` (String) Record UID of **Credentials** attached to the PAM configuration.
+- `auto_fill_targets` (Set of String) **Browser autofill targets.**
 - `connections_recording` (Boolean) **Manage graphical session recording**.
 - `disable_audio` (Boolean) **Disable audio**.
 - `ignore_server_cert` (Boolean) **Ignore Server Certificate**.
