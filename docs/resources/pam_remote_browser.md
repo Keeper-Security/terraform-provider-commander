@@ -3,12 +3,18 @@
 page_title: "commander_pam_remote_browser Resource - commander"
 subcategory: ""
 description: |-
-  Manages Keeper PAM remote browser configuration.
+  Manages PAM remote browser record in your Keeper vault.
+  A PAM Remote Browser is a type of KeeperPAM resource that represents a remote browser isolation target, such as a protected internal application or cloud-based web app.
+  For more information, see Keeper PAM Remote Browser documentation https://docs.keeper.io/en/keeperpam/privileged-access-manager/getting-started/pam-resources/pam-remote-browser.
 ---
 
 # commander_pam_remote_browser (Resource)
 
-Manages **Keeper PAM** remote browser configuration.
+Manages **PAM remote browser** record in your Keeper vault.
+
+A PAM Remote Browser is a type of KeeperPAM resource that represents a remote browser isolation target, such as a protected internal application or cloud-based web app.
+
+For more information, see [Keeper PAM Remote Browser documentation](https://docs.keeper.io/en/keeperpam/privileged-access-manager/getting-started/pam-resources/pam-remote-browser).
 
 ## Example Usage
 

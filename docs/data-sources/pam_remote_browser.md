@@ -3,25 +3,20 @@
 page_title: "commander_pam_remote_browser Data Source - commander"
 subcategory: ""
 description: |-
-  Reads an existing Keeper PAM remote browser vault record by record UID (get <uid> --format json).
+  Use this data source to look up a PAM remote browser record by UID or name. You can use this data source to reference a PAM remote browser record from other resources.
 ---
 
 # commander_pam_remote_browser (Data Source)
 
-Reads an existing **Keeper PAM** remote browser vault record by **record UID** (`get <uid> --format json`).
+Use this data source to look up a PAM remote browser record by **UID** or **name**. You can use this data source to reference a PAM remote browser record from other resources.
 
 ## Example Usage
 
 ```terraform
 # Look up an existing RBI record by UID.
 data "commander_pam_remote_browser" "existing" {
-  record_uid = "_REPLACE_WITH_RECORD_UID_"
+  remote_browser = "_REPLACE_WITH_RECORD_UID_"
 }
-
-# Typical pattern: read a record you manage elsewhere, or chain from a resource.
-# data "commander_pam_remote_browser" "from_resource" {
-#   record_uid = commander_pam_remote_browser.intranet_app.id
-# }
 
 output "rbi_record_id" {
   description = "Record UID from the data source read."
@@ -55,38 +50,38 @@ output "rbi_settings" {
 
 ### Required
 
-- `record_uid` (String) Vault **record UID** of the `pamRemoteBrowser` record to read.
+- `remote_browser` (String) PAM remote browser record **UID** or **name** to read.
 
 ### Optional
 
-- `pam_remote_browser_settings` (Attributes) Session and **isolation settings** parsed from the vault record when present. (see [below for nested schema](#nestedatt--pam_remote_browser_settings))
+- `pam_remote_browser_settings` (Attributes) PAM **settings** for the PAM remote browser record. (see [below for nested schema](#nestedatt--pam_remote_browser_settings))
 
 ### Read-Only
 
-- `folder` (String) **Folder** UID or path for the record, if returned by the API.
-- `id` (String) Same as **record_uid** from the vault.
-- `notes` (String) **Notes** on the record, if any.
-- `title` (String) **Title** of the remote browser record.
-- `url` (String) **Target URL** for the remote browser session (`rbiUrl`).
+- `folder` (String) Folder **UID** or path to store PAM remote browser record. If not provided, the record will be stored in the root path of vault.
+- `id` (String) The PAM remote browser record **UID** assigned by Keeper after create.
+- `notes` (String) Optional **notes** for this PAM remote browser record.
+- `title` (String) **Title** of the PAM remote browser record.
+- `url` (String) **Target URL** for the PAM remote browser session.
 
 <a id="nestedatt--pam_remote_browser_settings"></a>
 ### Nested Schema for `pam_remote_browser_settings`
 
 Read-Only:
 
-- `allow_copy` (Boolean) Whether **copy** to clipboard is allowed.
-- `allow_paste` (Boolean) Whether **paste** from clipboard is allowed.
+- `allow_copy` (Boolean) Can **copy** to clipboard.
+- `allow_paste` (Boolean) Can **paste** from clipboard.
 - `allow_url_navigation` (Boolean) Allow **navigation** via direct URL manipulation.
-- `allowed_resource_urls` (Set of String) **Allowed resource URL patterns**.
-- `allowed_urls` (Set of String) **Allowed URL patterns**.
-- `audio_bit_depth` (Number) Audio **bit depth**.
-- `audio_channels` (Number) Number of **audio channels**.
-- `audio_sample_rate` (Number) Audio **sample rate** in Hz.
-- `auto_fill_credentials` (String) **Credentials** record UID for autofill.
-- `auto_fill_targets` (Set of String) **Browser autofill targets**.
-- `configuration` (String) **PAM Configuration UID** for remote browser settings (may be unknown from `get` JSON).
-- `connections_recording` (Boolean) **Graphical session recording** (may be unknown from `get` JSON).
-- `disable_audio` (Boolean) Whether **audio** is disabled.
-- `ignore_server_cert` (Boolean) **Ignore server certificate**.
-- `key_events` (Boolean) **Key events** for session recording.
-- `remote_browser_isolation` (Boolean) **Remote browser isolation** (may be unknown from `get` JSON).
+- `allowed_resource_urls` (Set of String) **Allowed resource URL patterns.**
+- `allowed_urls` (Set of String) **Allowed URL patterns.**
+- `audio_bit_depth` (Number) Audio **bit depth**; must be `8` for **8-bit** or `16` for **16-bit**.
+- `audio_channels` (Number) Number of **audio channels**; must be `1` for **mono** or `2` for **stereo**.
+- `audio_sample_rate` (Number) Audio **sample rate** in Hz (for example `48000`).
+- `auto_fill_credentials` (String) Record UID of **Credentials** attached to the PAM configuration.
+- `auto_fill_targets` (Set of String) **Browser autofill targets.**
+- `configuration` (String) **PAM Configuration UID** for PAM remote browser settings.
+- `connections_recording` (Boolean) **Manage graphical session recording**.
+- `disable_audio` (Boolean) **Disable audio**.
+- `ignore_server_cert` (Boolean) **Ignore Server Certificate**.
+- `key_events` (Boolean) **Manage key events for session recording**.
+- `remote_browser_isolation` (Boolean) Enable **remote browser isolation**.

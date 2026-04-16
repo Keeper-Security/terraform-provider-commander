@@ -6,6 +6,7 @@ package pamremotebrowser
 import (
 	"context"
 
+	commonpamremotebrowser "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/pam_remote_browser"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	dschema "github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -13,44 +14,44 @@ import (
 
 func (d *PamRemoteBrowserDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = dschema.Schema{
-		Description:         "Reads an existing Keeper PAM remote browser vault record by record UID.",
-		MarkdownDescription: "Reads an existing **Keeper PAM** remote browser vault record by **record UID** (`get <uid> --format json`).",
+		Description:         "Use this data source to look up a PAM remote browser record by UID or name. You can use this data source to reference a PAM remote browser record from other resources.",
+		MarkdownDescription: "Use this data source to look up a PAM remote browser record by **UID** or **name**. You can use this data source to reference a PAM remote browser record from other resources.",
 		Attributes: map[string]dschema.Attribute{
-			"record_uid": dschema.StringAttribute{
+			"remote_browser": dschema.StringAttribute{
 				Required:            true,
-				Description:         "Vault record UID of the pamRemoteBrowser record to read.",
-				MarkdownDescription: "Vault **record UID** of the `pamRemoteBrowser` record to read.",
+				Description:         "PAM remote browser record UID or name to read.",
+				MarkdownDescription: "PAM remote browser record **UID** or **name** to read.",
 			},
 			"id": dschema.StringAttribute{
 				Computed:            true,
-				Description:         "Same as record_uid from the vault.",
-				MarkdownDescription: "Same as **record_uid** from the vault.",
+				Description:         commonpamremotebrowser.IDDescription,
+				MarkdownDescription: commonpamremotebrowser.IDMarkdownDescription,
 			},
 			"title": dschema.StringAttribute{
 				Computed:            true,
-				Description:         "Title of the remote browser record.",
-				MarkdownDescription: "**Title** of the remote browser record.",
+				Description:         commonpamremotebrowser.TitleDescription,
+				MarkdownDescription: commonpamremotebrowser.TitleMarkdownDescription,
 			},
 			"url": dschema.StringAttribute{
 				Computed:            true,
-				Description:         "Target URL for the remote browser session (rbiUrl).",
-				MarkdownDescription: "**Target URL** for the remote browser session (`rbiUrl`).",
+				Description:         commonpamremotebrowser.URLDescription,
+				MarkdownDescription: commonpamremotebrowser.URLMarkdownDescription,
 			},
 			"notes": dschema.StringAttribute{
 				Computed:            true,
-				Description:         "Notes on the record, if any.",
-				MarkdownDescription: "**Notes** on the record, if any.",
+				Description:         commonpamremotebrowser.NotesDescription,
+				MarkdownDescription: commonpamremotebrowser.NotesMarkdownDescription,
 			},
 			"folder": dschema.StringAttribute{
 				Computed:            true,
-				Description:         "Folder UID or path for the record, if returned by the API.",
-				MarkdownDescription: "**Folder** UID or path for the record, if returned by the API.",
+				Description:         commonpamremotebrowser.FolderDescription,
+				MarkdownDescription: commonpamremotebrowser.FolderMarkdownDescription,
 			},
 			"pam_remote_browser_settings": dschema.SingleNestedAttribute{
 				Computed:            true,
 				Optional:            true,
-				Description:         "Session and isolation settings parsed from the vault record when present.",
-				MarkdownDescription: "Session and **isolation settings** parsed from the vault record when present.",
+				Description:         commonpamremotebrowser.PamRemoteBrowserSettingsDescription,
+				MarkdownDescription: commonpamremotebrowser.PamRemoteBrowserSettingsMarkdownDescription,
 				Attributes:          pamRemoteBrowserRBISettingsDataSourceAttributes(),
 			},
 		},
@@ -61,86 +62,86 @@ func pamRemoteBrowserRBISettingsDataSourceAttributes() map[string]dschema.Attrib
 	return map[string]dschema.Attribute{
 		"configuration": dschema.StringAttribute{
 			Computed:            true,
-			Description:         "PAM Configuration UID for remote browser settings (may be unknown from get JSON).",
-			MarkdownDescription: "**PAM Configuration UID** for remote browser settings (may be unknown from `get` JSON).",
+			Description:         commonpamremotebrowser.SettingsConfigurationDescription,
+			MarkdownDescription: commonpamremotebrowser.SettingsConfigurationMarkdownDescription,
 		},
 		"remote_browser_isolation": dschema.BoolAttribute{
 			Computed:            true,
-			Description:         "Remote browser isolation (may be unknown from get JSON).",
-			MarkdownDescription: "**Remote browser isolation** (may be unknown from `get` JSON).",
+			Description:         commonpamremotebrowser.SettingsRemoteBrowserIsolationDescription,
+			MarkdownDescription: commonpamremotebrowser.SettingsRemoteBrowserIsolationMarkdownDescription,
 		},
 		"connections_recording": dschema.BoolAttribute{
 			Computed:            true,
-			Description:         "Graphical session recording (may be unknown from get JSON).",
-			MarkdownDescription: "**Graphical session recording** (may be unknown from `get` JSON).",
+			Description:         commonpamremotebrowser.SettingsConnectionsRecordingDescription,
+			MarkdownDescription: commonpamremotebrowser.SettingsConnectionsRecordingMarkdownDescription,
 		},
 		"key_events": dschema.BoolAttribute{
 			Computed:            true,
-			Description:         "Key events for session recording.",
-			MarkdownDescription: "**Key events** for session recording.",
+			Description:         commonpamremotebrowser.SettingsKeyEventsDescription,
+			MarkdownDescription: commonpamremotebrowser.SettingsKeyEventsMarkdownDescription,
 		},
 		"allow_url_navigation": dschema.BoolAttribute{
 			Computed:            true,
-			Description:         "Allow navigation via direct URL manipulation.",
-			MarkdownDescription: "Allow **navigation** via direct URL manipulation.",
+			Description:         commonpamremotebrowser.SettingsAllowURLNavigationDescription,
+			MarkdownDescription: commonpamremotebrowser.SettingsAllowURLNavigationMarkdownDescription,
 		},
 		"ignore_server_cert": dschema.BoolAttribute{
 			Computed:            true,
-			Description:         "Ignore server certificate.",
-			MarkdownDescription: "**Ignore server certificate**.",
+			Description:         commonpamremotebrowser.SettingsIgnoreServerCertDescription,
+			MarkdownDescription: commonpamremotebrowser.SettingsIgnoreServerCertMarkdownDescription,
 		},
 		"allowed_urls": dschema.SetAttribute{
 			Computed:            true,
 			ElementType:         types.StringType,
-			Description:         "Allowed URL patterns.",
-			MarkdownDescription: "**Allowed URL patterns**.",
+			Description:         commonpamremotebrowser.SettingsAllowedURLsDescription,
+			MarkdownDescription: commonpamremotebrowser.SettingsAllowedURLsMarkdownDescription,
 		},
 		"allowed_resource_urls": dschema.SetAttribute{
 			Computed:            true,
 			ElementType:         types.StringType,
-			Description:         "Allowed resource URL patterns.",
-			MarkdownDescription: "**Allowed resource URL patterns**.",
+			Description:         commonpamremotebrowser.SettingsAllowedResourceURLsDescription,
+			MarkdownDescription: commonpamremotebrowser.SettingsAllowedResourceURLsMarkdownDescription,
 		},
 		"auto_fill_targets": dschema.SetAttribute{
 			Computed:            true,
 			ElementType:         types.StringType,
-			Description:         "Browser autofill targets.",
-			MarkdownDescription: "**Browser autofill targets**.",
+			Description:         commonpamremotebrowser.SettingsAutoFillTargetsDescription,
+			MarkdownDescription: commonpamremotebrowser.SettingsAutoFillTargetsMarkdownDescription,
 		},
 		"auto_fill_credentials": dschema.StringAttribute{
 			Computed:            true,
-			Description:         "Credentials record UID for autofill.",
-			MarkdownDescription: "**Credentials** record UID for autofill.",
+			Description:         commonpamremotebrowser.SettingsAutoFillCredentialsDescription,
+			MarkdownDescription: commonpamremotebrowser.SettingsAutoFillCredentialsMarkdownDescription,
 		},
 		"allow_copy": dschema.BoolAttribute{
 			Computed:            true,
-			Description:         "Whether copy to clipboard is allowed.",
-			MarkdownDescription: "Whether **copy** to clipboard is allowed.",
+			Description:         commonpamremotebrowser.SettingsAllowCopyDescription,
+			MarkdownDescription: commonpamremotebrowser.SettingsAllowCopyMarkdownDescription,
 		},
 		"allow_paste": dschema.BoolAttribute{
 			Computed:            true,
-			Description:         "Whether paste from clipboard is allowed.",
-			MarkdownDescription: "Whether **paste** from clipboard is allowed.",
+			Description:         commonpamremotebrowser.SettingsAllowPasteDescription,
+			MarkdownDescription: commonpamremotebrowser.SettingsAllowPasteMarkdownDescription,
 		},
 		"disable_audio": dschema.BoolAttribute{
 			Computed:            true,
-			Description:         "Whether audio is disabled.",
-			MarkdownDescription: "Whether **audio** is disabled.",
+			Description:         commonpamremotebrowser.SettingsDisableAudioDescription,
+			MarkdownDescription: commonpamremotebrowser.SettingsDisableAudioMarkdownDescription,
 		},
 		"audio_channels": dschema.Int32Attribute{
 			Computed:            true,
-			Description:         "Number of audio channels.",
-			MarkdownDescription: "Number of **audio channels**.",
+			Description:         commonpamremotebrowser.SettingsAudioChannelsDescription,
+			MarkdownDescription: commonpamremotebrowser.SettingsAudioChannelsMarkdownDescription,
 		},
 		"audio_bit_depth": dschema.Int64Attribute{
 			Computed:            true,
-			Description:         "Audio bit depth.",
-			MarkdownDescription: "Audio **bit depth**.",
+			Description:         commonpamremotebrowser.SettingsAudioBitDepthDescription,
+			MarkdownDescription: commonpamremotebrowser.SettingsAudioBitDepthMarkdownDescription,
 		},
 		"audio_sample_rate": dschema.Int64Attribute{
 			Computed:            true,
-			Description:         "Audio sample rate in Hz.",
-			MarkdownDescription: "Audio **sample rate** in Hz.",
+			Description:         commonpamremotebrowser.SettingsAudioSampleRateDescription,
+			MarkdownDescription: commonpamremotebrowser.SettingsAudioSampleRateMarkdownDescription,
 		},
 	}
 }
