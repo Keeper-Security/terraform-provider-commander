@@ -59,7 +59,6 @@ func TestMapVaultRecordGetResponse_EmptyFields(t *testing.T) {
 	}
 
 	var state commonpamremotebrowser.PamRemoteBrowserResourceModel
-	state.Id.ValueString()
 	diags := commonpamremotebrowser.MapVaultRecordGetResponseToPamRemoteBrowserModel(context.Background(), rec, &state)
 	if diags.HasError() {
 		t.Fatalf("unexpected errors: %v", diags)
