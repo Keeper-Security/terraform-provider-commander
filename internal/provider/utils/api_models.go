@@ -260,25 +260,32 @@ type PamConfigListResponse struct {
 // VaultRecordGetResponse is the JSON payload from `get <record_uid> --format json` for a Keeper vault record.
 // Note: currently we are not getting --folder data from the API.
 type VaultRecordGetResponse struct {
-	RecordUID string             `json:"record_uid"`
-	Type      string             `json:"type"`
-	Title     string             `json:"title"`
-	Notes     string             `json:"notes"`
-	Folder    string             `json:"folder,omitempty"`
-	Fields    []VaultRecordField `json:"fields"`
+	RecordUID string                     `json:"record_uid"`
+	Type      string                     `json:"type"`
+	Title     string                     `json:"title"`
+	Notes     string                     `json:"notes"`
+	Folder    string                     `json:"folder,omitempty"`
+	Fields    []VaultRecordFieldResponse `json:"fields"`
+	Custom    []VaultRecordFieldResponse `json:"custom"`
 }
 
-// VaultRecordField is one typed field entry inside a vault record (get --format json).
-type VaultRecordField struct {
+// VaultRecordFieldResponse is one typed field entry inside a vault record (get --format json).
+type VaultRecordFieldResponse struct {
 	Type     string          `json:"type"`
 	Label    string          `json:"label"`
 	Value    json.RawMessage `json:"value"`
 	Required bool            `json:"required"`
 }
 
-// PamRemoteBrowserSettingsFieldConnection is the API `connection` object inside pamRemoteBrowserSettings.
+// PamHostnameFieldValue is one element of the pamHostname field value array from `get <uid> --format json`.
+type PamRemoteBrowserHostnameFieldResponse struct {
+	HostName string `json:"hostName"`
+	Port     string `json:"port"`
+}
+
+// PamRemoteBrowserSettingsFieldConnectionResponse is the API `connection` object inside pamRemoteBrowserSettings.
 // Note: currently we are not getting --connections-recording, --remote-browser-isolation, --configuration data from the API.
-type PamRemoteBrowserSettingsFieldConnection struct {
+type PamRemoteBrowserSettingsFieldConnectionResponse struct {
 	ConfigurationUID           string `json:"configurationUid,omitempty"`
 	HttpCredentialsUID         string `json:"httpCredentialsUid,omitempty"`
 	AutofillConfiguration      string `json:"autofillConfiguration,omitempty"`
@@ -297,7 +304,7 @@ type PamRemoteBrowserSettingsFieldConnection struct {
 	AudioSampleRate            int    `json:"audioSampleRate"`
 }
 
-// PamRemoteBrowserSettingsFieldEntry is one element of the pamRemoteBrowserSettings field value array.
-type PamRemoteBrowserSettingsFieldEntry struct {
-	Connection PamRemoteBrowserSettingsFieldConnection `json:"connection"`
+// PamRemoteBrowserSettingsFieldResponse is one element of the pamRemoteBrowserSettings field value array.
+type PamRemoteBrowserSettingsFieldResponse struct {
+	Connection PamRemoteBrowserSettingsFieldConnectionResponse `json:"connection"`
 }

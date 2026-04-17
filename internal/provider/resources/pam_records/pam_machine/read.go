@@ -1,7 +1,7 @@
 // Copyright Keeper Security, Inc. 2026
 // SPDX-License-Identifier: MPL-2.0
 
-package pamremotebrowser
+package pammachine
 
 import (
 	"context"
@@ -10,14 +10,14 @@ import (
 	"strings"
 
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/api"
+	commonpammachine "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/pam_machine"
 	commonpamrecords "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/pam_records"
-	commonpamremotebrowser "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/pam_remote_browser"
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/utils"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 )
 
-func (r *PamRemoteBrowserResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-	var state commonpamremotebrowser.PamRemoteBrowserResourceModel
+func (r *PamMachineResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+	var state commonpammachine.PamMachineResourceModel
 
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
@@ -31,7 +31,7 @@ func (r *PamRemoteBrowserResource) Read(ctx context.Context, req resource.ReadRe
 
 	id := strings.TrimSpace(state.Id.ValueString())
 	if id == "" {
-		resp.Diagnostics.AddError(ErrSummaryPamRemoteBrowserReadFailed, "PAM remote browser record id is empty")
+		resp.Diagnostics.AddError(ErrSummaryPamMachineReadFailed, "PAM machine record id is empty")
 		return
 	}
 
@@ -57,19 +57,19 @@ func (r *PamRemoteBrowserResource) Read(ctx context.Context, req resource.ReadRe
 
 	var rec utils.VaultRecordGetResponse
 	if err := utils.UnmarshalApiResponse(apiResp.Data, &rec); err != nil {
-		resp.Diagnostics.AddError(ErrSummaryPamRemoteBrowserReadFailed, err.Error())
+		resp.Diagnostics.AddError(ErrSummaryPamMachineReadFailed, err.Error())
 		return
 	}
 
-	if rec.Type != "" && rec.Type != utils.RecordTypePamRemoteBrowser {
+	if rec.Type != "" && rec.Type != utils.RecordTypePamMachine {
 		resp.Diagnostics.AddError(
-			ErrSummaryPamRemoteBrowserReadFailed,
-			fmt.Sprintf("vault record type is %q, expected %q", rec.Type, utils.RecordTypePamRemoteBrowser),
+			ErrSummaryPamMachineReadFailed,
+			fmt.Sprintf("vault record type is %q, expected %q", rec.Type, utils.RecordTypePamMachine),
 		)
 		return
 	}
 
-	resp.Diagnostics.Append(commonpamremotebrowser.MapVaultRecordGetResponseToPamRemoteBrowserModel(ctx, &rec, &state)...)
+	resp.Diagnostics.Append(commonpammachine.MapVaultRecordGetResponseToPamMachineModel(&rec, &state)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}

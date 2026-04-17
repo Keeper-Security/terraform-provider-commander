@@ -46,7 +46,7 @@ func MapVaultRecordGetResponseToPamRemoteBrowserModel(ctx context.Context, rec *
 	}
 
 	var rbiURL string
-	var settingsConn *utils.PamRemoteBrowserSettingsFieldConnection
+	var settingsConn *utils.PamRemoteBrowserSettingsFieldConnectionResponse
 
 	for i := range rec.Fields {
 		f := &rec.Fields[i]
@@ -61,7 +61,7 @@ func MapVaultRecordGetResponseToPamRemoteBrowserModel(ctx context.Context, rec *
 				rbiURL = strings.TrimSpace(vals[0])
 			}
 		case vaultFieldTypePamRemoteBrowserSettings:
-			var entries []utils.PamRemoteBrowserSettingsFieldEntry
+			var entries []utils.PamRemoteBrowserSettingsFieldResponse
 			if err := json.Unmarshal(f.Value, &entries); err != nil {
 				diags.AddWarning("PAM remote browser read", "Could not parse pamRemoteBrowserSettings field: "+err.Error())
 				continue
@@ -89,7 +89,7 @@ func MapVaultRecordGetResponseToPamRemoteBrowserModel(ctx context.Context, rec *
 	return diags
 }
 
-func mapConnectionToPamRemoteBrowserSettingsModel(ctx context.Context, c *utils.PamRemoteBrowserSettingsFieldConnection) (*PamRemoteBrowserSettingsModel, diag.Diagnostics) {
+func mapConnectionToPamRemoteBrowserSettingsModel(ctx context.Context, c *utils.PamRemoteBrowserSettingsFieldConnectionResponse) (*PamRemoteBrowserSettingsModel, diag.Diagnostics) {
 	var diags diag.Diagnostics
 
 	autofillTokens := splitAutofillTargetTokens(c.AutofillConfiguration)

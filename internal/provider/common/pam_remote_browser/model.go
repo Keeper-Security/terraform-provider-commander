@@ -4,7 +4,10 @@
 // Package pamremotebrowser holds shared Terraform schema fragments for PAM remote browser resources.
 package pamremotebrowser
 
-import "github.com/hashicorp/terraform-plugin-framework/types"
+import (
+	commonpamrecords "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/pam_records"
+	"github.com/hashicorp/terraform-plugin-framework/types"
+)
 
 // PamRemoteBrowserSettingsModel maps PAM remote browser session/settings options.
 type PamRemoteBrowserSettingsModel struct {
@@ -28,10 +31,9 @@ type PamRemoteBrowserSettingsModel struct {
 
 // PamRemoteBrowserResourceModel is the Terraform state for commander_pam_remote_browser.
 type PamRemoteBrowserResourceModel struct {
-	Id                       types.String                   `tfsdk:"id"`
-	Title                    types.String                   `tfsdk:"title"`
-	Url                      types.String                   `tfsdk:"url"`
-	Notes                    types.String                   `tfsdk:"notes"`
-	Folder                   types.String                   `tfsdk:"folder"`
+	commonpamrecords.CommonPamRecordsResourceModel
+
+	Url types.String `tfsdk:"url"`
+
 	PamRemoteBrowserSettings *PamRemoteBrowserSettingsModel `tfsdk:"pam_remote_browser_settings"`
 }

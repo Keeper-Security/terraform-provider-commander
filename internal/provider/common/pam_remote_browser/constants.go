@@ -17,8 +17,8 @@ const (
 	NotesDescription         = "Optional notes for this PAM remote browser record."
 	NotesMarkdownDescription = "Optional **notes** for this PAM remote browser record."
 
-	FolderDescription         = "Folder UID or path to store PAM remote browser record. If not provided, the record will be stored in the root path of vault."
-	FolderMarkdownDescription = "Folder **UID** or path to store PAM remote browser record. If not provided, the record will be stored in the root path of vault."
+	FolderDescription         = "Folder UID or path to store PAM remote browser record in your Keeper vault. If not provided, the record will be stored in the root path of vault."
+	FolderMarkdownDescription = "Folder **UID** or path to store PAM remote browser record in your Keeper vault. If not provided, the record will be stored in the root path of vault."
 
 	PamRemoteBrowserSettingsDescription         = "PAM settings for the PAM remote browser record."
 	PamRemoteBrowserSettingsMarkdownDescription = "PAM **settings** for the PAM remote browser record."

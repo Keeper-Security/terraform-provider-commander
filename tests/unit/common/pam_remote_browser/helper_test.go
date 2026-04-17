@@ -18,7 +18,7 @@ func TestMapVaultRecordGetResponse_BasicFields(t *testing.T) {
 		Type:      "pamRemoteBrowser",
 		Title:     "My RBI",
 		Notes:     "some notes",
-		Fields: []utils.VaultRecordField{
+		Fields: []utils.VaultRecordFieldResponse{
 			{
 				Type:  "rbiUrl",
 				Value: json.RawMessage(`["https://example.com"]`),
@@ -85,7 +85,7 @@ func TestMapVaultRecordGetResponse_WithSettings(t *testing.T) {
 		RecordUID: "uid-456",
 		Type:      "pamRemoteBrowser",
 		Title:     "Settings Test",
-		Fields: []utils.VaultRecordField{
+		Fields: []utils.VaultRecordFieldResponse{
 			{
 				Type:  "rbiUrl",
 				Value: json.RawMessage(`["https://app.example.com"]`),
@@ -153,7 +153,7 @@ func TestMapVaultRecordGetResponse_WithFolder(t *testing.T) {
 		RecordUID: "uid-789",
 		Title:     "Folder Test",
 		Folder:    "my-folder",
-		Fields: []utils.VaultRecordField{
+		Fields: []utils.VaultRecordFieldResponse{
 			{
 				Type:  "rbiUrl",
 				Value: json.RawMessage(`["https://example.com"]`),
@@ -175,7 +175,7 @@ func TestMapVaultRecordGetResponse_BadRbiUrlJSON(t *testing.T) {
 	rec := &utils.VaultRecordGetResponse{
 		RecordUID: "uid-bad",
 		Title:     "Bad URL",
-		Fields: []utils.VaultRecordField{
+		Fields: []utils.VaultRecordFieldResponse{
 			{
 				Type:  "rbiUrl",
 				Value: json.RawMessage(`{invalid`),
@@ -194,7 +194,7 @@ func TestMapVaultRecordGetResponse_BadSettingsJSON(t *testing.T) {
 	rec := &utils.VaultRecordGetResponse{
 		RecordUID: "uid-bad2",
 		Title:     "Bad Settings",
-		Fields: []utils.VaultRecordField{
+		Fields: []utils.VaultRecordFieldResponse{
 			{
 				Type:  "pamRemoteBrowserSettings",
 				Value: json.RawMessage(`{invalid`),
@@ -213,7 +213,7 @@ func TestMapVaultRecordGetResponse_EmptyRbiUrlArray(t *testing.T) {
 	rec := &utils.VaultRecordGetResponse{
 		RecordUID: "uid-empty-url",
 		Title:     "Empty URL",
-		Fields: []utils.VaultRecordField{
+		Fields: []utils.VaultRecordFieldResponse{
 			{
 				Type:  "rbiUrl",
 				Value: json.RawMessage(`[]`),
@@ -236,7 +236,7 @@ func TestMapVaultRecordGetResponse_ZeroAudioValues(t *testing.T) {
 	rec := &utils.VaultRecordGetResponse{
 		RecordUID: "uid-zero-audio",
 		Title:     "Zero Audio",
-		Fields: []utils.VaultRecordField{
+		Fields: []utils.VaultRecordFieldResponse{
 			{
 				Type:  "pamRemoteBrowserSettings",
 				Value: json.RawMessage(settingsJSON),
@@ -268,7 +268,7 @@ func TestMapVaultRecordGetResponse_EmptyHttpCredentialsUID(t *testing.T) {
 	rec := &utils.VaultRecordGetResponse{
 		RecordUID: "uid-no-creds",
 		Title:     "No Creds",
-		Fields: []utils.VaultRecordField{
+		Fields: []utils.VaultRecordFieldResponse{
 			{
 				Type:  "pamRemoteBrowserSettings",
 				Value: json.RawMessage(settingsJSON),
@@ -294,7 +294,7 @@ func TestMapVaultRecordGetResponse_EmptyAutofillConfiguration(t *testing.T) {
 	rec := &utils.VaultRecordGetResponse{
 		RecordUID: "uid-no-autofill",
 		Title:     "No Autofill",
-		Fields: []utils.VaultRecordField{
+		Fields: []utils.VaultRecordFieldResponse{
 			{
 				Type:  "pamRemoteBrowserSettings",
 				Value: json.RawMessage(settingsJSON),
@@ -320,7 +320,7 @@ func TestMapVaultRecordGetResponse_DuplicateAutofillTargets(t *testing.T) {
 	rec := &utils.VaultRecordGetResponse{
 		RecordUID: "uid-dupe-targets",
 		Title:     "Dupe Targets",
-		Fields: []utils.VaultRecordField{
+		Fields: []utils.VaultRecordFieldResponse{
 			{
 				Type:  "pamRemoteBrowserSettings",
 				Value: json.RawMessage(settingsJSON),
@@ -350,7 +350,7 @@ func TestMapVaultRecordGetResponse_MultiLineAllowedUrlPatterns(t *testing.T) {
 	rec := &utils.VaultRecordGetResponse{
 		RecordUID: "uid-multiline",
 		Title:     "Multiline",
-		Fields: []utils.VaultRecordField{
+		Fields: []utils.VaultRecordFieldResponse{
 			{
 				Type:  "pamRemoteBrowserSettings",
 				Value: json.RawMessage(settingsJSON),
