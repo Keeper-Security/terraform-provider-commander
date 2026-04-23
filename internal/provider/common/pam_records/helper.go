@@ -218,6 +218,18 @@ func unmarshalConnectionByProtocol(raw json.RawMessage) (string, *utils.PamSetti
 			return base.Protocol, &base, nil
 		}
 		return base.Protocol, &base, &ssh
+	case ConnectionProtocolTelnet:
+		var telnet utils.TelnetConnectionResponse
+		if err := json.Unmarshal(raw, &telnet); err != nil {
+			return base.Protocol, &base, nil
+		}
+		return base.Protocol, &base, &telnet
+	case ConnectionProtocolVnc:
+		var vnc utils.VncConnectionResponse
+		if err := json.Unmarshal(raw, &vnc); err != nil {
+			return base.Protocol, &base, nil
+		}
+		return base.Protocol, &base, &vnc
 	default:
 		return base.Protocol, &base, nil
 	}
@@ -295,6 +307,18 @@ func extractConnectionFromResponse(
 			if ssh, ok := typed.(*utils.SshConnectionResponse); ok {
 				conn.Ssh = extractSshConnectionFromResponse(ssh, pamEnabled)
 			}
+		case ConnectionProtocolTelnet:
+			if telnet, ok := typed.(*utils.TelnetConnectionResponse); ok {
+				conn.Telnet = extractTelnetConnectionFromResponse(telnet, pamEnabled)
+			}
+		case ConnectionProtocolVnc:
+			if vnc, ok := typed.(*utils.VncConnectionResponse); ok {
+				var existingVnc *ConnectionVncModel
+				if existingState != nil && existingState.Connection != nil {
+					existingVnc = existingState.Connection.Vnc
+				}
+				conn.Vnc = extractVncConnectionFromResponse(vnc, pamEnabled, existingVnc)
+			}
 		}
 	}
 
@@ -341,6 +365,7 @@ func extractKubernetesFromResponse(
 		k8s.FontName = setStringOrNull(k8sConn.FontName)
 		k8s.FontSize = parseStringToInt32(k8sConn.FontSize)
 		k8s.Scrollback = types.Int32Value(int32(k8sConn.Scrollback))
+		k8s.Backspace = setStringOrNull(k8sConn.Backspace)
 	}
 
 	return k8s
@@ -455,14 +480,14 @@ func extractRdpConnectionFromResponse(rdpConn *utils.RdpConnectionResponse, pamE
 	}
 
 	if rdpConn.Sftp != nil {
-		rdp.Sftp = extractRdpSftpFromResponse(rdpConn.Sftp)
+		rdp.Sftp = extractSftpFromResponse(rdpConn.Sftp)
 	}
 
 	return rdp
 }
 
-func extractRdpSftpFromResponse(s *utils.RdpSftpResponse) *ConnectionRdpSftpModel {
-	sftp := &ConnectionRdpSftpModel{}
+func extractSftpFromResponse(s *utils.SftpResponse) *ConnectionSftpModel {
+	sftp := &ConnectionSftpModel{}
 	sftp.EnableSftp = optionalBoolValue(s.EnableSftp)
 	sftp.SftpResourceUid = setStringOrNull(s.SftpResourceUid)
 	sftp.SftpUserUid = setStringOrNull(s.SftpUserUid)
@@ -660,6 +685,13 @@ func runPamConnectionEditCommand(ctx context.Context, apiManager *api.ApiManager
 		parts = append(parts, fmt.Sprintf("%s=%s", utils.FlagConnectionsRecording, boolToOnOff(connection.Ssh.SessionRecording)))
 		parts = append(parts, fmt.Sprintf("%s=%s", utils.FlagTypescriptRecording, boolToOnOff(connection.Ssh.TypescriptRecording)))
 		parts = append(parts, fmt.Sprintf("%s=%s", utils.FlagKeyEvents, boolToOnOff(connection.Ssh.RecordingIncludeKeys)))
+	case connection.Telnet != nil:
+		parts = append(parts, fmt.Sprintf("%s=%s", utils.FlagConnectionsRecording, boolToOnOff(connection.Telnet.SessionRecording)))
+		parts = append(parts, fmt.Sprintf("%s=%s", utils.FlagTypescriptRecording, boolToOnOff(connection.Telnet.TypescriptRecording)))
+		parts = append(parts, fmt.Sprintf("%s=%s", utils.FlagKeyEvents, boolToOnOff(connection.Telnet.RecordingIncludeKeys)))
+	case connection.Vnc != nil:
+		parts = append(parts, fmt.Sprintf("%s=%s", utils.FlagConnectionsRecording, boolToOnOff(connection.Vnc.SessionRecording)))
+		parts = append(parts, fmt.Sprintf("%s=%s", utils.FlagKeyEvents, boolToOnOff(connection.Vnc.RecordingIncludeKeys)))
 	}
 
 	if !connection.LaunchCredential.IsNull() && !connection.LaunchCredential.IsUnknown() {
@@ -758,6 +790,10 @@ func buildConnectionMap(connection *CommonPamSettingsConnectionResourceModel) ma
 		return buildRdpConnectionMap(connection)
 	case ConnectionProtocolSsh:
 		return buildSshConnectionMap(connection)
+	case ConnectionProtocolTelnet:
+		return buildTelnetConnectionMap(connection)
+	case ConnectionProtocolVnc:
+		return buildVncConnectionMap(connection)
 	default:
 		return map[string]interface{}{
 			"protocol": protocol,
@@ -797,6 +833,7 @@ func buildKubernetesConnectionMap(connection *CommonPamSettingsConnectionResourc
 	setOptionalStringField(connMap, "pod", k8s.Pod)
 	setOptionalStringField(connMap, "container", k8s.Container)
 	setOptionalStringField(connMap, "command", k8s.Command)
+	setOptionalStringField(connMap, "backspace", k8s.Backspace)
 	setOptionalStringField(connMap, "colorScheme", k8s.ColorScheme)
 	setOptionalStringField(connMap, "fontName", k8s.FontName)
 
@@ -1024,6 +1061,183 @@ func extractSshConnectionFromResponse(sshConn *utils.SshConnectionResponse, pamE
 	}
 
 	return ssh
+}
+
+func buildTelnetConnectionMap(connection *CommonPamSettingsConnectionResourceModel) map[string]interface{} {
+	connMap := map[string]interface{}{
+		"protocol": connection.Protocol.ValueString(),
+	}
+
+	if !connection.ConnectionPort.IsNull() && !connection.ConnectionPort.IsUnknown() {
+		connMap["port"] = fmt.Sprintf("%d", connection.ConnectionPort.ValueInt32())
+	}
+
+	if !connection.LaunchCredential.IsNull() && !connection.LaunchCredential.IsUnknown() {
+		connMap["userRecords"] = []string{connection.LaunchCredential.ValueString()}
+	}
+
+	telnet := connection.Telnet
+	if telnet == nil {
+		return connMap
+	}
+
+	setOptionalBoolField(connMap, "allowSupplyUser", telnet.AllowSupplyUser)
+	setOptionalBoolField(connMap, "recordingIncludeKeys", telnet.RecordingIncludeKeys)
+	setOptionalBoolField(connMap, "readOnly", telnet.ReadOnly)
+	setOptionalBoolField(connMap, "disableCopy", telnet.DisableCopy)
+	setOptionalBoolField(connMap, "disablePaste", telnet.DisablePaste)
+	setOptionalStringField(connMap, "colorScheme", telnet.ColorScheme)
+	setOptionalStringField(connMap, "fontName", telnet.FontName)
+	setOptionalStringField(connMap, "usernameRegex", telnet.UsernameRegex)
+	setOptionalStringField(connMap, "passwordRegex", telnet.PasswordRegex)
+	setOptionalStringField(connMap, "loginSuccessRegex", telnet.LoginSuccessRegex)
+	setOptionalStringField(connMap, "loginFailureRegex", telnet.LoginFailureRegex)
+	setOptionalStringField(connMap, "backspace", telnet.Backspace)
+	setOptionalStringField(connMap, "terminalType", telnet.TerminalType)
+
+	if !telnet.FontSize.IsNull() && !telnet.FontSize.IsUnknown() {
+		connMap["fontSize"] = fmt.Sprintf("%d", telnet.FontSize.ValueInt32())
+	}
+
+	if !telnet.Scrollback.IsNull() && !telnet.Scrollback.IsUnknown() {
+		connMap["scrollback"] = telnet.Scrollback.ValueInt32()
+	}
+
+	return connMap
+}
+
+// extractTelnetConnectionFromResponse builds a ConnectionTelnetModel from the API response.
+func extractTelnetConnectionFromResponse(telnetConn *utils.TelnetConnectionResponse, pamEnabled *utils.PamSettingsEnabledResponse) *ConnectionTelnetModel {
+	telnet := &ConnectionTelnetModel{}
+
+	if pamEnabled != nil {
+		telnet.SessionRecording = optionalBoolValue(pamEnabled.SessionRecording)
+		telnet.TypescriptRecording = optionalBoolValue(pamEnabled.TypescriptRecording)
+	} else {
+		telnet.SessionRecording = types.BoolNull()
+		telnet.TypescriptRecording = types.BoolNull()
+	}
+
+	if telnetConn == nil {
+		return telnet
+	}
+
+	telnet.AllowSupplyUser = optionalBoolValue(telnetConn.AllowSupplyUser)
+	telnet.RecordingIncludeKeys = optionalBoolValue(telnetConn.RecordingIncludeKeys)
+	telnet.ReadOnly = optionalBoolValue(telnetConn.ReadOnly)
+	telnet.DisableCopy = optionalBoolValueWithDefault(telnetConn.DisableCopy, false)
+	telnet.DisablePaste = optionalBoolValueWithDefault(telnetConn.DisablePaste, false)
+	telnet.ColorScheme = setStringOrNull(telnetConn.ColorScheme)
+	telnet.FontName = setStringOrNull(telnetConn.FontName)
+	telnet.FontSize = parseStringToInt32(telnetConn.FontSize)
+	if telnetConn.Scrollback > 0 {
+		telnet.Scrollback = types.Int32Value(int32(telnetConn.Scrollback))
+	} else {
+		telnet.Scrollback = types.Int32Null()
+	}
+	telnet.UsernameRegex = setStringOrNull(telnetConn.UsernameRegex)
+	telnet.PasswordRegex = setStringOrNull(telnetConn.PasswordRegex)
+	telnet.LoginSuccessRegex = setStringOrNull(telnetConn.LoginSuccessRegex)
+	telnet.LoginFailureRegex = setStringOrNull(telnetConn.LoginFailureRegex)
+	telnet.Backspace = setStringOrNull(telnetConn.Backspace)
+	telnet.TerminalType = setStringOrNull(telnetConn.TerminalType)
+
+	return telnet
+}
+
+func buildVncConnectionMap(connection *CommonPamSettingsConnectionResourceModel) map[string]interface{} {
+	connMap := map[string]interface{}{
+		"protocol": connection.Protocol.ValueString(),
+	}
+
+	if !connection.ConnectionPort.IsNull() && !connection.ConnectionPort.IsUnknown() {
+		connMap["port"] = fmt.Sprintf("%d", connection.ConnectionPort.ValueInt32())
+	}
+
+	if !connection.LaunchCredential.IsNull() && !connection.LaunchCredential.IsUnknown() {
+		connMap["userRecords"] = []string{connection.LaunchCredential.ValueString()}
+	}
+
+	vnc := connection.Vnc
+	if vnc == nil {
+		return connMap
+	}
+
+	setOptionalBoolField(connMap, "allowSupplyUser", vnc.AllowSupplyUser)
+	setOptionalBoolField(connMap, "recordingIncludeKeys", vnc.RecordingIncludeKeys)
+	setOptionalBoolField(connMap, "readOnly", vnc.ReadOnly)
+	setOptionalBoolField(connMap, "disableCopy", vnc.DisableCopy)
+	setOptionalBoolField(connMap, "disablePaste", vnc.DisablePaste)
+	setOptionalBoolField(connMap, "swapRedBlue", vnc.SwapRedBlue)
+	setOptionalBoolField(connMap, "forceLossless", vnc.ForceLossless)
+	setOptionalBoolField(connMap, "enableAudio", vnc.EnableAudio)
+	setOptionalStringField(connMap, "audioServername", vnc.AudioServername)
+	setOptionalStringField(connMap, "destHost", vnc.DestHost)
+	setOptionalStringField(connMap, "clipboardEncoding", vnc.ClipboardEncoding)
+	setOptionalStringField(connMap, "cursor", vnc.Cursor)
+
+	if !vnc.DestPort.IsNull() && !vnc.DestPort.IsUnknown() {
+		connMap["destPort"] = fmt.Sprintf("%d", vnc.DestPort.ValueInt32())
+	}
+
+	setOptionalInt32Field(connMap, "colorDepth", vnc.ColorDepth)
+
+	if vnc.Sftp != nil {
+		sftpMap := map[string]interface{}{}
+		setOptionalBoolField(sftpMap, "enableSftp", vnc.Sftp.EnableSftp)
+		setOptionalStringField(sftpMap, "sftpResourceUid", vnc.Sftp.SftpResourceUid)
+		setOptionalStringField(sftpMap, "sftpUserUid", vnc.Sftp.SftpUserUid)
+		setOptionalStringField(sftpMap, "sftpDirectory", vnc.Sftp.SftpDirectory)
+		setOptionalInt32Field(sftpMap, "sftpServerAliveInterval", vnc.Sftp.SftpServerAliveInterval)
+		connMap["sftp"] = sftpMap
+	}
+
+	return connMap
+}
+
+// extractVncConnectionFromResponse builds a ConnectionVncModel from the API response.
+func extractVncConnectionFromResponse(vncConn *utils.VncConnectionResponse, pamEnabled *utils.PamSettingsEnabledResponse, existingVnc *ConnectionVncModel) *ConnectionVncModel {
+	vnc := &ConnectionVncModel{}
+
+	// TODO: ColorDepth may not be returned by the read CLI response.
+	// Preserve from existing state until confirmed.
+	if existingVnc != nil {
+		vnc.ColorDepth = existingVnc.ColorDepth
+	}
+
+	if pamEnabled != nil {
+		vnc.SessionRecording = optionalBoolValue(pamEnabled.SessionRecording)
+	} else {
+		vnc.SessionRecording = types.BoolNull()
+	}
+
+	if vncConn == nil {
+		return vnc
+	}
+
+	vnc.AllowSupplyUser = optionalBoolValue(vncConn.AllowSupplyUser)
+	vnc.RecordingIncludeKeys = optionalBoolValue(vncConn.RecordingIncludeKeys)
+	vnc.ReadOnly = optionalBoolValue(vncConn.ReadOnly)
+	vnc.DisableCopy = optionalBoolValueWithDefault(vncConn.DisableCopy, false)
+	vnc.DisablePaste = optionalBoolValueWithDefault(vncConn.DisablePaste, false)
+	vnc.SwapRedBlue = optionalBoolValue(vncConn.SwapRedBlue)
+	vnc.ForceLossless = optionalBoolValue(vncConn.ForceLossless)
+	vnc.EnableAudio = optionalBoolValue(vncConn.EnableAudio)
+	vnc.AudioServername = setStringOrNull(vncConn.AudioServername)
+	vnc.DestHost = setStringOrNull(vncConn.DestHost)
+	vnc.DestPort = parseStringToInt32(vncConn.DestPort)
+	vnc.ClipboardEncoding = setStringOrNull(vncConn.ClipboardEncoding)
+	vnc.Cursor = setStringOrNull(vncConn.Cursor)
+
+	if vncConn.ColorDepth != "" {
+		vnc.ColorDepth = parseStringToInt32(vncConn.ColorDepth)
+	}
+
+	if vncConn.Sftp != nil {
+		vnc.Sftp = extractSftpFromResponse(vncConn.Sftp)
+	}
+
+	return vnc
 }
 
 func setOptionalInt32Field(m map[string]interface{}, key string, v types.Int32) {

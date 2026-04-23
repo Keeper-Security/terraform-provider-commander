@@ -128,13 +128,13 @@ func CommonPamSettingsConnectionSchema() map[string]schema.Attribute {
 			Optional:            true,
 			Description:         PamSettingsConnectionTelnetDescription,
 			MarkdownDescription: PamSettingsConnectionTelnetMarkdownDescription,
-			Attributes:          map[string]schema.Attribute{},
+			Attributes:          ConnectionTelnetSchema(),
 		},
 		"vnc": schema.SingleNestedAttribute{
 			Optional:            true,
 			Description:         PamSettingsConnectionVncDescription,
 			MarkdownDescription: PamSettingsConnectionVncMarkdownDescription,
-			Attributes:          map[string]schema.Attribute{},
+			Attributes:          ConnectionVncSchema(),
 		},
 	}
 }
@@ -151,8 +151,8 @@ func mergeSchemaAttributes(maps ...map[string]schema.Attribute) map[string]schem
 	return result
 }
 
-// ConnectionCommonSchema returns the 4 shared attributes used by all
-// protocol models (Kubernetes, Database, RDP).
+// ConnectionCommonSchema returns the 4 shared attributes used by
+// K, D, SSH, Telnet (NOT RDP, VNC — they don't support typescript_recording).
 func ConnectionCommonSchema() map[string]schema.Attribute {
 	return map[string]schema.Attribute{
 		"session_recording": schema.BoolAttribute{
@@ -170,22 +170,22 @@ func ConnectionCommonSchema() map[string]schema.Attribute {
 			Description:         ConnectionAllowSupplyUserDescription,
 			MarkdownDescription: ConnectionAllowSupplyUserMarkdownDescription,
 		},
-		"read_only": schema.BoolAttribute{
+		"typescript_recording": schema.BoolAttribute{
 			Optional:            true,
-			Description:         ConnectionReadOnlyDescription,
-			MarkdownDescription: ConnectionReadOnlyMarkdownDescription,
+			Description:         ConnectionTypescriptRecordingDescription,
+			MarkdownDescription: ConnectionTypescriptRecordingMarkdownDescription,
 		},
 	}
 }
 
 // ConnectionTerminalSchema returns the 5 terminal-related attributes
-// shared by Kubernetes and Database protocols.
+// shared by Kubernetes, Database, SSH, and Telnet protocols.
 func ConnectionTerminalSchema() map[string]schema.Attribute {
 	return map[string]schema.Attribute{
-		"typescript_recording": schema.BoolAttribute{
+		"read_only": schema.BoolAttribute{
 			Optional:            true,
-			Description:         ConnectionTypescriptRecordingDescription,
-			MarkdownDescription: ConnectionTypescriptRecordingMarkdownDescription,
+			Description:         ConnectionReadOnlyDescription,
+			MarkdownDescription: ConnectionReadOnlyMarkdownDescription,
 		},
 		"color_scheme": schema.StringAttribute{
 			Optional:            true,
@@ -299,16 +299,47 @@ func ConnectionKubernetesSchema() map[string]schema.Attribute {
 				Description:         KubernetesCommandDescription,
 				MarkdownDescription: KubernetesCommandMarkdownDescription,
 			},
+			"backspace": schema.StringAttribute{
+				Optional:            true,
+				Computed:            true,
+				Default:             stringdefault.StaticString("127"),
+				Description:         KubernetesBackspaceDescription,
+				MarkdownDescription: KubernetesBackspaceMarkdownDescription,
+				Validators: []validator.String{
+					utils.StringOneOfValidator("Backspace", []string{"127", "8"}, true),
+				},
+			},
 		},
 	)
 }
 
 // ConnectionRdpSchema returns the schema attributes for the RDP protocol connection block.
+// RDP does not support typescript_recording, so we inline the base recording fields
+// instead of using ConnectionCommonSchema().
 func ConnectionRdpSchema() map[string]schema.Attribute {
 	return mergeSchemaAttributes(
-		ConnectionCommonSchema(),
 		ConnectionClipboardSchema(),
 		map[string]schema.Attribute{
+			"session_recording": schema.BoolAttribute{
+				Optional:            true,
+				Description:         ConnectionSessionRecordingDescription,
+				MarkdownDescription: ConnectionSessionRecordingMarkdownDescription,
+			},
+			"recording_include_keys": schema.BoolAttribute{
+				Optional:            true,
+				Description:         ConnectionRecordingIncludeKeysDescription,
+				MarkdownDescription: ConnectionRecordingIncludeKeysMarkdownDescription,
+			},
+			"allow_supply_user": schema.BoolAttribute{
+				Optional:            true,
+				Description:         ConnectionAllowSupplyUserDescription,
+				MarkdownDescription: ConnectionAllowSupplyUserMarkdownDescription,
+			},
+			"read_only": schema.BoolAttribute{
+				Optional:            true,
+				Description:         ConnectionReadOnlyDescription,
+				MarkdownDescription: ConnectionReadOnlyMarkdownDescription,
+			},
 			"ignore_cert": schema.BoolAttribute{
 				Optional:            true,
 				Description:         RdpIgnoreCertDescription,
@@ -398,7 +429,7 @@ func ConnectionRdpSchema() map[string]schema.Attribute {
 				Optional:            true,
 				Description:         RdpSftpDescription,
 				MarkdownDescription: RdpSftpMarkdownDescription,
-				Attributes:          ConnectionRdpSftpSchema(),
+				Attributes:          ConnectionSftpSchema(),
 				Validators:          []validator.Object{SftpUserUidRequiredValidator()},
 			},
 			"console_audio": schema.BoolAttribute{
@@ -538,33 +569,33 @@ func ConnectionRdpSchema() map[string]schema.Attribute {
 	)
 }
 
-// ConnectionRdpSftpSchema returns the schema attributes for the SFTP nested block inside RDP.
-func ConnectionRdpSftpSchema() map[string]schema.Attribute {
+// ConnectionSftpSchema returns the shared SFTP nested block attributes used by RDP and VNC.
+func ConnectionSftpSchema() map[string]schema.Attribute {
 	return map[string]schema.Attribute{
 		"enable_sftp": schema.BoolAttribute{
 			Optional:            true,
-			Description:         RdpSftpEnableDescription,
-			MarkdownDescription: RdpSftpEnableMarkdownDescription,
+			Description:         SftpEnableDescription,
+			MarkdownDescription: SftpEnableMarkdownDescription,
 		},
 		"sftp_resource_uid": schema.StringAttribute{
 			Optional:            true,
-			Description:         RdpSftpResourceUidDescription,
-			MarkdownDescription: RdpSftpResourceUidMarkdownDescription,
+			Description:         SftpResourceUidDescription,
+			MarkdownDescription: SftpResourceUidMarkdownDescription,
 		},
 		"sftp_user_uid": schema.StringAttribute{
 			Optional:            true,
-			Description:         RdpSftpUserUidDescription,
-			MarkdownDescription: RdpSftpUserUidMarkdownDescription,
+			Description:         SftpUserUidDescription,
+			MarkdownDescription: SftpUserUidMarkdownDescription,
 		},
 		"sftp_directory": schema.StringAttribute{
 			Optional:            true,
-			Description:         RdpSftpDirectoryDescription,
-			MarkdownDescription: RdpSftpDirectoryMarkdownDescription,
+			Description:         SftpDirectoryDescription,
+			MarkdownDescription: SftpDirectoryMarkdownDescription,
 		},
 		"sftp_server_alive_interval": schema.Int32Attribute{
 			Optional:            true,
-			Description:         RdpSftpServerAliveIntervalDescription,
-			MarkdownDescription: RdpSftpServerAliveIntervalMarkdownDescription,
+			Description:         SftpServerAliveIntervalDescription,
+			MarkdownDescription: SftpServerAliveIntervalMarkdownDescription,
 			Validators: []validator.Int32{
 				utils.Int32NonNegativeValidator("SFTP Server Alive Interval", true),
 			},
@@ -682,6 +713,149 @@ func ConnectionSshSftpSchema() map[string]schema.Attribute {
 			MarkdownDescription: SshSftpEnableMarkdownDescription,
 		},
 	}
+}
+
+// ConnectionTelnetSchema returns the schema attributes for the Telnet protocol connection block.
+func ConnectionTelnetSchema() map[string]schema.Attribute {
+	return mergeSchemaAttributes(
+		ConnectionCommonSchema(),
+		ConnectionTerminalSchema(),
+		ConnectionClipboardSchema(),
+		map[string]schema.Attribute{
+			"username_regex": schema.StringAttribute{
+				Optional:            true,
+				Description:         TelnetUsernameRegexDescription,
+				MarkdownDescription: TelnetUsernameRegexMarkdownDescription,
+			},
+			"password_regex": schema.StringAttribute{
+				Optional:            true,
+				Description:         TelnetPasswordRegexDescription,
+				MarkdownDescription: TelnetPasswordRegexMarkdownDescription,
+			},
+			"login_success_regex": schema.StringAttribute{
+				Optional:            true,
+				Description:         TelnetLoginSuccessRegexDescription,
+				MarkdownDescription: TelnetLoginSuccessRegexMarkdownDescription,
+			},
+			"login_failure_regex": schema.StringAttribute{
+				Optional:            true,
+				Description:         TelnetLoginFailureRegexDescription,
+				MarkdownDescription: TelnetLoginFailureRegexMarkdownDescription,
+			},
+			"backspace": schema.StringAttribute{
+				Optional:            true,
+				Computed:            true,
+				Default:             stringdefault.StaticString("127"),
+				Description:         TelnetBackspaceDescription,
+				MarkdownDescription: TelnetBackspaceMarkdownDescription,
+				Validators: []validator.String{
+					utils.StringOneOfValidator("Backspace", []string{"127", "8"}, true),
+				},
+			},
+			"terminal_type": schema.StringAttribute{
+				Optional:            true,
+				Description:         TelnetTerminalTypeDescription,
+				MarkdownDescription: TelnetTerminalTypeMarkdownDescription,
+			},
+		},
+	)
+}
+
+// ConnectionVncSchema returns the schema attributes for the VNC protocol connection block.
+// VNC does not support typescript_recording, so we inline the applicable
+// fields instead of using ConnectionCommonSchema().
+func ConnectionVncSchema() map[string]schema.Attribute {
+	return mergeSchemaAttributes(
+		ConnectionClipboardSchema(),
+		map[string]schema.Attribute{
+			"session_recording": schema.BoolAttribute{
+				Optional:            true,
+				Description:         ConnectionSessionRecordingDescription,
+				MarkdownDescription: ConnectionSessionRecordingMarkdownDescription,
+			},
+			"allow_supply_user": schema.BoolAttribute{
+				Optional:            true,
+				Description:         ConnectionAllowSupplyUserDescription,
+				MarkdownDescription: ConnectionAllowSupplyUserMarkdownDescription,
+			},
+			"recording_include_keys": schema.BoolAttribute{
+				Optional:            true,
+				Description:         ConnectionRecordingIncludeKeysDescription,
+				MarkdownDescription: ConnectionRecordingIncludeKeysMarkdownDescription,
+			},
+			"read_only": schema.BoolAttribute{
+				Optional:            true,
+				Description:         ConnectionReadOnlyDescription,
+				MarkdownDescription: ConnectionReadOnlyMarkdownDescription,
+			},
+			"swap_red_blue": schema.BoolAttribute{
+				Optional:            true,
+				Description:         VncSwapRedBlueDescription,
+				MarkdownDescription: VncSwapRedBlueMarkdownDescription,
+			},
+			"force_lossless": schema.BoolAttribute{
+				Optional:            true,
+				Description:         VncForceLosslessDescription,
+				MarkdownDescription: VncForceLosslessMarkdownDescription,
+			},
+			"enable_audio": schema.BoolAttribute{
+				Optional:            true,
+				Description:         VncEnableAudioDescription,
+				MarkdownDescription: VncEnableAudioMarkdownDescription,
+			},
+			"audio_servername": schema.StringAttribute{
+				Optional:            true,
+				Description:         VncAudioServernameDescription,
+				MarkdownDescription: VncAudioServernameMarkdownDescription,
+			},
+			"dest_host": schema.StringAttribute{
+				Optional:            true,
+				Description:         VncDestHostDescription,
+				MarkdownDescription: VncDestHostMarkdownDescription,
+			},
+			"dest_port": schema.Int32Attribute{
+				Optional:            true,
+				Description:         VncDestPortDescription,
+				MarkdownDescription: VncDestPortMarkdownDescription,
+				Validators: []validator.Int32{
+					utils.Int32NonNegativeValidator("Dest Port", true),
+				},
+			},
+			"clipboard_encoding": schema.StringAttribute{
+				Optional:            true,
+				Computed:            true,
+				Default:             stringdefault.StaticString("UTF-8"),
+				Description:         VncClipboardEncodingDescription,
+				MarkdownDescription: VncClipboardEncodingMarkdownDescription,
+				Validators: []validator.String{
+					utils.StringOneOfValidator("Clipboard Encoding", []string{"UTF-8", "UTF-16", "ISO8859-1", "CP1252"}, true),
+				},
+			},
+			"cursor": schema.StringAttribute{
+				Optional:            true,
+				Description:         VncCursorDescription,
+				MarkdownDescription: VncCursorMarkdownDescription,
+				Validators: []validator.String{
+					utils.StringOneOfValidator("Cursor", []string{"local", "remote"}, true),
+				},
+			},
+			"color_depth": schema.Int32Attribute{
+				Optional:            true,
+				Description:         VncColorDepthDescription,
+				MarkdownDescription: VncColorDepthMarkdownDescription,
+				Validators: []validator.Int32{
+					utils.Int32OneOfValidator("Color Depth", []int32{8, 16, 24, 32}, true),
+				},
+			},
+			"sftp": schema.SingleNestedAttribute{
+				Optional:            true,
+				Description:         VncSftpDescription,
+				MarkdownDescription: VncSftpMarkdownDescription,
+				Attributes:          ConnectionSftpSchema(),
+				Validators:          []validator.Object{SftpUserUidRequiredValidator()},
+			},
+		},
+	)
 }
 
 // CommonPamSettingsSchema returns the reusable schema attributes for

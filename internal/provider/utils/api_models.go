@@ -357,6 +357,7 @@ type KubernetesConnectionResponse struct {
 	FontSize             string `json:"fontSize"`
 	Scrollback           int    `json:"scrollback"`
 	ReadOnly             *bool  `json:"readOnly"`
+	Backspace            string `json:"backspace"`
 }
 
 // RdpConnectionResponse holds the fields returned inside
@@ -381,7 +382,7 @@ type RdpConnectionResponse struct {
 	LoadBalanceInfo          string           `json:"loadBalanceInfo"`
 	PreconnectionId          string           `json:"preconnectionId"`
 	PreconnectionBlob        string           `json:"preconnectionBlob"`
-	Sftp                     *RdpSftpResponse `json:"sftp"`
+	Sftp                     *SftpResponse `json:"sftp"`
 	ConsoleAudio             *bool            `json:"consoleAudio"`
 	DisableAudio             *bool            `json:"disableAudio"`
 	EnableAudioInput         *bool            `json:"enableAudioInput"`
@@ -408,7 +409,8 @@ type RdpConnectionResponse struct {
 	DisablePaste             *bool            `json:"disablePaste"`
 }
 
-type RdpSftpResponse struct {
+// SftpResponse is the shared SFTP nested block used by RDP and VNC.
+type SftpResponse struct {
 	EnableSftp              *bool  `json:"enableSftp"`
 	SftpResourceUid         string `json:"sftpResourceUid"`
 	SftpUserUid             string `json:"sftpUserUid"`
@@ -442,6 +444,50 @@ type SshConnectionResponse struct {
 
 type SshSftpResponse struct {
 	EnableSftp *bool `json:"enableSftp"`
+}
+
+// TelnetConnectionResponse holds the fields returned inside
+// pamSettings.value[0].connection when protocol is "telnet".
+type TelnetConnectionResponse struct {
+	Protocol             string `json:"protocol"`
+	Port                 string `json:"port"`
+	AllowSupplyUser      *bool  `json:"allowSupplyUser"`
+	RecordingIncludeKeys *bool  `json:"recordingIncludeKeys"`
+	ReadOnly             *bool  `json:"readOnly"`
+	DisableCopy          *bool  `json:"disableCopy"`
+	DisablePaste         *bool  `json:"disablePaste"`
+	ColorScheme          string `json:"colorScheme"`
+	FontName             string `json:"fontName"`
+	FontSize             string `json:"fontSize"`
+	Scrollback           int    `json:"scrollback"`
+	UsernameRegex        string `json:"usernameRegex"`
+	PasswordRegex        string `json:"passwordRegex"`
+	LoginSuccessRegex    string `json:"loginSuccessRegex"`
+	LoginFailureRegex    string `json:"loginFailureRegex"`
+	Backspace            string `json:"backspace"`
+	TerminalType         string `json:"terminalType"`
+}
+
+// VncConnectionResponse holds the fields returned inside
+// pamSettings.value[0].connection when protocol is "vnc".
+type VncConnectionResponse struct {
+	Protocol             string        `json:"protocol"`
+	Port                 string        `json:"port"`
+	AllowSupplyUser      *bool         `json:"allowSupplyUser"`
+	RecordingIncludeKeys *bool         `json:"recordingIncludeKeys"`
+	ReadOnly             *bool         `json:"readOnly"`
+	SwapRedBlue          *bool         `json:"swapRedBlue"`
+	ForceLossless        *bool         `json:"forceLossless"`
+	EnableAudio          *bool         `json:"enableAudio"`
+	AudioServername      string        `json:"audioServername"`
+	DestHost             string        `json:"destHost"`
+	DestPort             string        `json:"destPort"`
+	DisableCopy          *bool         `json:"disableCopy"`
+	DisablePaste         *bool         `json:"disablePaste"`
+	ClipboardEncoding    string        `json:"clipboardEncoding"`
+	Cursor               string        `json:"cursor"`
+	ColorDepth           string        `json:"colorDepth"`
+	Sftp                 *SftpResponse `json:"sftp"`
 }
 
 // DatabaseConnectionResponse holds the fields returned inside

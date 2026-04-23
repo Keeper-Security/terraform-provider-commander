@@ -28,19 +28,20 @@ type CommonPamSettingsConnectionResourceModel struct {
 }
 
 // Shared field groups embedded by per-protocol models.
+// ConnectionCommonFields is used by K, D, SSH, Telnet (NOT RDP, VNC).
 type ConnectionCommonFields struct {
 	SessionRecording     types.Bool `tfsdk:"session_recording"`
 	RecordingIncludeKeys types.Bool `tfsdk:"recording_include_keys"`
 	AllowSupplyUser      types.Bool `tfsdk:"allow_supply_user"`
-	ReadOnly             types.Bool `tfsdk:"read_only"`
+	TypescriptRecording  types.Bool `tfsdk:"typescript_recording"`
 }
 
 type ConnectionTerminalFields struct {
-	TypescriptRecording types.Bool   `tfsdk:"typescript_recording"`
-	ColorScheme         types.String `tfsdk:"color_scheme"`
-	FontName            types.String `tfsdk:"font_name"`
-	FontSize            types.Int32  `tfsdk:"font_size"`
-	Scrollback          types.Int32  `tfsdk:"scrollback"`
+	ReadOnly    types.Bool   `tfsdk:"read_only"`
+	ColorScheme types.String `tfsdk:"color_scheme"`
+	FontName    types.String `tfsdk:"font_name"`
+	FontSize    types.Int32  `tfsdk:"font_size"`
+	Scrollback  types.Int32  `tfsdk:"scrollback"`
 }
 
 type ConnectionClipboardFields struct {
@@ -62,6 +63,7 @@ type ConnectionKubernetesModel struct {
 	Pod                 types.String `tfsdk:"pod"`
 	Container           types.String `tfsdk:"container"`
 	Command             types.String `tfsdk:"command"`
+	Backspace           types.String `tfsdk:"backspace"`
 }
 
 // ConnectionDatabaseModel is shared by mysql, postgresql, and sql_server protocols.
@@ -75,7 +77,10 @@ type ConnectionDatabaseModel struct {
 }
 
 type ConnectionRdpModel struct {
-	ConnectionCommonFields
+	SessionRecording     types.Bool `tfsdk:"session_recording"`
+	RecordingIncludeKeys types.Bool `tfsdk:"recording_include_keys"`
+	AllowSupplyUser      types.Bool `tfsdk:"allow_supply_user"`
+	ReadOnly             types.Bool `tfsdk:"read_only"`
 	ConnectionClipboardFields
 	IgnoreCert               types.Bool              `tfsdk:"ignore_cert"`
 	EnableFullWindowDrag     types.Bool              `tfsdk:"enable_full_window_drag"`
@@ -113,10 +118,11 @@ type ConnectionRdpModel struct {
 	Dpi                      types.Int32             `tfsdk:"dpi"`
 	Height                   types.Int32             `tfsdk:"height"`
 	Width                    types.Int32             `tfsdk:"width"`
-	Sftp                     *ConnectionRdpSftpModel `tfsdk:"sftp"`
+	Sftp                     *ConnectionSftpModel `tfsdk:"sftp"`
 }
 
-type ConnectionRdpSftpModel struct {
+// ConnectionSftpModel is the shared SFTP nested block used by RDP and VNC.
+type ConnectionSftpModel struct {
 	EnableSftp              types.Bool   `tfsdk:"enable_sftp"`
 	SftpResourceUid         types.String `tfsdk:"sftp_resource_uid"`
 	SftpUserUid             types.String `tfsdk:"sftp_user_uid"`
@@ -141,8 +147,35 @@ type ConnectionSshSftpModel struct {
 	EnableSftp types.Bool `tfsdk:"enable_sftp"`
 }
 
-type ConnectionTelnetModel struct{}
-type ConnectionVncModel struct{}
+type ConnectionTelnetModel struct {
+	ConnectionCommonFields
+	ConnectionTerminalFields
+	ConnectionClipboardFields
+	UsernameRegex     types.String `tfsdk:"username_regex"`
+	PasswordRegex     types.String `tfsdk:"password_regex"`
+	LoginSuccessRegex types.String `tfsdk:"login_success_regex"`
+	LoginFailureRegex types.String `tfsdk:"login_failure_regex"`
+	Backspace         types.String `tfsdk:"backspace"`
+	TerminalType      types.String `tfsdk:"terminal_type"`
+}
+
+type ConnectionVncModel struct {
+	SessionRecording     types.Bool   `tfsdk:"session_recording"`
+	AllowSupplyUser      types.Bool   `tfsdk:"allow_supply_user"`
+	RecordingIncludeKeys types.Bool   `tfsdk:"recording_include_keys"`
+	ReadOnly             types.Bool   `tfsdk:"read_only"`
+	ConnectionClipboardFields
+	SwapRedBlue       types.Bool           `tfsdk:"swap_red_blue"`
+	ForceLossless     types.Bool           `tfsdk:"force_lossless"`
+	EnableAudio       types.Bool           `tfsdk:"enable_audio"`
+	AudioServername   types.String         `tfsdk:"audio_servername"`
+	DestHost          types.String         `tfsdk:"dest_host"`
+	DestPort          types.Int32          `tfsdk:"dest_port"`
+	ClipboardEncoding types.String         `tfsdk:"clipboard_encoding"`
+	Cursor            types.String         `tfsdk:"cursor"`
+	ColorDepth        types.Int32          `tfsdk:"color_depth"`
+	Sftp              *ConnectionSftpModel `tfsdk:"sftp"`
+}
 
 // This is structure of "portForward" that we get from the API.
 type CommonPamSettingsTunnelResourceModel struct {

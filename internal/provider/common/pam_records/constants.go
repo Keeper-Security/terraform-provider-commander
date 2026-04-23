@@ -126,6 +126,9 @@ const (
 	KubernetesCommandDescription         = "Execute command for the Kubernetes connection."
 	KubernetesCommandMarkdownDescription = "**Execute command** for the Kubernetes connection."
 
+	KubernetesBackspaceDescription         = "ASCII code sent by the backspace key. Must be \"127\" (DEL, default) or \"8\" (Ctrl+H)."
+	KubernetesBackspaceMarkdownDescription = "ASCII code sent by the **backspace** key. Must be `127` (DEL, default) or `8` (Ctrl+H)."
+
 	// --- Database-only Connection Attributes ---
 	DatabaseDisableCsvExportDescription         = "Whether CSV export is disabled for the database connection."
 	DatabaseDisableCsvExportMarkdownDescription = "Whether **CSV export** is disabled for the database connection."
@@ -185,20 +188,21 @@ const (
 	RdpSftpDescription         = "SFTP settings for the RDP connection."
 	RdpSftpMarkdownDescription = "**SFTP** settings for the RDP connection."
 
-	RdpSftpEnableDescription         = "Whether SFTP is enabled for the RDP connection."
-	RdpSftpEnableMarkdownDescription = "Whether **SFTP** is enabled for the RDP connection."
+	// Shared SFTP field descriptions (used by RDP and VNC).
+	SftpEnableDescription         = "Whether SFTP is enabled."
+	SftpEnableMarkdownDescription = "Whether **SFTP** is enabled."
 
-	RdpSftpResourceUidDescription         = "UID of the SFTP resource record."
-	RdpSftpResourceUidMarkdownDescription = "UID of the **SFTP resource** record."
+	SftpResourceUidDescription         = "UID of the SFTP resource record."
+	SftpResourceUidMarkdownDescription = "UID of the **SFTP resource** record."
 
-	RdpSftpUserUidDescription         = "UID of the SFTP user record."
-	RdpSftpUserUidMarkdownDescription = "UID of the **SFTP user** record."
+	SftpUserUidDescription         = "UID of the SFTP user record."
+	SftpUserUidMarkdownDescription = "UID of the **SFTP user** record."
 
-	RdpSftpDirectoryDescription         = "SFTP root directory."
-	RdpSftpDirectoryMarkdownDescription = "**SFTP root directory**."
+	SftpDirectoryDescription         = "SFTP root directory."
+	SftpDirectoryMarkdownDescription = "**SFTP root directory**."
 
-	RdpSftpServerAliveIntervalDescription         = "SFTP server alive interval in seconds."
-	RdpSftpServerAliveIntervalMarkdownDescription = "**SFTP server alive interval** in seconds."
+	SftpServerAliveIntervalDescription         = "SFTP server alive interval in seconds."
+	SftpServerAliveIntervalMarkdownDescription = "**SFTP server alive interval** in seconds."
 
 	RdpConsoleAudioDescription         = "Enable console audio for the RDP connection."
 	RdpConsoleAudioMarkdownDescription = "Enable **console audio** for the RDP connection."
@@ -290,6 +294,56 @@ const (
 
 	SshSftpEnableDescription         = "Whether SFTP is enabled for the SSH connection."
 	SshSftpEnableMarkdownDescription = "Whether **SFTP** is enabled for the SSH connection."
+
+	// --- Telnet-only Connection Attributes ---
+	TelnetUsernameRegexDescription         = "Regular expression to detect the username prompt during Telnet login."
+	TelnetUsernameRegexMarkdownDescription = "Regular expression to detect the **username prompt** during Telnet login."
+
+	TelnetPasswordRegexDescription         = "Regular expression to detect the password prompt during Telnet login."
+	TelnetPasswordRegexMarkdownDescription = "Regular expression to detect the **password prompt** during Telnet login."
+
+	TelnetLoginSuccessRegexDescription         = "Regular expression to detect a successful login during Telnet login."
+	TelnetLoginSuccessRegexMarkdownDescription = "Regular expression to detect a **successful login** during Telnet login."
+
+	TelnetLoginFailureRegexDescription         = "Regular expression to detect a failed login during Telnet login."
+	TelnetLoginFailureRegexMarkdownDescription = "Regular expression to detect a **failed login** during Telnet login."
+
+	TelnetBackspaceDescription         = "ASCII code sent by the backspace key. Must be \"127\" (DEL, default) or \"8\" (Ctrl+H)."
+	TelnetBackspaceMarkdownDescription = "ASCII code sent by the **backspace** key. Must be `127` (DEL, default) or `8` (Ctrl+H)."
+
+	TelnetTerminalTypeDescription         = "Terminal emulator type string for the Telnet session (e.g. xterm, vt100)."
+	TelnetTerminalTypeMarkdownDescription = "**Terminal emulator type** string for the Telnet session (e.g. `xterm`, `vt100`)."
+
+	// --- VNC-only Connection Attributes ---
+	VncSwapRedBlueDescription         = "Swap red and blue color components in the VNC display."
+	VncSwapRedBlueMarkdownDescription = "**Swap red and blue** color components in the VNC display."
+
+	VncForceLosslessDescription         = "Force lossless compression for the VNC connection."
+	VncForceLosslessMarkdownDescription = "Force **lossless compression** for the VNC connection."
+
+	VncEnableAudioDescription         = "Enable audio for the VNC connection."
+	VncEnableAudioMarkdownDescription = "Enable **audio** for the VNC connection."
+
+	VncAudioServernameDescription         = "PulseAudio server name for VNC audio."
+	VncAudioServernameMarkdownDescription = "**PulseAudio server name** for VNC audio."
+
+	VncDestHostDescription         = "Destination host for the VNC connection."
+	VncDestHostMarkdownDescription = "**Destination host** for the VNC connection."
+
+	VncDestPortDescription         = "Destination port for the VNC connection."
+	VncDestPortMarkdownDescription = "**Destination port** for the VNC connection."
+
+	VncClipboardEncodingDescription         = "Clipboard encoding for the VNC connection. Must be one of: UTF-8 (default), UTF-16, ISO8859-1, CP1252."
+	VncClipboardEncodingMarkdownDescription = "**Clipboard encoding** for the VNC connection. Must be one of: `UTF-8` (default), `UTF-16`, `ISO8859-1`, `CP1252`."
+
+	VncCursorDescription         = "Cursor rendering mode for the VNC connection. Must be \"local\" or \"remote\"."
+	VncCursorMarkdownDescription = "**Cursor rendering mode** for the VNC connection. Must be `local` or `remote`."
+
+	VncColorDepthDescription         = "Color depth in bits per pixel for the VNC connection."
+	VncColorDepthMarkdownDescription = "**Color depth** in bits per pixel for the VNC connection."
+
+	VncSftpDescription         = "SFTP settings for the VNC connection."
+	VncSftpMarkdownDescription = "**SFTP** settings for the VNC connection."
 
 	PamSettingsTunnelDescription         = "Tunneling (port-forward) settings for the PAM record."
 	PamSettingsTunnelMarkdownDescription = "**Tunneling** (port-forward) settings for the PAM record."
