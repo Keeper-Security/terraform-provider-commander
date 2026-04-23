@@ -5,6 +5,7 @@ package pammachine
 
 import (
 	"encoding/json"
+	"strconv"
 	"strings"
 
 	commonpamrecords "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/pam_records"
@@ -29,7 +30,9 @@ func MapVaultRecordGetResponseToPamMachineModel(rec *utils.VaultRecordGetRespons
 	}
 	state.Title = setStringOrNull(rec.Title)
 	state.Notes = setStringOrNull(rec.Notes)
-	state.Folder = setStringOrNull(rec.Folder)
+
+	// Currently setting same state value for folder
+	state.Folder = setStringOrNull(state.Folder.ValueString())
 
 	// pamHostname field
 	state.HostnameOrIP = ExtractPamHostnameFieldValue(rec.Fields)
@@ -43,8 +46,7 @@ func MapVaultRecordGetResponseToPamMachineModel(rec *utils.VaultRecordGetRespons
 
 	// TODO: Currently we are not getting --folder data from the API.
 
-	// TODO: map pamSettings when PamSettingsModel fields are defined.
-	state.PamSettings = nil
+	state.PamSettings = commonpamrecords.ExtractPamSettingsFromResponse(rec, state.PamSettings)
 
 	return diags
 }
@@ -61,10 +63,20 @@ func ExtractPamHostnameFieldValue(fields []utils.VaultRecordFieldResponse) *Host
 			return nil
 		}
 		if len(vals) > 0 {
-			return &HostnameOrIPModel{
+			model := &HostnameOrIPModel{
 				HostName: setStringOrNull(vals[0].HostName),
-				Port:     setStringOrNull(vals[0].Port),
 			}
+			portStr := strings.TrimSpace(vals[0].AdministrativePort)
+			if portStr != "" {
+				if parsed, err := strconv.ParseInt(portStr, 10, 32); err == nil {
+				model.AdministrativePort = types.Int32Value(int32(parsed))
+			} else {
+				model.AdministrativePort = types.Int32Null()
+			}
+		} else {
+			model.AdministrativePort = types.Int32Null()
+			}
+			return model
 		}
 	}
 	return nil

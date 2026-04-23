@@ -12,14 +12,14 @@ import (
 // HostnameOrIPModel maps the nested hostname_or_ip object.
 type HostnameOrIPModel struct {
 	HostName types.String `tfsdk:"hostname"`
-	Port     types.String `tfsdk:"port"`
+	AdministrativePort types.Int32 `tfsdk:"administrative_port"`
 }
 
 // PamSettingsModel maps the nested pam_settings object.
 // TODO: define fields when implementing PAM settings.
-type PamSettingsModel struct {
-	commonpamrecords.CommonPamSettingsRotationResourceModel
-}
+// type PamSettingsModel struct {
+// 	commonpamrecords.CommonPamSettingsFieldResourceModel
+// }
 
 // PamMachineResourceModel is the Terraform state for commander_pam_machine.
 type PamMachineResourceModel struct {
@@ -32,5 +32,5 @@ type PamMachineResourceModel struct {
 	ProviderGroup   types.String       `tfsdk:"provider_group"`
 	ProviderRegion  types.String       `tfsdk:"provider_region"`
 
-	PamSettings *PamSettingsModel `tfsdk:"pam_settings"`
+	PamSettings *commonpamrecords.CommonPamSettingsFieldResourceModel `tfsdk:"pam_settings"`
 }

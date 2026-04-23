@@ -40,6 +40,7 @@ func (r *PamMachineResource) Read(ctx context.Context, req resource.ReadRequest,
 		return
 	}
 
+	// Fetch the vault record with DAG.
 	apiResp, err := commonpamrecords.FetchVaultRecord(ctx, r.ApiManager, id)
 	if err != nil {
 		if errors.Is(err, api.ErrResourceNotFound) {
@@ -55,6 +56,7 @@ func (r *PamMachineResource) Read(ctx context.Context, req resource.ReadRequest,
 		return
 	}
 
+	// Unmarshal the API response to the vault record model.
 	var rec utils.VaultRecordGetResponse
 	if err := utils.UnmarshalApiResponse(apiResp.Data, &rec); err != nil {
 		resp.Diagnostics.AddError(ErrSummaryPamMachineReadFailed, err.Error())

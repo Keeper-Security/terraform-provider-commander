@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	commonpammachine "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/pam_machine"
+	commonpamrecords "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/pam_records"
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/utils"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -46,7 +47,12 @@ func (r *PamMachineResource) Create(ctx context.Context, req resource.CreateRequ
 	}
 	data.Id = types.StringValue(createdRecordUID)
 
-	// TODO: Phase 2 – apply PAM settings when pam_settings fields are defined.
+	if data.PamSettings != nil {
+		if err := commonpamrecords.ApplyPamSettings(ctx, r.ApiManager, createdRecordUID, data.PamSettings); err != nil {
+			resp.Diagnostics.AddError(utils.ErrSummaryApplyPamTunnelSettingsFailed, err.Error())
+			return
+		}
+	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }

@@ -6,6 +6,7 @@ package pammachine
 import (
 	"encoding/json"
 	"fmt"
+	"strconv"
 
 	commonpammachine "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/pam_machine"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -15,8 +16,8 @@ func buildHostnameOrIPJSON(h *commonpammachine.HostnameOrIPModel) string {
 	m := map[string]string{
 		"hostName": h.HostName.ValueString(),
 	}
-	if !h.Port.IsNull() && !h.Port.IsUnknown() {
-		m["port"] = h.Port.ValueString()
+	if !h.AdministrativePort.IsNull() && !h.AdministrativePort.IsUnknown() {
+		m["port"] = strconv.FormatInt(int64(h.AdministrativePort.ValueInt32()), 10)
 	} else {
 		m["port"] = ""
 	}
@@ -61,7 +62,7 @@ func hostnameOrIPEqual(a, b *commonpammachine.HostnameOrIPModel) bool {
 	if a == nil || b == nil {
 		return false
 	}
-	return a.HostName.Equal(b.HostName) && a.Port.Equal(b.Port)
+	return a.HostName.Equal(b.HostName) && a.AdministrativePort.Equal(b.AdministrativePort)
 }
 
 func recordUpdateHasMutations(plan, state commonpammachine.PamMachineResourceModel) bool {

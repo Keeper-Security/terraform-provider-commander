@@ -44,11 +44,12 @@ func (r *PamMachineResource) Update(ctx context.Context, req resource.UpdateRequ
 		return
 	}
 
+	// TODO: Commented as we are not getting folder data in read
 	// Move record to destination folder if folder is changed.
-	if err := commonpamrecords.MoveRecordFromSourceToDestination(ctx, r.ApiManager, state.Id.ValueString(), plan.Folder.ValueString()); err != nil {
-		resp.Diagnostics.AddError(utils.ErrSummaryMoveRecordFailed, err.Error())
-		return
-	}
+	// if err := commonpamrecords.MoveRecordFromSourceToDestination(ctx, r.ApiManager, state.Id.ValueString(), plan.Folder.ValueString()); err != nil {
+	// 	resp.Diagnostics.AddError(utils.ErrSummaryMoveRecordFailed, err.Error())
+	// 	return
+	// }
 
 	if recordUpdateHasMutations(plan, state) {
 		cmd := buildUpdatePamMachineRecordCommand(recordUID, plan, state)
@@ -58,7 +59,13 @@ func (r *PamMachineResource) Update(ctx context.Context, req resource.UpdateRequ
 		}
 	}
 
-	// TODO: Phase 2 – apply PAM settings when pam_settings fields are defined.
+	// Phase 2 – apply PAM settings when pam_settings fields are defined.
+	if plan.PamSettings != nil {
+		if err := commonpamrecords.ApplyPamSettings(ctx, r.ApiManager, recordUID, plan.PamSettings); err != nil {
+			resp.Diagnostics.AddError(utils.ErrSummaryApplyPamSettingsFailed, err.Error())
+			return
+		}
+	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }

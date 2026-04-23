@@ -260,13 +260,55 @@ type PamConfigListResponse struct {
 // VaultRecordGetResponse is the JSON payload from `get <record_uid> --format json` for a Keeper vault record.
 // Note: currently we are not getting --folder data from the API.
 type VaultRecordGetResponse struct {
-	RecordUID string                     `json:"record_uid"`
-	Type      string                     `json:"type"`
-	Title     string                     `json:"title"`
-	Notes     string                     `json:"notes"`
-	Folder    string                     `json:"folder,omitempty"`
-	Fields    []VaultRecordFieldResponse `json:"fields"`
-	Custom    []VaultRecordFieldResponse `json:"custom"`
+	RecordUID             string                         `json:"record_uid"`
+	Type                  string                         `json:"type"`
+	Title                 string                         `json:"title"`
+	Notes                 string                         `json:"notes"`
+	Folder                string                         `json:"folder,omitempty"`
+	Fields                []VaultRecordFieldResponse     `json:"fields"`
+	Custom                []VaultRecordFieldResponse     `json:"custom"`
+	PamSettingsEnabled    *PamSettingsEnabledResponse    `json:"pamSettingsEnabled,omitempty"`
+	DagDebug              *DagDebugResponse              `json:"dagDebug,omitempty"`
+	AssociatedCredentials *AssociatedCredentialsResponse `json:"associatedCredentials,omitempty"`
+}
+
+type PamSettingsEnabledResponse struct {
+	Connections            *bool `json:"connections"`
+	Tunneling              *bool `json:"tunneling"`
+	Rotation               *bool `json:"rotation"`
+	SessionRecording       *bool `json:"sessionRecording"`
+	TypescriptRecording    *bool `json:"typescriptRecording"`
+	RemoteBrowserIsolation *bool `json:"remoteBrowserIsolation"`
+}
+
+type DagDebugResponse struct {
+	VertexContent *DagDebugVertexContentResponse `json:"vertex_content,omitempty"`
+	AllEdges      []DagDebugEdgeResponse         `json:"all_edges,omitempty"`
+}
+
+type DagDebugEdgeResponse struct {
+	Type    string `json:"type"`
+	HeadUID string `json:"head_uid"`
+}
+
+type DagDebugVertexContentResponse struct {
+	AllowedSettings     *DagDebugAllowedSettingsResponse `json:"allowedSettings,omitempty"`
+	RotateOnTermination bool                             `json:"rotateOnTermination"`
+}
+
+type DagDebugAllowedSettingsResponse struct {
+	PortForwards        bool `json:"portForwards"`
+	Rotation            bool `json:"rotation"`
+	Connections         bool `json:"connections"`
+	SessionRecording    bool `json:"sessionRecording"`
+	TypescriptRecording bool `json:"typescriptRecording"`
+	AiEnabled           bool `json:"aiEnabled"`
+	AiSessionTerminate  bool `json:"aiSessionTerminate"`
+}
+
+type AssociatedCredentialsResponse struct {
+	AdminCredential  *string `json:"adminCredential"`
+	LaunchCredential *string `json:"launchCredential"`
 }
 
 // VaultRecordFieldResponse is one typed field entry inside a vault record (get --format json).
@@ -277,10 +319,161 @@ type VaultRecordFieldResponse struct {
 	Required bool            `json:"required"`
 }
 
+// PamSettingsFieldValueResponse is one element of the pamSettings field value array from `get <uid> --format json`.
+// The fields array contains an entry with type "pamSettings" whose value is a JSON array;
+// the first element carries the settings object.
+type PamSettingsFieldValueResponse struct {
+	AllowSupplyHost bool                           `json:"allowSupplyHost"`
+	PortForward     *PamSettingsPortForwardResponse `json:"portForward,omitempty"`
+	Connection      json.RawMessage                `json:"connection,omitempty"`
+}
+
+// PamSettingsConnectionBaseResponse is used for a first-pass unmarshal to
+// peek at the "protocol" field before unmarshaling into the correct
+// per-protocol struct.
+type PamSettingsConnectionBaseResponse struct {
+	Protocol string `json:"protocol"`
+	Port     string `json:"port"`
+}
+
+// KubernetesConnectionResponse holds the kubernetes-specific fields
+// returned inside pamSettings.value[0].connection when protocol is "kubernetes".
+type KubernetesConnectionResponse struct {
+	Protocol             string `json:"protocol"`
+	Port                 string `json:"port"`
+	RecordingIncludeKeys *bool  `json:"recordingIncludeKeys"`
+	AllowSupplyUser      *bool  `json:"allowSupplyUser"`
+	UseSSL               *bool  `json:"useSSL"`
+	IgnoreCert           *bool  `json:"ignoreCert"`
+	CaCert               string `json:"caCert"`
+	ClientCert           string `json:"clientCert"`
+	ClientKey            string `json:"clientKey"`
+	Namespace            string `json:"namespace"`
+	Pod                  string `json:"pod"`
+	Container            string `json:"container"`
+	Command              string `json:"command"`
+	ColorScheme          string `json:"colorScheme"`
+	FontName             string `json:"fontName"`
+	FontSize             string `json:"fontSize"`
+	Scrollback           int    `json:"scrollback"`
+	ReadOnly             *bool  `json:"readOnly"`
+}
+
+// RdpConnectionResponse holds the fields returned inside
+// pamSettings.value[0].connection when protocol is "rdp".
+type RdpConnectionResponse struct {
+	Protocol                 string           `json:"protocol"`
+	Port                     string           `json:"port"`
+	AllowSupplyUser          *bool            `json:"allowSupplyUser"`
+	RecordingIncludeKeys     *bool            `json:"recordingIncludeKeys"`
+	EnableFullWindowDrag     *bool            `json:"enableFullWindowDrag"`
+	EnableWallpaper          *bool            `json:"enableWallpaper"`
+	IgnoreCert               *bool            `json:"ignoreCert"`
+	NormalizeClipboard       string           `json:"normalizeClipboard"`
+	Security                 string           `json:"security"`
+	EnableTheming            *bool            `json:"enableTheming"`
+	EnableFontSmoothing      *bool            `json:"enableFontSmoothing"`
+	EnableDesktopComposition *bool            `json:"enableDesktopComposition"`
+	EnableMenuAnimations     *bool            `json:"enableMenuAnimations"`
+	DisableBitmapCaching     *bool            `json:"disableBitmapCaching"`
+	DisableOffscreenCaching  *bool            `json:"disableOffscreenCaching"`
+	DisableGlyphCaching      *bool            `json:"disableGlyphCaching"`
+	LoadBalanceInfo          string           `json:"loadBalanceInfo"`
+	PreconnectionId          string           `json:"preconnectionId"`
+	PreconnectionBlob        string           `json:"preconnectionBlob"`
+	Sftp                     *RdpSftpResponse `json:"sftp"`
+	ConsoleAudio             *bool            `json:"consoleAudio"`
+	DisableAudio             *bool            `json:"disableAudio"`
+	EnableAudioInput         *bool            `json:"enableAudioInput"`
+	EnablePrinting           *bool            `json:"enablePrinting"`
+	RedirectedPrinterName    string           `json:"redirectedPrinterName"`
+	RemoteApp                string           `json:"remoteApp"`
+	RemoteAppDir             string           `json:"remoteAppDir"`
+	RemoteAppArgs            string           `json:"remoteAppArgs"`
+	ForceLossless            *bool            `json:"forceLossless"`
+	ReadOnly                 *bool            `json:"readOnly"`
+	Dpi                      int              `json:"dpi"`
+	Height                   int              `json:"height"`
+	Width                    int              `json:"width"`
+	EnableTouch              *bool            `json:"enableTouch"`
+	Console                  *bool            `json:"console"`
+	Timezone                 string           `json:"timezone"`
+	ClientName               string           `json:"clientName"`
+	InitialProgram           string           `json:"initialProgram"`
+	DisableAuth              *bool            `json:"disableAuth"`
+	ResizeMethod             string           `json:"resizeMethod"`
+	ColorDepth               int              `json:"colorDepth"`
+	ServerLayout             string           `json:"serverLayout"`
+	DisableCopy              *bool            `json:"disableCopy"`
+	DisablePaste             *bool            `json:"disablePaste"`
+}
+
+type RdpSftpResponse struct {
+	EnableSftp              *bool  `json:"enableSftp"`
+	SftpResourceUid         string `json:"sftpResourceUid"`
+	SftpUserUid             string `json:"sftpUserUid"`
+	SftpDirectory           string `json:"sftpDirectory"`
+	SftpServerAliveInterval int    `json:"sftpServerAliveInterval"`
+}
+
+// SshConnectionResponse holds the fields returned inside
+// pamSettings.value[0].connection when protocol is "ssh".
+type SshConnectionResponse struct {
+	Protocol             string           `json:"protocol"`
+	Port                 string           `json:"port"`
+	AllowSupplyUser      *bool            `json:"allowSupplyUser"`
+	RecordingIncludeKeys *bool            `json:"recordingIncludeKeys"`
+	ReadOnly             *bool            `json:"readOnly"`
+	DisableCopy          *bool            `json:"disableCopy"`
+	DisablePaste         *bool            `json:"disablePaste"`
+	ColorScheme          string           `json:"colorScheme"`
+	FontName             string           `json:"fontName"`
+	FontSize             string           `json:"fontSize"`
+	Scrollback           int              `json:"scrollback"`
+	HostKey              string           `json:"hostKey"`
+	Command              string           `json:"command"`
+	Locale               string           `json:"locale"`
+	Timezone             string           `json:"timezone"`
+	ServerAliveInterval  int              `json:"serverAliveInterval"`
+	Backspace            string           `json:"backspace"`
+	TerminalType         string           `json:"terminalType"`
+	Sftp                 *SshSftpResponse `json:"sftp"`
+}
+
+type SshSftpResponse struct {
+	EnableSftp *bool `json:"enableSftp"`
+}
+
+// DatabaseConnectionResponse holds the fields returned inside
+// pamSettings.value[0].connection for mysql, postgresql, and sql-server protocols.
+type DatabaseConnectionResponse struct {
+	Protocol             string `json:"protocol"`
+	Port                 string `json:"port"`
+	AllowSupplyUser      *bool  `json:"allowSupplyUser"`
+	RecordingIncludeKeys *bool  `json:"recordingIncludeKeys"`
+	ReadOnly             *bool  `json:"readOnly"`
+	DisableCopy          *bool  `json:"disableCopy"`
+	DisablePaste         *bool  `json:"disablePaste"`
+	DisableCsvExport     *bool  `json:"disableCsvExport"`
+	DisableCsvImport     *bool  `json:"disableCsvImport"`
+	Database             string `json:"database"`
+	ColorScheme          string `json:"colorScheme"`
+	FontName             string `json:"fontName"`
+	FontSize             string `json:"fontSize"`
+	Scrollback           int    `json:"scrollback"`
+}
+
+type PamSettingsPortForwardResponse struct {
+	Port                  string `json:"port"`
+	ReusePort             *bool  `json:"reusePort"`
+	UseSpecifiedLocalPort *bool  `json:"useSpecifiedLocalPort"`
+	LocalPort             string `json:"localPort"`
+}
+
 // PamHostnameFieldValue is one element of the pamHostname field value array from `get <uid> --format json`.
 type PamRemoteBrowserHostnameFieldResponse struct {
-	HostName string `json:"hostName"`
-	Port     string `json:"port"`
+	HostName           string `json:"hostName"`
+	AdministrativePort string `json:"port"`
 }
 
 // PamRemoteBrowserSettingsFieldConnectionResponse is the API `connection` object inside pamRemoteBrowserSettings.

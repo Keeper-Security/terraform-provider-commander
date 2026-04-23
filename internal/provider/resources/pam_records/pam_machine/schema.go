@@ -7,6 +7,7 @@ import (
 	"context"
 
 	commonpammachine "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/pam_machine"
+	commonpamrecords "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/pam_records"
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/utils"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -49,12 +50,12 @@ func (r *PamMachineResource) Schema(ctx context.Context, req resource.SchemaRequ
 							utils.StringMinLengthValidator("Host Name", 1, false),
 						},
 					},
-					"port": schema.StringAttribute{
+					"administrative_port": schema.Int32Attribute{
 						Optional:            true,
 						Description:         commonpammachine.PortDescription,
 						MarkdownDescription: commonpammachine.PortMarkdownDescription,
-						Validators: []validator.String{
-							utils.StringMinLengthValidator("Port", 1, true),
+						Validators: []validator.Int32{
+							utils.Int32NonNegativeValidator("Administrative Port", true),
 						},
 					},
 				},
@@ -119,7 +120,7 @@ func (r *PamMachineResource) Schema(ctx context.Context, req resource.SchemaRequ
 				Optional:            true,
 				Description:         commonpammachine.PamSettingsDescription,
 				MarkdownDescription: commonpammachine.PamSettingsMarkdownDescription,
-				Attributes:          map[string]schema.Attribute{},
+				Attributes:          commonpamrecords.CommonPamSettingsSchema(),
 			},
 		},
 	}

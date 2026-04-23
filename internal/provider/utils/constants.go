@@ -5,11 +5,13 @@ package utils
 
 // Common Commander CLI commands.
 const (
-	CmdRecordAdd    = "record-add"
-	CmdRecordUpdate = "record-update"
-	CmdRecordDelete = "rm"
-	CmdGetRecord    = "get"
-	CmdMv           = "mv"
+	CmdRecordAdd         = "record-add"
+	CmdRecordUpdate      = "record-update"
+	CmdRecordDelete      = "rm"
+	CmdGetRecord         = "get"
+	CmdMv                = "mv"
+	CmdPamTunnelEdit     = "pam tunnel edit"
+	CmdPamConnectionEdit = "pam connection edit"
 )
 
 // Commander CLI command flags.
@@ -23,6 +25,24 @@ const (
 	FlagFolder     = "--folder"
 	FlagRecordType = "--record-type"
 	FlagRecord     = "--record"
+	FlagIncludeDag = "--include-dag"
+)
+
+// PAM tunnel / connection CLI flags.
+const (
+	FlagConfiguration               = "--configuration"
+	FlagAdminCredential             = "--admin-user"
+	FlagLaunchCredential            = "--launch-user"
+	FlagEnableTunneling             = "--enable-tunneling"
+	FlagDisableTunneling            = "--disable-tunneling"
+	FlagTunnelingOverridePort       = "--tunneling-override-port"
+	FlagRemoveTunnelingOverridePort = "--remove-tunneling-override-port"
+	FlagConnections                 = "--connections"
+	FlagConnectionsRecording        = "--connections-recording"
+	FlagTypescriptRecording         = "--typescript-recording"
+	FlagKeyEvents                   = "--key-events"
+	FlagProtocol                    = "--protocol"
+	FlagPamSettings                 = "pamSettings"
 )
 
 // Commander CLI command flag values.
@@ -48,14 +68,18 @@ const (
 
 // Common Error summaries (first argument to AddError).
 const (
-	ERR_MSG_PROVIDER_CONFIGURATION_ERROR    = "Provider Configuration Error"
-	ERR_MSG_INVALID_IMPORT_ID               = "Invalid Import ID"
-	ErrOpListVaultRecords                   = "Unable to list vault records for validation"
-	ErrSummaryManagedCompanyCannotBeUpdated = "Managed Company Cannot Be Updated"
-	ErrSummarySyncDownFailed                = "Sync Down Failed"
-	ErrSummaryRecordDeleteFailed            = "Record Delete Failed"
-	ErrSummaryFetchVaultRecordFailed        = "Fetch Vault Record Failed"
-	ErrSummaryMoveRecordFailed              = "Move Record Failed"
+	ERR_MSG_PROVIDER_CONFIGURATION_ERROR       = "Provider Configuration Error"
+	ERR_MSG_INVALID_IMPORT_ID                  = "Invalid Import ID"
+	ErrOpListVaultRecords                      = "Unable to list vault records for validation"
+	ErrSummaryManagedCompanyCannotBeUpdated    = "Managed Company Cannot Be Updated"
+	ErrSummarySyncDownFailed                   = "Sync Down Failed"
+	ErrSummaryRecordDeleteFailed               = "Record Delete Failed"
+	ErrSummaryFetchVaultRecordFailed           = "Fetch Vault Record Failed"
+	ErrSummaryMoveRecordFailed                 = "Move Record Failed"
+	ErrSummaryApplyPamSettingsFailed           = "Apply PAM Settings Failed"
+	ErrSummaryApplyPamTunnelSettingsFailed     = "Apply PAM Tunnel Settings Failed"
+	ErrSummaryApplyPamConnectionSettingsFailed     = "Apply PAM Connection Settings Failed"
+	ErrSummaryApplyPamConnectionFieldUpdateFailed = "Apply PAM Connection Field Update Failed"
 )
 
 // Error details operation messages (second argument to ExecuteCommand and AddError; short description for logs).
