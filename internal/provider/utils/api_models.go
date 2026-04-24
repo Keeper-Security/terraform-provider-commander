@@ -258,18 +258,30 @@ type PamConfigListResponse struct {
 }
 
 // VaultRecordGetResponse is the JSON payload from `get <record_uid> --format json` for a Keeper vault record.
-// Note: currently we are not getting --folder data from the API.
 type VaultRecordGetResponse struct {
-	RecordUID             string                         `json:"record_uid"`
-	Type                  string                         `json:"type"`
-	Title                 string                         `json:"title"`
-	Notes                 string                         `json:"notes"`
-	Folder                string                         `json:"folder,omitempty"`
-	Fields                []VaultRecordFieldResponse     `json:"fields"`
-	Custom                []VaultRecordFieldResponse     `json:"custom"`
-	PamSettingsEnabled    *PamSettingsEnabledResponse    `json:"pamSettingsEnabled,omitempty"`
-	DagDebug              *DagDebugResponse              `json:"dagDebug,omitempty"`
-	AssociatedCredentials *AssociatedCredentialsResponse `json:"associatedCredentials,omitempty"`
+	RecordUID                    string                                `json:"record_uid"`
+	Type                         string                                `json:"type"`
+	Title                        string                                `json:"title"`
+	Notes                        string                                `json:"notes"`
+	Fields                       []VaultRecordFieldResponse            `json:"fields"`
+	Custom                       []VaultRecordFieldResponse            `json:"custom"`
+	PamSettingsEnabled           *PamSettingsEnabledResponse           `json:"pamSettingsEnabled,omitempty"`
+	DagDebug                     *DagDebugResponse                     `json:"dagDebug,omitempty"`
+	AssociatedCredentials        *AssociatedCredentialsResponse        `json:"associatedCredentials,omitempty"`
+	Folder                       *RecordFolderResponse                 `json:"folder,omitempty"`
+	PamConfigurationUID          string                                `json:"pam_configuration_uid,omitempty"`
+	ConfigurationAllowedSettings *ConfigurationAllowedSettingsResponse `json:"configuration_allowed_settings,omitempty"`
+}
+
+// ConfigurationAllowedSettingsResponse maps the configuration_allowed_settings object from the API response.
+type ConfigurationAllowedSettingsResponse struct {
+	ConnectionsRecording   bool `json:"connections_recording"`
+	RemoteBrowserIsolation bool `json:"remote_browser_isolation"`
+}
+
+type RecordFolderResponse struct {
+	UID  string `json:"uid"`
+	Path string `json:"path"`
 }
 
 type PamSettingsEnabledResponse struct {

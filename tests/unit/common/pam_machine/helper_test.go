@@ -8,7 +8,9 @@ import (
 	"testing"
 
 	commonpammachine "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/pam_machine"
+	commonpamrecords "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/pam_records"
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/utils"
+	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
 func TestMapVaultRecordGetResponse_BasicFields(t *testing.T) {
@@ -334,6 +336,158 @@ func TestExtractPamHostnameFieldValue_EmptyArray(t *testing.T) {
 	model := commonpammachine.ExtractPamHostnameFieldValue(fields)
 	if model != nil {
 		t.Error("expected nil model for empty array")
+	}
+}
+
+func TestMapVaultRecordGetResponse_FolderFromResponse_StateMatchesUID(t *testing.T) {
+	rec := &utils.VaultRecordGetResponse{
+		RecordUID: "uid-folder",
+		Title:     "Folder Test",
+		Folder: &utils.RecordFolderResponse{
+			UID:  "folder-uid-123",
+			Path: "Test/My Folder",
+		},
+	}
+	var state commonpammachine.PamMachineResourceModel
+	state.Folder = types.StringValue("folder-uid-123")
+	diags := commonpammachine.MapVaultRecordGetResponseToPamMachineModel(rec, &state)
+	if diags.HasError() {
+		t.Fatalf("unexpected errors: %v", diags)
+	}
+	if state.Folder.ValueString() != "folder-uid-123" {
+		t.Errorf("expected folder folder-uid-123 (preserved), got %s", state.Folder.ValueString())
+	}
+}
+
+func TestMapVaultRecordGetResponse_FolderFromResponse_StateMatchesPath(t *testing.T) {
+	rec := &utils.VaultRecordGetResponse{
+		RecordUID: "uid-folder2",
+		Title:     "Folder Path Test",
+		Folder: &utils.RecordFolderResponse{
+			UID:  "folder-uid-456",
+			Path: "Test/My Folder",
+		},
+	}
+	var state commonpammachine.PamMachineResourceModel
+	state.Folder = types.StringValue("Test/My Folder")
+	diags := commonpammachine.MapVaultRecordGetResponseToPamMachineModel(rec, &state)
+	if diags.HasError() {
+		t.Fatalf("unexpected errors: %v", diags)
+	}
+	if state.Folder.ValueString() != "Test/My Folder" {
+		t.Errorf("expected folder Test/My Folder (preserved), got %s", state.Folder.ValueString())
+	}
+}
+
+func TestMapVaultRecordGetResponse_FolderFromResponse_StateDoesNotMatch(t *testing.T) {
+	rec := &utils.VaultRecordGetResponse{
+		RecordUID: "uid-folder3",
+		Title:     "Folder Mismatch",
+		Folder: &utils.RecordFolderResponse{
+			UID:  "folder-uid-789",
+			Path: "Test/Other Folder",
+		},
+	}
+	var state commonpammachine.PamMachineResourceModel
+	state.Folder = types.StringValue("old-folder-uid")
+	diags := commonpammachine.MapVaultRecordGetResponseToPamMachineModel(rec, &state)
+	if diags.HasError() {
+		t.Fatalf("unexpected errors: %v", diags)
+	}
+	if state.Folder.ValueString() != "folder-uid-789" {
+		t.Errorf("expected folder folder-uid-789 (from response UID), got %s", state.Folder.ValueString())
+	}
+}
+
+func TestMapVaultRecordGetResponse_FolderNilInResponse(t *testing.T) {
+	rec := &utils.VaultRecordGetResponse{
+		RecordUID: "uid-nofolder",
+		Title:     "No Folder",
+	}
+	var state commonpammachine.PamMachineResourceModel
+	state.Folder = types.StringValue("some-folder")
+	diags := commonpammachine.MapVaultRecordGetResponseToPamMachineModel(rec, &state)
+	if diags.HasError() {
+		t.Fatalf("unexpected errors: %v", diags)
+	}
+	if !state.Folder.IsNull() {
+		t.Error("expected null folder when API response has no folder")
+	}
+}
+
+func TestExtractFolderValue_NilFolder(t *testing.T) {
+	result := commonpamrecords.ExtractFolderValue(nil, types.StringValue("any"))
+	if !result.IsNull() {
+		t.Error("expected null for nil folder response")
+	}
+}
+
+func TestExtractFolderValue_EmptyUIDAndPath(t *testing.T) {
+	folder := &utils.RecordFolderResponse{UID: "", Path: "  "}
+	result := commonpamrecords.ExtractFolderValue(folder, types.StringValue("any"))
+	if !result.IsNull() {
+		t.Error("expected null for empty UID and whitespace path")
+	}
+}
+
+func TestExtractFolderValue_StateMatchesUID(t *testing.T) {
+	folder := &utils.RecordFolderResponse{UID: "abc-123", Path: "Prod/Servers"}
+	state := types.StringValue("abc-123")
+	result := commonpamrecords.ExtractFolderValue(folder, state)
+	if result.ValueString() != "abc-123" {
+		t.Errorf("expected abc-123 (preserved), got %s", result.ValueString())
+	}
+}
+
+func TestExtractFolderValue_StateMatchesPath(t *testing.T) {
+	folder := &utils.RecordFolderResponse{UID: "abc-123", Path: "Prod/Servers"}
+	state := types.StringValue("Prod/Servers")
+	result := commonpamrecords.ExtractFolderValue(folder, state)
+	if result.ValueString() != "Prod/Servers" {
+		t.Errorf("expected Prod/Servers (preserved), got %s", result.ValueString())
+	}
+}
+
+func TestExtractFolderValue_StateDoesNotMatch(t *testing.T) {
+	folder := &utils.RecordFolderResponse{UID: "abc-123", Path: "Prod/Servers"}
+	state := types.StringValue("old-uid")
+	result := commonpamrecords.ExtractFolderValue(folder, state)
+	if result.ValueString() != "abc-123" {
+		t.Errorf("expected abc-123 (UID fallback), got %s", result.ValueString())
+	}
+}
+
+func TestExtractFolderValue_NullState(t *testing.T) {
+	folder := &utils.RecordFolderResponse{UID: "abc-123", Path: "Prod/Servers"}
+	result := commonpamrecords.ExtractFolderValue(folder, types.StringNull())
+	if result.ValueString() != "abc-123" {
+		t.Errorf("expected abc-123 (UID, null state), got %s", result.ValueString())
+	}
+}
+
+func TestExtractFolderValue_UnknownState(t *testing.T) {
+	folder := &utils.RecordFolderResponse{UID: "abc-123", Path: "Prod/Servers"}
+	result := commonpamrecords.ExtractFolderValue(folder, types.StringUnknown())
+	if result.ValueString() != "abc-123" {
+		t.Errorf("expected abc-123 (UID, unknown state), got %s", result.ValueString())
+	}
+}
+
+func TestExtractFolderValue_StateMatchesPathWithSpacesAroundSlash(t *testing.T) {
+	folder := &utils.RecordFolderResponse{UID: "abc-123", Path: "Test/My Folder"}
+	state := types.StringValue("Test / My Folder")
+	result := commonpamrecords.ExtractFolderValue(folder, state)
+	if result.ValueString() != "Test / My Folder" {
+		t.Errorf("expected Test / My Folder (preserved), got %s", result.ValueString())
+	}
+}
+
+func TestExtractFolderValue_StateMatchesNestedPathWithSpaces(t *testing.T) {
+	folder := &utils.RecordFolderResponse{UID: "abc-123", Path: "Prod/PAM/Servers"}
+	state := types.StringValue("Prod / PAM / Servers")
+	result := commonpamrecords.ExtractFolderValue(folder, state)
+	if result.ValueString() != "Prod / PAM / Servers" {
+		t.Errorf("expected Prod / PAM / Servers (preserved), got %s", result.ValueString())
 	}
 }
 

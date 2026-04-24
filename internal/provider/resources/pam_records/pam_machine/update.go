@@ -44,13 +44,13 @@ func (r *PamMachineResource) Update(ctx context.Context, req resource.UpdateRequ
 		return
 	}
 
-	// TODO: Commented as we are not getting folder data in read
-	// Move record to destination folder if folder is changed.
-	// if err := commonpamrecords.MoveRecordFromSourceToDestination(ctx, r.ApiManager, state.Id.ValueString(), plan.Folder.ValueString()); err != nil {
-	// 	resp.Diagnostics.AddError(utils.ErrSummaryMoveRecordFailed, err.Error())
-	// 	return
-	// }
+	// Phase 0: Move record to destination folder if folder is changed.
+	if err := commonpamrecords.MoveRecordFromSourceToDestination(ctx, r.ApiManager, state.Id.ValueString(), plan.Folder.ValueString()); err != nil {
+		resp.Diagnostics.AddError(utils.ErrSummaryMoveRecordFailed, err.Error())
+		return
+	}
 
+	// Phase 1: record fields.
 	if recordUpdateHasMutations(plan, state) {
 		cmd := buildUpdatePamMachineRecordCommand(recordUID, plan, state)
 		if _, err := r.ApiManager.ExecuteCommand(ctx, cmd, ErrDetailPamMachineRecordUpdateFailed); err != nil {

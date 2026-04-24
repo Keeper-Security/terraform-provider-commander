@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"strings"
 
+	commonpamrecords "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/pam_records"
 	commonpamremotebrowser "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/pam_remote_browser"
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/utils"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
@@ -38,8 +39,8 @@ func (d *PamRemoteBrowserDataSource) Read(ctx context.Context, req datasource.Re
 		return
 	}
 
-	command := fmt.Sprintf("%s '%s' %s", utils.CmdGetRecord, recordUID, utils.FlagFormatJSON)
-	apiResp, err := d.ApiManager.ExecuteCommand(ctx, command, errDetailReadPamRemoteBrowserDataSource)
+	// Fetch the vault record with DAG.
+	apiResp, err := commonpamrecords.FetchVaultRecord(ctx, d.ApiManager, recordUID)
 	if err != nil {
 		resp.Diagnostics.AddError(errSummaryReadPamRemoteBrowserDataSource, err.Error())
 		return

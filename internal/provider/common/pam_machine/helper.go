@@ -31,8 +31,7 @@ func MapVaultRecordGetResponseToPamMachineModel(rec *utils.VaultRecordGetRespons
 	state.Title = setStringOrNull(rec.Title)
 	state.Notes = setStringOrNull(rec.Notes)
 
-	// Currently setting same state value for folder
-	state.Folder = setStringOrNull(state.Folder.ValueString())
+	state.Folder = commonpamrecords.ExtractFolderValue(rec.Folder, state.Folder)
 
 	// pamHostname field
 	state.HostnameOrIP = ExtractPamHostnameFieldValue(rec.Fields)
@@ -43,8 +42,6 @@ func MapVaultRecordGetResponseToPamMachineModel(rec *utils.VaultRecordGetRespons
 	state.InstanceId = setStringOrNull(commonpamrecords.ExtractFirstTextFieldValue(rec.Fields, "instanceId"))
 	state.ProviderGroup = setStringOrNull(commonpamrecords.ExtractFirstTextFieldValue(rec.Fields, "providerGroup"))
 	state.ProviderRegion = setStringOrNull(commonpamrecords.ExtractFirstTextFieldValue(rec.Fields, "providerRegion"))
-
-	// TODO: Currently we are not getting --folder data from the API.
 
 	state.PamSettings = commonpamrecords.ExtractPamSettingsFromResponse(rec, state.PamSettings)
 

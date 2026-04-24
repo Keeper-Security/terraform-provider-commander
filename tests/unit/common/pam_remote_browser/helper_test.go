@@ -54,7 +54,6 @@ func TestMapVaultRecordGetResponse_EmptyFields(t *testing.T) {
 		RecordUID: "  ",
 		Title:     "  ",
 		Notes:     "  ",
-		Folder:    "  ",
 		Fields:    nil,
 	}
 
@@ -146,13 +145,141 @@ func TestMapVaultRecordGetResponse_WithSettings(t *testing.T) {
 	if s.AutoFillTargets.IsNull() {
 		t.Error("expected non-null auto_fill_targets")
 	}
+
+	if !s.Configuration.IsNull() {
+		t.Error("expected null configuration when pam_configuration_uid not in response")
+	}
+	if !s.RemoteBrowserIsolation.IsNull() {
+		t.Error("expected null remote_browser_isolation when configuration_allowed_settings not in response")
+	}
+	if !s.ConnectionsRecording.IsNull() {
+		t.Error("expected null connections_recording when configuration_allowed_settings not in response")
+	}
+}
+
+func TestMapVaultRecordGetResponse_WithConfigurationAndAllowedSettings(t *testing.T) {
+	settingsJSON := `[{"connection":{"recordingIncludeKeys":false,"allowUrlManipulation":false,"ignoreInitialSslCert":false,"disableCopy":false,"disablePaste":false,"disableAudio":false}}]`
+
+	rec := &utils.VaultRecordGetResponse{
+		RecordUID:           "uid-cfg",
+		Type:                "pamRemoteBrowser",
+		Title:               "Config Test",
+		PamConfigurationUID: "08OV7gNVRky9BtStSsBGEw",
+		ConfigurationAllowedSettings: &utils.ConfigurationAllowedSettingsResponse{
+			ConnectionsRecording:   true,
+			RemoteBrowserIsolation: true,
+		},
+		Fields: []utils.VaultRecordFieldResponse{
+			{
+				Type:  "rbiUrl",
+				Value: json.RawMessage(`["https://example.com"]`),
+			},
+			{
+				Type:  "pamRemoteBrowserSettings",
+				Value: json.RawMessage(settingsJSON),
+			},
+		},
+	}
+
+	var state commonpamremotebrowser.PamRemoteBrowserResourceModel
+	diags := commonpamremotebrowser.MapVaultRecordGetResponseToPamRemoteBrowserModel(context.Background(), rec, &state)
+	if diags.HasError() {
+		t.Fatalf("unexpected errors: %v", diags)
+	}
+
+	if state.PamRemoteBrowserSettings == nil {
+		t.Fatal("expected non-nil settings")
+	}
+	s := state.PamRemoteBrowserSettings
+
+	if s.Configuration.ValueString() != "08OV7gNVRky9BtStSsBGEw" {
+		t.Errorf("expected configuration 08OV7gNVRky9BtStSsBGEw, got %s", s.Configuration.ValueString())
+	}
+	if s.RemoteBrowserIsolation.ValueBool() != true {
+		t.Error("expected remote_browser_isolation true")
+	}
+	if s.ConnectionsRecording.ValueBool() != true {
+		t.Error("expected connections_recording true")
+	}
+}
+
+func TestMapVaultRecordGetResponse_ConfigAllowedSettingsFalse(t *testing.T) {
+	settingsJSON := `[{"connection":{"disableCopy":false,"disablePaste":false,"disableAudio":false}}]`
+
+	rec := &utils.VaultRecordGetResponse{
+		RecordUID:           "uid-cfg-false",
+		Type:                "pamRemoteBrowser",
+		Title:               "Config False Test",
+		PamConfigurationUID: "some-uid",
+		ConfigurationAllowedSettings: &utils.ConfigurationAllowedSettingsResponse{
+			ConnectionsRecording:   false,
+			RemoteBrowserIsolation: false,
+		},
+		Fields: []utils.VaultRecordFieldResponse{
+			{
+				Type:  "pamRemoteBrowserSettings",
+				Value: json.RawMessage(settingsJSON),
+			},
+		},
+	}
+
+	var state commonpamremotebrowser.PamRemoteBrowserResourceModel
+	diags := commonpamremotebrowser.MapVaultRecordGetResponseToPamRemoteBrowserModel(context.Background(), rec, &state)
+	if diags.HasError() {
+		t.Fatalf("unexpected errors: %v", diags)
+	}
+
+	s := state.PamRemoteBrowserSettings
+	if s == nil {
+		t.Fatal("expected non-nil settings")
+	}
+	if s.RemoteBrowserIsolation.ValueBool() != false {
+		t.Error("expected remote_browser_isolation false")
+	}
+	if s.ConnectionsRecording.ValueBool() != false {
+		t.Error("expected connections_recording false")
+	}
+}
+
+func TestMapVaultRecordGetResponse_EmptyPamConfigurationUID(t *testing.T) {
+	settingsJSON := `[{"connection":{"disableCopy":false,"disablePaste":false,"disableAudio":false}}]`
+
+	rec := &utils.VaultRecordGetResponse{
+		RecordUID:           "uid-empty-cfg",
+		Type:                "pamRemoteBrowser",
+		Title:               "Empty Config UID",
+		PamConfigurationUID: "",
+		Fields: []utils.VaultRecordFieldResponse{
+			{
+				Type:  "pamRemoteBrowserSettings",
+				Value: json.RawMessage(settingsJSON),
+			},
+		},
+	}
+
+	var state commonpamremotebrowser.PamRemoteBrowserResourceModel
+	diags := commonpamremotebrowser.MapVaultRecordGetResponseToPamRemoteBrowserModel(context.Background(), rec, &state)
+	if diags.HasError() {
+		t.Fatalf("unexpected errors: %v", diags)
+	}
+
+	s := state.PamRemoteBrowserSettings
+	if s == nil {
+		t.Fatal("expected non-nil settings")
+	}
+	if !s.Configuration.IsNull() {
+		t.Error("expected null configuration for empty pam_configuration_uid")
+	}
 }
 
 func TestMapVaultRecordGetResponse_WithFolder(t *testing.T) {
 	rec := &utils.VaultRecordGetResponse{
 		RecordUID: "uid-789",
 		Title:     "Folder Test",
-		Folder:    "my-folder",
+		Folder: &utils.RecordFolderResponse{
+			UID:  "my-folder",
+			Path: "Test/My Folder",
+		},
 		Fields: []utils.VaultRecordFieldResponse{
 			{
 				Type:  "rbiUrl",
