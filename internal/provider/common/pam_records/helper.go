@@ -181,9 +181,47 @@ func parseStringToInt32(s string) types.Int32 {
 	return types.Int32Value(int32(parsed))
 }
 
+// normalizeConnectionJSON converts bare numeric JSON values to quoted strings
+// for fields that Go response structs declare as string but the API may return
+// as numbers (e.g. port, destPort, colorDepth, fontSize).
+func normalizeConnectionJSON(raw json.RawMessage) json.RawMessage {
+	var obj map[string]json.RawMessage
+	if err := json.Unmarshal(raw, &obj); err != nil {
+		return raw
+	}
+
+	stringFields := map[string]bool{
+		"port": true, "destPort": true, "colorDepth": true, "fontSize": true,
+	}
+
+	changed := false
+	for key, val := range obj {
+		if !stringFields[key] {
+			continue
+		}
+		trimmed := strings.TrimSpace(string(val))
+		if len(trimmed) > 0 && trimmed[0] >= '0' && trimmed[0] <= '9' {
+			obj[key] = json.RawMessage(`"` + trimmed + `"`)
+			changed = true
+		}
+	}
+
+	if !changed {
+		return raw
+	}
+
+	result, err := json.Marshal(obj)
+	if err != nil {
+		return raw
+	}
+	return result
+}
+
 // unmarshalConnectionByProtocol performs a two-pass unmarshal on the raw
 // connection JSON. First it peeks at the "protocol" field, then unmarshals
 // into the correct per-protocol struct.
+// The raw JSON is normalized before unmarshaling to handle numeric values
+// that should be strings (e.g. port, destPort, colorDepth, fontSize).
 // Returns the protocol string, the base response (for shared fields like port),
 // and the typed per-protocol struct as an interface{}.
 func unmarshalConnectionByProtocol(raw json.RawMessage) (string, *utils.PamSettingsConnectionBaseResponse, interface{}) {
@@ -191,45 +229,47 @@ func unmarshalConnectionByProtocol(raw json.RawMessage) (string, *utils.PamSetti
 		return "", nil, nil
 	}
 
+	normalized := normalizeConnectionJSON(raw)
+
 	var base utils.PamSettingsConnectionBaseResponse
-	if err := json.Unmarshal(raw, &base); err != nil {
+	if err := json.Unmarshal(normalized, &base); err != nil {
 		return "", nil, nil
 	}
 
 	switch base.Protocol {
 	case ConnectionProtocolKubernetes:
 		var k8s utils.KubernetesConnectionResponse
-		if err := json.Unmarshal(raw, &k8s); err != nil {
+		if err := json.Unmarshal(normalized, &k8s); err != nil {
 			return base.Protocol, &base, nil
 		}
 		return base.Protocol, &base, &k8s
 	case ConnectionProtocolMysql, ConnectionProtocolPostgreSql, ConnectionProtocolSqlServer:
 		var db utils.DatabaseConnectionResponse
-		if err := json.Unmarshal(raw, &db); err != nil {
+		if err := json.Unmarshal(normalized, &db); err != nil {
 			return base.Protocol, &base, nil
 		}
 		return base.Protocol, &base, &db
 	case ConnectionProtocolRdp:
 		var rdp utils.RdpConnectionResponse
-		if err := json.Unmarshal(raw, &rdp); err != nil {
+		if err := json.Unmarshal(normalized, &rdp); err != nil {
 			return base.Protocol, &base, nil
 		}
 		return base.Protocol, &base, &rdp
 	case ConnectionProtocolSsh:
 		var ssh utils.SshConnectionResponse
-		if err := json.Unmarshal(raw, &ssh); err != nil {
+		if err := json.Unmarshal(normalized, &ssh); err != nil {
 			return base.Protocol, &base, nil
 		}
 		return base.Protocol, &base, &ssh
 	case ConnectionProtocolTelnet:
 		var telnet utils.TelnetConnectionResponse
-		if err := json.Unmarshal(raw, &telnet); err != nil {
+		if err := json.Unmarshal(normalized, &telnet); err != nil {
 			return base.Protocol, &base, nil
 		}
 		return base.Protocol, &base, &telnet
 	case ConnectionProtocolVnc:
 		var vnc utils.VncConnectionResponse
-		if err := json.Unmarshal(raw, &vnc); err != nil {
+		if err := json.Unmarshal(normalized, &vnc); err != nil {
 			return base.Protocol, &base, nil
 		}
 		return base.Protocol, &base, &vnc
@@ -262,6 +302,10 @@ func extractConnectionFromResponse(
 
 	if hasConnectionEnabled {
 		conn.Enable = types.BoolValue(*pamEnabled.Connections)
+	} else if hasConnectionData {
+		conn.Enable = types.BoolValue(true)
+	} else {
+		conn.Enable = types.BoolValue(false)
 	}
 
 	if creds != nil && creds.LaunchCredential != nil && strings.TrimSpace(*creds.LaunchCredential) != "" {
