@@ -337,5 +337,5 @@ func TestExtractPamHostnameFieldValue_EmptyArray(t *testing.T) {
 	}
 }
 
-func boolPtr(v bool) *bool   { return &v }
+func boolPtr(v bool) *bool    { return &v }
 func strPtr(v string) *string { return &v }

@@ -63,17 +63,17 @@ func newPlanStateValues(
 		hostVal = tftypes.NewValue(hostObjType, hostnameOrIP)
 	}
 	return map[string]tftypes.Value{
-		"id":                tftypes.NewValue(tftypes.String, id),
-		"title":             tftypes.NewValue(tftypes.String, title),
-		"hostname_or_ip":    hostVal,
-		"operating_system":  tftypes.NewValue(tftypes.String, operatingSystem),
-		"instance_name":     tftypes.NewValue(tftypes.String, instanceName),
-		"instance_id":       tftypes.NewValue(tftypes.String, instanceId),
-		"provider_group":    tftypes.NewValue(tftypes.String, providerGroup),
-		"provider_region":   tftypes.NewValue(tftypes.String, providerRegion),
-		"notes":             tftypes.NewValue(tftypes.String, notes),
-		"folder":            tftypes.NewValue(tftypes.String, folder),
-		"pam_settings":      tftypes.NewValue(tftypes.DynamicPseudoType, nil),
+		"id":               tftypes.NewValue(tftypes.String, id),
+		"title":            tftypes.NewValue(tftypes.String, title),
+		"hostname_or_ip":   hostVal,
+		"operating_system": tftypes.NewValue(tftypes.String, operatingSystem),
+		"instance_name":    tftypes.NewValue(tftypes.String, instanceName),
+		"instance_id":      tftypes.NewValue(tftypes.String, instanceId),
+		"provider_group":   tftypes.NewValue(tftypes.String, providerGroup),
+		"provider_region":  tftypes.NewValue(tftypes.String, providerRegion),
+		"notes":            tftypes.NewValue(tftypes.String, notes),
+		"folder":           tftypes.NewValue(tftypes.String, folder),
+		"pam_settings":     tftypes.NewValue(tftypes.DynamicPseudoType, nil),
 	}
 }
 
