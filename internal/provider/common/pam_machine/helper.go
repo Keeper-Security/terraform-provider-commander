@@ -69,12 +69,12 @@ func ExtractPamHostnameFieldValue(fields []utils.VaultRecordFieldResponse) *Host
 			portStr := strings.TrimSpace(vals[0].AdministrativePort)
 			if portStr != "" {
 				if parsed, err := strconv.ParseInt(portStr, 10, 32); err == nil {
-				model.AdministrativePort = types.Int32Value(int32(parsed))
+					model.AdministrativePort = types.Int32Value(int32(parsed))
+				} else {
+					model.AdministrativePort = types.Int32Null()
+				}
 			} else {
 				model.AdministrativePort = types.Int32Null()
-			}
-		} else {
-			model.AdministrativePort = types.Int32Null()
 			}
 			return model
 		}

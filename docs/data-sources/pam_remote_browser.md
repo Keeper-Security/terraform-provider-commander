@@ -58,7 +58,7 @@ output "rbi_settings" {
 
 ### Read-Only
 
-- `folder` (String) Folder **UID** or path to store PAM remote browser record. If not provided, the record will be stored in the root path of vault.
+- `folder` (String) Folder **UID** or path to store PAM remote browser record in your Keeper vault. If not provided, the record will be stored in the root path of vault.
 - `id` (String) The PAM remote browser record **UID** assigned by Keeper after create.
 - `notes` (String) Optional **notes** for this PAM remote browser record.
 - `title` (String) **Title** of the PAM remote browser record.

@@ -18,8 +18,8 @@ import (
 
 func (r *PamMachineResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		Description:         "Manages PAM machine record in your Keeper vault.",
-		MarkdownDescription: "Manages **PAM machine** record in your Keeper vault.",
+		Description:         "Creates and manages PAM machine record with pam settings in your Keeper vault.\n\n" + "A PAM Machine record is a type of KeeperPAM resource that represents a workload, such as a Windows or Linux server.\n\n" + "For more information, see the [PAM Machine documentation](https://docs.keeper.io/en/keeperpam/privileged-access-manager/getting-started/pam-resources/pam-machine).",
+		MarkdownDescription: "Creates and manages **PAM machine record with pam settings** in your Keeper vault.\n\n" + "A PAM Machine record is a type of KeeperPAM resource that represents a workload, such as a Windows or Linux server.\n\n" + "For more information, see the [PAM Machine documentation](https://docs.keeper.io/en/keeperpam/privileged-access-manager/getting-started/pam-resources/pam-machine).",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed:            true,
@@ -116,12 +116,9 @@ func (r *PamMachineResource) Schema(ctx context.Context, req resource.SchemaRequ
 					utils.StringMinLengthValidator("Folder", 1, true),
 				},
 			},
-			"pam_settings": schema.SingleNestedAttribute{
-				Optional:            true,
-				Description:         commonpammachine.PamSettingsDescription,
-				MarkdownDescription: commonpammachine.PamSettingsMarkdownDescription,
-				Attributes:          commonpamrecords.CommonPamSettingsSchema(),
-			},
+		},
+		Blocks: map[string]schema.Block{
+			"pam_settings": commonpamrecords.CommonPamSettingsBlock(),
 		},
 	}
 }

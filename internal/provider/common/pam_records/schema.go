@@ -52,12 +52,10 @@ func CommonPamSettingsTunnelSchema() map[string]schema.Attribute {
 	}
 }
 
-// CommonPamSettingsConnectionSchema returns the reusable schema attributes for
-// the connection block inside pam_settings.
-// Protocol is required; each protocol-specific block is optional and only the
-// one matching the selected protocol may be set – enforced by
-// ConnectionProtocolBlockValidator.
-func CommonPamSettingsConnectionSchema() map[string]schema.Attribute {
+// connectionScalarAttributes returns only the scalar attributes for the
+// connection block (enable, protocol, connection_port, launch_credential).
+// Protocol sub-blocks are defined separately in connectionProtocolBlocks().
+func connectionScalarAttributes() map[string]schema.Attribute {
 	return map[string]schema.Attribute{
 		"enable": schema.BoolAttribute{
 			Required:            true,
@@ -88,53 +86,74 @@ func CommonPamSettingsConnectionSchema() map[string]schema.Attribute {
 				utils.StringMinLengthValidator("Launch Credential", 1, true),
 			},
 		},
-		"kubernetes": schema.SingleNestedAttribute{
-			Optional:            true,
+	}
+}
+
+// connectionProtocolBlocks returns the per-protocol SingleNestedBlock entries.
+func connectionProtocolBlocks() map[string]schema.Block {
+	return map[string]schema.Block{
+		"kubernetes": schema.SingleNestedBlock{
 			Description:         PamSettingsConnectionKubernetesDescription,
 			MarkdownDescription: PamSettingsConnectionKubernetesMarkdownDescription,
 			Attributes:          ConnectionKubernetesSchema(),
 		},
-		"mysql": schema.SingleNestedAttribute{
-			Optional:            true,
+		"mysql": schema.SingleNestedBlock{
 			Description:         PamSettingsConnectionMysqlDescription,
 			MarkdownDescription: PamSettingsConnectionMysqlMarkdownDescription,
 			Attributes:          ConnectionDatabaseSchema(),
 		},
-		"postgresql": schema.SingleNestedAttribute{
-			Optional:            true,
+		"postgresql": schema.SingleNestedBlock{
 			Description:         PamSettingsConnectionPostgreSqlDescription,
 			MarkdownDescription: PamSettingsConnectionPostgreSqlMarkdownDescription,
 			Attributes:          ConnectionDatabaseSchema(),
 		},
-		"rdp": schema.SingleNestedAttribute{
-			Optional:            true,
+		"rdp": schema.SingleNestedBlock{
 			Description:         PamSettingsConnectionRdpDescription,
 			MarkdownDescription: PamSettingsConnectionRdpMarkdownDescription,
 			Attributes:          ConnectionRdpSchema(),
+			Blocks: map[string]schema.Block{
+				"sftp": schema.SingleNestedBlock{
+					Description:         RdpSftpDescription,
+					MarkdownDescription: RdpSftpMarkdownDescription,
+					Attributes:          ConnectionSftpSchema(),
+					Validators:          []validator.Object{SftpUserUidRequiredValidator()},
+				},
+			},
 		},
-		"sql_server": schema.SingleNestedAttribute{
-			Optional:            true,
+		"sql_server": schema.SingleNestedBlock{
 			Description:         PamSettingsConnectionSqlServerDescription,
 			MarkdownDescription: PamSettingsConnectionSqlServerMarkdownDescription,
 			Attributes:          ConnectionDatabaseSchema(),
 		},
-		"ssh": schema.SingleNestedAttribute{
-			Optional:            true,
+		"ssh": schema.SingleNestedBlock{
 			Description:         PamSettingsConnectionSshDescription,
 			MarkdownDescription: PamSettingsConnectionSshMarkdownDescription,
 			Attributes:          ConnectionSshSchema(),
+			Blocks: map[string]schema.Block{
+				"sftp": schema.SingleNestedBlock{
+					Description:         SshSftpDescription,
+					MarkdownDescription: SshSftpMarkdownDescription,
+					Attributes:          ConnectionSshSftpSchema(),
+				},
+			},
 		},
-		"telnet": schema.SingleNestedAttribute{
-			Optional:            true,
+		"telnet": schema.SingleNestedBlock{
 			Description:         PamSettingsConnectionTelnetDescription,
 			MarkdownDescription: PamSettingsConnectionTelnetMarkdownDescription,
 			Attributes:          ConnectionTelnetSchema(),
 		},
-		"vnc": schema.SingleNestedAttribute{
-			Optional:            true,
+		"vnc": schema.SingleNestedBlock{
 			Description:         PamSettingsConnectionVncDescription,
 			MarkdownDescription: PamSettingsConnectionVncMarkdownDescription,
 			Attributes:          ConnectionVncSchema(),
+			Blocks: map[string]schema.Block{
+				"sftp": schema.SingleNestedBlock{
+					Description:         VncSftpDescription,
+					MarkdownDescription: VncSftpMarkdownDescription,
+					Attributes:          ConnectionSftpSchema(),
+					Validators:          []validator.Object{SftpUserUidRequiredValidator()},
+				},
+			},
 		},
 	}
 }
@@ -425,13 +444,6 @@ func ConnectionRdpSchema() map[string]schema.Attribute {
 				Description:         RdpPreconnectionBlobDescription,
 				MarkdownDescription: RdpPreconnectionBlobMarkdownDescription,
 			},
-			"sftp": schema.SingleNestedAttribute{
-				Optional:            true,
-				Description:         RdpSftpDescription,
-				MarkdownDescription: RdpSftpMarkdownDescription,
-				Attributes:          ConnectionSftpSchema(),
-				Validators:          []validator.Object{SftpUserUidRequiredValidator()},
-			},
 			"console_audio": schema.BoolAttribute{
 				Optional:            true,
 				Description:         RdpConsoleAudioDescription,
@@ -694,12 +706,6 @@ func ConnectionSshSchema() map[string]schema.Attribute {
 				Description:         SshTerminalTypeDescription,
 				MarkdownDescription: SshTerminalTypeMarkdownDescription,
 			},
-			"sftp": schema.SingleNestedAttribute{
-				Optional:            true,
-				Description:         SshSftpDescription,
-				MarkdownDescription: SshSftpMarkdownDescription,
-				Attributes:          ConnectionSshSftpSchema(),
-			},
 		},
 	)
 }
@@ -847,54 +853,54 @@ func ConnectionVncSchema() map[string]schema.Attribute {
 					utils.Int32OneOfValidator("Color Depth", []int32{8, 16, 24, 32}, true),
 				},
 			},
-			"sftp": schema.SingleNestedAttribute{
-				Optional:            true,
-				Description:         VncSftpDescription,
-				MarkdownDescription: VncSftpMarkdownDescription,
-				Attributes:          ConnectionSftpSchema(),
-				Validators:          []validator.Object{SftpUserUidRequiredValidator()},
-			},
 		},
 	)
 }
 
-// CommonPamSettingsSchema returns the reusable schema attributes for
+// CommonPamSettingsBlock returns the reusable SingleNestedBlock for
 // the pam_settings block used across pamMachine, pamDatabase, pamDirectory, etc.
-func CommonPamSettingsSchema() map[string]schema.Attribute {
-	return map[string]schema.Attribute{
-		"allow_supply_host": schema.BoolAttribute{
-			Optional:            true,
-			Description:         PamSettingsAllowSupplyHostDescription,
-			MarkdownDescription: PamSettingsAllowSupplyHostMarkdownDescription,
-		},
-		"connection": schema.SingleNestedAttribute{
-			Optional:            true,
-			Description:         PamSettingsConnectionDescription,
-			MarkdownDescription: PamSettingsConnectionMarkdownDescription,
-			Attributes:          CommonPamSettingsConnectionSchema(),
-			Validators:          []validator.Object{ConnectionProtocolBlockValidator(), ConnectionFieldsRequireEnabledValidator()},
-		},
-		"tunnel": schema.SingleNestedAttribute{
-			Optional:            true,
-			Description:         PamSettingsTunnelDescription,
-			MarkdownDescription: PamSettingsTunnelMarkdownDescription,
-			Attributes:          CommonPamSettingsTunnelSchema(),
-			Validators:          []validator.Object{TunnelFieldsRequireEnabledValidator()},
-		},
-		"configuration": schema.StringAttribute{
-			Required:            true,
-			Description:         PamSettingsConfigurationDescription,
-			MarkdownDescription: PamSettingsConfigurationMarkdownDescription,
-			Validators: []validator.String{
-				utils.StringMinLengthValidator("Configuration", 1, false),
+// Uses blocks (not attributes) for nested structures so Terraform strictly
+// rejects unknown attribute names.
+func CommonPamSettingsBlock() schema.SingleNestedBlock {
+	return schema.SingleNestedBlock{
+		Description:         PamSettingsDescription,
+		MarkdownDescription: PamSettingsMarkdownDescription,
+		Attributes: map[string]schema.Attribute{
+			"allow_supply_host": schema.BoolAttribute{
+				Optional:            true,
+				Description:         PamSettingsAllowSupplyHostDescription,
+				MarkdownDescription: PamSettingsAllowSupplyHostMarkdownDescription,
+			},
+			"configuration": schema.StringAttribute{
+				Required:            true,
+				Description:         PamSettingsConfigurationDescription,
+				MarkdownDescription: PamSettingsConfigurationMarkdownDescription,
+				Validators: []validator.String{
+					utils.StringMinLengthValidator("Configuration", 1, false),
+				},
+			},
+			"administrative_credentials": schema.StringAttribute{
+				Optional:            true,
+				Description:         PamSettingsAdministrativeCredentialsDescription,
+				MarkdownDescription: PamSettingsAdministrativeCredentialsMarkdownDescription,
+				Validators: []validator.String{
+					utils.StringMinLengthValidator("Administrative Credentials", 1, true),
+				},
 			},
 		},
-		"administrative_credentials": schema.StringAttribute{
-			Optional:            true,
-			Description:         PamSettingsAdministrativeCredentialsDescription,
-			MarkdownDescription: PamSettingsAdministrativeCredentialsMarkdownDescription,
-			Validators: []validator.String{
-				utils.StringMinLengthValidator("Administrative Credentials", 1, true),
+		Blocks: map[string]schema.Block{
+			"connection": schema.SingleNestedBlock{
+				Description:         PamSettingsConnectionDescription,
+				MarkdownDescription: PamSettingsConnectionMarkdownDescription,
+				Attributes:          connectionScalarAttributes(),
+				Blocks:              connectionProtocolBlocks(),
+				Validators:          []validator.Object{ConnectionProtocolBlockValidator(), ConnectionFieldsRequireEnabledValidator()},
+			},
+			"tunnel": schema.SingleNestedBlock{
+				Description:         PamSettingsTunnelDescription,
+				MarkdownDescription: PamSettingsTunnelMarkdownDescription,
+				Attributes:          CommonPamSettingsTunnelSchema(),
+				Validators:          []validator.Object{TunnelFieldsRequireEnabledValidator()},
 			},
 		},
 	}

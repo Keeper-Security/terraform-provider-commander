@@ -11,8 +11,8 @@ import (
 
 // HostnameOrIPModel maps the nested hostname_or_ip object.
 type HostnameOrIPModel struct {
-	HostName types.String `tfsdk:"hostname"`
-	AdministrativePort types.Int32 `tfsdk:"administrative_port"`
+	HostName           types.String `tfsdk:"hostname"`
+	AdministrativePort types.Int32  `tfsdk:"administrative_port"`
 }
 
 // PamSettingsModel maps the nested pam_settings object.

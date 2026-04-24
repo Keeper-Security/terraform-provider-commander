@@ -72,7 +72,7 @@ resource "commander_pam_remote_browser" "intranet_app" {
 
 ### Optional
 
-- `folder` (String) Folder **UID** or path to store PAM remote browser record. If not provided, the record will be stored in the root path of vault.
+- `folder` (String) Folder **UID** or path to store PAM remote browser record in your Keeper vault. If not provided, the record will be stored in the root path of vault.
 - `notes` (String) Optional **notes** for this PAM remote browser record.
 - `pam_remote_browser_settings` (Attributes) PAM **settings** for the PAM remote browser record. (see [below for nested schema](#nestedatt--pam_remote_browser_settings))
 

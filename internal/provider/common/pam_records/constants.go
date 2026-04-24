@@ -3,7 +3,7 @@
 
 package pamrecords
 
-// PAM Settings Connection Protocol
+// PAM Settings Connection Protocol.
 const (
 	ConnectionProtocolKubernetes = "kubernetes"
 	ConnectionProtocolMysql      = "mysql"
@@ -16,7 +16,10 @@ const (
 )
 
 const (
-	// --- PAM Settings ---
+	// --- PAM Settings ---.
+	PamSettingsDescription         = "PAM settings for the record, including connection, tunnel, and administrative options."
+	PamSettingsMarkdownDescription = "**PAM settings** for the record, including connection, tunnel, and administrative options."
+
 	PamSettingsAllowSupplyHostDescription         = "Whether the PAM record allows supplying a host at connection time."
 	PamSettingsAllowSupplyHostMarkdownDescription = "Whether the PAM record allows supplying a host at connection time."
 
@@ -59,7 +62,7 @@ const (
 	PamSettingsConnectionVncDescription         = "VNC protocol-specific connection attributes."
 	PamSettingsConnectionVncMarkdownDescription = "**VNC** protocol-specific connection attributes."
 
-	// --- Shared Connection Attributes (ConnectionCommonFields) ---
+	// --- Shared Connection Attributes (ConnectionCommonFields) ---.
 	ConnectionSessionRecordingDescription         = "Whether session recording is enabled."
 	ConnectionSessionRecordingMarkdownDescription = "Whether **session recording** is enabled."
 
@@ -72,7 +75,7 @@ const (
 	ConnectionReadOnlyDescription         = "Whether the connection is read-only."
 	ConnectionReadOnlyMarkdownDescription = "Whether the connection is **read-only**."
 
-	// --- Shared Terminal Attributes (ConnectionTerminalFields) ---
+	// --- Shared Terminal Attributes (ConnectionTerminalFields) ---.
 	ConnectionTypescriptRecordingDescription         = "Whether typescript recording is enabled."
 	ConnectionTypescriptRecordingMarkdownDescription = "Whether **typescript recording** is enabled."
 
@@ -88,14 +91,14 @@ const (
 	ConnectionScrollbackDescription         = "Maximum scrollable size for the connection terminal."
 	ConnectionScrollbackMarkdownDescription = "**Maximum scrollable size** for the connection terminal."
 
-	// --- Shared Clipboard Attributes (ConnectionClipboardFields) ---
+	// --- Shared Clipboard Attributes (ConnectionClipboardFields) ---.
 	ConnectionDisableCopyDescription         = "Whether copy is disabled for the connection."
 	ConnectionDisableCopyMarkdownDescription = "Whether **copy** is disabled for the connection."
 
 	ConnectionDisablePasteDescription         = "Whether paste is disabled for the connection."
 	ConnectionDisablePasteMarkdownDescription = "Whether **paste** is disabled for the connection."
 
-	// --- Kubernetes-only Connection Attributes ---
+	// --- Kubernetes-only Connection Attributes ---.
 	KubernetesRotateOnTerminationDescription         = "Rotate launch credentials upon session termination."
 	KubernetesRotateOnTerminationMarkdownDescription = "**Rotate** launch credentials upon session termination."
 
@@ -129,7 +132,7 @@ const (
 	KubernetesBackspaceDescription         = "ASCII code sent by the backspace key. Must be \"127\" (DEL, default) or \"8\" (Ctrl+H)."
 	KubernetesBackspaceMarkdownDescription = "ASCII code sent by the **backspace** key. Must be `127` (DEL, default) or `8` (Ctrl+H)."
 
-	// --- Database-only Connection Attributes ---
+	// --- Database-only Connection Attributes ---.
 	DatabaseDisableCsvExportDescription         = "Whether CSV export is disabled for the database connection."
 	DatabaseDisableCsvExportMarkdownDescription = "Whether **CSV export** is disabled for the database connection."
 
@@ -139,7 +142,7 @@ const (
 	DatabaseDatabaseDescription         = "Database name for the connection."
 	DatabaseDatabaseMarkdownDescription = "**Database name** for the connection."
 
-	// --- RDP-only Connection Attributes ---
+	// --- RDP-only Connection Attributes ---.
 	RdpIgnoreCertDescription         = "Ignore server certificate for the RDP connection."
 	RdpIgnoreCertMarkdownDescription = "**Ignore server certificate** for the RDP connection."
 
@@ -267,7 +270,7 @@ const (
 	RdpServerLayoutDescription         = "Keyboard layout for the RDP connection (e.g. en-us-qwerty, de-de-qwertz)."
 	RdpServerLayoutMarkdownDescription = "**Keyboard layout** for the RDP connection (e.g. `en-us-qwerty`, `de-de-qwertz`)."
 
-	// --- SSH-only Connection Attributes ---
+	// --- SSH-only Connection Attributes ---.
 	SshHostKeyDescription         = "Known host public key for the SSH connection."
 	SshHostKeyMarkdownDescription = "**Known host public key** for the SSH connection."
 
@@ -295,7 +298,7 @@ const (
 	SshSftpEnableDescription         = "Whether SFTP is enabled for the SSH connection."
 	SshSftpEnableMarkdownDescription = "Whether **SFTP** is enabled for the SSH connection."
 
-	// --- Telnet-only Connection Attributes ---
+	// --- Telnet-only Connection Attributes ---.
 	TelnetUsernameRegexDescription         = "Regular expression to detect the username prompt during Telnet login."
 	TelnetUsernameRegexMarkdownDescription = "Regular expression to detect the **username prompt** during Telnet login."
 
@@ -314,7 +317,7 @@ const (
 	TelnetTerminalTypeDescription         = "Terminal emulator type string for the Telnet session (e.g. xterm, vt100)."
 	TelnetTerminalTypeMarkdownDescription = "**Terminal emulator type** string for the Telnet session (e.g. `xterm`, `vt100`)."
 
-	// --- VNC-only Connection Attributes ---
+	// --- VNC-only Connection Attributes ---.
 	VncSwapRedBlueDescription         = "Swap red and blue color components in the VNC display."
 	VncSwapRedBlueMarkdownDescription = "**Swap red and blue** color components in the VNC display."
 
@@ -354,7 +357,7 @@ const (
 	PamSettingsAdministrativeCredentialsDescription         = "Whether administrative credentials are enabled for the PAM record."
 	PamSettingsAdministrativeCredentialsMarkdownDescription = "Whether **administrative credentials** are enabled for the PAM record."
 
-	// --- PAM Settings Tunnel ---
+	// --- PAM Settings Tunnel ---.
 	PamSettingsTunnelEnabledDescription         = "Whether tunneling is enabled for this PAM record."
 	PamSettingsTunnelEnabledMarkdownDescription = "Whether **tunneling** is enabled for this PAM record."
 

@@ -1,3 +1,6 @@
+// Copyright Keeper Security, Inc. 2026
+// SPDX-License-Identifier: MPL-2.0
+
 package pamrecords
 
 import (
@@ -391,10 +394,10 @@ func extractDatabaseConnectionFromResponse(dbConn *utils.DatabaseConnectionRespo
 	db.AllowSupplyUser = optionalBoolValue(dbConn.AllowSupplyUser)
 	db.RecordingIncludeKeys = optionalBoolValue(dbConn.RecordingIncludeKeys)
 	db.ReadOnly = optionalBoolValue(dbConn.ReadOnly)
-	db.DisableCopy = optionalBoolValueWithDefault(dbConn.DisableCopy, false)
-	db.DisablePaste = optionalBoolValueWithDefault(dbConn.DisablePaste, false)
-	db.DisableCsvExport = optionalBoolValueWithDefault(dbConn.DisableCsvExport, false)
-	db.DisableCsvImport = optionalBoolValueWithDefault(dbConn.DisableCsvImport, false)
+	db.DisableCopy = optionalBoolValueWithDefault(dbConn.DisableCopy)
+	db.DisablePaste = optionalBoolValueWithDefault(dbConn.DisablePaste)
+	db.DisableCsvExport = optionalBoolValueWithDefault(dbConn.DisableCsvExport)
+	db.DisableCsvImport = optionalBoolValueWithDefault(dbConn.DisableCsvImport)
 	db.Database = setStringOrNull(dbConn.Database)
 	db.ColorScheme = setStringOrNull(dbConn.ColorScheme)
 	db.FontName = setStringOrNull(dbConn.FontName)
@@ -446,8 +449,8 @@ func extractRdpConnectionFromResponse(rdpConn *utils.RdpConnectionResponse, pamE
 	rdp.EnableTouch = optionalBoolValue(rdpConn.EnableTouch)
 	rdp.Console = optionalBoolValue(rdpConn.Console)
 	rdp.DisableAuth = optionalBoolValue(rdpConn.DisableAuth)
-	rdp.DisableCopy = optionalBoolValueWithDefault(rdpConn.DisableCopy, false)
-	rdp.DisablePaste = optionalBoolValueWithDefault(rdpConn.DisablePaste, false)
+	rdp.DisableCopy = optionalBoolValueWithDefault(rdpConn.DisableCopy)
+	rdp.DisablePaste = optionalBoolValueWithDefault(rdpConn.DisablePaste)
 
 	rdp.NormalizeClipboard = setStringOrNull(rdpConn.NormalizeClipboard)
 	rdp.Security = setStringOrNull(rdpConn.Security)
@@ -500,9 +503,9 @@ func extractSftpFromResponse(s *utils.SftpResponse) *ConnectionSftpModel {
 	return sftp
 }
 
-func optionalBoolValueWithDefault(b *bool, defaultVal bool) types.Bool {
+func optionalBoolValueWithDefault(b *bool) types.Bool {
 	if b == nil {
-		return types.BoolValue(defaultVal)
+		return types.BoolValue(false)
 	}
 	return types.BoolValue(*b)
 }
@@ -1032,8 +1035,8 @@ func extractSshConnectionFromResponse(sshConn *utils.SshConnectionResponse, pamE
 	ssh.AllowSupplyUser = optionalBoolValue(sshConn.AllowSupplyUser)
 	ssh.RecordingIncludeKeys = optionalBoolValue(sshConn.RecordingIncludeKeys)
 	ssh.ReadOnly = optionalBoolValue(sshConn.ReadOnly)
-	ssh.DisableCopy = optionalBoolValueWithDefault(sshConn.DisableCopy, false)
-	ssh.DisablePaste = optionalBoolValueWithDefault(sshConn.DisablePaste, false)
+	ssh.DisableCopy = optionalBoolValueWithDefault(sshConn.DisableCopy)
+	ssh.DisablePaste = optionalBoolValueWithDefault(sshConn.DisablePaste)
 	ssh.ColorScheme = setStringOrNull(sshConn.ColorScheme)
 	ssh.FontName = setStringOrNull(sshConn.FontName)
 	ssh.FontSize = parseStringToInt32(sshConn.FontSize)
@@ -1125,8 +1128,8 @@ func extractTelnetConnectionFromResponse(telnetConn *utils.TelnetConnectionRespo
 	telnet.AllowSupplyUser = optionalBoolValue(telnetConn.AllowSupplyUser)
 	telnet.RecordingIncludeKeys = optionalBoolValue(telnetConn.RecordingIncludeKeys)
 	telnet.ReadOnly = optionalBoolValue(telnetConn.ReadOnly)
-	telnet.DisableCopy = optionalBoolValueWithDefault(telnetConn.DisableCopy, false)
-	telnet.DisablePaste = optionalBoolValueWithDefault(telnetConn.DisablePaste, false)
+	telnet.DisableCopy = optionalBoolValueWithDefault(telnetConn.DisableCopy)
+	telnet.DisablePaste = optionalBoolValueWithDefault(telnetConn.DisablePaste)
 	telnet.ColorScheme = setStringOrNull(telnetConn.ColorScheme)
 	telnet.FontName = setStringOrNull(telnetConn.FontName)
 	telnet.FontSize = parseStringToInt32(telnetConn.FontSize)
@@ -1218,8 +1221,8 @@ func extractVncConnectionFromResponse(vncConn *utils.VncConnectionResponse, pamE
 	vnc.AllowSupplyUser = optionalBoolValue(vncConn.AllowSupplyUser)
 	vnc.RecordingIncludeKeys = optionalBoolValue(vncConn.RecordingIncludeKeys)
 	vnc.ReadOnly = optionalBoolValue(vncConn.ReadOnly)
-	vnc.DisableCopy = optionalBoolValueWithDefault(vncConn.DisableCopy, false)
-	vnc.DisablePaste = optionalBoolValueWithDefault(vncConn.DisablePaste, false)
+	vnc.DisableCopy = optionalBoolValueWithDefault(vncConn.DisableCopy)
+	vnc.DisablePaste = optionalBoolValueWithDefault(vncConn.DisablePaste)
 	vnc.SwapRedBlue = optionalBoolValue(vncConn.SwapRedBlue)
 	vnc.ForceLossless = optionalBoolValue(vncConn.ForceLossless)
 	vnc.EnableAudio = optionalBoolValue(vncConn.EnableAudio)

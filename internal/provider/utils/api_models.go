@@ -323,9 +323,9 @@ type VaultRecordFieldResponse struct {
 // The fields array contains an entry with type "pamSettings" whose value is a JSON array;
 // the first element carries the settings object.
 type PamSettingsFieldValueResponse struct {
-	AllowSupplyHost bool                           `json:"allowSupplyHost"`
+	AllowSupplyHost bool                            `json:"allowSupplyHost"`
 	PortForward     *PamSettingsPortForwardResponse `json:"portForward,omitempty"`
-	Connection      json.RawMessage                `json:"connection,omitempty"`
+	Connection      json.RawMessage                 `json:"connection,omitempty"`
 }
 
 // PamSettingsConnectionBaseResponse is used for a first-pass unmarshal to
@@ -363,50 +363,50 @@ type KubernetesConnectionResponse struct {
 // RdpConnectionResponse holds the fields returned inside
 // pamSettings.value[0].connection when protocol is "rdp".
 type RdpConnectionResponse struct {
-	Protocol                 string           `json:"protocol"`
-	Port                     string           `json:"port"`
-	AllowSupplyUser          *bool            `json:"allowSupplyUser"`
-	RecordingIncludeKeys     *bool            `json:"recordingIncludeKeys"`
-	EnableFullWindowDrag     *bool            `json:"enableFullWindowDrag"`
-	EnableWallpaper          *bool            `json:"enableWallpaper"`
-	IgnoreCert               *bool            `json:"ignoreCert"`
-	NormalizeClipboard       string           `json:"normalizeClipboard"`
-	Security                 string           `json:"security"`
-	EnableTheming            *bool            `json:"enableTheming"`
-	EnableFontSmoothing      *bool            `json:"enableFontSmoothing"`
-	EnableDesktopComposition *bool            `json:"enableDesktopComposition"`
-	EnableMenuAnimations     *bool            `json:"enableMenuAnimations"`
-	DisableBitmapCaching     *bool            `json:"disableBitmapCaching"`
-	DisableOffscreenCaching  *bool            `json:"disableOffscreenCaching"`
-	DisableGlyphCaching      *bool            `json:"disableGlyphCaching"`
-	LoadBalanceInfo          string           `json:"loadBalanceInfo"`
-	PreconnectionId          string           `json:"preconnectionId"`
-	PreconnectionBlob        string           `json:"preconnectionBlob"`
+	Protocol                 string        `json:"protocol"`
+	Port                     string        `json:"port"`
+	AllowSupplyUser          *bool         `json:"allowSupplyUser"`
+	RecordingIncludeKeys     *bool         `json:"recordingIncludeKeys"`
+	EnableFullWindowDrag     *bool         `json:"enableFullWindowDrag"`
+	EnableWallpaper          *bool         `json:"enableWallpaper"`
+	IgnoreCert               *bool         `json:"ignoreCert"`
+	NormalizeClipboard       string        `json:"normalizeClipboard"`
+	Security                 string        `json:"security"`
+	EnableTheming            *bool         `json:"enableTheming"`
+	EnableFontSmoothing      *bool         `json:"enableFontSmoothing"`
+	EnableDesktopComposition *bool         `json:"enableDesktopComposition"`
+	EnableMenuAnimations     *bool         `json:"enableMenuAnimations"`
+	DisableBitmapCaching     *bool         `json:"disableBitmapCaching"`
+	DisableOffscreenCaching  *bool         `json:"disableOffscreenCaching"`
+	DisableGlyphCaching      *bool         `json:"disableGlyphCaching"`
+	LoadBalanceInfo          string        `json:"loadBalanceInfo"`
+	PreconnectionId          string        `json:"preconnectionId"`
+	PreconnectionBlob        string        `json:"preconnectionBlob"`
 	Sftp                     *SftpResponse `json:"sftp"`
-	ConsoleAudio             *bool            `json:"consoleAudio"`
-	DisableAudio             *bool            `json:"disableAudio"`
-	EnableAudioInput         *bool            `json:"enableAudioInput"`
-	EnablePrinting           *bool            `json:"enablePrinting"`
-	RedirectedPrinterName    string           `json:"redirectedPrinterName"`
-	RemoteApp                string           `json:"remoteApp"`
-	RemoteAppDir             string           `json:"remoteAppDir"`
-	RemoteAppArgs            string           `json:"remoteAppArgs"`
-	ForceLossless            *bool            `json:"forceLossless"`
-	ReadOnly                 *bool            `json:"readOnly"`
-	Dpi                      int              `json:"dpi"`
-	Height                   int              `json:"height"`
-	Width                    int              `json:"width"`
-	EnableTouch              *bool            `json:"enableTouch"`
-	Console                  *bool            `json:"console"`
-	Timezone                 string           `json:"timezone"`
-	ClientName               string           `json:"clientName"`
-	InitialProgram           string           `json:"initialProgram"`
-	DisableAuth              *bool            `json:"disableAuth"`
-	ResizeMethod             string           `json:"resizeMethod"`
-	ColorDepth               int              `json:"colorDepth"`
-	ServerLayout             string           `json:"serverLayout"`
-	DisableCopy              *bool            `json:"disableCopy"`
-	DisablePaste             *bool            `json:"disablePaste"`
+	ConsoleAudio             *bool         `json:"consoleAudio"`
+	DisableAudio             *bool         `json:"disableAudio"`
+	EnableAudioInput         *bool         `json:"enableAudioInput"`
+	EnablePrinting           *bool         `json:"enablePrinting"`
+	RedirectedPrinterName    string        `json:"redirectedPrinterName"`
+	RemoteApp                string        `json:"remoteApp"`
+	RemoteAppDir             string        `json:"remoteAppDir"`
+	RemoteAppArgs            string        `json:"remoteAppArgs"`
+	ForceLossless            *bool         `json:"forceLossless"`
+	ReadOnly                 *bool         `json:"readOnly"`
+	Dpi                      int           `json:"dpi"`
+	Height                   int           `json:"height"`
+	Width                    int           `json:"width"`
+	EnableTouch              *bool         `json:"enableTouch"`
+	Console                  *bool         `json:"console"`
+	Timezone                 string        `json:"timezone"`
+	ClientName               string        `json:"clientName"`
+	InitialProgram           string        `json:"initialProgram"`
+	DisableAuth              *bool         `json:"disableAuth"`
+	ResizeMethod             string        `json:"resizeMethod"`
+	ColorDepth               int           `json:"colorDepth"`
+	ServerLayout             string        `json:"serverLayout"`
+	DisableCopy              *bool         `json:"disableCopy"`
+	DisablePaste             *bool         `json:"disablePaste"`
 }
 
 // SftpResponse is the shared SFTP nested block used by RDP and VNC.

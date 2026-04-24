@@ -68,17 +68,17 @@ const (
 
 // Common Error summaries (first argument to AddError).
 const (
-	ERR_MSG_PROVIDER_CONFIGURATION_ERROR       = "Provider Configuration Error"
-	ERR_MSG_INVALID_IMPORT_ID                  = "Invalid Import ID"
-	ErrOpListVaultRecords                      = "Unable to list vault records for validation"
-	ErrSummaryManagedCompanyCannotBeUpdated    = "Managed Company Cannot Be Updated"
-	ErrSummarySyncDownFailed                   = "Sync Down Failed"
-	ErrSummaryRecordDeleteFailed               = "Record Delete Failed"
-	ErrSummaryFetchVaultRecordFailed           = "Fetch Vault Record Failed"
-	ErrSummaryMoveRecordFailed                 = "Move Record Failed"
-	ErrSummaryApplyPamSettingsFailed           = "Apply PAM Settings Failed"
-	ErrSummaryApplyPamTunnelSettingsFailed     = "Apply PAM Tunnel Settings Failed"
-	ErrSummaryApplyPamConnectionSettingsFailed     = "Apply PAM Connection Settings Failed"
+	ERR_MSG_PROVIDER_CONFIGURATION_ERROR          = "Provider Configuration Error"
+	ERR_MSG_INVALID_IMPORT_ID                     = "Invalid Import ID"
+	ErrOpListVaultRecords                         = "Unable to list vault records for validation"
+	ErrSummaryManagedCompanyCannotBeUpdated       = "Managed Company Cannot Be Updated"
+	ErrSummarySyncDownFailed                      = "Sync Down Failed"
+	ErrSummaryRecordDeleteFailed                  = "Record Delete Failed"
+	ErrSummaryFetchVaultRecordFailed              = "Fetch Vault Record Failed"
+	ErrSummaryMoveRecordFailed                    = "Move Record Failed"
+	ErrSummaryApplyPamSettingsFailed              = "Apply PAM Settings Failed"
+	ErrSummaryApplyPamTunnelSettingsFailed        = "Apply PAM Tunnel Settings Failed"
+	ErrSummaryApplyPamConnectionSettingsFailed    = "Apply PAM Connection Settings Failed"
 	ErrSummaryApplyPamConnectionFieldUpdateFailed = "Apply PAM Connection Field Update Failed"
 )
 
