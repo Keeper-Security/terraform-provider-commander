@@ -19,11 +19,6 @@ For more information, see [Keeper PAM Configuration documentation](https://docs.
 ## Example Usage
 
 ```terraform
-# PAM Configuration: environment, title, gateway, application_folder (required).
-# Optional: schedule, port_mapping, feature toggles (connections, tunneling, rotation, etc.),
-# and exactly one environment-specific block matching the chosen environment.
-# id is read-only (assigned by Keeper after creation).
-
 # ──────────────────────────────────────────────────────────────────────────────
 # Example 1 — Local Network (environment = "local")
 # ──────────────────────────────────────────────────────────────────────────────
@@ -47,7 +42,7 @@ resource "commander_pam_configuration" "local_example" {
 
   ai_terminate_session_on_detection = false
 
-  local_network = {
+  local_network {
     network_id   = "DC-East-1"
     network_cidr = "10.0.0.0/16"
   }
@@ -69,7 +64,7 @@ resource "commander_pam_configuration" "aws_example" {
   connections_recording = true
   typescript_recording  = true
 
-  aws = {
+  aws {
     aws_id            = "aws-prod-account"
     access_key_id     = "AKIAIOSFODNN7EXAMPLE"
     access_secret_key = "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY"
@@ -97,7 +92,7 @@ resource "commander_pam_configuration" "azure_example" {
 
   ai_terminate_session_on_detection = true
 
-  azure = {
+  azure {
     azure_id        = "azure-corp-001"
     client_id       = "00000000-1111-2222-3333-444444444444"
     client_secret   = "your-azure-client-secret"
@@ -124,7 +119,7 @@ resource "commander_pam_configuration" "domain_example" {
   rotation              = true
   connections_recording = true
 
-  domain = {
+  domain {
     domain_id           = "CORP.EXAMPLE.COM"
     domain_hostname     = "dc01.corp.example.com"
     domain_port         = "636"
@@ -151,52 +146,12 @@ resource "commander_pam_configuration" "gcp_example" {
   connections_recording = true
   typescript_recording  = true
 
-  gcp = {
+  gcp {
     gcp_id              = "GCP-US-CENTRAL1"
     service_account_key = file("${path.module}/gcp-service-account.json")
     google_admin_email  = "admin@example.com"
     gcp_region          = "us-central1"
   }
-}
-
-# ──────────────────────────────────────────────────────────────────────────────
-# Example 6 — Minimal local configuration (only required fields)
-# ──────────────────────────────────────────────────────────────────────────────
-
-# resource "commander_pam_configuration" "minimal" {
-#   environment        = "local"
-#   title              = "Minimal Config"
-#   gateway            = "gateway-uid"
-#   application_folder = "PAM Application Folder"
-# }
-
-# ──────────────────────────────────────────────────────────────────────────────
-# Outputs
-# ──────────────────────────────────────────────────────────────────────────────
-
-output "local_pam_config_id" {
-  description = "UID of the local network PAM configuration"
-  value       = commander_pam_configuration.local_example.id
-}
-
-output "aws_pam_config_id" {
-  description = "UID of the AWS PAM configuration"
-  value       = commander_pam_configuration.aws_example.id
-}
-
-output "azure_pam_config_id" {
-  description = "UID of the Azure PAM configuration"
-  value       = commander_pam_configuration.azure_example.id
-}
-
-output "domain_pam_config_id" {
-  description = "UID of the Domain PAM configuration"
-  value       = commander_pam_configuration.domain_example.id
-}
-
-output "gcp_pam_config_id" {
-  description = "UID of the GCP PAM configuration"
-  value       = commander_pam_configuration.gcp_example.id
 }
 ```
 
@@ -214,13 +169,13 @@ output "gcp_pam_config_id" {
 
 - `ai_terminate_session_on_detection` (Boolean) If `enabled`, AI session termination on threat detection will be enabled.
 - `ai_threat_detection` (Boolean) If `enabled`, AI threat detection will be enabled.
-- `aws` (Attributes) Use this block if you are using the `aws` as environment type for your PAM configuration. (see [below for nested schema](#nestedatt--aws))
-- `azure` (Attributes) Use this block if you are using the `azure` as environment type for your PAM configuration. (see [below for nested schema](#nestedatt--azure))
+- `aws` (Block, Optional) Use this block if you are using the `aws` as environment type for your PAM configuration. (see [below for nested schema](#nestedblock--aws))
+- `azure` (Block, Optional) Use this block if you are using the `azure` as environment type for your PAM configuration. (see [below for nested schema](#nestedblock--azure))
 - `connections` (Boolean) If `enabled`, allow connections on resources managed by this PAM configuration .
 - `connections_recording` (Boolean) If `enabled`, visual playback sessions will be recorded for all connections and RBI sessions
-- `domain` (Attributes) Use this block if you are using the `domain` as environment type for your PAM configuration. (see [below for nested schema](#nestedatt--domain))
-- `gcp` (Attributes) Use this block if you are using the `gcp` as environment type for your PAM configuration. (see [below for nested schema](#nestedatt--gcp))
-- `local_network` (Attributes) Use this block if you are using the `local` as environment type for your PAM configuration. (see [below for nested schema](#nestedatt--local_network))
+- `domain` (Block, Optional) Use this block if you are using the `domain` as environment type for your PAM configuration. (see [below for nested schema](#nestedblock--domain))
+- `gcp` (Block, Optional) Use this block if you are using the `gcp` as environment type for your PAM configuration. (see [below for nested schema](#nestedblock--gcp))
+- `local_network` (Block, Optional) Use this block if you are using the `local` as environment type for your PAM configuration. (see [below for nested schema](#nestedblock--local_network))
 - `port_mapping` (Set of String) Define `alternative default ports`. Multiple values allowed.
 - `remote_browser_isolation` (Boolean) If `enabled`, allow RBI sessions on resources managed by this PAM configuration.
 - `rotation` (Boolean) If `enabled`, allow rotations on privileged user users managed by this PAM configuration.
@@ -232,68 +187,56 @@ output "gcp_pam_config_id" {
 
 - `id` (String) The PAM configuration UID assigned by Keeper after create.
 
-<a id="nestedatt--aws"></a>
+<a id="nestedblock--aws"></a>
 ### Nested Schema for `aws`
-
-Required:
-
-- `aws_id` (String) A `Unique ID` for the instance of AWS.
 
 Optional:
 
 - `access_key_id` (String) From an IAM user account, the `Access key ID` from the desired Access key.
 - `access_secret_key` (String, Sensitive) The `secret key` for the access key.
+- `aws_id` (String) A `Unique ID` for the instance of AWS.
 - `region_names` (Set of String) AWS region names used for discovery. Separate newline per region. Ex: `us-east-2`
 
 
-<a id="nestedatt--azure"></a>
+<a id="nestedblock--azure"></a>
 ### Nested Schema for `azure`
 
-Required:
+Optional:
 
 - `azure_id` (String) A `Unique ID` for your instance of Azure.
 - `client_id` (String) The `application/client id` (UUID) of the Azure application
 - `client_secret` (String, Sensitive) The `client credentials secret` for the Azure application
+- `resource_groups` (Set of String) A list of `resource groups` to be checked. If left blank, all resource groups will be checked.
 - `subscription_id` (String) The `UUID` of the subscription (i.e. Pay-As-You-GO).
 - `tenant_id` (String) The `UUID` of the Azure Active Directory
 
-Optional:
 
-- `resource_groups` (Set of String) A list of `resource groups` to be checked. If left blank, all resource groups will be checked.
-
-
-<a id="nestedatt--domain"></a>
+<a id="nestedblock--domain"></a>
 ### Nested Schema for `domain`
 
-Required:
+Optional:
 
 - `domain_admin` (String, Sensitive) Credentials of a `domain administrator` or an account with equivalent privileges, required to perform full discovery and access all domain resources.
 - `domain_hostname` (String) Hostname for the `domain controller`.
 - `domain_id` (String) The `FQDN` domain used by the Domain Controller. For example, `EXAMPLE.COM` and not `EXAMPLE`.
+- `domain_network_cidr` (String) `Scan additional CIDRs` from the field.
 - `domain_port` (String) Port for the `domain controller`.
+- `domain_scan_dc_cidr` (Boolean) Scan the CIDRs from the domain controller. Default to `False`
 - `domain_use_ssl` (Boolean) Provide `true` if using `LDAPS` (default 636), Provide `false` if using `LDAP` (default 389).
 
-Optional:
 
-- `domain_network_cidr` (String) `Scan additional CIDRs` from the field.
-- `domain_scan_dc_cidr` (Boolean) Scan the CIDRs from the domain controller. Default to `False`
-
-
-<a id="nestedatt--gcp"></a>
+<a id="nestedblock--gcp"></a>
 ### Nested Schema for `gcp`
 
-Required:
-
-- `gcp_id` (String) A `unique id` for the instance of Google Cloud. This is for the user's reference. Example: `GCP-US-CENTRAL1`
-- `service_account_key` (String, Sensitive) The *service account key* in `JSON` format.
-
 Optional:
 
+- `gcp_id` (String) A `unique id` for the instance of Google Cloud. This is for the user's reference. Example: `GCP-US-CENTRAL1`
 - `gcp_region` (String) GCP region names used for discovery.
 - `google_admin_email` (String) The `email address` for a Google Workspace administrator account that can be *used to manage passwords for GCP Principals*. Omit if **no such account exists**, or if the **environment does not require Principal rotation**.
+- `service_account_key` (String, Sensitive) The *service account key* in `JSON String` format.
 
 
-<a id="nestedatt--local_network"></a>
+<a id="nestedblock--local_network"></a>
 ### Nested Schema for `local_network`
 
 Optional:

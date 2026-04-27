@@ -5,6 +5,7 @@ package utils
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"strconv"
 	"strings"
@@ -261,6 +262,39 @@ func (v int32OneOfValidator) ValidateInt32(_ context.Context, req validator.Int3
 		"Invalid "+v.DisplayName,
 		fmt.Sprintf("%s %d is not supported. Must be one of: %s.", v.DisplayName, val, strings.Join(vals, ", ")),
 	)
+}
+
+// ----- GENERIC: JSON STRING --------------------------------
+// JSONStringValidator validates that a string value is valid JSON.
+// DisplayName is used in error messages (e.g. "Service Account Key").
+func JSONStringValidator(displayName string) jsonStringValidator {
+	return jsonStringValidator{DisplayName: displayName}
+}
+
+type jsonStringValidator struct {
+	DisplayName string
+}
+
+func (v jsonStringValidator) Description(_ context.Context) string {
+	return v.DisplayName + " must be a valid JSON string."
+}
+
+func (v jsonStringValidator) MarkdownDescription(ctx context.Context) string {
+	return v.Description(ctx)
+}
+
+func (v jsonStringValidator) ValidateString(_ context.Context, req validator.StringRequest, resp *validator.StringResponse) {
+	if req.ConfigValue.IsUnknown() || req.ConfigValue.IsNull() {
+		return
+	}
+	val := req.ConfigValue.ValueString()
+	if !json.Valid([]byte(val)) {
+		resp.Diagnostics.AddAttributeError(
+			req.Path,
+			"Invalid "+v.DisplayName,
+			v.DisplayName+" must be a valid JSON string.",
+		)
+	}
 }
 
 // ----- GENERIC: MAP KEYS MIN LENGTH --------------------------------

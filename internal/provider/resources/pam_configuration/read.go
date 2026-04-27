@@ -9,12 +9,13 @@ import (
 	"strings"
 
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/api"
+	commonpamconfiguration "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/pam_configuration"
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/utils"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 )
 
 func (r *PamConfigurationResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-	var state PamConfigurationResourceModel
+	var state commonpamconfiguration.PamConfigurationResourceModel
 
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
@@ -28,7 +29,7 @@ func (r *PamConfigurationResource) Read(ctx context.Context, req resource.ReadRe
 
 	id := strings.TrimSpace(state.Id.ValueString())
 	if id == "" {
-		resp.Diagnostics.AddError(ErrSummaryReadFailed, "pam configuration id is empty")
+		resp.Diagnostics.AddError(commonpamconfiguration.ErrSummaryReadFailed, "pam configuration id is empty")
 		return
 	}
 
@@ -37,14 +38,14 @@ func (r *PamConfigurationResource) Read(ctx context.Context, req resource.ReadRe
 		return
 	}
 
-	command := buildPamConfigListCommand(id)
-	apiResp, err := r.ApiManager.ExecuteCommand(ctx, command, ErrOpListPamConfig)
+	command := commonpamconfiguration.FetchPamConfigByUIDCommand(id)
+	apiResp, err := r.ApiManager.ExecuteCommand(ctx, command, commonpamconfiguration.ErrOpFetchPamConfig)
 	if err != nil {
 		if errors.Is(err, api.ErrResourceNotFound) {
 			resp.State.RemoveResource(ctx)
 			return
 		}
-		resp.Diagnostics.AddError(ErrSummaryReadFailed, err.Error())
+		resp.Diagnostics.AddError(commonpamconfiguration.ErrSummaryReadFailed, err.Error())
 		return
 	}
 
@@ -55,12 +56,12 @@ func (r *PamConfigurationResource) Read(ctx context.Context, req resource.ReadRe
 
 	var apiData utils.PamConfigListResponse
 	if err := utils.UnmarshalApiResponse(apiResp.Data, &apiData); err != nil {
-		resp.Diagnostics.AddError(ErrSummaryReadFailed, err.Error())
+		resp.Diagnostics.AddError(commonpamconfiguration.ErrSummaryReadFailed, err.Error())
 		return
 	}
 
-	if err := mapPamConfigAPIResponseToModel(&state, &apiData); err != nil {
-		resp.Diagnostics.AddError(ErrSummaryReadFailed, err.Error())
+	if err := commonpamconfiguration.MapPamConfigAPIResponseToModel(&state, &apiData); err != nil {
+		resp.Diagnostics.AddError(commonpamconfiguration.ErrSummaryReadFailed, err.Error())
 		return
 	}
 

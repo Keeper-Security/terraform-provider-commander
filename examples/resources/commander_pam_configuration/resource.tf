@@ -1,8 +1,3 @@
-# PAM Configuration: environment, title, gateway, application_folder (required).
-# Optional: schedule, port_mapping, feature toggles (connections, tunneling, rotation, etc.),
-# and exactly one environment-specific block matching the chosen environment.
-# id is read-only (assigned by Keeper after creation).
-
 # ──────────────────────────────────────────────────────────────────────────────
 # Example 1 — Local Network (environment = "local")
 # ──────────────────────────────────────────────────────────────────────────────
@@ -26,7 +21,7 @@ resource "commander_pam_configuration" "local_example" {
 
   ai_terminate_session_on_detection = false
 
-  local_network = {
+  local_network {
     network_id   = "DC-East-1"
     network_cidr = "10.0.0.0/16"
   }
@@ -48,7 +43,7 @@ resource "commander_pam_configuration" "aws_example" {
   connections_recording = true
   typescript_recording  = true
 
-  aws = {
+  aws {
     aws_id            = "aws-prod-account"
     access_key_id     = "AKIAIOSFODNN7EXAMPLE"
     access_secret_key = "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY"
@@ -76,7 +71,7 @@ resource "commander_pam_configuration" "azure_example" {
 
   ai_terminate_session_on_detection = true
 
-  azure = {
+  azure {
     azure_id        = "azure-corp-001"
     client_id       = "00000000-1111-2222-3333-444444444444"
     client_secret   = "your-azure-client-secret"
@@ -103,7 +98,7 @@ resource "commander_pam_configuration" "domain_example" {
   rotation              = true
   connections_recording = true
 
-  domain = {
+  domain {
     domain_id           = "CORP.EXAMPLE.COM"
     domain_hostname     = "dc01.corp.example.com"
     domain_port         = "636"
@@ -130,50 +125,10 @@ resource "commander_pam_configuration" "gcp_example" {
   connections_recording = true
   typescript_recording  = true
 
-  gcp = {
+  gcp {
     gcp_id              = "GCP-US-CENTRAL1"
     service_account_key = file("${path.module}/gcp-service-account.json")
     google_admin_email  = "admin@example.com"
     gcp_region          = "us-central1"
   }
-}
-
-# ──────────────────────────────────────────────────────────────────────────────
-# Example 6 — Minimal local configuration (only required fields)
-# ──────────────────────────────────────────────────────────────────────────────
-
-# resource "commander_pam_configuration" "minimal" {
-#   environment        = "local"
-#   title              = "Minimal Config"
-#   gateway            = "gateway-uid"
-#   application_folder = "PAM Application Folder"
-# }
-
-# ──────────────────────────────────────────────────────────────────────────────
-# Outputs
-# ──────────────────────────────────────────────────────────────────────────────
-
-output "local_pam_config_id" {
-  description = "UID of the local network PAM configuration"
-  value       = commander_pam_configuration.local_example.id
-}
-
-output "aws_pam_config_id" {
-  description = "UID of the AWS PAM configuration"
-  value       = commander_pam_configuration.aws_example.id
-}
-
-output "azure_pam_config_id" {
-  description = "UID of the Azure PAM configuration"
-  value       = commander_pam_configuration.azure_example.id
-}
-
-output "domain_pam_config_id" {
-  description = "UID of the Domain PAM configuration"
-  value       = commander_pam_configuration.domain_example.id
-}
-
-output "gcp_pam_config_id" {
-  description = "UID of the GCP PAM configuration"
-  value       = commander_pam_configuration.gcp_example.id
 }

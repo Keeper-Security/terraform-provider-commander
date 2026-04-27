@@ -250,11 +250,64 @@ type PamConfigListSharedFolder struct {
 
 // PamConfigListResponse is the data payload from pam config list --config ID --format json.
 type PamConfigListResponse struct {
-	UID          string                    `json:"uid"`
-	Name         string                    `json:"name"`
-	ConfigType   string                    `json:"config_type"`
-	SharedFolder PamConfigListSharedFolder `json:"shared_folder"`
-	GatewayUID   string                    `json:"gateway_uid"`
+	UID                            string                            `json:"uid"`
+	Name                           string                            `json:"name"`
+	ConfigType                     string                            `json:"config_type"`
+	SharedFolder                   PamConfigListSharedFolder         `json:"shared_folder"`
+	GatewayUID                     string                            `json:"gateway_uid"`
+	GatewayName                    string                            `json:"gateway_name"`
+	AllowedSettings                *PamConfigAllowedSettingsResponse `json:"allowed_settings,omitempty"`
+	Fields                         *PamConfigFieldsResponse          `json:"fields,omitempty"`
+	DomainAdministrativeCredential string                            `json:"domain_administrative_credential,omitempty"`
+}
+
+// PamConfigFieldsResponse maps the "fields" object from pam config list response.
+// Each key holds a string slice; only the keys relevant to the environment will be populated.
+type PamConfigFieldsResponse struct {
+	DefaultSchedule []string `json:"Default Schedule,omitempty"`
+	PortMapping     []string `json:"portMapping,omitempty"`
+
+	// Local Network
+	NetworkId   []string `json:"networkId,omitempty"`
+	NetworkCIDR []string `json:"networkCIDR,omitempty"`
+
+	// AWS
+	AwsId           []string `json:"awsId,omitempty"`
+	AccessKeyId     []string `json:"accessKeyId,omitempty"`
+	AccessSecretKey []string `json:"accessSecretKey,omitempty"`
+	RegionNames     []string `json:"regionNames,omitempty"`
+
+	// Azure
+	AzureId        []string `json:"azureId,omitempty"`
+	ClientId       []string `json:"clientId,omitempty"`
+	ClientSecret   []string `json:"clientSecret,omitempty"`
+	SubscriptionId []string `json:"subscriptionId,omitempty"`
+	TenantId       []string `json:"tenantId,omitempty"`
+	ResourceGroups []string `json:"resourceGroups,omitempty"`
+
+	// Domain
+	PamHostname []string `json:"pamHostname,omitempty"`
+	PamDomainId []string `json:"pamDomainId,omitempty"`
+	UseSSL      []string `json:"useSSL,omitempty"`
+	ScanDCCIDR  []string `json:"scanDCCIDR,omitempty"`
+
+	// GCP
+	PamGcpId             []string `json:"pamGcpId,omitempty"`
+	PamGoogleAdminEmail  []string `json:"pamGoogleAdminEmail,omitempty"`
+	PamServiceAccountKey []string `json:"pamServiceAccountKey,omitempty"`
+	PamGcpRegionName     []string `json:"pamGcpRegionName,omitempty"`
+}
+
+// PamConfigAllowedSettingsResponse maps the allowed_settings object from the API response.
+type PamConfigAllowedSettingsResponse struct {
+	Connections                   bool `json:"connections"`
+	Tunneling                     bool `json:"tunneling"`
+	Rotation                      bool `json:"rotation"`
+	RemoteBrowserIsolation        bool `json:"remote_browser_isolation"`
+	ConnectionsRecording          bool `json:"connections_recording"`
+	TypescriptRecording           bool `json:"typescript_recording"`
+	AIThreatDetection             bool `json:"ai_threat_detection"`
+	AITerminateSessionOnDetection bool `json:"ai_terminate_session_on_detection"`
 }
 
 // VaultRecordGetResponse is the JSON payload from `get <record_uid> --format json` for a Keeper vault record.
