@@ -63,15 +63,15 @@ func buildAddPamDirectoryRecordCommand(data commonpamdirectory.PamDirectoryResou
 	parts = append(parts, fmt.Sprintf("%s %s", utils.FlagRecordType, utils.RecordTypePamDirectory))
 	parts = append(parts, fmt.Sprintf("%s '%s'", utils.FlagTitle, data.Title.ValueString()))
 
-	appendHostnameOrIPField(&parts, data.HostnameOrIP)
-	appendOptionalCheckboxField(&parts, FlagUseSSL, data.UseSSL)
-	appendOptionalTextField(&parts, FlagDomainName, data.DomainName)
+	commonpamrecords.AppendHostnameOrIPField(&parts, data.HostnameOrIP)
+	commonpamrecords.AppendOptionalCheckboxField(&parts, FlagUseSSL, data.UseSSL)
+	commonpamrecords.AppendOptionalTextField(&parts, FlagDomainName, data.DomainName)
 	appendAlternativeIPsField(&parts, data.AlternativeIPs)
-	appendOptionalTextField(&parts, FlagDirectoryId, data.DirectoryId)
+	commonpamrecords.AppendOptionalTextField(&parts, FlagDirectoryId, data.DirectoryId)
 	appendOptionalDirectoryTypeField(&parts, data.DirectoryType)
-	appendOptionalTextField(&parts, FlagUserMatch, data.UserMatch)
-	appendOptionalTextField(&parts, FlagProviderGroup, data.ProviderGroup)
-	appendOptionalTextField(&parts, FlagProviderRegion, data.ProviderRegion)
+	commonpamrecords.AppendOptionalTextField(&parts, FlagUserMatch, data.UserMatch)
+	commonpamrecords.AppendOptionalTextField(&parts, FlagProviderGroup, data.ProviderGroup)
+	commonpamrecords.AppendOptionalTextField(&parts, FlagProviderRegion, data.ProviderRegion)
 
 	if !data.Folder.IsNull() {
 		parts = append(parts, fmt.Sprintf("%s '%s'", utils.FlagFolder, data.Folder.ValueString()))

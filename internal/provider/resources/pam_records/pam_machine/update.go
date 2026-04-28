@@ -80,15 +80,15 @@ func buildUpdatePamMachineRecordCommand(recordUID string, plan, state commonpamm
 		parts = append(parts, fmt.Sprintf("%s '%s'", utils.FlagTitle, plan.Title.ValueString()))
 	}
 
-	if !hostnameOrIPEqual(plan.HostnameOrIP, state.HostnameOrIP) {
-		appendHostnameOrIPField(&parts, plan.HostnameOrIP)
+	if !commonpamrecords.HostnameOrIPEqual(plan.HostnameOrIP, state.HostnameOrIP) {
+		commonpamrecords.AppendHostnameOrIPField(&parts, plan.HostnameOrIP)
 	}
 
-	appendChangedTextField(&parts, FlagOperatingSystem, plan.OperatingSystem, state.OperatingSystem)
-	appendChangedTextField(&parts, FlagInstanceName, plan.InstanceName, state.InstanceName)
-	appendChangedTextField(&parts, FlagInstanceId, plan.InstanceId, state.InstanceId)
-	appendChangedTextField(&parts, FlagProviderGroup, plan.ProviderGroup, state.ProviderGroup)
-	appendChangedTextField(&parts, FlagProviderRegion, plan.ProviderRegion, state.ProviderRegion)
+	commonpamrecords.AppendChangedTextField(&parts, FlagOperatingSystem, plan.OperatingSystem, state.OperatingSystem)
+	commonpamrecords.AppendChangedTextField(&parts, FlagInstanceName, plan.InstanceName, state.InstanceName)
+	commonpamrecords.AppendChangedTextField(&parts, FlagInstanceId, plan.InstanceId, state.InstanceId)
+	commonpamrecords.AppendChangedTextField(&parts, FlagProviderGroup, plan.ProviderGroup, state.ProviderGroup)
+	commonpamrecords.AppendChangedTextField(&parts, FlagProviderRegion, plan.ProviderRegion, state.ProviderRegion)
 
 	if !plan.Notes.Equal(state.Notes) && !plan.Notes.IsUnknown() {
 		if plan.Notes.IsNull() {

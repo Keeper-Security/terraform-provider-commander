@@ -1331,3 +1331,77 @@ func setOptionalStringField(m map[string]interface{}, key string, v types.String
 		m[key] = v.ValueString()
 	}
 }
+
+func BuildHostnameOrIPJSON(h *HostnameOrIPModel) string {
+	m := map[string]string{
+		"hostName": h.HostName.ValueString(),
+	}
+	if !h.AdministrativePort.IsNull() && !h.AdministrativePort.IsUnknown() {
+		m["port"] = strconv.FormatInt(int64(h.AdministrativePort.ValueInt32()), 10)
+	} else {
+		m["port"] = ""
+	}
+
+	b, _ := json.Marshal(m)
+	return string(b)
+}
+
+func AppendHostnameOrIPField(parts *[]string, h *HostnameOrIPModel) {
+	if h == nil {
+		return
+	}
+	hostnameJSON := BuildHostnameOrIPJSON(h)
+	*parts = append(*parts, fmt.Sprintf("'%s=$JSON:%s'", FlagPamHostname, hostnameJSON))
+}
+
+func AppendOptionalTextField(parts *[]string, flag string, v types.String) {
+	if v.IsNull() || v.IsUnknown() {
+		return
+	}
+	*parts = append(*parts, fmt.Sprintf("'%s=%s'", flag, v.ValueString()))
+}
+
+func AppendChangedTextField(parts *[]string, flag string, plan, state types.String) {
+	if plan.Equal(state) {
+		return
+	}
+	if plan.IsUnknown() {
+		return
+	}
+	if plan.IsNull() {
+		*parts = append(*parts, fmt.Sprintf("'%s='", flag))
+		return
+	}
+	*parts = append(*parts, fmt.Sprintf("'%s=%s'", flag, plan.ValueString()))
+}
+
+func AppendOptionalCheckboxField(parts *[]string, flag string, v types.Bool) {
+	if v.IsNull() || v.IsUnknown() {
+		return
+	}
+	*parts = append(*parts, fmt.Sprintf("'%s=%t'", flag, v.ValueBool()))
+}
+
+func AppendChangedCheckboxField(parts *[]string, flag string, plan, state types.Bool) {
+	if plan.Equal(state) {
+		return
+	}
+	if plan.IsUnknown() {
+		return
+	}
+	if plan.IsNull() {
+		*parts = append(*parts, fmt.Sprintf("'%s='", flag))
+		return
+	}
+	*parts = append(*parts, fmt.Sprintf("'%s=%t'", flag, plan.ValueBool()))
+}
+
+func HostnameOrIPEqual(a, b *HostnameOrIPModel) bool {
+	if a == nil && b == nil {
+		return true
+	}
+	if a == nil || b == nil {
+		return false
+	}
+	return a.HostName.Equal(b.HostName) && a.AdministrativePort.Equal(b.AdministrativePort)
+}

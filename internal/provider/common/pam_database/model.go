@@ -4,26 +4,20 @@
 package pamdatabase
 
 import (
+	"github.com/hashicorp/terraform-plugin-framework/types"
+
 	commonpamrecords "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/pam_records"
 )
 
-/*
-	NOTE: CURRENTLY KeeperDbProxy ( --keeper-db-proxy ) is not supported in the ADMIN CONSOLE, So not implementing it for now.
-*/
-// type PamDatabaseTunnelResourceModel struct {
-// 	commonpamrecords.CommonPamSettingsTunnelResourceModel
-// 	KeeperDbProxy types.Bool `tfsdk:"keeper_db_proxy"`
-// }
-
-// type PamDatabaseSettingsResourceModel struct {
-// 	AllowSupplyHost types.Bool                                                 `tfsdk:"allow_supply_host"`
-// 	Connection      *commonpamrecords.CommonPamSettingsConnectionResourceModel `tfsdk:"connection"`
-// 	Tunnel          *PamDatabaseTunnelResourceModel                            `tfsdk:"tunnel"`
-// 	Configuration   types.String                                               `tfsdk:"configuration"`
-// }
-
 type PamDatabaseResourceModel struct {
 	commonpamrecords.CommonPamRecordsResourceModel
+
+	HostnameOrIP   *commonpamrecords.HostnameOrIPModel `tfsdk:"hostname_or_ip"`
+	UseSSL         types.Bool                          `tfsdk:"use_ssl"`
+	DatabaseId     types.String                        `tfsdk:"database_id"`
+	DatabaseType   types.String                        `tfsdk:"database_type"`
+	ProviderGroup  types.String                        `tfsdk:"provider_group"`
+	ProviderRegion types.String                        `tfsdk:"provider_region"`
 
 	PamSettings *commonpamrecords.CommonPamSettingsFieldResourceModel `tfsdk:"pam_settings"`
 }

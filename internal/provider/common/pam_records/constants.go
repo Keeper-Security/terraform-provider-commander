@@ -3,6 +3,10 @@
 
 package pamrecords
 
+const (
+	FlagPamHostname = "pamHostname"
+)
+
 // PAM Settings Connection Protocol.
 const (
 	ConnectionProtocolKubernetes = "kubernetes"

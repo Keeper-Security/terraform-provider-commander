@@ -1,22 +1,22 @@
 // Copyright Keeper Security, Inc. 2026
 // SPDX-License-Identifier: MPL-2.0
 
-package pamdirectory
+package pamdatabase
 
 import (
 	"context"
 	"fmt"
 	"strings"
 
-	commonpamdirectory "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/pam_directory"
+	commonpamdatabase "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/pam_database"
 	commonpamrecords "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/pam_records"
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/utils"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 )
 
-func (r *PamDirectoryResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var plan commonpamdirectory.PamDirectoryResourceModel
-	var state commonpamdirectory.PamDirectoryResourceModel
+func (r *PamDatabaseResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	var plan commonpamdatabase.PamDatabaseResourceModel
+	var state commonpamdatabase.PamDatabaseResourceModel
 
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 	if resp.Diagnostics.HasError() {
@@ -40,7 +40,7 @@ func (r *PamDirectoryResource) Update(ctx context.Context, req resource.UpdateRe
 	plan.Id = state.Id
 	recordUID := strings.TrimSpace(plan.Id.ValueString())
 	if recordUID == "" {
-		resp.Diagnostics.AddError(ErrSummaryPamDirectoryRecordUpdateFailed, "PAM directory record id is empty")
+		resp.Diagnostics.AddError(ErrSummaryPamDatabaseRecordUpdateFailed, "PAM database record id is empty")
 		return
 	}
 
@@ -50,9 +50,9 @@ func (r *PamDirectoryResource) Update(ctx context.Context, req resource.UpdateRe
 	}
 
 	if recordUpdateHasMutations(plan, state) {
-		cmd := buildUpdatePamDirectoryRecordCommand(recordUID, plan, state)
-		if _, err := r.ApiManager.ExecuteCommand(ctx, cmd, ErrDetailPamDirectoryRecordUpdateFailed); err != nil {
-			resp.Diagnostics.AddError(ErrSummaryPamDirectoryRecordUpdateFailed, err.Error())
+		cmd := buildUpdatePamDatabaseRecordCommand(recordUID, plan, state)
+		if _, err := r.ApiManager.ExecuteCommand(ctx, cmd, ErrDetailPamDatabaseRecordUpdateFailed); err != nil {
+			resp.Diagnostics.AddError(ErrSummaryPamDatabaseRecordUpdateFailed, err.Error())
 			return
 		}
 	}
@@ -67,7 +67,7 @@ func (r *PamDirectoryResource) Update(ctx context.Context, req resource.UpdateRe
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }
 
-func buildUpdatePamDirectoryRecordCommand(recordUID string, plan, state commonpamdirectory.PamDirectoryResourceModel) string {
+func buildUpdatePamDatabaseRecordCommand(recordUID string, plan, state commonpamdatabase.PamDatabaseResourceModel) string {
 	parts := []string{
 		utils.CmdRecordUpdate,
 		fmt.Sprintf("%s '%s'", utils.FlagRecord, recordUID),
@@ -82,19 +82,12 @@ func buildUpdatePamDirectoryRecordCommand(recordUID string, plan, state commonpa
 	}
 
 	commonpamrecords.AppendChangedCheckboxField(&parts, FlagUseSSL, plan.UseSSL, state.UseSSL)
-	commonpamrecords.AppendChangedTextField(&parts, FlagDomainName, plan.DomainName, state.DomainName)
+	commonpamrecords.AppendChangedTextField(&parts, FlagDatabaseId, plan.DatabaseId, state.DatabaseId)
 
-	if !plan.AlternativeIPs.Equal(state.AlternativeIPs) {
-		appendAlternativeIPsField(&parts, plan.AlternativeIPs)
+	if !plan.DatabaseType.Equal(state.DatabaseType) {
+		appendOptionalDatabaseTypeField(&parts, plan.DatabaseType)
 	}
 
-	commonpamrecords.AppendChangedTextField(&parts, FlagDirectoryId, plan.DirectoryId, state.DirectoryId)
-
-	if !plan.DirectoryType.Equal(state.DirectoryType) {
-		appendOptionalDirectoryTypeField(&parts, plan.DirectoryType)
-	}
-
-	commonpamrecords.AppendChangedTextField(&parts, FlagUserMatch, plan.UserMatch, state.UserMatch)
 	commonpamrecords.AppendChangedTextField(&parts, FlagProviderGroup, plan.ProviderGroup, state.ProviderGroup)
 	commonpamrecords.AppendChangedTextField(&parts, FlagProviderRegion, plan.ProviderRegion, state.ProviderRegion)
 

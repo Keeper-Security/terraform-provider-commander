@@ -5,7 +5,6 @@ package pammachine
 
 // Commander CLI record field flags for pamMachine record type.
 const (
-	FlagPamHostname     = "pamHostname"
 	FlagOperatingSystem = "f.text.operatingSystem"
 	FlagInstanceName    = "f.text.instanceName"
 	FlagInstanceId      = "f.text.instanceId"

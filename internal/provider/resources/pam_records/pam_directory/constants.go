@@ -4,7 +4,6 @@
 package pamdirectory
 
 const (
-	FlagPamHostname    = "pamHostname"
 	FlagUseSSL         = "f.checkbox.useSSL"
 	FlagDomainName     = "f.text.domainName"
 	FlagAlternativeIPs = "f.multiline.alternativeIPs"
