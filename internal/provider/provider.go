@@ -19,6 +19,7 @@ import (
 	epmpolicydatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/epm_policy"
 	managedcompanydatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/managed_company"
 	pamconfigurationdatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/pam_configuration"
+	pamdirectorydatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/pam_records/pam_directory"
 	pammachinedatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/pam_records/pam_machine"
 	pamremotebrowserdatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/pam_records/pam_remote_browser"
 	secretsmanagerdatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/secrets_manager"
@@ -215,6 +216,7 @@ func (p *CommanderProvider) DataSources(ctx context.Context) []func() datasource
 		secretsmanagerdatasource.NewSecretsManagerDataSource,
 		epmpolicydatasource.NewEpmPolicyDataSource,
 		pamconfigurationdatasource.NewPamConfigurationDataSource,
+		pamdirectorydatasource.NewPamDirectoryDataSource,
 		pammachinedatasource.NewPamMachineDataSource,
 		pamremotebrowserdatasource.NewPamRemoteBrowserDataSource,
 		sharedfolderdatasource.NewSharedFolderDataSource,
