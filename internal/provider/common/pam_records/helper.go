@@ -70,20 +70,19 @@ func ExtractFirstTextFieldValue(fields []utils.VaultRecordFieldResponse, label s
 	return ""
 }
 
-func MoveRecordFromSourceToDestination(ctx context.Context, apiManager *api.ApiManager, recordUID string, planFolderData string) error {
-	src := recordUID
+func MoveRecordFromSourceToDestination(ctx context.Context, apiManager *api.ApiManager, recordUID string, planFolderData string, stateFolderData string) error {
+	if planFolderData == stateFolderData {
+		return nil
+	}
 
 	dest := planFolderData
 	if dest == "" {
 		dest = "/"
 	}
 
-	command := fmt.Sprintf("%s '%s' '%s' %s", utils.CmdMv, src, dest, utils.FlagForce)
+	command := fmt.Sprintf("%s '%s' '%s' %s", utils.CmdMv, recordUID, dest, utils.FlagForce)
 	_, err := apiManager.ExecuteCommand(ctx, command, utils.ErrSummaryMoveRecordFailed)
-	if err != nil {
-		return err
-	}
-	return nil
+	return err
 }
 
 // ExtractPamSettingsFromResponse reads pamSettings from the API response and

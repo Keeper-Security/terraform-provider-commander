@@ -354,8 +354,8 @@ const (
 	PamSettingsConfigurationDescription         = "Configuration identifier for the PAM record."
 	PamSettingsConfigurationMarkdownDescription = "**Configuration** identifier for the PAM record."
 
-	PamSettingsAdministrativeCredentialsDescription         = "Whether administrative credentials are enabled for the PAM record."
-	PamSettingsAdministrativeCredentialsMarkdownDescription = "Whether **administrative credentials** are enabled for the PAM record."
+	PamSettingsAdministrativeCredentialsDescription         = "Linked PAM User credential used for connection and administrative operations."
+	PamSettingsAdministrativeCredentialsMarkdownDescription = "**Linked PAM User credential** used for connection and administrative operations."
 
 	// --- PAM Settings Tunnel ---.
 	PamSettingsTunnelEnabledDescription         = "Whether tunneling is enabled for this PAM record."

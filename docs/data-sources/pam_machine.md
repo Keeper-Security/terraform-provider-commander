@@ -77,13 +77,13 @@ output "pam_machine_settings" {
 - `folder` (String) Folder **UID** or path to store PAM machine record in your Keeper vault. If not provided, the record will be stored in the root path of vault.
 - `hostname_or_ip` (Attributes) **Hostname or IP address** with an optional port for the PAM machine. (see [below for nested schema](#nestedatt--hostname_or_ip))
 - `id` (String) The PAM machine record **UID** assigned by Keeper after create.
-- `instance_id` (String) **Instance ID** of the PAM machine.
-- `instance_name` (String) **Instance name** of the PAM machine.
-- `notes` (String) Optional **notes** for this PAM machine record.
-- `operating_system` (String) **Operating system** of the PAM machine.
+- `instance_id` (String) **Azure or AWS Instance ID**
+- `instance_name` (String) **Azure or AWS Instance Name**
+- `notes` (String) **Notes** for this PAM machine record.
+- `operating_system` (String) **The target's Operating System**
 - `pam_settings` (Attributes) **PAM settings** for the record, including connection, tunnel, and administrative options. (see [below for nested schema](#nestedatt--pam_settings))
 - `provider_group` (String) **Provider group** of the PAM machine.
-- `provider_region` (String) **Provider region** of the PAM machine.
+- `provider_region` (String) **AWS region** of hosted directory.
 - `title` (String) **Title** of the PAM machine record.
 
 <a id="nestedatt--hostname_or_ip"></a>
@@ -91,8 +91,8 @@ output "pam_machine_settings" {
 
 Read-Only:
 
-- `administrative_port` (Number) **Administrative port number** for the PAM machine connection.
-- `hostname` (String) **Hostname or IP address** of the PAM machine.
+- `administrative_port` (Number) **Port to connect on. The Gateway uses this to determine connection method.**
+- `hostname` (String) **Address of the machine resource**.
 
 
 <a id="nestedatt--pam_settings"></a>

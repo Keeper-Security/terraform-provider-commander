@@ -44,7 +44,7 @@ func (r *PamRemoteBrowserResource) Update(ctx context.Context, req resource.Upda
 	}
 
 	// Phase 0: Move record to destination folder if folder is changed.
-	if err := commonpamrecords.MoveRecordFromSourceToDestination(ctx, r.ApiManager, state.Id.ValueString(), plan.Folder.ValueString()); err != nil {
+	if err := commonpamrecords.MoveRecordFromSourceToDestination(ctx, r.ApiManager, state.Id.ValueString(), plan.Folder.ValueString(), state.Folder.ValueString()); err != nil {
 		resp.Diagnostics.AddError(utils.ErrSummaryMoveRecordFailed, err.Error())
 		return
 	}

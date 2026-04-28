@@ -49,7 +49,7 @@ func MapVaultRecordGetResponseToPamMachineModel(rec *utils.VaultRecordGetRespons
 }
 
 // ExtractPamHostnameFieldValue extracts the pamHostname field value from the fields array.
-func ExtractPamHostnameFieldValue(fields []utils.VaultRecordFieldResponse) *HostnameOrIPModel {
+func ExtractPamHostnameFieldValue(fields []utils.VaultRecordFieldResponse) *commonpamrecords.HostnameOrIPModel {
 	for i := range fields {
 		f := &fields[i]
 		if f.Type != "pamHostname" {
@@ -60,7 +60,7 @@ func ExtractPamHostnameFieldValue(fields []utils.VaultRecordFieldResponse) *Host
 			return nil
 		}
 		if len(vals) > 0 {
-			model := &HostnameOrIPModel{
+			model := &commonpamrecords.HostnameOrIPModel{
 				HostName: setStringOrNull(vals[0].HostName),
 			}
 			portStr := strings.TrimSpace(vals[0].AdministrativePort)

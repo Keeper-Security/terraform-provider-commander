@@ -1,22 +1,22 @@
 // Copyright Keeper Security, Inc. 2026
 // SPDX-License-Identifier: MPL-2.0
 
-package pammachine
+package pamdirectory
 
 import (
 	"context"
 	"fmt"
 	"strings"
 
-	commonpammachine "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/pam_machine"
+	commonpamdirectory "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/pam_directory"
 	commonpamrecords "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/pam_records"
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/utils"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 )
 
-func (r *PamMachineResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var plan commonpammachine.PamMachineResourceModel
-	var state commonpammachine.PamMachineResourceModel
+func (r *PamDirectoryResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	var plan commonpamdirectory.PamDirectoryResourceModel
+	var state commonpamdirectory.PamDirectoryResourceModel
 
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 	if resp.Diagnostics.HasError() {
@@ -40,26 +40,23 @@ func (r *PamMachineResource) Update(ctx context.Context, req resource.UpdateRequ
 	plan.Id = state.Id
 	recordUID := strings.TrimSpace(plan.Id.ValueString())
 	if recordUID == "" {
-		resp.Diagnostics.AddError(ErrSummaryPamMachineRecordUpdateFailed, "PAM machine record id is empty")
+		resp.Diagnostics.AddError(ErrSummaryPamDirectoryRecordUpdateFailed, "PAM directory record id is empty")
 		return
 	}
 
-	// Phase 0: Move record to destination folder if folder is changed.
 	if err := commonpamrecords.MoveRecordFromSourceToDestination(ctx, r.ApiManager, state.Id.ValueString(), plan.Folder.ValueString(), state.Folder.ValueString()); err != nil {
 		resp.Diagnostics.AddError(utils.ErrSummaryMoveRecordFailed, err.Error())
 		return
 	}
 
-	// Phase 1: record fields.
 	if recordUpdateHasMutations(plan, state) {
-		cmd := buildUpdatePamMachineRecordCommand(recordUID, plan, state)
-		if _, err := r.ApiManager.ExecuteCommand(ctx, cmd, ErrDetailPamMachineRecordUpdateFailed); err != nil {
-			resp.Diagnostics.AddError(ErrSummaryPamMachineRecordUpdateFailed, err.Error())
+		cmd := buildUpdatePamDirectoryRecordCommand(recordUID, plan, state)
+		if _, err := r.ApiManager.ExecuteCommand(ctx, cmd, ErrDetailPamDirectoryRecordUpdateFailed); err != nil {
+			resp.Diagnostics.AddError(ErrSummaryPamDirectoryRecordUpdateFailed, err.Error())
 			return
 		}
 	}
 
-	// Phase 2 – apply PAM settings when pam_settings fields are defined.
 	if plan.PamSettings != nil {
 		if err := commonpamrecords.ApplyPamSettings(ctx, r.ApiManager, recordUID, plan.PamSettings); err != nil {
 			resp.Diagnostics.AddError(utils.ErrSummaryApplyPamSettingsFailed, err.Error())
@@ -70,7 +67,7 @@ func (r *PamMachineResource) Update(ctx context.Context, req resource.UpdateRequ
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }
 
-func buildUpdatePamMachineRecordCommand(recordUID string, plan, state commonpammachine.PamMachineResourceModel) string {
+func buildUpdatePamDirectoryRecordCommand(recordUID string, plan, state commonpamdirectory.PamDirectoryResourceModel) string {
 	parts := []string{
 		utils.CmdRecordUpdate,
 		fmt.Sprintf("%s '%s'", utils.FlagRecord, recordUID),
@@ -84,9 +81,20 @@ func buildUpdatePamMachineRecordCommand(recordUID string, plan, state commonpamm
 		appendHostnameOrIPField(&parts, plan.HostnameOrIP)
 	}
 
-	appendChangedTextField(&parts, FlagOperatingSystem, plan.OperatingSystem, state.OperatingSystem)
-	appendChangedTextField(&parts, FlagInstanceName, plan.InstanceName, state.InstanceName)
-	appendChangedTextField(&parts, FlagInstanceId, plan.InstanceId, state.InstanceId)
+	appendChangedCheckboxField(&parts, FlagUseSSL, plan.UseSSL, state.UseSSL)
+	appendChangedTextField(&parts, FlagDomainName, plan.DomainName, state.DomainName)
+
+	if !plan.AlternativeIPs.Equal(state.AlternativeIPs) {
+		appendAlternativeIPsField(&parts, plan.AlternativeIPs)
+	}
+
+	appendChangedTextField(&parts, FlagDirectoryId, plan.DirectoryId, state.DirectoryId)
+
+	if !plan.DirectoryType.Equal(state.DirectoryType) {
+		appendOptionalDirectoryTypeField(&parts, plan.DirectoryType)
+	}
+
+	appendChangedTextField(&parts, FlagUserMatch, plan.UserMatch, state.UserMatch)
 	appendChangedTextField(&parts, FlagProviderGroup, plan.ProviderGroup, state.ProviderGroup)
 	appendChangedTextField(&parts, FlagProviderRegion, plan.ProviderRegion, state.ProviderRegion)
 

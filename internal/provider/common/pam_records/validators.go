@@ -40,6 +40,111 @@ var protocolToAttributeKey = map[string]string{
 }
 
 // ---------------------------------------------------------------------------
+// Block-level "required when present" validators
+// ---------------------------------------------------------------------------
+
+// pamSettingsRequiredFieldsValidator enforces that "configuration" is provided
+// when the pam_settings block is explicitly written in HCL.
+type pamSettingsRequiredFieldsValidator struct{}
+
+func PamSettingsRequiredFieldsValidator() pamSettingsRequiredFieldsValidator {
+	return pamSettingsRequiredFieldsValidator{}
+}
+
+func (v pamSettingsRequiredFieldsValidator) Description(_ context.Context) string {
+	return "configuration is required when pam_settings block is provided."
+}
+
+func (v pamSettingsRequiredFieldsValidator) MarkdownDescription(ctx context.Context) string {
+	return v.Description(ctx)
+}
+
+func (v pamSettingsRequiredFieldsValidator) ValidateObject(_ context.Context, req validator.ObjectRequest, resp *validator.ObjectResponse) {
+	if req.ConfigValue.IsNull() || req.ConfigValue.IsUnknown() {
+		return
+	}
+
+	attrs := req.ConfigValue.Attributes()
+
+	configAttr, ok := attrs["configuration"]
+	if !ok || configAttr.IsNull() || configAttr.IsUnknown() {
+		resp.Diagnostics.AddAttributeError(
+			req.Path.AtName("configuration"),
+			"Missing Required PAM Settings Attribute",
+			"configuration is required when pam_settings block is provided.",
+		)
+	}
+}
+
+// connectionRequiredFieldsValidator enforces that "enable" and "protocol" are
+// provided when the connection block is explicitly written in HCL.
+type connectionRequiredFieldsValidator struct{}
+
+func ConnectionRequiredFieldsValidator() connectionRequiredFieldsValidator {
+	return connectionRequiredFieldsValidator{}
+}
+
+func (v connectionRequiredFieldsValidator) Description(_ context.Context) string {
+	return "enable and protocol are required when connection block is provided."
+}
+
+func (v connectionRequiredFieldsValidator) MarkdownDescription(ctx context.Context) string {
+	return v.Description(ctx)
+}
+
+func (v connectionRequiredFieldsValidator) ValidateObject(_ context.Context, req validator.ObjectRequest, resp *validator.ObjectResponse) {
+	if req.ConfigValue.IsNull() || req.ConfigValue.IsUnknown() {
+		return
+	}
+
+	attrs := req.ConfigValue.Attributes()
+
+	for _, field := range []string{"enable", "protocol"} {
+		attr, ok := attrs[field]
+		if !ok || attr.IsNull() || attr.IsUnknown() {
+			resp.Diagnostics.AddAttributeError(
+				req.Path.AtName(field),
+				"Missing Required Connection Attribute",
+				fmt.Sprintf("%s is required when connection block is provided.", field),
+			)
+		}
+	}
+}
+
+// tunnelRequiredFieldsValidator enforces that "enable" is provided
+// when the tunnel block is explicitly written in HCL.
+type tunnelRequiredFieldsValidator struct{}
+
+func TunnelRequiredFieldsValidator() tunnelRequiredFieldsValidator {
+	return tunnelRequiredFieldsValidator{}
+}
+
+func (v tunnelRequiredFieldsValidator) Description(_ context.Context) string {
+	return "enable is required when tunnel block is provided."
+}
+
+func (v tunnelRequiredFieldsValidator) MarkdownDescription(ctx context.Context) string {
+	return v.Description(ctx)
+}
+
+func (v tunnelRequiredFieldsValidator) ValidateObject(_ context.Context, req validator.ObjectRequest, resp *validator.ObjectResponse) {
+	if req.ConfigValue.IsNull() || req.ConfigValue.IsUnknown() {
+		return
+	}
+
+	attrs := req.ConfigValue.Attributes()
+
+	enableAttr, ok := attrs["enable"]
+	if !ok || enableAttr.IsNull() || enableAttr.IsUnknown() {
+		resp.Diagnostics.AddAttributeError(
+			req.Path.AtName("enable"),
+			"Missing Required Tunnel Attribute",
+			"enable is required when tunnel block is provided.",
+		)
+	}
+}
+
+// ---------------------------------------------------------------------------
 // Protocol string validator
 // ---------------------------------------------------------------------------
 

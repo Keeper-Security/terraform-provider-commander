@@ -33,6 +33,7 @@ import (
 	epmpolicy "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/epm_policy"
 	managedcompany "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/managed_company"
 	pamconfiguration "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/pam_configuration"
+	pamdirectory "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/pam_records/pam_directory"
 	pammachine "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/pam_records/pam_machine"
 	pamremotebrowser "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/pam_records/pam_remote_browser"
 	secretsmanager "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/secrets_manager"
@@ -191,6 +192,7 @@ func (p *CommanderProvider) Resources(ctx context.Context) []func() resource.Res
 		enterpriseuser.NewEnterpriseUserResource,
 		pamconfiguration.NewPamConfigurationResource,
 		pamremotebrowser.NewPamRemoteBrowserResource,
+		pamdirectory.NewPamDirectoryResource,
 		pammachine.NewPamMachineResource,
 		sharedfolder.NewSharedFolderResource,
 		secretsmanager.NewSecretsManagerAppResource,

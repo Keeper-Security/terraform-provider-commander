@@ -17,30 +17,30 @@ const (
 	HostnameOrIPDescription         = "Hostname or IP address with an optional port for the PAM machine."
 	HostnameOrIPMarkdownDescription = "**Hostname or IP address** with an optional port for the PAM machine."
 
-	HostNameDescription         = "Hostname or IP address of the PAM machine."
-	HostNameMarkdownDescription = "**Hostname or IP address** of the PAM machine."
+	HostNameDescription         = "Address of the machine resource."
+	HostNameMarkdownDescription = "**Address of the machine resource**."
 
-	PortDescription         = "Administrative port number for the PAM machine connection."
-	PortMarkdownDescription = "**Administrative port number** for the PAM machine connection."
+	PortDescription         = "Port to connect on. The Gateway uses this to determine connection method."
+	PortMarkdownDescription = "**Port to connect on. The Gateway uses this to determine connection method.**"
 
-	OperatingSystemDescription         = "Operating system of the PAM machine."
-	OperatingSystemMarkdownDescription = "**Operating system** of the PAM machine."
+	OperatingSystemDescription         = "The target's Operating System"
+	OperatingSystemMarkdownDescription = "**The target's Operating System**"
 
-	InstanceNameDescription         = "Instance name of the PAM machine."
-	InstanceNameMarkdownDescription = "**Instance name** of the PAM machine."
+	InstanceNameDescription         = "Azure or AWS Instance Name"
+	InstanceNameMarkdownDescription = "**Azure or AWS Instance Name**"
 
-	InstanceIdDescription         = "Instance ID of the PAM machine."
-	InstanceIdMarkdownDescription = "**Instance ID** of the PAM machine."
+	InstanceIdDescription         = "Azure or AWS Instance ID"
+	InstanceIdMarkdownDescription = "**Azure or AWS Instance ID**"
 
-	ProviderGroupDescription         = "Provider group of the PAM machine."
+	ProviderGroupDescription         = "Provider Group for directories hosted in Azure."
 	ProviderGroupMarkdownDescription = "**Provider group** of the PAM machine."
 
-	ProviderRegionDescription         = "Provider region of the PAM machine."
-	ProviderRegionMarkdownDescription = "**Provider region** of the PAM machine."
+	ProviderRegionDescription         = "AWS region of hosted directory."
+	ProviderRegionMarkdownDescription = "**AWS region** of hosted directory."
 
-	NotesDescription         = "Optional notes for this PAM machine record."
-	NotesMarkdownDescription = "Optional **notes** for this PAM machine record."
+	NotesDescription         = "Notes for this PAM machine record."
+	NotesMarkdownDescription = "**Notes** for this PAM machine record."
 
-	PamSettingsDescription         = "PAM settings for the PAM machine record."
-	PamSettingsMarkdownDescription = "PAM **settings** for the PAM machine record."
+	PamSettingsDescription         = "This is where you configure Connection and Tunnel settings for this machine."
+	PamSettingsMarkdownDescription = "This is where you configure **Connection and Tunnel settings** for this machine."
 )

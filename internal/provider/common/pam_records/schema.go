@@ -19,7 +19,7 @@ import (
 func CommonPamSettingsTunnelSchema() map[string]schema.Attribute {
 	return map[string]schema.Attribute{
 		"enable": schema.BoolAttribute{
-			Required:            true,
+			Optional:            true,
 			Description:         PamSettingsTunnelEnabledDescription,
 			MarkdownDescription: PamSettingsTunnelEnabledMarkdownDescription,
 		},
@@ -58,12 +58,12 @@ func CommonPamSettingsTunnelSchema() map[string]schema.Attribute {
 func connectionScalarAttributes() map[string]schema.Attribute {
 	return map[string]schema.Attribute{
 		"enable": schema.BoolAttribute{
-			Required:            true,
+			Optional:            true,
 			Description:         PamSettingsConnectionEnableDescription,
 			MarkdownDescription: PamSettingsConnectionEnableMarkdownDescription,
 		},
 		"protocol": schema.StringAttribute{
-			Required:            true,
+			Optional:            true,
 			Description:         PamSettingsConnectionProtocolDescription,
 			MarkdownDescription: PamSettingsConnectionProtocolMarkdownDescription,
 			Validators: []validator.String{
@@ -865,6 +865,7 @@ func CommonPamSettingsBlock() schema.SingleNestedBlock {
 	return schema.SingleNestedBlock{
 		Description:         PamSettingsDescription,
 		MarkdownDescription: PamSettingsMarkdownDescription,
+		Validators:          []validator.Object{PamSettingsRequiredFieldsValidator()},
 		Attributes: map[string]schema.Attribute{
 			"allow_supply_host": schema.BoolAttribute{
 				Optional:            true,
@@ -872,11 +873,11 @@ func CommonPamSettingsBlock() schema.SingleNestedBlock {
 				MarkdownDescription: PamSettingsAllowSupplyHostMarkdownDescription,
 			},
 			"configuration": schema.StringAttribute{
-				Required:            true,
+				Optional:            true,
 				Description:         PamSettingsConfigurationDescription,
 				MarkdownDescription: PamSettingsConfigurationMarkdownDescription,
 				Validators: []validator.String{
-					utils.StringMinLengthValidator("Configuration", 1, false),
+					utils.StringMinLengthValidator("Configuration", 1, true),
 				},
 			},
 			"administrative_credentials": schema.StringAttribute{
@@ -894,13 +895,13 @@ func CommonPamSettingsBlock() schema.SingleNestedBlock {
 				MarkdownDescription: PamSettingsConnectionMarkdownDescription,
 				Attributes:          connectionScalarAttributes(),
 				Blocks:              connectionProtocolBlocks(),
-				Validators:          []validator.Object{ConnectionProtocolBlockValidator(), ConnectionFieldsRequireEnabledValidator()},
+				Validators:          []validator.Object{ConnectionRequiredFieldsValidator(), ConnectionProtocolBlockValidator(), ConnectionFieldsRequireEnabledValidator()},
 			},
 			"tunnel": schema.SingleNestedBlock{
 				Description:         PamSettingsTunnelDescription,
 				MarkdownDescription: PamSettingsTunnelMarkdownDescription,
 				Attributes:          CommonPamSettingsTunnelSchema(),
-				Validators:          []validator.Object{TunnelFieldsRequireEnabledValidator()},
+				Validators:          []validator.Object{TunnelRequiredFieldsValidator(), TunnelFieldsRequireEnabledValidator()},
 			},
 		},
 	}

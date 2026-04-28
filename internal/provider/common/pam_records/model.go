@@ -14,6 +14,12 @@ type CommonPamRecordsResourceModel struct {
 	Folder types.String `tfsdk:"folder"`
 }
 
+// HostnameOrIPModel maps the nested hostname_or_ip object.
+type HostnameOrIPModel struct {
+	HostName           types.String `tfsdk:"hostname"`
+	AdministrativePort types.Int32  `tfsdk:"administrative_port"`
+}
+
 type CommonPamSettingsConnectionResourceModel struct {
 	Enable           types.Bool   `tfsdk:"enable"`
 	Protocol         types.String `tfsdk:"protocol"`
