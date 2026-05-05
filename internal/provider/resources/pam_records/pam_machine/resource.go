@@ -6,12 +6,15 @@ package pammachine
 import (
 	"context"
 
+	commonpammachine "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/pam_machine"
+	commonpamrecords "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/pam_records"
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/utils"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 )
 
 var _ resource.Resource = &PamMachineResource{}
 var _ resource.ResourceWithConfigure = &PamMachineResource{}
+var _ resource.ResourceWithModifyPlan = &PamMachineResource{}
 
 type PamMachineResource struct {
 	utils.BaseResource
@@ -23,6 +26,26 @@ func (r *PamMachineResource) Metadata(ctx context.Context, req resource.Metadata
 
 func (r *PamMachineResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 	r.ConfigureResource(ctx, req, resp)
+}
+
+func (r *PamMachineResource) ModifyPlan(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
+	if req.State.Raw.IsNull() || req.Plan.Raw.IsNull() {
+		return
+	}
+
+	var plan commonpammachine.PamMachineResourceModel
+	var state commonpammachine.PamMachineResourceModel
+
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	resp.Diagnostics.Append(commonpamrecords.ValidatePamSettingsFieldsNotRemoved(plan.PamSettings, state.PamSettings)...)
 }
 
 func NewPamMachineResource() resource.Resource {

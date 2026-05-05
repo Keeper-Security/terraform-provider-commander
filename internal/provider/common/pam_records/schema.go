@@ -19,9 +19,11 @@ import (
 func CommonPamSettingsTunnelSchema() map[string]schema.Attribute {
 	return map[string]schema.Attribute{
 		"enable": schema.BoolAttribute{
+			Computed:            true,
 			Optional:            true,
 			Description:         PamSettingsTunnelEnabledDescription,
 			MarkdownDescription: PamSettingsTunnelEnabledMarkdownDescription,
+			Default:             booldefault.StaticBool(false),
 		},
 		"remote_target_port": schema.Int32Attribute{
 			Optional:            true,
@@ -58,9 +60,11 @@ func CommonPamSettingsTunnelSchema() map[string]schema.Attribute {
 func connectionScalarAttributes() map[string]schema.Attribute {
 	return map[string]schema.Attribute{
 		"enable": schema.BoolAttribute{
+			Computed:            true,
 			Optional:            true,
 			Description:         PamSettingsConnectionEnableDescription,
 			MarkdownDescription: PamSettingsConnectionEnableMarkdownDescription,
+			Default:             booldefault.StaticBool(false),
 		},
 		"protocol": schema.StringAttribute{
 			Optional:            true,
@@ -901,7 +905,7 @@ func CommonPamSettingsBlock() schema.SingleNestedBlock {
 				Description:         PamSettingsTunnelDescription,
 				MarkdownDescription: PamSettingsTunnelMarkdownDescription,
 				Attributes:          CommonPamSettingsTunnelSchema(),
-				Validators:          []validator.Object{TunnelRequiredFieldsValidator(), TunnelFieldsRequireEnabledValidator()},
+				Validators:          []validator.Object{TunnelRequiredFieldsValidator(), TunnelFieldsRequireEnabledValidator(), TunnelLocalPortRequiredValidator()},
 			},
 		},
 	}

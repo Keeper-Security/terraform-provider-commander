@@ -37,6 +37,11 @@ func (r *PamDatabaseResource) Update(ctx context.Context, req resource.UpdateReq
 		return
 	}
 
+	resp.Diagnostics.Append(commonpamrecords.ValidatePamSettingsFieldsNotRemoved(plan.PamSettings, state.PamSettings)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
 	plan.Id = state.Id
 	recordUID := strings.TrimSpace(plan.Id.ValueString())
 	if recordUID == "" {
@@ -58,7 +63,7 @@ func (r *PamDatabaseResource) Update(ctx context.Context, req resource.UpdateReq
 	}
 
 	if plan.PamSettings != nil {
-		if err := commonpamrecords.ApplyPamSettings(ctx, r.ApiManager, recordUID, plan.PamSettings); err != nil {
+		if err := commonpamrecords.ApplyPamSettings(ctx, r.ApiManager, recordUID, plan.PamSettings, state.PamSettings); err != nil {
 			resp.Diagnostics.AddError(utils.ErrSummaryApplyPamSettingsFailed, err.Error())
 			return
 		}

@@ -12,6 +12,7 @@ import (
 
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/api"
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/utils"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
@@ -618,26 +619,99 @@ func extractConfigurationFromDagDebug(dagDebug *utils.DagDebugResponse) string {
 	return ""
 }
 
-func ApplyPamSettings(ctx context.Context, apiManager *api.ApiManager, recordUID string, pamSettings *CommonPamSettingsFieldResourceModel) error {
-	if pamSettings == nil {
+// ValidatePamSettingsFieldsNotRemoved checks that the pam_settings block and
+// its configuration / administrative_credentials attributes are not removed
+// once they have been set. Users may change the values but may not remove them.
+//
+// With SingleNestedBlock, removing the block from HCL may result in a non-nil
+// struct with all-null fields rather than a nil pointer, so we check both cases:
+// planPamSettings == nil OR the individual attribute is null/empty.
+func ValidatePamSettingsFieldsNotRemoved(planPamSettings, statePamSettings *CommonPamSettingsFieldResourceModel) diag.Diagnostics {
+	var diags diag.Diagnostics
+
+	if statePamSettings == nil {
+		return diags
+	}
+
+	stateConfigSet := !statePamSettings.Configuration.IsNull() &&
+		!statePamSettings.Configuration.IsUnknown() &&
+		statePamSettings.Configuration.ValueString() != ""
+
+	stateAdminCredSet := !statePamSettings.AdministrativeCredentials.IsNull() &&
+		!statePamSettings.AdministrativeCredentials.IsUnknown() &&
+		statePamSettings.AdministrativeCredentials.ValueString() != ""
+
+	if !stateConfigSet && !stateAdminCredSet {
+		return diags
+	}
+
+	planConfigRemoved := planPamSettings == nil ||
+		planPamSettings.Configuration.IsNull() ||
+		planPamSettings.Configuration.IsUnknown() ||
+		planPamSettings.Configuration.ValueString() == ""
+
+	planAdminCredRemoved := planPamSettings == nil ||
+		planPamSettings.AdministrativeCredentials.IsNull() ||
+		planPamSettings.AdministrativeCredentials.IsUnknown() ||
+		planPamSettings.AdministrativeCredentials.ValueString() == ""
+
+	if stateConfigSet && planConfigRemoved {
+		diags.AddError(
+			"Cannot Remove PAM Settings Configuration",
+			"The pam_settings block cannot be removed once configuration has been set. "+
+				"You may change the configuration value, but it cannot be removed.",
+		)
+	}
+
+	if stateAdminCredSet && planAdminCredRemoved {
+		diags.AddError(
+			"Cannot Remove PAM Settings Administrative Credentials",
+			"The administrative_credentials attribute cannot be removed once it has been set. "+
+				"You may change the value, but it cannot be removed.",
+		)
+	}
+
+	return diags
+}
+
+func ApplyPamSettings(ctx context.Context, apiManager *api.ApiManager, recordUID string, pamSettings *CommonPamSettingsFieldResourceModel, statePamSettings *CommonPamSettingsFieldResourceModel) error {
+	if pamSettings == nil || pamSettings.Configuration.IsNull() || pamSettings.Configuration.IsUnknown() || pamSettings.Configuration.ValueString() == "" {
 		return nil
 	}
 
 	configuration := pamSettings.Configuration.ValueString()
 
+	// Tunnel: apply settings if present in plan, or disable if it was
+	// removed from the plan and was previously enabled in state.
+	// Skip the disable call if tunnel was already disabled (avoid redundant API call).
 	if pamSettings.Tunnel != nil {
 		if err := applyPamTunnelSettings(ctx, apiManager, recordUID, configuration, pamSettings.Tunnel); err != nil {
 			return err
 		}
-	}
-
-	if pamSettings.Connection != nil {
-		if err := runPamConnectionEditCommand(ctx, apiManager, recordUID, configuration, pamSettings.AdministrativeCredentials, pamSettings.Connection); err != nil {
+	} else if statePamSettings != nil && statePamSettings.Tunnel != nil &&
+		!statePamSettings.Tunnel.Enable.IsNull() && !statePamSettings.Tunnel.Enable.IsUnknown() && statePamSettings.Tunnel.Enable.ValueBool() {
+		if err := disablePamTunneling(ctx, apiManager, recordUID, configuration); err != nil {
 			return err
 		}
 	}
 
-	if pamSettings.Tunnel == nil && pamSettings.Connection == nil {
+	// Connection: apply settings if present in plan, or disable if it was
+	// removed from the plan and was previously enabled in state.
+	// Skip the disable call if connection was already disabled (avoid redundant API call).
+	if pamSettings.Connection != nil {
+		if err := runPamConnectionEditCommand(ctx, apiManager, recordUID, configuration, pamSettings.AdministrativeCredentials, pamSettings.Connection); err != nil {
+			return err
+		}
+	} else if statePamSettings != nil && statePamSettings.Connection != nil &&
+		!statePamSettings.Connection.Enable.IsNull() && !statePamSettings.Connection.Enable.IsUnknown() && statePamSettings.Connection.Enable.ValueBool() {
+		if err := disablePamConnection(ctx, apiManager, recordUID, configuration, pamSettings.AdministrativeCredentials); err != nil {
+			return err
+		}
+	}
+
+	// When neither tunnel nor connection is present in plan or state,
+	// apply only the configuration and admin credential linkage.
+	if pamSettings.Tunnel == nil && pamSettings.Connection == nil && (statePamSettings == nil || (statePamSettings.Tunnel == nil && statePamSettings.Connection == nil)) {
 		if err := applyPamConfiguration(ctx, apiManager, recordUID, configuration, pamSettings.AdministrativeCredentials.ValueString()); err != nil {
 			return err
 		}
@@ -661,6 +735,36 @@ func applyPamConfiguration(ctx context.Context, apiManager *api.ApiManager, reco
 
 	command := strings.Join(parts, " ")
 	_, err := apiManager.ExecuteCommand(ctx, command, utils.ErrSummaryApplyPamSettingsFailed)
+	return err
+}
+
+// disablePamTunneling runs `pam tunnel edit` with --disable-tunneling when the
+// tunnel block has been removed from the plan but was present in state.
+func disablePamTunneling(ctx context.Context, apiManager *api.ApiManager, recordUID string, configuration string) error {
+	command := strings.Join([]string{
+		utils.CmdPamTunnelEdit,
+		fmt.Sprintf("'%s'", recordUID),
+		fmt.Sprintf("%s '%s'", utils.FlagConfiguration, configuration),
+		utils.FlagDisableTunneling,
+	}, " ")
+	_, err := apiManager.ExecuteCommand(ctx, command, utils.ErrSummaryApplyPamTunnelSettingsFailed)
+	return err
+}
+
+// disablePamConnection runs `pam connection edit` with --connections=off when
+// the connection block has been removed from the plan but was present in state.
+func disablePamConnection(ctx context.Context, apiManager *api.ApiManager, recordUID string, configuration string, adminCredentials types.String) error {
+	parts := []string{
+		utils.CmdPamConnectionEdit,
+		fmt.Sprintf("'%s'", recordUID),
+		fmt.Sprintf("%s '%s'", utils.FlagConfiguration, configuration),
+		fmt.Sprintf("%s=%s", utils.FlagConnections, utils.ValueOff),
+	}
+	if !adminCredentials.IsNull() && !adminCredentials.IsUnknown() {
+		parts = append(parts, fmt.Sprintf("%s '%s'", utils.FlagAdminCredential, adminCredentials.ValueString()))
+	}
+	command := strings.Join(parts, " ")
+	_, err := apiManager.ExecuteCommand(ctx, command, utils.ErrSummaryApplyPamConnectionSettingsFailed)
 	return err
 }
 
@@ -802,13 +906,19 @@ func buildFullPamSettingsJSON(pamSettings *CommonPamSettingsFieldResourceModel) 
 
 	if pamSettings.Tunnel != nil {
 		root["portForward"] = buildPortForwardMap(pamSettings.Tunnel)
+	} else {
+		root["portForward"] = map[string]interface{}{}
 	}
 
 	if pamSettings.Connection != nil {
 		connMap := buildConnectionMap(pamSettings.Connection)
 		if connMap != nil {
 			root["connection"] = connMap
+		} else {
+			root["connection"] = map[string]interface{}{}
 		}
+	} else {
+		root["connection"] = map[string]interface{}{}
 	}
 
 	b, err := json.Marshal(root)

@@ -341,6 +341,47 @@ func (v tunnelFieldsRequireEnabledValidator) ValidateObject(ctx context.Context,
 	}
 }
 
+// tunnelLocalPortRequiredValidator requires local_port when use_specified_local_port is true.
+type tunnelLocalPortRequiredValidator struct{}
+
+func TunnelLocalPortRequiredValidator() tunnelLocalPortRequiredValidator {
+	return tunnelLocalPortRequiredValidator{}
+}
+
+func (v tunnelLocalPortRequiredValidator) Description(_ context.Context) string {
+	return "local_port is required when use_specified_local_port is true."
+}
+
+func (v tunnelLocalPortRequiredValidator) MarkdownDescription(ctx context.Context) string {
+	return v.Description(ctx)
+}
+
+func (v tunnelLocalPortRequiredValidator) ValidateObject(_ context.Context, req validator.ObjectRequest, resp *validator.ObjectResponse) {
+	if req.ConfigValue.IsNull() || req.ConfigValue.IsUnknown() {
+		return
+	}
+
+	attrs := req.ConfigValue.Attributes()
+
+	useSpecifiedAttr, ok := attrs["use_specified_local_port"]
+	if !ok {
+		return
+	}
+	useSpecifiedVal, ok := useSpecifiedAttr.(types.Bool)
+	if !ok || useSpecifiedVal.IsNull() || useSpecifiedVal.IsUnknown() || !useSpecifiedVal.ValueBool() {
+		return
+	}
+
+	localPortAttr, exists := attrs["local_port"]
+	if !exists || localPortAttr.IsNull() || localPortAttr.IsUnknown() {
+		resp.Diagnostics.AddAttributeError(
+			req.Path.AtName("local_port"),
+			"Missing Required Tunnel Attribute",
+			"local_port is required when use_specified_local_port is true.",
+		)
+	}
+}
+
 // sftpUserUidRequiredValidator requires sftp_user_uid when enable_sftp is true.
 type sftpUserUidRequiredValidator struct{}
 
