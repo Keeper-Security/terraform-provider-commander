@@ -8,7 +8,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
-// PamRemoteBrowserDataSourceModel is the Terraform model for commander_pam_remote_browser data source.
 type PamRemoteBrowserDataSourceModel struct {
 	RemoteBrowser types.String `tfsdk:"remote_browser"`
 	commonpamremotebrowser.PamRemoteBrowserResourceModel

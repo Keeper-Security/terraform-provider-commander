@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"strings"
 
+	commonpamrecords "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/pam_records"
 	pamUserResource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/pam_records/pam_user"
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/utils"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
@@ -89,7 +90,7 @@ func mapVaultRecordToDataSource(rec *utils.VaultRecordGetResponse, data *PamUser
 
 	data.Title = stringOrNull(rec.Title)
 	data.Notes = stringOrNull(rec.Notes)
-	data.Folder = stringOrNull(rec.Folder)
+	data.Folder = commonpamrecords.ExtractFolderValue(rec.Folder, data.Folder)
 
 	for i := range rec.Fields {
 		f := &rec.Fields[i]

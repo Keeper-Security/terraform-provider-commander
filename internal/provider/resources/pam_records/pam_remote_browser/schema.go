@@ -6,6 +6,7 @@ package pamremotebrowser
 import (
 	"context"
 
+	commonpamremotebrowser "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/pam_remote_browser"
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/utils"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -19,92 +20,96 @@ import (
 
 func (r *PamRemoteBrowserResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		Description:         SchemaDescription,
-		MarkdownDescription: SchemaMarkdownDescription,
+		Description: "Manages PAM remote browser record in your Keeper vault.\n\n" +
+			"A PAM Remote Browser is a type of KeeperPAM resource that represents a remote browser isolation target, such as a protected internal application or cloud-based web app.\n\n" +
+			"For more information, see https://docs.keeper.io/en/keeperpam/privileged-access-manager/getting-started/pam-resources/pam-remote-browser.",
+		MarkdownDescription: "Manages **PAM remote browser** record in your Keeper vault.\n\n" +
+			"A PAM Remote Browser is a type of KeeperPAM resource that represents a remote browser isolation target, such as a protected internal application or cloud-based web app.\n\n" +
+			"For more information, see [Keeper PAM Remote Browser documentation](https://docs.keeper.io/en/keeperpam/privileged-access-manager/getting-started/pam-resources/pam-remote-browser).",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed:            true,
-				Description:         IDDescription,
-				MarkdownDescription: IDMarkdownDescription,
+				Description:         commonpamremotebrowser.IDDescription,
+				MarkdownDescription: commonpamremotebrowser.IDMarkdownDescription,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
 				},
 			},
 			"title": schema.StringAttribute{
 				Required:            true,
-				Description:         TitleDescription,
-				MarkdownDescription: TitleMarkdownDescription,
+				Description:         commonpamremotebrowser.TitleDescription,
+				MarkdownDescription: commonpamremotebrowser.TitleMarkdownDescription,
 				Validators: []validator.String{
 					utils.StringMinLengthValidator("Title", 1, false),
 				},
 			},
 			"url": schema.StringAttribute{
 				Required:            true,
-				Description:         URLDescription,
-				MarkdownDescription: URLMarkdownDescription,
+				Description:         commonpamremotebrowser.URLDescription,
+				MarkdownDescription: commonpamremotebrowser.URLMarkdownDescription,
 				Validators: []validator.String{
 					utils.StringMinLengthValidator("URL", 1, false),
 				},
 			},
 			"notes": schema.StringAttribute{
 				Optional:            true,
-				Description:         NotesDescription,
-				MarkdownDescription: NotesMarkdownDescription,
+				Description:         commonpamremotebrowser.NotesDescription,
+				MarkdownDescription: commonpamremotebrowser.NotesMarkdownDescription,
 				Validators: []validator.String{
 					utils.StringMinLengthValidator("Notes", 0, true),
 				},
 			},
 			"folder": schema.StringAttribute{
 				Optional:            true,
-				Description:         FolderDescription,
-				MarkdownDescription: FolderMarkdownDescription,
+				Description:         commonpamremotebrowser.FolderDescription,
+				MarkdownDescription: commonpamremotebrowser.FolderMarkdownDescription,
 				Validators: []validator.String{
 					utils.StringMinLengthValidator("Folder", 1, true),
 				},
 			},
 			"pam_remote_browser_settings": schema.SingleNestedAttribute{
 				Optional:            true,
-				Description:         PamRemoteBrowserSettingsDescription,
-				MarkdownDescription: PamRemoteBrowserSettingsMarkdownDescription,
+				Description:         commonpamremotebrowser.PamRemoteBrowserSettingsDescription,
+				MarkdownDescription: commonpamremotebrowser.PamRemoteBrowserSettingsMarkdownDescription,
 				Attributes: map[string]schema.Attribute{
 					"configuration": schema.StringAttribute{
 						Required:            true,
-						Description:         SettingsConfigurationDescription,
-						MarkdownDescription: SettingsConfigurationMarkdownDescription,
+						Description:         commonpamremotebrowser.SettingsConfigurationDescription,
+						MarkdownDescription: commonpamremotebrowser.SettingsConfigurationMarkdownDescription,
 						Validators: []validator.String{
 							utils.StringMinLengthValidator("PAM Configuration UID", 1, false),
 						},
 					},
 					"remote_browser_isolation": schema.BoolAttribute{
 						Optional:            true,
-						Description:         SettingsRemoteBrowserIsolationDescription,
-						MarkdownDescription: SettingsRemoteBrowserIsolationMarkdownDescription,
+						Description:         commonpamremotebrowser.SettingsRemoteBrowserIsolationDescription,
+						MarkdownDescription: commonpamremotebrowser.SettingsRemoteBrowserIsolationMarkdownDescription,
 					},
 					"connections_recording": schema.BoolAttribute{
 						Optional:            true,
-						Description:         SettingsConnectionsRecordingDescription,
-						MarkdownDescription: SettingsConnectionsRecordingMarkdownDescription,
+						Description:         commonpamremotebrowser.SettingsConnectionsRecordingDescription,
+						MarkdownDescription: commonpamremotebrowser.SettingsConnectionsRecordingMarkdownDescription,
 					},
 					"key_events": schema.BoolAttribute{
 						Optional:            true,
-						Description:         SettingsKeyEventsDescription,
-						MarkdownDescription: SettingsKeyEventsMarkdownDescription,
+						Description:         commonpamremotebrowser.SettingsKeyEventsDescription,
+						MarkdownDescription: commonpamremotebrowser.SettingsKeyEventsMarkdownDescription,
 					},
 					"allow_url_navigation": schema.BoolAttribute{
 						Optional:            true,
-						Description:         SettingsAllowURLNavigationDescription,
-						MarkdownDescription: SettingsAllowURLNavigationMarkdownDescription,
+						Description:         commonpamremotebrowser.SettingsAllowURLNavigationDescription,
+						MarkdownDescription: commonpamremotebrowser.SettingsAllowURLNavigationMarkdownDescription,
 					},
 					"ignore_server_cert": schema.BoolAttribute{
 						Optional:            true,
-						Description:         SettingsIgnoreServerCertDescription,
-						MarkdownDescription: SettingsIgnoreServerCertMarkdownDescription,
+						Description:         commonpamremotebrowser.SettingsIgnoreServerCertDescription,
+						MarkdownDescription: commonpamremotebrowser.SettingsIgnoreServerCertMarkdownDescription,
 					},
 					"allowed_urls": schema.SetAttribute{
 						Optional:            true,
 						ElementType:         types.StringType,
-						Description:         SettingsAllowedURLsDescription,
-						MarkdownDescription: SettingsAllowedURLsMarkdownDescription,
+						Description:         commonpamremotebrowser.SettingsAllowedURLsDescription,
+						MarkdownDescription: commonpamremotebrowser.SettingsAllowedURLsMarkdownDescription,
 						Validators: []validator.Set{
 							utils.SetNotEmptyValidator("Allowed URLs"),
 							utils.SetNoEmptyStringsValidator("Allowed URLs"),
@@ -113,8 +118,8 @@ func (r *PamRemoteBrowserResource) Schema(ctx context.Context, req resource.Sche
 					"allowed_resource_urls": schema.SetAttribute{
 						Optional:            true,
 						ElementType:         types.StringType,
-						Description:         SettingsAllowedResourceURLsDescription,
-						MarkdownDescription: SettingsAllowedResourceURLsMarkdownDescription,
+						Description:         commonpamremotebrowser.SettingsAllowedResourceURLsDescription,
+						MarkdownDescription: commonpamremotebrowser.SettingsAllowedResourceURLsMarkdownDescription,
 						Validators: []validator.Set{
 							utils.SetNotEmptyValidator("Allowed Resource URLs"),
 							utils.SetNoEmptyStringsValidator("Allowed Resource URLs"),
@@ -123,8 +128,8 @@ func (r *PamRemoteBrowserResource) Schema(ctx context.Context, req resource.Sche
 					"auto_fill_targets": schema.SetAttribute{
 						Optional:            true,
 						ElementType:         types.StringType,
-						Description:         SettingsAutoFillTargetsDescription,
-						MarkdownDescription: SettingsAutoFillTargetsMarkdownDescription,
+						Description:         commonpamremotebrowser.SettingsAutoFillTargetsDescription,
+						MarkdownDescription: commonpamremotebrowser.SettingsAutoFillTargetsMarkdownDescription,
 						Validators: []validator.Set{
 							utils.SetNotEmptyValidator("Auto-fill Targets"),
 							utils.SetNoEmptyStringsValidator("Auto-fill Targets"),
@@ -132,32 +137,32 @@ func (r *PamRemoteBrowserResource) Schema(ctx context.Context, req resource.Sche
 					},
 					"auto_fill_credentials": schema.StringAttribute{
 						Optional:            true,
-						Description:         SettingsAutoFillCredentialsDescription,
-						MarkdownDescription: SettingsAutoFillCredentialsMarkdownDescription,
+						Description:         commonpamremotebrowser.SettingsAutoFillCredentialsDescription,
+						MarkdownDescription: commonpamremotebrowser.SettingsAutoFillCredentialsMarkdownDescription,
 						Validators: []validator.String{
 							utils.StringMinLengthValidator("Auto-fill Credentials", 1, true),
 						},
 					},
 					"allow_copy": schema.BoolAttribute{
 						Optional:            true,
-						Description:         SettingsAllowCopyDescription,
-						MarkdownDescription: SettingsAllowCopyMarkdownDescription,
+						Description:         commonpamremotebrowser.SettingsAllowCopyDescription,
+						MarkdownDescription: commonpamremotebrowser.SettingsAllowCopyMarkdownDescription,
 					},
 					"allow_paste": schema.BoolAttribute{
 						Optional:            true,
-						Description:         SettingsAllowPasteDescription,
-						MarkdownDescription: SettingsAllowPasteMarkdownDescription,
+						Description:         commonpamremotebrowser.SettingsAllowPasteDescription,
+						MarkdownDescription: commonpamremotebrowser.SettingsAllowPasteMarkdownDescription,
 					},
 					"disable_audio": schema.BoolAttribute{
 						Optional:            true,
-						Description:         SettingsDisableAudioDescription,
-						MarkdownDescription: SettingsDisableAudioMarkdownDescription,
+						Description:         commonpamremotebrowser.SettingsDisableAudioDescription,
+						MarkdownDescription: commonpamremotebrowser.SettingsDisableAudioMarkdownDescription,
 					},
 					"audio_channels": schema.Int32Attribute{
 						Computed:            true,
 						Optional:            true,
-						Description:         SettingsAudioChannelsDescription,
-						MarkdownDescription: SettingsAudioChannelsMarkdownDescription,
+						Description:         commonpamremotebrowser.SettingsAudioChannelsDescription,
+						MarkdownDescription: commonpamremotebrowser.SettingsAudioChannelsMarkdownDescription,
 						Validators: []validator.Int32{
 							AudioChannelsValidator{},
 						},
@@ -166,8 +171,8 @@ func (r *PamRemoteBrowserResource) Schema(ctx context.Context, req resource.Sche
 					"audio_bit_depth": schema.Int64Attribute{
 						Computed:            true,
 						Optional:            true,
-						Description:         SettingsAudioBitDepthDescription,
-						MarkdownDescription: SettingsAudioBitDepthMarkdownDescription,
+						Description:         commonpamremotebrowser.SettingsAudioBitDepthDescription,
+						MarkdownDescription: commonpamremotebrowser.SettingsAudioBitDepthMarkdownDescription,
 						Validators: []validator.Int64{
 							AudioBitDepthValidator{},
 						},
@@ -176,8 +181,8 @@ func (r *PamRemoteBrowserResource) Schema(ctx context.Context, req resource.Sche
 					"audio_sample_rate": schema.Int64Attribute{
 						Computed:            true,
 						Optional:            true,
-						Description:         SettingsAudioSampleRateDescription,
-						MarkdownDescription: SettingsAudioSampleRateMarkdownDescription,
+						Description:         commonpamremotebrowser.SettingsAudioSampleRateDescription,
+						MarkdownDescription: commonpamremotebrowser.SettingsAudioSampleRateMarkdownDescription,
 						Default:             int64default.StaticInt64(44100),
 					},
 				},

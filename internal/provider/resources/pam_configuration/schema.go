@@ -132,8 +132,9 @@ func (r *PamConfigurationResource) Schema(ctx context.Context, req resource.Sche
 				Description:         DescAITerminateSessionOnDetection,
 				MarkdownDescription: DescAITerminateSessionOnDetectionMD,
 			},
-			"local_network": schema.SingleNestedAttribute{
-				Optional:            true,
+		},
+		Blocks: map[string]schema.Block{
+			"local_network": schema.SingleNestedBlock{
 				Description:         DescLocalNetwork,
 				MarkdownDescription: DescLocalNetworkMD,
 				Attributes: map[string]schema.Attribute{
@@ -155,13 +156,12 @@ func (r *PamConfigurationResource) Schema(ctx context.Context, req resource.Sche
 					},
 				},
 			},
-			"aws": schema.SingleNestedAttribute{
-				Optional:            true,
+			"aws": schema.SingleNestedBlock{
 				Description:         DescAws,
 				MarkdownDescription: DescAwsMD,
 				Attributes: map[string]schema.Attribute{
 					"aws_id": schema.StringAttribute{
-						Required:            true,
+						Optional:            true,
 						Description:         DescAwsId,
 						MarkdownDescription: DescAwsIdMD,
 						Validators: []validator.String{
@@ -197,13 +197,12 @@ func (r *PamConfigurationResource) Schema(ctx context.Context, req resource.Sche
 					},
 				},
 			},
-			"azure": schema.SingleNestedAttribute{
-				Optional:            true,
+			"azure": schema.SingleNestedBlock{
 				Description:         DescAzure,
 				MarkdownDescription: DescAzureMD,
 				Attributes: map[string]schema.Attribute{
 					"azure_id": schema.StringAttribute{
-						Required:            true,
+						Optional:            true,
 						Description:         DescAzureId,
 						MarkdownDescription: DescAzureIdMD,
 						Validators: []validator.String{
@@ -211,7 +210,7 @@ func (r *PamConfigurationResource) Schema(ctx context.Context, req resource.Sche
 						},
 					},
 					"client_id": schema.StringAttribute{
-						Required:            true,
+						Optional:            true,
 						Description:         DescClientId,
 						MarkdownDescription: DescClientIdMD,
 						Validators: []validator.String{
@@ -219,7 +218,7 @@ func (r *PamConfigurationResource) Schema(ctx context.Context, req resource.Sche
 						},
 					},
 					"client_secret": schema.StringAttribute{
-						Required:            true,
+						Optional:            true,
 						Sensitive:           true,
 						Description:         DescClientSecret,
 						MarkdownDescription: DescClientSecretMD,
@@ -228,7 +227,7 @@ func (r *PamConfigurationResource) Schema(ctx context.Context, req resource.Sche
 						},
 					},
 					"subscription_id": schema.StringAttribute{
-						Required:            true,
+						Optional:            true,
 						Description:         DescSubscriptionId,
 						MarkdownDescription: DescSubscriptionIdMD,
 						Validators: []validator.String{
@@ -236,7 +235,7 @@ func (r *PamConfigurationResource) Schema(ctx context.Context, req resource.Sche
 						},
 					},
 					"tenant_id": schema.StringAttribute{
-						Required:            true,
+						Optional:            true,
 						Description:         DescTenantId,
 						MarkdownDescription: DescTenantIdMD,
 						Validators: []validator.String{
@@ -255,13 +254,12 @@ func (r *PamConfigurationResource) Schema(ctx context.Context, req resource.Sche
 					},
 				},
 			},
-			"domain": schema.SingleNestedAttribute{
-				Optional:            true,
+			"domain": schema.SingleNestedBlock{
 				Description:         DescDomain,
 				MarkdownDescription: DescDomainMD,
 				Attributes: map[string]schema.Attribute{
 					"domain_id": schema.StringAttribute{
-						Required:            true,
+						Optional:            true,
 						Description:         DescDomainId,
 						MarkdownDescription: DescDomainIdMD,
 						Validators: []validator.String{
@@ -269,7 +267,7 @@ func (r *PamConfigurationResource) Schema(ctx context.Context, req resource.Sche
 						},
 					},
 					"domain_hostname": schema.StringAttribute{
-						Required:            true,
+						Optional:            true,
 						Description:         DescDomainHostname,
 						MarkdownDescription: DescDomainHostnameMD,
 						Validators: []validator.String{
@@ -277,7 +275,7 @@ func (r *PamConfigurationResource) Schema(ctx context.Context, req resource.Sche
 						},
 					},
 					"domain_port": schema.StringAttribute{
-						Required:            true,
+						Optional:            true,
 						Description:         DescDomainPort,
 						MarkdownDescription: DescDomainPortMD,
 						Validators: []validator.String{
@@ -285,7 +283,7 @@ func (r *PamConfigurationResource) Schema(ctx context.Context, req resource.Sche
 						},
 					},
 					"domain_use_ssl": schema.BoolAttribute{
-						Required:            true,
+						Optional:            true,
 						Description:         DescDomainUseSsl,
 						MarkdownDescription: DescDomainUseSslMD,
 					},
@@ -305,7 +303,7 @@ func (r *PamConfigurationResource) Schema(ctx context.Context, req resource.Sche
 						},
 					},
 					"domain_admin": schema.StringAttribute{
-						Required:            true,
+						Optional:            true,
 						Sensitive:           true,
 						Description:         DescDomainAdmin,
 						MarkdownDescription: DescDomainAdminMD,
@@ -315,13 +313,12 @@ func (r *PamConfigurationResource) Schema(ctx context.Context, req resource.Sche
 					},
 				},
 			},
-			"gcp": schema.SingleNestedAttribute{
-				Optional:            true,
+			"gcp": schema.SingleNestedBlock{
 				Description:         DescGcp,
 				MarkdownDescription: DescGcpMD,
 				Attributes: map[string]schema.Attribute{
 					"gcp_id": schema.StringAttribute{
-						Required:            true,
+						Optional:            true,
 						Description:         DescGcpId,
 						MarkdownDescription: DescGcpIdMD,
 						Validators: []validator.String{
@@ -329,12 +326,13 @@ func (r *PamConfigurationResource) Schema(ctx context.Context, req resource.Sche
 						},
 					},
 					"service_account_key": schema.StringAttribute{
-						Required:            true,
+						Optional:            true,
 						Sensitive:           true,
 						Description:         DescServiceAccountKey,
 						MarkdownDescription: DescServiceAccountKeyMD,
 						Validators: []validator.String{
 							utils.StringMinLengthValidator("Service Account Key", 1, true),
+							utils.JSONStringValidator("Service Account Key"),
 						},
 					},
 					"google_admin_email": schema.StringAttribute{

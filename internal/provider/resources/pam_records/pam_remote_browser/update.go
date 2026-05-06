@@ -7,6 +7,7 @@ import (
 	"context"
 	"strings"
 
+	commonpamrecords "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/pam_records"
 	commonpamremotebrowser "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/pam_remote_browser"
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/utils"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -39,6 +40,12 @@ func (r *PamRemoteBrowserResource) Update(ctx context.Context, req resource.Upda
 	recordUID := strings.TrimSpace(plan.Id.ValueString())
 	if recordUID == "" {
 		resp.Diagnostics.AddError(ErrSummaryPamRemoteBrowserRecordUpdateFailed, "PAM remote browser record id is empty")
+		return
+	}
+
+	// Phase 0: Move record to destination folder if folder is changed.
+	if err := commonpamrecords.MoveRecordFromSourceToDestination(ctx, r.ApiManager, state.Id.ValueString(), plan.Folder.ValueString(), state.Folder.ValueString()); err != nil {
+		resp.Diagnostics.AddError(utils.ErrSummaryMoveRecordFailed, err.Error())
 		return
 	}
 

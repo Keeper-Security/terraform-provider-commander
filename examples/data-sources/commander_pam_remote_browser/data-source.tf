@@ -1,12 +1,7 @@
 # Look up an existing RBI record by UID.
 data "commander_pam_remote_browser" "existing" {
-  record_uid = "_REPLACE_WITH_RECORD_UID_"
+  remote_browser = "_REPLACE_WITH_RECORD_UID_"
 }
-
-# Typical pattern: read a record you manage elsewhere, or chain from a resource.
-# data "commander_pam_remote_browser" "from_resource" {
-#   record_uid = commander_pam_remote_browser.intranet_app.id
-# }
 
 output "rbi_record_id" {
   description = "Record UID from the data source read."

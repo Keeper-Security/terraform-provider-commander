@@ -9,6 +9,7 @@ import (
 	"encoding/json"
 	"strings"
 
+	commonpamrecords "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/pam_records"
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/utils"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
@@ -39,14 +40,10 @@ func MapVaultRecordGetResponseToPamRemoteBrowserModel(ctx context.Context, rec *
 		state.Notes = types.StringValue(rec.Notes)
 	}
 
-	if strings.TrimSpace(rec.Folder) == "" {
-		state.Folder = types.StringNull()
-	} else {
-		state.Folder = types.StringValue(rec.Folder)
-	}
+	state.Folder = commonpamrecords.ExtractFolderValue(rec.Folder, state.Folder)
 
 	var rbiURL string
-	var settingsConn *utils.PamRemoteBrowserSettingsFieldConnection
+	var settingsConn *utils.PamRemoteBrowserSettingsFieldConnectionResponse
 
 	for i := range rec.Fields {
 		f := &rec.Fields[i]
@@ -61,7 +58,7 @@ func MapVaultRecordGetResponseToPamRemoteBrowserModel(ctx context.Context, rec *
 				rbiURL = strings.TrimSpace(vals[0])
 			}
 		case vaultFieldTypePamRemoteBrowserSettings:
-			var entries []utils.PamRemoteBrowserSettingsFieldEntry
+			var entries []utils.PamRemoteBrowserSettingsFieldResponse
 			if err := json.Unmarshal(f.Value, &entries); err != nil {
 				diags.AddWarning("PAM remote browser read", "Could not parse pamRemoteBrowserSettings field: "+err.Error())
 				continue
@@ -79,7 +76,7 @@ func MapVaultRecordGetResponseToPamRemoteBrowserModel(ctx context.Context, rec *
 	}
 
 	if settingsConn != nil {
-		m, d := mapConnectionToPamRemoteBrowserSettingsModel(ctx, settingsConn)
+		m, d := mapConnectionToPamRemoteBrowserSettingsModel(ctx, settingsConn, rec)
 		diags.Append(d...)
 		state.PamRemoteBrowserSettings = m
 	} else {
@@ -89,17 +86,27 @@ func MapVaultRecordGetResponseToPamRemoteBrowserModel(ctx context.Context, rec *
 	return diags
 }
 
-func mapConnectionToPamRemoteBrowserSettingsModel(ctx context.Context, c *utils.PamRemoteBrowserSettingsFieldConnection) (*PamRemoteBrowserSettingsModel, diag.Diagnostics) {
+func mapConnectionToPamRemoteBrowserSettingsModel(ctx context.Context, c *utils.PamRemoteBrowserSettingsFieldConnectionResponse, rec *utils.VaultRecordGetResponse) (*PamRemoteBrowserSettingsModel, diag.Diagnostics) {
 	var diags diag.Diagnostics
 
 	autofillTokens := splitAutofillTargetTokens(c.AutofillConfiguration)
 
-	// Commander `get --format json` does not expose connections-recording, remote-browser-isolation,
-	// or PAM configuration UID in a reliable shape here—leave null so apply can repopulate from config.
+	configUID := types.StringNull()
+	if strings.TrimSpace(rec.PamConfigurationUID) != "" {
+		configUID = types.StringValue(strings.TrimSpace(rec.PamConfigurationUID))
+	}
+
+	remoteBrowserIsolation := types.BoolNull()
+	connectionsRecording := types.BoolNull()
+	if rec.ConfigurationAllowedSettings != nil {
+		remoteBrowserIsolation = types.BoolValue(rec.ConfigurationAllowedSettings.RemoteBrowserIsolation)
+		connectionsRecording = types.BoolValue(rec.ConfigurationAllowedSettings.ConnectionsRecording)
+	}
+
 	m := &PamRemoteBrowserSettingsModel{
-		Configuration:          types.StringNull(),
-		RemoteBrowserIsolation: types.BoolNull(),
-		ConnectionsRecording:   types.BoolNull(),
+		Configuration:          configUID,
+		RemoteBrowserIsolation: remoteBrowserIsolation,
+		ConnectionsRecording:   connectionsRecording,
 		KeyEvents:              types.BoolValue(c.RecordingIncludeKeys),
 		AllowUrlNavigation:     types.BoolValue(c.AllowUrlManipulation),
 		IgnoreServerCert:       types.BoolValue(c.IgnoreInitialSslCert),

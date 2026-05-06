@@ -10,6 +10,7 @@ import (
 	"strings"
 
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/api"
+	commonpamrecords "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/pam_records"
 	commonpamremotebrowser "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/pam_remote_browser"
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/utils"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -39,14 +40,13 @@ func (r *PamRemoteBrowserResource) Read(ctx context.Context, req resource.ReadRe
 		return
 	}
 
-	command := fmt.Sprintf("%s '%s' %s", utils.CmdGetRecord, id, utils.FlagFormatJSON)
-	apiResp, err := r.ApiManager.ExecuteCommand(ctx, command, ErrDetailPamRemoteBrowserReadFailed)
+	apiResp, err := commonpamrecords.FetchVaultRecord(ctx, r.ApiManager, id)
 	if err != nil {
 		if errors.Is(err, api.ErrResourceNotFound) {
 			resp.State.RemoveResource(ctx)
 			return
 		}
-		resp.Diagnostics.AddError(ErrSummaryPamRemoteBrowserReadFailed, err.Error())
+		resp.Diagnostics.AddError(utils.ErrSummaryFetchVaultRecordFailed, err.Error())
 		return
 	}
 

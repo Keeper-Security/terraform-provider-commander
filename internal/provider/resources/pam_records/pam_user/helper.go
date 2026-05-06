@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"strings"
 
+	commonpamrecords "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/pam_records"
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/utils"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
@@ -171,7 +172,7 @@ func mapVaultRecordToState(rec *utils.VaultRecordGetResponse, state *PamUserReso
 
 	state.Title = stringOrNull(rec.Title)
 	state.Notes = stringOrNull(rec.Notes)
-	state.Folder = stringOrNull(rec.Folder)
+	state.Folder = commonpamrecords.ExtractFolderValue(rec.Folder, state.Folder)
 
 	for i := range rec.Fields {
 		f := &rec.Fields[i]

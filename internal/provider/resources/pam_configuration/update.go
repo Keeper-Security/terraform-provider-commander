@@ -7,13 +7,14 @@ import (
 	"context"
 	"strings"
 
+	commonpamconfiguration "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/pam_configuration"
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/utils"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 )
 
 func (r *PamConfigurationResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var plan PamConfigurationResourceModel
-	var state PamConfigurationResourceModel
+	var plan commonpamconfiguration.PamConfigurationResourceModel
+	var state commonpamconfiguration.PamConfigurationResourceModel
 
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 	if resp.Diagnostics.HasError() {

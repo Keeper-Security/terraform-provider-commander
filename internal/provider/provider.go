@@ -18,6 +18,10 @@ import (
 	enterpriseuserdatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/enterprise_user"
 	epmpolicydatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/epm_policy"
 	managedcompanydatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/managed_company"
+	pamconfigurationdatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/pam_configuration"
+	pamdatabasedatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/pam_records/pam_database"
+	pamdirectorydatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/pam_records/pam_directory"
+	pammachinedatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/pam_records/pam_machine"
 	pamremotebrowserdatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/pam_records/pam_remote_browser"
 	pamuserdatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/pam_records/pam_user"
 	secretsmanagerdatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/secrets_manager"
@@ -32,6 +36,9 @@ import (
 	epmpolicy "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/epm_policy"
 	managedcompany "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/managed_company"
 	pamconfiguration "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/pam_configuration"
+	pamdatabase "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/pam_records/pam_database"
+	pamdirectory "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/pam_records/pam_directory"
+	pammachine "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/pam_records/pam_machine"
 	pamremotebrowser "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/pam_records/pam_remote_browser"
 	pamuser "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/pam_records/pam_user"
 	secretsmanager "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/secrets_manager"
@@ -191,6 +198,9 @@ func (p *CommanderProvider) Resources(ctx context.Context) []func() resource.Res
 		pamconfiguration.NewPamConfigurationResource,
 		pamremotebrowser.NewPamRemoteBrowserResource,
 		pamuser.NewPamUserResource,
+		pamdatabase.NewPamDatabaseResource,
+		pamdirectory.NewPamDirectoryResource,
+		pammachine.NewPamMachineResource,
 		sharedfolder.NewSharedFolderResource,
 		secretsmanager.NewSecretsManagerAppResource,
 	}
@@ -213,6 +223,10 @@ func (p *CommanderProvider) DataSources(ctx context.Context) []func() datasource
 		epmpolicydatasource.NewEpmPolicyDataSource,
 		pamremotebrowserdatasource.NewPamRemoteBrowserDataSource,
 		pamuserdatasource.NewPamUserDataSource,
+		pamconfigurationdatasource.NewPamConfigurationDataSource,
+		pamdatabasedatasource.NewPamDatabaseDataSource,
+		pamdirectorydatasource.NewPamDirectoryDataSource,
+		pammachinedatasource.NewPamMachineDataSource,
 		sharedfolderdatasource.NewSharedFolderDataSource,
 	}
 }

@@ -3,21 +3,10 @@
 
 package pamconfiguration
 
-import "strings"
+import (
+	"strings"
 
-// Commander CLI: `pam config new` / `pam config edit` and flags.
-const (
-	CmdPamConfig = "pam config"
-	CmdPamNew    = "new"
-	CmdPamEdit   = "edit"
-	CmdPamRemove = "remove"
-	CmdPamList   = "list"
-)
-
-const (
-	FlagPamListConfig = "--config"
-	FlagFormat        = "--format"
-	FormatJSON        = "json"
+	commonpamconfiguration "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/pam_configuration"
 )
 
 const (
@@ -82,9 +71,9 @@ const (
 	KeyId                  = "id"
 )
 
+// Error summaries (first argument to AddError).
 const (
 	ErrSummaryCreateFailed   = "Create PAM Configuration Failed"
-	ErrSummaryReadFailed     = "Read PAM Configuration Failed"
 	ErrSummaryUpdateFailed   = "Update PAM Configuration Failed"
 	ErrSummaryDeleteFailed   = "Delete PAM Configuration Failed"
 	ErrSummarySyncDownFailed = "Sync Down Failed"
@@ -92,24 +81,16 @@ const (
 	ErrSummaryNotImplemented = "PAM Configuration Not Implemented"
 )
 
+// Error operation messages (second argument to ExecuteCommand; short description for logs).
 const (
 	ErrOpCreatePamConfig = "Unable to create PAM configuration"
 	ErrOpGetPamConfig    = "Unable to get PAM configuration"
-	ErrOpListPamConfig   = "Unable to list PAM configuration"
 	ErrOpEditPamConfig   = "Unable to update PAM configuration"
 	ErrOpDeletePamConfig = "Unable to delete PAM configuration"
 )
 
-const (
-	EnvLocal  = "local"
-	EnvAWS    = "aws"
-	EnvAzure  = "azure"
-	EnvGCP    = "gcp"
-	EnvDomain = "domain"
-)
-
 // ValidEnvironments lists allowed `environment` values (CLI: --environment).
-var ValidEnvironments = []string{EnvLocal, EnvAWS, EnvAzure, EnvGCP, EnvDomain}
+var ValidEnvironments = []string{commonpamconfiguration.EnvLocal, commonpamconfiguration.EnvAWS, commonpamconfiguration.EnvAzure, commonpamconfiguration.EnvGCP, commonpamconfiguration.EnvDomain}
 
 const (
 	DescResource = "Manages a Keeper PAM configurations\n\n" +
@@ -248,8 +229,8 @@ const (
 	DescGcpId   = "A unique id for the instance of Google Cloud. This is for the user's reference. Example: GCP-US-CENTRAL1"
 	DescGcpIdMD = "A `unique id` for the instance of Google Cloud. This is for the user's reference. Example: `GCP-US-CENTRAL1`"
 
-	DescServiceAccountKey   = "The service account key in JSON format."
-	DescServiceAccountKeyMD = "The *service account key* in `JSON` format."
+	DescServiceAccountKey   = "The service account key in JSON String format."
+	DescServiceAccountKeyMD = "The *service account key* in `JSON String` format."
 
 	DescGoogleAdminEmail   = "The email address for a Google Workspace administrator account that can be used to manage passwords for GCP Principals. Omit if no such account exists, or if the environment does not require Principal rotation."
 	DescGoogleAdminEmailMD = "The `email address` for a Google Workspace administrator account that can be *used to manage passwords for GCP Principals*. Omit if **no such account exists**, or if the **environment does not require Principal rotation**."

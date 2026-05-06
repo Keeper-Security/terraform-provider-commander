@@ -7,6 +7,7 @@ import (
 	"context"
 	"strings"
 
+	commonpamrecords "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/pam_records"
 	commonpamremotebrowser "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/pam_remote_browser"
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/utils"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -24,11 +25,13 @@ func (r *PamRemoteBrowserResource) ImportState(ctx context.Context, req resource
 	}
 
 	state := commonpamremotebrowser.PamRemoteBrowserResourceModel{
-		Id:                       types.StringValue(importID),
-		Title:                    types.StringNull(),
+		CommonPamRecordsResourceModel: commonpamrecords.CommonPamRecordsResourceModel{
+			Id:     types.StringValue(importID),
+			Title:  types.StringNull(),
+			Notes:  types.StringNull(),
+			Folder: types.StringNull(),
+		},
 		Url:                      types.StringNull(),
-		Notes:                    types.StringNull(),
-		Folder:                   types.StringNull(),
 		PamRemoteBrowserSettings: nil,
 	}
 
