@@ -588,10 +588,16 @@ func ValidatePolicyTypeAllowedFields(
 			diags.AddAttributeError(
 				pathControl,
 				"Fields not allowed for least_privilege policy",
-				"For policy type least_privilege, only policy name, policy type, status, and machine_collections are allowed. The following must not be set (including empty lists []): "+strings.Join(disallowedSet, ", ")+".",
+				"For policy type least_privilege, only policy name, policy type, status are allowed and machine_collections is required. The following must not be set (including empty lists []): "+strings.Join(disallowedSet, ", ")+".",
 			)
 		}
-		addNonEmptySetIfPresent(pathMachineCollections, "machine_collections", machineCollections, diags)
+		if IsSetEmptyOrNull(machineCollections) {
+			diags.AddAttributeError(
+				pathMachineCollections,
+				"machine_collections required for least_privilege policy",
+				"For policy type least_privilege, at least one machine_collections value is required.",
+			)
+		}
 		return
 	}
 

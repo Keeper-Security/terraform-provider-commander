@@ -113,15 +113,15 @@ func mapEpmPolicyResponseToModel(view *utils.EpmPolicyResponse, state *EpmPolicy
 	if setErr != nil {
 		return fmt.Errorf("applications: %w", setErr)
 	}
-	state.DayFilter, setErr = commonepm.StringSliceToStringSet(mapped.DayFilter)
+	state.DayFilter, setErr = commonepm.StringSliceToStringSetOrEmpty(mapped.DayFilter)
 	if setErr != nil {
 		return fmt.Errorf("day_filter: %w", setErr)
 	}
-	state.DateFilter, setErr = commonepm.StringSliceToStringSet(mapped.DateFilter)
+	state.DateFilter, setErr = commonepm.StringSliceToStringSetOrEmpty(mapped.DateFilter)
 	if setErr != nil {
 		return fmt.Errorf("date_filter: %w", setErr)
 	}
-	state.TimeFilter, setErr = commonepm.StringSliceToStringSet(mapped.TimeFilter)
+	state.TimeFilter, setErr = commonepm.StringSliceToStringSetOrEmpty(mapped.TimeFilter)
 	if setErr != nil {
 		return fmt.Errorf("time_filter: %w", setErr)
 	}
