@@ -7,6 +7,7 @@ import (
 	"context"
 	"strings"
 
+	commonpamconfiguration "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/pam_configuration"
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/utils"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -27,7 +28,7 @@ func (r *PamConfigurationResource) ImportState(ctx context.Context, req resource
 		return
 	}
 
-	state := PamConfigurationResourceModel{
+	state := commonpamconfiguration.PamConfigurationResourceModel{
 		Id:                            types.StringValue(importID),
 		Environment:                   types.StringNull(),
 		Title:                         types.StringNull(),

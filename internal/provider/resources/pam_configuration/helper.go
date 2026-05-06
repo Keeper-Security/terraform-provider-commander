@@ -8,14 +8,9 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/utils"
+	commonpamconfiguration "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/pam_configuration"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
-
-// quoteShellSingle wraps s for use as a single-quoted shell argument (bash-style escaping of ').
-func quoteShellSingle(s string) string {
-	return `'` + strings.ReplaceAll(s, `'`, `'"'"'`) + `'`
-}
 
 func appendFlagString(parts *[]string, flag string, v types.String) {
 	if v.IsNull() || v.IsUnknown() {
@@ -25,7 +20,7 @@ func appendFlagString(parts *[]string, flag string, v types.String) {
 	if val == "" {
 		return
 	}
-	*parts = append(*parts, fmt.Sprintf("%s %s", flag, quoteShellSingle(val)))
+	*parts = append(*parts, fmt.Sprintf("%s %s", flag, commonpamconfiguration.QuoteShellSingle(val)))
 }
 
 func boolToOnOff(b types.Bool) string {
@@ -62,16 +57,16 @@ func sortedSetStrings(set types.Set) []string {
 // appendPamConfigBodyFlags appends shared `pam config new|edit` flags (after the subcommand / UID).
 // isUpdate: true for `pam config edit` (omits AI permission flags; Commander does not support them on edit yet).
 // false for `pam config new`.
-func appendPamConfigBodyFlags(parts *[]string, data *PamConfigurationResourceModel, isUpdate bool) {
-	*parts = append(*parts, fmt.Sprintf("%s %s", FlagEnvironment, quoteShellSingle(data.Environment.ValueString())))
-	*parts = append(*parts, fmt.Sprintf("%s %s", FlagTitle, quoteShellSingle(data.Title.ValueString())))
-	*parts = append(*parts, fmt.Sprintf("%s %s", FlagGateway, quoteShellSingle(data.Gateway.ValueString())))
-	*parts = append(*parts, fmt.Sprintf("%s %s", FlagSharedFolder, quoteShellSingle(data.ApplicationFolder.ValueString())))
+func appendPamConfigBodyFlags(parts *[]string, data *commonpamconfiguration.PamConfigurationResourceModel, isUpdate bool) {
+	*parts = append(*parts, fmt.Sprintf("%s %s", FlagEnvironment, commonpamconfiguration.QuoteShellSingle(data.Environment.ValueString())))
+	*parts = append(*parts, fmt.Sprintf("%s %s", FlagTitle, commonpamconfiguration.QuoteShellSingle(data.Title.ValueString())))
+	*parts = append(*parts, fmt.Sprintf("%s %s", FlagGateway, commonpamconfiguration.QuoteShellSingle(data.Gateway.ValueString())))
+	*parts = append(*parts, fmt.Sprintf("%s %s", FlagSharedFolder, commonpamconfiguration.QuoteShellSingle(data.ApplicationFolder.ValueString())))
 
 	appendFlagString(parts, FlagSchedule, data.Schedule)
 
 	for _, pm := range sortedSetStrings(data.PortMapping) {
-		*parts = append(*parts, fmt.Sprintf("%s %s", FlagPortMapping, quoteShellSingle(pm)))
+		*parts = append(*parts, fmt.Sprintf("%s %s", FlagPortMapping, commonpamconfiguration.QuoteShellSingle(pm)))
 	}
 
 	*parts = append(*parts, fmt.Sprintf("%s %s", FlagConnections, boolToOnOff(data.Connections)))
@@ -87,35 +82,35 @@ func appendPamConfigBodyFlags(parts *[]string, data *PamConfigurationResourceMod
 
 	env := data.Environment.ValueString()
 	switch env {
-	case EnvLocal:
+	case commonpamconfiguration.EnvLocal:
 		appendLocalNetworkFlags(parts, data.LocalNetwork)
-	case EnvAWS:
+	case commonpamconfiguration.EnvAWS:
 		appendAwsFlags(parts, data.Aws)
-	case EnvAzure:
+	case commonpamconfiguration.EnvAzure:
 		appendAzureFlags(parts, data.Azure)
-	case EnvDomain:
+	case commonpamconfiguration.EnvDomain:
 		appendDomainFlags(parts, data.Domain)
-	case EnvGCP:
+	case commonpamconfiguration.EnvGCP:
 		appendGcpFlags(parts, data.Gcp)
 	}
 }
 
 // buildPamConfigNewCommand builds `pam config new ...` from the resource model.
 // Required attributes (environment, title, gateway, application_folder) are enforced by the schema.
-func buildPamConfigNewCommand(data *PamConfigurationResourceModel) string {
-	parts := []string{CmdPamConfig, CmdPamNew}
+func buildPamConfigNewCommand(data *commonpamconfiguration.PamConfigurationResourceModel) string {
+	parts := []string{commonpamconfiguration.CmdPamConfig, commonpamconfiguration.CmdPamNew}
 	appendPamConfigBodyFlags(&parts, data, false)
 	return strings.Join(parts, " ")
 }
 
 // buildPamConfigEditCommand builds `pam config edit '<uid>' ...` from the resource model.
-func buildPamConfigEditCommand(uid string, data *PamConfigurationResourceModel) string {
-	parts := []string{CmdPamConfig, CmdPamEdit, quoteShellSingle(strings.TrimSpace(uid))}
+func buildPamConfigEditCommand(uid string, data *commonpamconfiguration.PamConfigurationResourceModel) string {
+	parts := []string{commonpamconfiguration.CmdPamConfig, commonpamconfiguration.CmdPamEdit, commonpamconfiguration.QuoteShellSingle(strings.TrimSpace(uid))}
 	appendPamConfigBodyFlags(&parts, data, true)
 	return strings.Join(parts, " ")
 }
 
-func appendLocalNetworkFlags(parts *[]string, m *PamLocalNetworkModel) {
+func appendLocalNetworkFlags(parts *[]string, m *commonpamconfiguration.PamLocalNetworkModel) {
 	if m == nil {
 		return
 	}
@@ -123,7 +118,7 @@ func appendLocalNetworkFlags(parts *[]string, m *PamLocalNetworkModel) {
 	appendFlagString(parts, FlagNetworkCidr, m.NetworkCidr)
 }
 
-func appendAwsFlags(parts *[]string, m *PamAwsModel) {
+func appendAwsFlags(parts *[]string, m *commonpamconfiguration.PamAwsModel) {
 	if m == nil {
 		return
 	}
@@ -131,11 +126,11 @@ func appendAwsFlags(parts *[]string, m *PamAwsModel) {
 	appendFlagString(parts, FlagAccessKeyId, m.AccessKeyId)
 	appendFlagString(parts, FlagAccessSecretKey, m.AccessSecretKey)
 	for _, r := range sortedSetStrings(m.RegionNames) {
-		*parts = append(*parts, fmt.Sprintf("%s %s", FlagRegionName, quoteShellSingle(r)))
+		*parts = append(*parts, fmt.Sprintf("%s %s", FlagRegionName, commonpamconfiguration.QuoteShellSingle(r)))
 	}
 }
 
-func appendAzureFlags(parts *[]string, m *PamAzureModel) {
+func appendAzureFlags(parts *[]string, m *commonpamconfiguration.PamAzureModel) {
 	if m == nil {
 		return
 	}
@@ -145,11 +140,11 @@ func appendAzureFlags(parts *[]string, m *PamAzureModel) {
 	appendFlagString(parts, FlagSubscriptionId, m.SubscriptionId)
 	appendFlagString(parts, FlagTenantId, m.TenantId)
 	for _, rg := range sortedSetStrings(m.ResourceGroups) {
-		*parts = append(*parts, fmt.Sprintf("%s %s", FlagResourceGroup, quoteShellSingle(rg)))
+		*parts = append(*parts, fmt.Sprintf("%s %s", FlagResourceGroup, commonpamconfiguration.QuoteShellSingle(rg)))
 	}
 }
 
-func appendDomainFlags(parts *[]string, m *PamDomainModel) {
+func appendDomainFlags(parts *[]string, m *commonpamconfiguration.PamDomainModel) {
 	if m == nil {
 		return
 	}
@@ -162,7 +157,7 @@ func appendDomainFlags(parts *[]string, m *PamDomainModel) {
 	appendFlagString(parts, FlagDomainAdmin, m.DomainAdmin)
 }
 
-func appendGcpFlags(parts *[]string, m *PamGcpModel) {
+func appendGcpFlags(parts *[]string, m *commonpamconfiguration.PamGcpModel) {
 	if m == nil {
 		return
 	}
@@ -174,64 +169,5 @@ func appendGcpFlags(parts *[]string, m *PamGcpModel) {
 
 // buildPamConfigRemoveCommand builds `pam config remove '<uid>'`.
 func buildPamConfigRemoveCommand(uid string) string {
-	return strings.Join([]string{CmdPamConfig, CmdPamRemove, quoteShellSingle(strings.TrimSpace(uid))}, " ")
-}
-
-// buildPamConfigListCommand builds `pam config list --config '<uid>' --format json`.
-func buildPamConfigListCommand(uid string) string {
-	return strings.Join([]string{
-		CmdPamConfig, CmdPamList,
-		FlagPamListConfig, quoteShellSingle(strings.TrimSpace(uid)),
-		FlagFormat, FormatJSON,
-	}, " ")
-}
-
-// pamConfigTypeToEnvironment maps API config_type values to Terraform environment.
-var pamConfigTypeToEnvironment = map[string]string{
-	"pamAwsConfiguration":     EnvAWS,
-	"pamAzureConfiguration":   EnvAzure,
-	"pamDomainConfiguration":  EnvDomain,
-	"pamGcpConfiguration":     EnvGCP,
-	"pamNetworkConfiguration": EnvLocal,
-}
-
-func configTypeToEnvironment(ct string) (string, error) {
-	ct = strings.TrimSpace(ct)
-	if e, ok := pamConfigTypeToEnvironment[ct]; ok {
-		return e, nil
-	}
-	return "", fmt.Errorf("unknown config_type %q", ct)
-}
-
-func pickApplicationFolderFromListAPI(sf utils.PamConfigListResponse, prior types.String) types.String {
-	uid := strings.TrimSpace(sf.SharedFolder.UID)
-	name := strings.TrimSpace(sf.SharedFolder.Name)
-	if !prior.IsNull() && !prior.IsUnknown() {
-		p := strings.TrimSpace(prior.ValueString())
-		if p != "" {
-			if p == uid {
-				return types.StringValue(uid)
-			}
-			if p == name {
-				return types.StringValue(name)
-			}
-		}
-	}
-	if uid != "" {
-		return types.StringValue(uid)
-	}
-	return types.StringValue(name)
-}
-
-// MapPamConfigAPIResponseToModel refreshes fields returned by the list API. Other schema fields are unchanged.
-func mapPamConfigAPIResponseToModel(state *PamConfigurationResourceModel, api *utils.PamConfigListResponse) error {
-	env, err := configTypeToEnvironment(api.ConfigType)
-	if err != nil {
-		return err
-	}
-	state.Title = types.StringValue(api.Name)
-	state.Environment = types.StringValue(env)
-	state.Gateway = types.StringValue(strings.TrimSpace(api.GatewayUID))
-	state.ApplicationFolder = pickApplicationFolderFromListAPI(*api, state.ApplicationFolder)
-	return nil
+	return strings.Join([]string{commonpamconfiguration.CmdPamConfig, commonpamconfiguration.CmdPamRemove, commonpamconfiguration.QuoteShellSingle(strings.TrimSpace(uid))}, " ")
 }
