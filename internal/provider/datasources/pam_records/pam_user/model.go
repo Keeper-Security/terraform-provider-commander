@@ -6,17 +6,17 @@ package pamuser
 import "github.com/hashicorp/terraform-plugin-framework/types"
 
 type PamUserDataSourceModel struct {
-	RecordUID         types.String                      `tfsdk:"record_uid"`
-	Id                types.String                      `tfsdk:"id"`
-	Title             types.String                      `tfsdk:"title"`
-	Login             types.String                      `tfsdk:"login"`
-	Password          types.String                      `tfsdk:"password"`
-	Folder            types.String                      `tfsdk:"folder"`
-	Notes             types.String                      `tfsdk:"notes"`
-	DistinguishedName types.String                      `tfsdk:"distinguished_name"`
-	PrivatePEMKey     types.String                      `tfsdk:"private_pem_key"`
-	ConnectDatabase   types.String                      `tfsdk:"connect_database"`
-	Managed           types.Bool                        `tfsdk:"managed"`
+	RecordUID         types.String                       `tfsdk:"record_uid"`
+	Id                types.String                       `tfsdk:"id"`
+	Title             types.String                       `tfsdk:"title"`
+	Login             types.String                       `tfsdk:"login"`
+	Password          types.String                       `tfsdk:"password"`
+	Folder            types.String                       `tfsdk:"folder"`
+	Notes             types.String                       `tfsdk:"notes"`
+	DistinguishedName types.String                       `tfsdk:"distinguished_name"`
+	PrivatePEMKey     types.String                       `tfsdk:"private_pem_key"`
+	ConnectDatabase   types.String                       `tfsdk:"connect_database"`
+	Managed           types.Bool                         `tfsdk:"managed"`
 	RotationSettings  *PamUserDataSourceRotationSettings `tfsdk:"rotation_settings"`
 }
 
