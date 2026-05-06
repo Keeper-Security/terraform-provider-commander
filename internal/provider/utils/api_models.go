@@ -612,3 +612,37 @@ type PamRemoteBrowserSettingsFieldConnectionResponse struct {
 type PamRemoteBrowserSettingsFieldResponse struct {
 	Connection PamRemoteBrowserSettingsFieldConnectionResponse `json:"connection"`
 }
+
+// VaultRecordField is one typed field entry inside a vault record (get --format json).
+type VaultRecordField struct {
+	Type     string          `json:"type"`
+	Label    string          `json:"label"`
+	Value    json.RawMessage `json:"value"`
+	Required bool            `json:"required"`
+}
+
+// PamRemoteBrowserSettingsFieldConnection is the API `connection` object inside pamRemoteBrowserSettings.
+// Note: currently we are not getting --connections-recording, --remote-browser-isolation, --configuration data from the API.
+type PamRemoteBrowserSettingsFieldConnection struct {
+	ConfigurationUID           string `json:"configurationUid,omitempty"`
+	HttpCredentialsUID         string `json:"httpCredentialsUid,omitempty"`
+	AutofillConfiguration      string `json:"autofillConfiguration,omitempty"`
+	RecordingIncludeKeys       bool   `json:"recordingIncludeKeys"`
+	RecordingScreens           bool   `json:"recordingScreens"`
+	RemoteBrowserIsolation     bool   `json:"remoteBrowserIsolation"`
+	AllowUrlManipulation       bool   `json:"allowUrlManipulation"`
+	IgnoreInitialSslCert       bool   `json:"ignoreInitialSslCert"`
+	AllowedURLPatterns         string `json:"allowedUrlPatterns"`
+	AllowedResourceURLPatterns string `json:"allowedResourceUrlPatterns"`
+	DisableCopy                bool   `json:"disableCopy"`
+	DisablePaste               bool   `json:"disablePaste"`
+	DisableAudio               bool   `json:"disableAudio"`
+	AudioChannels              int    `json:"audioChannels"`
+	AudioBps                   int    `json:"audioBps"`
+	AudioSampleRate            int    `json:"audioSampleRate"`
+}
+
+// PamRemoteBrowserSettingsFieldEntry is one element of the pamRemoteBrowserSettings field value array.
+type PamRemoteBrowserSettingsFieldEntry struct {
+	Connection PamRemoteBrowserSettingsFieldConnection `json:"connection"`
+}

@@ -5,5 +5,4 @@ package pammachine
 
 const (
 	errSummaryReadPamMachineDataSource = "Failed to read PAM machine data source"
-	errDetailReadPamMachineDataSource  = "Unable to read PAM machine vault record"
 )

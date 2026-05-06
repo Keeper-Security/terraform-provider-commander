@@ -23,6 +23,7 @@ import (
 	pamdirectorydatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/pam_records/pam_directory"
 	pammachinedatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/pam_records/pam_machine"
 	pamremotebrowserdatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/pam_records/pam_remote_browser"
+	pamuserdatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/pam_records/pam_user"
 	secretsmanagerdatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/secrets_manager"
 	sharedfolderdatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/shared_folder"
 	enterprisenode "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/enterprise_node"
@@ -39,6 +40,7 @@ import (
 	pamdirectory "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/pam_records/pam_directory"
 	pammachine "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/pam_records/pam_machine"
 	pamremotebrowser "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/pam_records/pam_remote_browser"
+	pamuser "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/pam_records/pam_user"
 	secretsmanager "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/secrets_manager"
 	sharedfolder "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/shared_folder"
 	"github.com/hashicorp/terraform-plugin-framework/action"
@@ -195,6 +197,7 @@ func (p *CommanderProvider) Resources(ctx context.Context) []func() resource.Res
 		enterpriseuser.NewEnterpriseUserResource,
 		pamconfiguration.NewPamConfigurationResource,
 		pamremotebrowser.NewPamRemoteBrowserResource,
+		pamuser.NewPamUserResource,
 		pamdatabase.NewPamDatabaseResource,
 		pamdirectory.NewPamDirectoryResource,
 		pammachine.NewPamMachineResource,
@@ -218,11 +221,12 @@ func (p *CommanderProvider) DataSources(ctx context.Context) []func() datasource
 		enterpriseuserdatasource.NewEnterpriseUserDataSource,
 		secretsmanagerdatasource.NewSecretsManagerDataSource,
 		epmpolicydatasource.NewEpmPolicyDataSource,
+		pamremotebrowserdatasource.NewPamRemoteBrowserDataSource,
+		pamuserdatasource.NewPamUserDataSource,
 		pamconfigurationdatasource.NewPamConfigurationDataSource,
 		pamdatabasedatasource.NewPamDatabaseDataSource,
 		pamdirectorydatasource.NewPamDirectoryDataSource,
 		pammachinedatasource.NewPamMachineDataSource,
-		pamremotebrowserdatasource.NewPamRemoteBrowserDataSource,
 		sharedfolderdatasource.NewSharedFolderDataSource,
 	}
 }
