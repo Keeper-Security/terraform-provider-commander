@@ -18,7 +18,9 @@ import (
 	enterpriseuserdatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/enterprise_user"
 	epmpolicydatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/epm_policy"
 	managedcompanydatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/managed_company"
+	folderdatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/folder"
 	sharedfolderdatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/shared_folder"
+	folder "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/folder"
 	enterprisenode "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/enterprise_node"
 	enterprisepush "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/enterprise_push"
 	enterpriserole "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/enterprise_role"
@@ -182,6 +184,7 @@ func (p *CommanderProvider) Resources(ctx context.Context) []func() resource.Res
 		enterpriserole.NewEnterpriseRoleResource,
 		enterpriseuser.NewEnterpriseUserResource,
 		sharedfolder.NewSharedFolderResource,
+		folder.NewFolderResource,
 	}
 }
 
@@ -200,6 +203,7 @@ func (p *CommanderProvider) DataSources(ctx context.Context) []func() datasource
 		enterpriseuserdatasource.NewEnterpriseUserDataSource,
 		epmpolicydatasource.NewEpmPolicyDataSource,
 		sharedfolderdatasource.NewSharedFolderDataSource,
+		folderdatasource.NewFolderDataSource,
 	}
 }
 
