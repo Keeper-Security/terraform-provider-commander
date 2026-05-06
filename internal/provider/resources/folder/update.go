@@ -77,7 +77,7 @@ func (r *FolderResource) Update(ctx context.Context, req resource.UpdateRequest,
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }
 
-// buildRndirCommand builds: rndir '<folderUID>' [-n <newName>] [--color <color>] -q
+// buildRndirCommand builds: rndir '<folderUID>' [-n <newName>] [--color <color>] -q.
 func buildRndirCommand(folderUID string, plan *FolderResourceModel, nameChanged, colorChanged bool) string {
 	parts := []string{fmt.Sprintf("%s '%s'", CmdRndir, folderUID)}
 
