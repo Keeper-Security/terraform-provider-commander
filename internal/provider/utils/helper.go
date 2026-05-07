@@ -1,4 +1,4 @@
-// Copyright (c) Keeper Security, Inc.
+// Copyright Keeper Security, Inc. 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package utils
@@ -55,11 +55,24 @@ func EnterpriseDown(ctx context.Context, apiManager *api.ApiManager) error {
 	return err
 }
 
-// ExecuteWithManagedCompanyContext executes a function with managed company context switching.
-// Context-changing operations are serialized and current context is tracked so we skip
-// redundant switch-to-msp API calls when already in MSP (reduces "Already MSP" 500s).
-// If managedCompany is provided and not null, it switches to MC before execution and back to MSP after.
-// If managedCompany is not provided, it ensures we're in the correct base context (MSP for MSP accounts).
+// Perform sync down.
+func SyncDown(ctx context.Context, apiManager *api.ApiManager) error {
+	command := "sync-down -f"
+	_, err := apiManager.ExecuteCommand(ctx, command, "Unable to perform sync down")
+	return err
+}
+
+// Perform epm sync down.
+func EpmSyncDown(ctx context.Context, apiManager *api.ApiManager) error {
+	command := "epm sync-down"
+	_, err := apiManager.ExecuteCommand(ctx, command, "Unable to perform epm sync down")
+	return err
+}
+
+// ExecuteWithManagedCompanyContext executes a function with managed company context switching
+// If managedCompany is provided and not null, it switches to MC before execution and back to MSP after
+// If managedCompany is not provided, it ensures we're in the correct base context (MSP for MSP accounts, Enterprise for Enterprise)
+// This prevents race conditions when Terraform runs resources in parallel or different orders.
 func ExecuteWithManagedCompanyContext(
 	ctx context.Context,
 	apiManager *api.ApiManager,
@@ -597,6 +610,53 @@ func FetchManagedCompanyByNameOrId(ctx context.Context, apiManager *api.ApiManag
 	return companyInfo, nil
 }
 
+// FetchEnterpriseScimById retrieves a single SCIM configuration by scim_id.
+// The API returns a single object. Returns (nil, nil) if not found so Read can remove from state.
+func FetchEnterpriseScimById(ctx context.Context, apiManager *api.ApiManager, scimId string) (*EnterpriseScimResponse, error) {
+	command := fmt.Sprintf("scim view '%s' --format json", scimId)
+
+	apiResp, err := apiManager.ExecuteCommand(ctx, command, "Failed to retrieve enterprise SCIM information")
+	if err != nil {
+		return nil, err
+	}
+
+	var scimInfo EnterpriseScimResponse
+	if err := UnmarshalApiResponse(apiResp.Data, &scimInfo); err != nil {
+		return nil, fmt.Errorf("unable to parse enterprise SCIM from API response: %w", err)
+	}
+
+	// Treat empty or zero scim_id as not found
+	if scimInfo.ScimID == 0 {
+		return nil, nil
+	}
+
+	return &scimInfo, nil
+}
+
+func FetchEpmPolicyById(ctx context.Context, apiManager *api.ApiManager, policyId string) (*EpmPolicyResponse, error) {
+	command := fmt.Sprintf("epm policy view '%s' --format json", policyId)
+	apiResp, err := apiManager.ExecuteCommand(ctx, command, "Unable to read EPM policy")
+	if err != nil {
+		if errors.Is(err, api.ErrResourceNotFound) {
+			return nil, nil
+		}
+		return nil, err
+	}
+
+	// Parse the JSON response - it's an array of company objects
+	var policyInfo *EpmPolicyResponse
+
+	if err := UnmarshalApiResponse(apiResp.Data, &policyInfo); err != nil {
+		return nil, fmt.Errorf("unable to parse EPM policy from API response: %w", err)
+	}
+
+	if policyInfo == nil {
+		return nil, nil
+	}
+
+	return policyInfo, nil
+}
+
 // ParseManagedCompanyImportID parses an import ID that may be "resource_id" or "managed_company,resource_id".
 // resourceName is used in error messages (e.g. "node" or "role").
 // Returns resourceID, managedCompany (empty if not in ID), and any diagnostics.
@@ -604,7 +664,7 @@ func ParseManagedCompanyImportID(importID string, resourceName string) (resource
 	importID = strings.TrimSpace(importID)
 	if importID == "" {
 		diags = append(diags, diag.NewErrorDiagnostic(
-			"Invalid Import ID",
+			ERR_MSG_INVALID_IMPORT_ID,
 			"Import ID cannot be empty. Use: (1) "+resourceName+" name or "+resourceName+" ID alone; or (2) for a "+resourceName+" in a managed company, use \"managed_company_name_or_id,"+resourceName+"_name_or_id\" (comma-separated).",
 		))
 		return "", "", diags
@@ -619,7 +679,7 @@ func ParseManagedCompanyImportID(importID string, resourceName string) (resource
 
 	if resourceID == "" {
 		diags = append(diags, diag.NewErrorDiagnostic(
-			"Invalid Import ID",
+			ERR_MSG_INVALID_IMPORT_ID,
 			"When using managed company format \"managed_company_name_or_id,"+resourceName+"\", the "+resourceName+" part cannot be empty.",
 		))
 		return "", "", diags
@@ -748,4 +808,102 @@ func MapEnforcementsToState(enforcements map[string]string, GeneratedPasswordCom
 		return types.MapNull(types.StringType), fmt.Errorf("failed to build enforcement_policies map: %v", diags)
 	}
 	return mapVal, nil
+}
+
+// ImmutableAttributeCheck represents one "plan vs state must be equal" check.
+type ImmutableAttributeCheck struct {
+	PlanValue  attr.Value
+	StateValue attr.Value
+	Summary    string
+	Detail     string
+}
+
+// AddErrorIfImmutableAttributesChanged checks each attribute; for any where plan != state
+// it adds a diagnostic error to diags. Returns diags so caller can Append() or check HasError().
+func RestrictAttributeUpdate(diags *diag.Diagnostics, checks []ImmutableAttributeCheck) {
+	for _, c := range checks {
+		if c.PlanValue == nil || c.StateValue == nil {
+			continue
+		}
+		if !c.PlanValue.Equal(c.StateValue) {
+			diags.AddError(c.Summary, c.Detail)
+		}
+	}
+}
+
+// VaultRecordListEntry is one element returned by `list --format json`.
+type VaultRecordListEntry struct {
+	RecordUID   string `json:"record_uid"`
+	Type        string `json:"type"`
+	Title       string `json:"title"`
+	Description string `json:"description,omitempty"`
+	Shared      bool   `json:"shared"`
+}
+
+// ValidateVaultRecordIdentifiers runs `list --format json` and ensures each non-empty identifier
+// matches some record's record_uid or title (exact string match). Duplicate identifiers are validated once.
+func ValidateVaultRecordIdentifiers(ctx context.Context, apiManager *api.ApiManager, identifiers []string) error {
+	entries, err := FetchVaultRecordList(ctx, apiManager)
+	if err != nil {
+		return err
+	}
+	return ValidateRecordIdentifiersAgainstList(identifiers, entries)
+}
+
+// FetchVaultRecordList returns vault records from Commander `list --format json`.
+func FetchVaultRecordList(ctx context.Context, apiManager *api.ApiManager) ([]VaultRecordListEntry, error) {
+	// Commander CLI: list vault records as JSON (array of objects with record_uid, title, etc.).
+	const CmdListVaultRecordsJSON = "list --format json"
+
+	apiResp, err := apiManager.ExecuteCommand(ctx, CmdListVaultRecordsJSON, ErrOpListVaultRecords)
+	if err != nil {
+		return nil, err
+	}
+	var entries []VaultRecordListEntry
+	if apiResp.Data == nil {
+		return entries, nil
+	}
+	if err := UnmarshalApiResponse(apiResp.Data, &entries); err != nil {
+		return nil, fmt.Errorf("%s: %w", ErrOpListVaultRecords, err)
+	}
+	return entries, nil
+}
+
+// ValidateRecordIdentifiersAgainstList returns an error if any non-empty identifier does not match
+// any entry's RecordUID or Title (exact match).
+func ValidateRecordIdentifiersAgainstList(identifiers []string, entries []VaultRecordListEntry) error {
+	seen := make(map[string]struct{})
+	var invalid []string
+	for _, raw := range identifiers {
+		id := strings.TrimSpace(raw)
+		if id == "" {
+			continue
+		}
+		if _, ok := seen[id]; ok {
+			continue
+		}
+		seen[id] = struct{}{}
+		if !recordIdentifierMatchesList(id, entries) {
+			invalid = append(invalid, id)
+		}
+	}
+	if len(invalid) == 0 {
+		return nil
+	}
+	return fmt.Errorf(
+		"invalid record reference(s): %s — each must match a vault record UID or title",
+		strings.Join(invalid, ", "),
+	)
+}
+
+func recordIdentifierMatchesList(ref string, entries []VaultRecordListEntry) bool {
+	for _, e := range entries {
+		if ref == e.RecordUID {
+			return true
+		}
+		if ref == e.Title {
+			return true
+		}
+	}
+	return false
 }

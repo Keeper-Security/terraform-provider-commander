@@ -1,4 +1,4 @@
-// Copyright (c) Keeper Security, Inc.
+// Copyright Keeper Security, Inc. 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package managedcompany
@@ -7,6 +7,7 @@ import (
 	"context"
 	"strings"
 
+	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/utils"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
@@ -18,7 +19,7 @@ import (
 func (r *ManagedCompanyResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	if err := r.EnsureApiManager(); err != nil {
 		resp.Diagnostics.AddError(
-			"Provider Configuration Error",
+			utils.ERR_MSG_PROVIDER_CONFIGURATION_ERROR,
 			err.Error(),
 		)
 		return
@@ -27,7 +28,7 @@ func (r *ManagedCompanyResource) ImportState(ctx context.Context, req resource.I
 	importID := strings.TrimSpace(req.ID)
 	if importID == "" {
 		resp.Diagnostics.AddError(
-			"Invalid Import ID",
+			utils.ERR_MSG_INVALID_IMPORT_ID,
 			"Import ID cannot be empty. Use the managed company name or company ID, e.g. \"Test Company\" or 1169425105420462.",
 		)
 		return

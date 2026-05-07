@@ -1,4 +1,4 @@
-// Copyright (c) Keeper Security, Inc.
+// Copyright Keeper Security, Inc. 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package utils
@@ -28,7 +28,7 @@ func (b *BaseDataSource) ConfigureDataSource(ctx context.Context, req datasource
 	apiManager, ok := req.ProviderData.(*api.ApiManager)
 	if !ok {
 		resp.Diagnostics.AddError(
-			"Provider Configuration Error",
+			ERR_MSG_PROVIDER_CONFIGURATION_ERROR,
 			fmt.Sprintf("The provider was not configured correctly. Expected API manager, but got: %T. Please check your provider configuration.", req.ProviderData),
 		)
 		return

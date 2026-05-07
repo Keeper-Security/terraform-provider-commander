@@ -1,4 +1,4 @@
-// Copyright (c) Keeper Security, Inc.
+// Copyright Keeper Security, Inc. 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package enterpriseuser
@@ -27,7 +27,7 @@ func (r *EnterpriseUserResource) Create(ctx context.Context, req resource.Create
 	// Validate ApiManager is configured
 	if err := r.EnsureApiManager(); err != nil {
 		resp.Diagnostics.AddError(
-			"Provider Configuration Error",
+			utils.ERR_MSG_PROVIDER_CONFIGURATION_ERROR,
 			err.Error(),
 		)
 		return

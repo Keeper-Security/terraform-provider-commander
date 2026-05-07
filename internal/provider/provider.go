@@ -1,4 +1,4 @@
-// Copyright (c) Keeper Security, Inc.
+// Copyright Keeper Security, Inc. 2026
 // SPDX-License-Identifier: MPL-2.0
 
 package provider
@@ -13,14 +13,22 @@ import (
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/api"
 	enterprisenodedatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/enterprise_node"
 	enterpriseroledatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/enterprise_role"
+	enterprisescimdatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/enterprise_scim"
 	enterpriseteamdatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/enterprise_team"
 	enterpriseuserdatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/enterprise_user"
+	epmpolicydatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/epm_policy"
 	managedcompanydatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/managed_company"
+	sharedfolderdatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/shared_folder"
 	enterprisenode "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/enterprise_node"
+	enterprisepush "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/enterprise_push"
 	enterpriserole "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/enterprise_role"
+	enterprisescim "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/enterprise_scim"
+	enterprisescimpush "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/enterprise_scim_push"
 	enterpriseteam "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/enterprise_team"
 	enterpriseuser "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/enterprise_user"
+	epmpolicy "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/epm_policy"
 	managedcompany "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/managed_company"
+	sharedfolder "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/shared_folder"
 	"github.com/hashicorp/terraform-plugin-framework/action"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/ephemeral"
@@ -166,9 +174,14 @@ func (p *CommanderProvider) Resources(ctx context.Context) []func() resource.Res
 		// Add your resources here
 		managedcompany.NewManagedCompanyResource,
 		enterprisenode.NewEnterpriseNodeResource,
+		enterprisepush.NewEnterprisePushResource,
+		epmpolicy.NewEpmPolicyResource,
+		enterprisescimpush.NewEnterpriseScimPushResource,
+		enterprisescim.NewEnterpriseScimResource,
 		enterpriseteam.NewEnterpriseTeamResource,
 		enterpriserole.NewEnterpriseRoleResource,
 		enterpriseuser.NewEnterpriseUserResource,
+		sharedfolder.NewSharedFolderResource,
 	}
 }
 
@@ -182,8 +195,11 @@ func (p *CommanderProvider) DataSources(ctx context.Context) []func() datasource
 		managedcompanydatasource.NewManagedCompanyDataSource,
 		enterprisenodedatasource.NewEnterpriseNodesDataSource,
 		enterpriseroledatasource.NewEnterpriseRoleDataSource,
+		enterprisescimdatasource.NewEnterpriseScimDataSource,
 		enterpriseteamdatasource.NewEnterpriseTeamDataSource,
 		enterpriseuserdatasource.NewEnterpriseUserDataSource,
+		epmpolicydatasource.NewEpmPolicyDataSource,
+		sharedfolderdatasource.NewSharedFolderDataSource,
 	}
 }
 
