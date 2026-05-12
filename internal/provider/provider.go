@@ -43,6 +43,7 @@ import (
 	pamremotebrowser "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/pam_records/pam_remote_browser"
 	pamuser "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/pam_records/pam_user"
 	recordcontact "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/records/contact"
+	recordwifi "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/records/wifi"
 	secretsmanager "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/secrets_manager"
 	sharedfolder "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/shared_folder"
 	"github.com/hashicorp/terraform-plugin-framework/action"
@@ -206,6 +207,7 @@ func (p *CommanderProvider) Resources(ctx context.Context) []func() resource.Res
 		sharedfolder.NewSharedFolderResource,
 		secretsmanager.NewSecretsManagerAppResource,
 		recordcontact.NewContactResource,
+		recordwifi.NewWifiResource,
 	}
 }
 

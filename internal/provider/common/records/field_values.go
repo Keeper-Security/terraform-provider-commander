@@ -608,6 +608,65 @@ func FirstRefUID(fields []utils.VaultRecordFieldResponse, fieldType, label strin
 	return types.StringNull()
 }
 
+// FirstStringFieldAnyLabel returns the first string from a typed field's value
+// array, ignoring the label. Use for record-type-specific fields like
+// `password`, `wifiEncryption` whose label is sometimes empty and sometimes
+// echoed by the server as the type name.
+func FirstStringFieldAnyLabel(fields []utils.VaultRecordFieldResponse, fieldType string) types.String {
+	for i := range fields {
+		f := &fields[i]
+		if f.Type != fieldType {
+			continue
+		}
+		var vals []string
+		if err := json.Unmarshal(f.Value, &vals); err != nil {
+			continue
+		}
+		if len(vals) > 0 && strings.TrimSpace(vals[0]) != "" {
+			return types.StringValue(vals[0])
+		}
+	}
+	return types.StringNull()
+}
+
+// FirstBoolFieldAnyLabel returns the first boolean from a typed field's value
+// array, ignoring the label. See FirstStringFieldAnyLabel for rationale.
+func FirstBoolFieldAnyLabel(fields []utils.VaultRecordFieldResponse, fieldType string) types.Bool {
+	for i := range fields {
+		f := &fields[i]
+		if f.Type != fieldType {
+			continue
+		}
+		var vals []bool
+		if err := json.Unmarshal(f.Value, &vals); err == nil && len(vals) > 0 {
+			return types.BoolValue(vals[0])
+		}
+	}
+	return types.BoolNull()
+}
+
+// FirstBoolField returns the first boolean from a typed field's value array.
+// Returns a null types.Bool when the field is missing or empty.
+func FirstBoolField(fields []utils.VaultRecordFieldResponse, fieldType, label string) types.Bool {
+	for i := range fields {
+		f := &fields[i]
+		if f.Type != fieldType {
+			continue
+		}
+		if label != "" && f.Label != label {
+			continue
+		}
+		if label == "" && f.Label != "" {
+			continue
+		}
+		var vals []bool
+		if err := json.Unmarshal(f.Value, &vals); err == nil && len(vals) > 0 {
+			return types.BoolValue(vals[0])
+		}
+	}
+	return types.BoolNull()
+}
+
 // EpochMillisField reads first numeric element as int64 epoch ms → ISO date string for Terraform.
 func EpochMillisField(fields []utils.VaultRecordFieldResponse, fieldType, label string) types.String {
 	for i := range fields {

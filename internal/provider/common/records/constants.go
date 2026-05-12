@@ -29,9 +29,12 @@ const (
 	FieldTypeExpirationDate   = "expirationDate"
 	FieldTypeAddressRef       = "addressRef"
 	FieldTypeCardRef          = "cardRef"
+	FieldTypeFileRef          = "fileRef"
 	FieldTypeCheckbox         = "checkbox"
 	FieldTypeOneTimeCode      = "oneTimeCode"
 	FieldTypeOTP              = "otp"
+	FieldTypeWifiEncryption   = "wifiEncryption"
+	FieldTypeIsSSIDHidden     = "isSSIDHidden"
 )
 
 // Standard Keeper record types (Commander --record-type values).
@@ -52,4 +55,5 @@ const (
 	RecordTypeSoftwareLicense     = "softwareLicense"
 	RecordTypeSsnCard             = "ssnCard"
 	RecordTypeSshKeys             = "sshKeys"
+	RecordTypeWifiCredentials     = "wifiCredentials"
 )

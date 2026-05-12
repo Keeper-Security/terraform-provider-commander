@@ -200,6 +200,98 @@ func AppendChangedEpochDateField(parts *[]string, fieldKey string, plan, state t
 	*parts = append(*parts, formatFieldAssignment(fieldKey, strconv.FormatInt(ms, 10), false))
 }
 
+// AppendOptionalBoolAdd adds fieldKey=true|false when the value is set.
+// Use for typed boolean fields such as `f.isSSIDHidden` where the API expects a literal bool string.
+func AppendOptionalBoolAdd(parts *[]string, fieldKey string, v types.Bool) {
+	if v.IsNull() || v.IsUnknown() {
+		return
+	}
+	val := "false"
+	if v.ValueBool() {
+		val = "true"
+	}
+	*parts = append(*parts, formatFieldAssignment(fieldKey, val, false))
+}
+
+// AppendChangedBoolField emits fieldKey=true|false when plan != state.
+// Sends an empty value when the plan is null so the field is cleared on the server.
+func AppendChangedBoolField(parts *[]string, fieldKey string, plan, state types.Bool) {
+	if plan.Equal(state) || plan.IsUnknown() {
+		return
+	}
+	if plan.IsNull() {
+		*parts = append(*parts, formatFieldAssignment(fieldKey, "", false))
+		return
+	}
+	val := "false"
+	if plan.ValueBool() {
+		val = "true"
+	}
+	*parts = append(*parts, formatFieldAssignment(fieldKey, val, false))
+}
+
+// AppendOptionalJSONStringAdd marshals a string value as JSON and emits
+// fieldKey='$JSON:"value"' when set. Used for Keeper fields that require
+// JSON-wrapped string values (e.g. `wifiEncryption='$JSON:"wpa"'`).
+func AppendOptionalJSONStringAdd(parts *[]string, fieldKey string, v types.String) {
+	if v.IsNull() || v.IsUnknown() || strings.TrimSpace(v.ValueString()) == "" {
+		return
+	}
+	b, err := json.Marshal(strings.TrimSpace(v.ValueString()))
+	if err != nil {
+		return
+	}
+	*parts = append(*parts, formatFieldAssignment(fieldKey, string(b), true))
+}
+
+// AppendChangedJSONStringField emits fieldKey='$JSON:"value"' when plan != state.
+// Clears the field with an empty value when the plan is null.
+func AppendChangedJSONStringField(parts *[]string, fieldKey string, plan, state types.String) {
+	if plan.Equal(state) || plan.IsUnknown() {
+		return
+	}
+	if plan.IsNull() || strings.TrimSpace(plan.ValueString()) == "" {
+		*parts = append(*parts, formatFieldAssignment(fieldKey, "", false))
+		return
+	}
+	b, err := json.Marshal(strings.TrimSpace(plan.ValueString()))
+	if err != nil {
+		return
+	}
+	*parts = append(*parts, formatFieldAssignment(fieldKey, string(b), true))
+}
+
+// AppendOptionalJSONBoolAdd marshals a bool value as JSON and emits
+// fieldKey='$JSON:true' / fieldKey='$JSON:false' when set. Used for Keeper
+// fields that require JSON-wrapped boolean values (e.g. `isSSIDHidden='$JSON:false'`).
+func AppendOptionalJSONBoolAdd(parts *[]string, fieldKey string, v types.Bool) {
+	if v.IsNull() || v.IsUnknown() {
+		return
+	}
+	b, err := json.Marshal(v.ValueBool())
+	if err != nil {
+		return
+	}
+	*parts = append(*parts, formatFieldAssignment(fieldKey, string(b), true))
+}
+
+// AppendChangedJSONBoolField emits fieldKey='$JSON:true|false' when plan != state.
+// Clears the field with an empty value when the plan is null.
+func AppendChangedJSONBoolField(parts *[]string, fieldKey string, plan, state types.Bool) {
+	if plan.Equal(state) || plan.IsUnknown() {
+		return
+	}
+	if plan.IsNull() {
+		*parts = append(*parts, formatFieldAssignment(fieldKey, "", false))
+		return
+	}
+	b, err := json.Marshal(plan.ValueBool())
+	if err != nil {
+		return
+	}
+	*parts = append(*parts, formatFieldAssignment(fieldKey, string(b), true))
+}
+
 // AppendOptionalRefAdd adds addressRef / cardRef first UID.
 func AppendOptionalRefAdd(parts *[]string, fieldKey string, uid types.String) {
 	if uid.IsNull() || uid.IsUnknown() || strings.TrimSpace(uid.ValueString()) == "" {
