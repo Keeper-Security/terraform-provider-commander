@@ -4,23 +4,31 @@
 package contact
 
 import (
+	"context"
 	"strings"
 
 	records "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records"
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/utils"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
 func buildRecordAddCommand(data ContactResourceModel) string {
 	var extra []string
 
+	// name.
 	if data.Name != nil && !data.Name.IsNull() {
 		if j, err := data.Name.ToJSON(); err == nil && strings.TrimSpace(j) != "" {
 			records.AppendOptionalJSONAdd(&extra, FlagName, j)
 		}
 	}
+	// company.
 	records.AppendOptionalTextField(&extra, FlagTextCompany, data.Company)
+
+	// email.
 	records.AppendOptionalTextField(&extra, FlagEmail, data.Email)
+
+	// phone.
 	for i := range data.Phone {
 		p := data.Phone[i]
 		phoneType := strings.TrimSpace(p.Type.ValueString())
@@ -32,9 +40,13 @@ func buildRecordAddCommand(data ContactResourceModel) string {
 			records.AppendOptionalJSONAdd(&extra, FlagPhonePrefix+phoneType, j)
 		}
 	}
+
+	// address.
 	records.AppendOptionalTextField(&extra, FlagAddressRef, data.AddressRef)
 
+	// custom.
 	custom := records.NormalizeCustomFromPlan(data.Custom)
+
 	return records.BuildRecordAdd(data.Folder, data.Title.ValueString(), records.RecordTypeContact, extra, custom, data.Notes)
 }
 
@@ -46,7 +58,7 @@ func updateHasMutations(plan, state ContactResourceModel) bool {
 		!plan.AddressRef.Equal(state.AddressRef) {
 		return true
 	}
-	if !nameEqual(plan.Name, state.Name) {
+	if !records.NameEqual(plan.Name, state.Name) {
 		return true
 	}
 	if !records.PhoneSliceEqual(plan.Phone, state.Phone) {
@@ -58,17 +70,14 @@ func updateHasMutations(plan, state ContactResourceModel) bool {
 	return false
 }
 
-func nameEqual(a, b *records.NameValue) bool {
-	return records.NameEqual(a, b)
-}
-
 func buildRecordUpdateCommand(recordUID string, plan, state ContactResourceModel) string {
 	var extra []string
-	// name
-	planJ, planErr := nameToJSON(plan.Name)
-	stateJ, stateErr := nameToJSON(state.Name)
-	changed := planJ != stateJ || planErr != stateErr
-	records.AppendChangedJSONField(&extra, FlagName, planJ, stateJ, changed)
+
+	// name.
+	planJSON, planErr := nameToJSON(plan.Name)
+	stateJSON, stateErr := nameToJSON(state.Name)
+	changed := planJSON != stateJSON || planErr != stateErr
+	records.AppendChangedJSONField(&extra, FlagName, planJSON, stateJSON, changed)
 
 	records.AppendChangedStringField(&extra, FlagTextCompany, plan.Company, state.Company)
 	records.AppendChangedStringField(&extra, FlagEmail, plan.Email, state.Email)
@@ -126,11 +135,19 @@ func nameToJSON(n *records.NameValue) (string, error) {
 	return n.ToJSON()
 }
 
-func mapVaultRecordToModel(rec *utils.VaultRecordGetResponse, stateFolder types.String, m *ContactResourceModel) {
+func mapVaultRecordToModel(ctx context.Context, rec *utils.VaultRecordGetResponse, stateFolder types.String, m *ContactResourceModel) diag.Diagnostics {
 	records.MapBaseVaultRecord(rec, stateFolder, &m.BaseVaultRecordModel)
 	m.Name = records.NameFromFields(rec.Fields, "")
 	m.Company = records.FirstStringField(rec.Fields, records.FieldTypeText, "company")
 	m.Email = records.FirstStringField(rec.Fields, records.FieldTypeEmail, "")
 	m.Phone = records.PhonesFromField(rec.Fields, "")
 	m.AddressRef = records.FirstRefUID(rec.Fields, records.FieldTypeAddressRef, "")
+
+	// Parse share record permissions from the API response.
+	shareMap, diags := records.ParseSharePermissionsFromResponse(ctx, rec.UserPermissions)
+	if diags.HasError() {
+		return diags
+	}
+	m.Share = shareMap
+	return nil
 }

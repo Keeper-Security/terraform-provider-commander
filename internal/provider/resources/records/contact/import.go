@@ -26,6 +26,7 @@ func (r *ContactResource) ImportState(ctx context.Context, req resource.ImportSt
 			Notes:  types.StringNull(),
 			Folder: types.StringNull(),
 			Custom: nil,
+			Share:  types.MapNull(types.ObjectType{AttrTypes: records.SharePermissionsObjectType()}),
 		},
 		Name:       nil,
 		Company:    types.StringNull(),

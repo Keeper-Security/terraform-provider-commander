@@ -18,6 +18,7 @@ func (r *ContactResource) Schema(ctx context.Context, req resource.SchemaRequest
 	attrs["email"] = records.OptionalStringField("Email", "Email address.", "Email address.")
 	attrs["phone"] = records.PhoneListSchema()
 	attrs["address_ref"] = records.RefUIDField("Linked Address record UID.", "UID of an `address` record linked via `addressRef`.")
+	attrs["share"] = records.ShareAttribute()
 
 	resp.Schema = schema.Schema{
 		Description:         SchemaDescription,

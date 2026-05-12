@@ -5,10 +5,12 @@ package records
 
 import (
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/utils"
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
+	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
 // BaseRecordAttributes returns id, title, notes, folder shared by all standard vault record resources.
@@ -303,5 +305,40 @@ func RefUIDField(desc, md string) schema.StringAttribute {
 		Validators: []validator.String{
 			utils.StringMinLengthValidator("Record UID", 1, true),
 		},
+	}
+}
+
+// ShareAttribute returns the reusable map attribute for sharing records with users.
+// Keys are email addresses; values are objects with can_share and can_edit booleans.
+func ShareAttribute() schema.MapNestedAttribute {
+	return schema.MapNestedAttribute{
+		Optional:            true,
+		Description:         "Share the record with users. Map keys are email addresses; values specify permissions.",
+		MarkdownDescription: "Share the record with users. Map keys are **email addresses**; values specify `can_share` and `can_edit` permissions.",
+		NestedObject: schema.NestedAttributeObject{
+			Attributes: map[string]schema.Attribute{
+				"can_share": schema.BoolAttribute{
+					Required:            true,
+					Description:         "Allow the user to re-share the record with others.",
+					MarkdownDescription: "Allow the user to re-share the record with others.",
+				},
+				"can_edit": schema.BoolAttribute{
+					Required:            true,
+					Description:         "Allow the user to edit the record.",
+					MarkdownDescription: "Allow the user to edit the record.",
+				},
+			},
+		},
+		Validators: []validator.Map{
+			utils.MapKeysEmailValidator(),
+		},
+	}
+}
+
+// SharePermissionsObjectType returns the ObjectType used for the share map values.
+func SharePermissionsObjectType() map[string]attr.Type {
+	return map[string]attr.Type{
+		"can_share": types.BoolType,
+		"can_edit":  types.BoolType,
 	}
 }

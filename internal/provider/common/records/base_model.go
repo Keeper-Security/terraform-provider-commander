@@ -12,4 +12,11 @@ type BaseVaultRecordModel struct {
 	Notes  types.String       `tfsdk:"notes"`
 	Folder types.String       `tfsdk:"folder"`
 	Custom []CustomFieldModel `tfsdk:"custom"`
+	Share  types.Map          `tfsdk:"share"`
+}
+
+// ShareRecordPermissionsModel is the model for the record permissions.
+type ShareRecordPermissionsModel struct {
+	CanShare types.Bool `tfsdk:"can_share"`
+	CanEdit  types.Bool `tfsdk:"can_edit"`
 }

@@ -4,12 +4,16 @@
 package records
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"strconv"
 	"strings"
 
+	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/api"
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/utils"
+	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
@@ -204,4 +208,127 @@ func AppendOptionalRefAdd(parts *[]string, fieldKey string, uid types.String) {
 	u := strings.TrimSpace(uid.ValueString())
 	arr, _ := json.Marshal([]string{u})
 	*parts = append(*parts, formatFieldAssignment(fieldKey, string(arr), true))
+}
+
+// ----- share record helpers -------------------------------------------------
+
+// ApplySharePermissions reconciles share permissions between plan and state.
+// For each email in the plan: runs `share-record --email <email> <recordUID>` with --share/--write flags.
+// For each email in state but not in plan: runs `share-record --email <email> <recordUID> --action revoke`.
+func ApplySharePermissions(ctx context.Context, apiManager *api.ApiManager, recordUID string, planShare, stateShare types.Map) diag.Diagnostics {
+	var diags diag.Diagnostics
+
+	planPerms := extractShareMap(ctx, planShare, &diags)
+	statePerms := extractShareMap(ctx, stateShare, &diags)
+	if diags.HasError() {
+		return diags
+	}
+
+	// Grant or update permissions for emails present in the plan.
+	for email, perm := range planPerms {
+		statePerm, existsInState := statePerms[email]
+		if existsInState && perm.CanShare == statePerm.CanShare && perm.CanEdit == statePerm.CanEdit {
+			continue
+		}
+
+		cmd := buildShareRecordCommand(recordUID, email, perm.CanShare, perm.CanEdit)
+		if _, err := apiManager.ExecuteCommand(ctx, cmd, "share record with "+email); err != nil {
+			diags.AddError(utils.ErrSummaryShareRecordFailed, fmt.Sprintf("Failed to share record with %s: %s", email, err.Error()))
+			return diags
+		}
+	}
+
+	// Revoke permissions for emails removed from plan that existed in state.
+	for email := range statePerms {
+		if _, existsInPlan := planPerms[email]; !existsInPlan {
+			cmd := buildRevokeShareCommand(recordUID, email)
+			if _, err := apiManager.ExecuteCommand(ctx, cmd, "revoke share for "+email); err != nil {
+				diags.AddError(utils.ErrSummaryRevokeShareFailed, fmt.Sprintf("Failed to revoke share for %s: %s", email, err.Error()))
+				return diags
+			}
+		}
+	}
+
+	return diags
+}
+
+type sharePermEntry struct {
+	CanShare bool
+	CanEdit  bool
+}
+
+func extractShareMap(ctx context.Context, m types.Map, diags *diag.Diagnostics) map[string]sharePermEntry {
+	result := make(map[string]sharePermEntry)
+	if m.IsNull() || m.IsUnknown() {
+		return result
+	}
+
+	var perms map[string]ShareRecordPermissionsModel
+	d := m.ElementsAs(ctx, &perms, false)
+	diags.Append(d...)
+	if d.HasError() {
+		return result
+	}
+
+	for email, p := range perms {
+		result[email] = sharePermEntry{
+			CanShare: !p.CanShare.IsNull() && !p.CanShare.IsUnknown() && p.CanShare.ValueBool(),
+			CanEdit:  !p.CanEdit.IsNull() && !p.CanEdit.IsUnknown() && p.CanEdit.ValueBool(),
+		}
+	}
+	return result
+}
+
+// buildShareRecordCommand: share-record --email '<email>' '<recordUID>' [--share] [--write]
+func buildShareRecordCommand(recordUID, email string, canShare, canEdit bool) string {
+	parts := []string{
+		utils.CmdShareRecord,
+		fmt.Sprintf("%s %s", utils.FlagEmail, QuoteShellSingle(email)),
+		QuoteShellSingle(recordUID),
+	}
+	if canShare {
+		parts = append(parts, utils.FlagShare)
+	}
+	if canEdit {
+		parts = append(parts, utils.FlagWrite)
+	}
+
+	if !canShare && !canEdit {
+		parts = append(parts, fmt.Sprintf("%s %s %s", utils.FlagActionRevoke, utils.FlagShare, utils.FlagWrite))
+	}
+
+	return strings.Join(parts, " ")
+}
+
+// buildRevokeShareCommand: share-record --email '<email>' '<recordUID>' --action revoke
+func buildRevokeShareCommand(recordUID, email string) string {
+	parts := []string{
+		utils.CmdShareRecord,
+		fmt.Sprintf("%s %s", utils.FlagEmail, QuoteShellSingle(email)),
+		QuoteShellSingle(recordUID),
+		utils.FlagActionRevoke,
+	}
+	return strings.Join(parts, " ")
+}
+
+// ParseSharePermissionsFromResponse converts the user_permissions array from the API
+// into a types.Map suitable for the Terraform state.
+func ParseSharePermissionsFromResponse(ctx context.Context, perms []utils.UserPermissionResponse) (types.Map, diag.Diagnostics) {
+	if len(perms) == 0 {
+		return types.MapNull(types.ObjectType{AttrTypes: SharePermissionsObjectType()}), nil
+	}
+
+	elements := make(map[string]attr.Value, len(perms))
+	for _, p := range perms {
+		obj, d := types.ObjectValue(SharePermissionsObjectType(), map[string]attr.Value{
+			"can_share": types.BoolValue(p.Shareable),
+			"can_edit":  types.BoolValue(p.Editable),
+		})
+		if d.HasError() {
+			return types.MapNull(types.ObjectType{AttrTypes: SharePermissionsObjectType()}), d
+		}
+		elements[p.Username] = obj
+	}
+
+	return types.MapValue(types.ObjectType{AttrTypes: SharePermissionsObjectType()}, elements)
 }

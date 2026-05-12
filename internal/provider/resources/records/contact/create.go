@@ -7,6 +7,7 @@ import (
 	"context"
 	"fmt"
 
+	records "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records"
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/utils"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -38,5 +39,13 @@ func (r *ContactResource) Create(ctx context.Context, req resource.CreateRequest
 		return
 	}
 	data.Id = types.StringValue(createdUID)
+
+	if !data.Share.IsNull() && !data.Share.IsUnknown() {
+		resp.Diagnostics.Append(records.ApplySharePermissions(ctx, r.ApiManager, createdUID, data.Share, types.MapNull(types.ObjectType{AttrTypes: records.SharePermissionsObjectType()}))...)
+		if resp.Diagnostics.HasError() {
+			return
+		}
+	}
+
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
