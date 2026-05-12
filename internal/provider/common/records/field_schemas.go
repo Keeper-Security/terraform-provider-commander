@@ -34,16 +34,16 @@ func BaseRecordAttributes() map[string]schema.Attribute {
 		},
 		"notes": schema.StringAttribute{
 			Optional:            true,
-			Description:         "Optional notes on the record.",
-			MarkdownDescription: "Optional notes on the record.",
+			Description:         "Manage note for the record.",
+			MarkdownDescription: "Manage note for the record.",
 			Validators: []validator.String{
 				utils.StringMinLengthValidator("Notes", 0, true),
 			},
 		},
 		"folder": schema.StringAttribute{
 			Optional:            true,
-			Description:         "Folder path or UID where the record is stored.",
-			MarkdownDescription: "Folder path or UID where the record is stored.",
+			Description:         "Folder path or UID where the record is to be stored.",
+			MarkdownDescription: "Folder `path` or `UID` where the record is to be stored.",
 			Validators: []validator.String{
 				utils.StringMinLengthValidator("Folder", 1, true),
 			},
@@ -90,8 +90,8 @@ func NameNestedSchema(optional bool) schema.SingleNestedAttribute {
 func PhoneListSchema() schema.ListNestedAttribute {
 	return schema.ListNestedAttribute{
 		Optional:            true,
-		Description:         "Phone numbers (type, number, region, ext).",
-		MarkdownDescription: "Phone numbers; maps to Keeper `phone` field array.",
+		Description:         "Manage phone numbers for the record.",
+		MarkdownDescription: "Manage phone numbers for the record.",
 		NestedObject: schema.NestedAttributeObject{
 			Attributes: map[string]schema.Attribute{
 				"region": schema.StringAttribute{

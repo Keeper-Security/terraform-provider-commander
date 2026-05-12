@@ -14,7 +14,7 @@ import (
 func (r *ContactResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	attrs := records.BaseRecordAttributes()
 	attrs["name"] = records.NameNestedSchema(false)
-	attrs["company"] = records.OptionalStringField("Company", "Company name.", "Company name (`f.text.company`).")
+	attrs["company"] = records.OptionalStringField("Company", "Company name.", "Company name.")
 	attrs["email"] = records.OptionalStringField("Email", "Email address.", "Email address.")
 	attrs["phone"] = records.PhoneListSchema()
 	attrs["address_ref"] = records.RefUIDField("Linked Address record UID.", "UID of an `address` record linked via `addressRef`.")

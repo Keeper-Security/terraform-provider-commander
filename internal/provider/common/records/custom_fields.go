@@ -25,8 +25,8 @@ type CustomFieldModel struct {
 // CustomFieldBlockSchema returns the list nested block schema for `custom`.
 func CustomFieldBlockSchema() schema.ListNestedBlock {
 	return schema.ListNestedBlock{
-		Description:         "Custom fields stored in the record's `custom` array.",
-		MarkdownDescription: "Custom fields stored in the record's `custom` array. Use Commander `c.<type>.<label>` syntax; `value` is the raw field value (use JSON for complex types such as `phone` or `name`).",
+		Description:         "Manage custom fields for the record.",
+		MarkdownDescription: "Manage custom fields for the record.",
 		NestedObject: schema.NestedBlockObject{
 			Attributes: map[string]schema.Attribute{
 				"type": schema.StringAttribute{
@@ -36,8 +36,8 @@ func CustomFieldBlockSchema() schema.ListNestedBlock {
 				},
 				"label": schema.StringAttribute{
 					Required:            true,
-					Description:         "Field label (maps to Commander custom field label).",
-					MarkdownDescription: "Field label (maps to Commander `c.<type>.<label>`).",
+					Description:         "Field label.",
+					MarkdownDescription: "Field label.",
 					Validators: []validator.String{
 						utils.StringMinLengthValidator("Custom field label", 1, false),
 					},

@@ -279,7 +279,7 @@ func extractShareMap(ctx context.Context, m types.Map, diags *diag.Diagnostics) 
 	return result
 }
 
-// buildShareRecordCommand: share-record --email '<email>' '<recordUID>' [--share] [--write]
+// buildShareRecordCommand: share-record --email '<email>' '<recordUID>' [--share] [--write].
 func buildShareRecordCommand(recordUID, email string, canShare, canEdit bool) string {
 	parts := []string{
 		utils.CmdShareRecord,
@@ -300,7 +300,7 @@ func buildShareRecordCommand(recordUID, email string, canShare, canEdit bool) st
 	return strings.Join(parts, " ")
 }
 
-// buildRevokeShareCommand: share-record --email '<email>' '<recordUID>' --action revoke
+// buildRevokeShareCommand: share-record --email '<email>' '<recordUID>' --action revoke.
 func buildRevokeShareCommand(recordUID, email string) string {
 	parts := []string{
 		utils.CmdShareRecord,
@@ -311,7 +311,7 @@ func buildRevokeShareCommand(recordUID, email string) string {
 	return strings.Join(parts, " ")
 }
 
-// ParseSharePermissionsFromResponse converts the user_permissions array from the API
+// ParseSharePermissionsFromResponse converts the user_permissions array from the API.
 // into a types.Map suitable for the Terraform state.
 func ParseSharePermissionsFromResponse(ctx context.Context, perms []utils.UserPermissionResponse) (types.Map, diag.Diagnostics) {
 	if len(perms) == 0 {
