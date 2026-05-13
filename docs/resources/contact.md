@@ -57,6 +57,35 @@ resource "commander_contact" "full" {
       can_edit  = false
     }
   }
+
+  /* Example of custom fields
+    - For Complex types, use jsonencode(JSON) matching the Keeper field schema. 
+    - For more information, see the Keeper field schema documentation: https://docs.keeper.io/en/keeperpam/secrets-manager/about/field-record-types
+  */
+  custom = [
+    {
+      type  = "text"
+      label = "department"
+      value = "Engineering"
+    },
+    {
+      type  = "text"
+      label = "slack_channel"
+      value = "#eng-support"
+    },
+    {
+      type  = "address"
+      label = "office_address"
+      value = jsonencode({
+        street1 = "100 Main Street"
+        street2 = "apt 2"
+        city    = "San Francisco"
+        state   = "CA"
+        zip     = "94105"
+        country = "US"
+      })
+    },
+  ]
 }
 ```
 
@@ -72,7 +101,7 @@ resource "commander_contact" "full" {
 
 - `address_ref` (String) UID of an `address` record linked via `addressRef`.
 - `company` (String) Company name.
-- `custom` (Block List) Manage custom fields for the record. (see [below for nested schema](#nestedblock--custom))
+- `custom` (Attributes List) Manage custom fields for the record. (see [below for nested schema](#nestedatt--custom))
 - `email` (String) Email address.
 - `folder` (String) Folder `path` or `UID` where the record is to be stored.
 - `notes` (String) Manage note for the record.
@@ -96,14 +125,14 @@ Optional:
 - `middle` (String) Middle name.
 
 
-<a id="nestedblock--custom"></a>
+<a id="nestedatt--custom"></a>
 ### Nested Schema for `custom`
 
 Required:
 
 - `label` (String) Field label.
 - `type` (String) Keeper field type (e.g. `text`, `email`, `secret`, `phone`, `name`, `date`).
-- `value` (String) Field value; for complex types use JSON matching the [Keeper field schema](https://docs.keeper.io/en/keeperpam/secrets-manager/about/field-record-types).
+- `value` (String) Field value; for complex types use `jsonencode(JSON)` matching the [Keeper field schema](https://docs.keeper.io/en/keeperpam/secrets-manager/about/field-record-types).
 
 Optional:
 

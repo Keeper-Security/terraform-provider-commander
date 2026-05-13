@@ -4,6 +4,7 @@
 package records
 
 import (
+	"bytes"
 	"encoding/json"
 	"strings"
 
@@ -22,12 +23,13 @@ type CustomFieldModel struct {
 	Sensitive types.Bool   `tfsdk:"sensitive"`
 }
 
-// CustomFieldBlockSchema returns the list nested block schema for `custom`.
-func CustomFieldBlockSchema() schema.ListNestedBlock {
-	return schema.ListNestedBlock{
+// CustomFieldAttributeSchema returns the list nested attribute schema for `custom`.
+func CustomFieldAttributeSchema() schema.ListNestedAttribute {
+	return schema.ListNestedAttribute{
+		Optional:            true,
 		Description:         "Manage custom fields for the record.",
 		MarkdownDescription: "Manage custom fields for the record.",
-		NestedObject: schema.NestedBlockObject{
+		NestedObject: schema.NestedAttributeObject{
 			Attributes: map[string]schema.Attribute{
 				"type": schema.StringAttribute{
 					Required:            true,
@@ -44,8 +46,8 @@ func CustomFieldBlockSchema() schema.ListNestedBlock {
 				},
 				"value": schema.StringAttribute{
 					Required:            true,
-					Description:         "Field value; for complex types use JSON matching the Keeper field schema.",
-					MarkdownDescription: "Field value; for complex types use JSON matching the [Keeper field schema](https://docs.keeper.io/en/keeperpam/secrets-manager/about/field-record-types).",
+					Description:         "Field value; for complex types use jsonencode(JSON) matching the Keeper field schema.",
+					MarkdownDescription: "Field value; for complex types use `jsonencode(JSON)` matching the [Keeper field schema](https://docs.keeper.io/en/keeperpam/secrets-manager/about/field-record-types).",
 				},
 				"sensitive": schema.BoolAttribute{
 					Optional:            true,
@@ -60,6 +62,8 @@ func CustomFieldBlockSchema() schema.ListNestedBlock {
 }
 
 // ParseCustomFields maps API `custom` array onto Terraform models.
+// The API returns field values as JSON arrays (e.g. ["value"] or [{"key":"val"}]).
+// We extract the first element so the state matches what the user writes in HCL.
 func ParseCustomFields(raw []utils.VaultRecordFieldResponse) []CustomFieldModel {
 	if len(raw) == 0 {
 		return nil
@@ -72,14 +76,58 @@ func ParseCustomFields(raw []utils.VaultRecordFieldResponse) []CustomFieldModel 
 			Label:     types.StringValue(f.Label),
 			Sensitive: types.BoolValue(fieldTypeSensitive(f.Type)),
 		}
-		// Re-serialize value as compact JSON string for stable Terraform strings.
-		cf.Value = types.StringValue(string(f.Value))
-		if strings.TrimSpace(cf.Value.ValueString()) == "" || cf.Value.ValueString() == "null" {
-			cf.Value = types.StringValue("[]")
-		}
+		cf.Value = types.StringValue(extractValueFromArray(f.Value))
 		out = append(out, cf)
 	}
 	return out
+}
+
+// extractValueFromArray converts a JSON array value from the API into a string
+// suitable for Terraform state comparison with user-provided HCL values.
+//
+// Single-element arrays are unwrapped:
+//   - ["hello"]    → "hello"
+//   - [{"k":"v"}]  → {"k":"v"}
+//
+// Multi-element arrays are returned as compact JSON:
+//   - ["a","b"]           → ["a","b"]
+//   - [{"k":"v"},{"x":1}] → [{"k":"v"},{"x":1}]
+func extractValueFromArray(raw json.RawMessage) string {
+	s := strings.TrimSpace(string(raw))
+	if s == "" || s == "null" || s == "[]" {
+		return ""
+	}
+
+	var arr []json.RawMessage
+	if err := json.Unmarshal(raw, &arr); err != nil || len(arr) == 0 {
+		return s
+	}
+
+	if len(arr) == 1 {
+		return unwrapSingleElement(arr[0])
+	}
+
+	// Multiple elements: return the full array as compact JSON.
+	var compact bytes.Buffer
+	if err := json.Compact(&compact, raw); err == nil {
+		return compact.String()
+	}
+	return s
+}
+
+// unwrapSingleElement extracts a single JSON value from raw bytes.
+// Quoted strings are unquoted; objects/numbers/bools are returned as compact JSON.
+func unwrapSingleElement(elem json.RawMessage) string {
+	var str string
+	if err := json.Unmarshal(elem, &str); err == nil {
+		return str
+	}
+
+	var compact bytes.Buffer
+	if err := json.Compact(&compact, elem); err == nil {
+		return compact.String()
+	}
+	return strings.TrimSpace(string(elem))
 }
 
 func fieldTypeSensitive(t string) bool {

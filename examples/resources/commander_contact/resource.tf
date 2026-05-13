@@ -42,4 +42,33 @@ resource "commander_contact" "full" {
       can_edit  = false
     }
   }
+
+  /* Example of custom fields
+    - For Complex types, use jsonencode(JSON) matching the Keeper field schema. 
+    - For more information, see the Keeper field schema documentation: https://docs.keeper.io/en/keeperpam/secrets-manager/about/field-record-types
+  */
+  custom = [
+    {
+      type  = "text"
+      label = "department"
+      value = "Engineering"
+    },
+    {
+      type  = "text"
+      label = "slack_channel"
+      value = "#eng-support"
+    },
+    {
+      type  = "address"
+      label = "office_address"
+      value = jsonencode({
+        street1 = "100 Main Street"
+        street2 = "apt 2"
+        city    = "San Francisco"
+        state   = "CA"
+        zip     = "94105"
+        country = "US"
+      })
+    },
+  ]
 }

@@ -48,13 +48,7 @@ func BaseRecordAttributes() map[string]schema.Attribute {
 				utils.StringMinLengthValidator("Folder", 1, true),
 			},
 		},
-	}
-}
-
-// BaseRecordBlocks returns the custom fields nested list block.
-func BaseRecordBlocks() map[string]schema.Block {
-	return map[string]schema.Block{
-		"custom": CustomFieldBlockSchema(),
+		"custom": CustomFieldAttributeSchema(),
 	}
 }
 

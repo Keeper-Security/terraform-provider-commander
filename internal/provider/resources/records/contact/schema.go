@@ -24,6 +24,5 @@ func (r *ContactResource) Schema(ctx context.Context, req resource.SchemaRequest
 		Description:         SchemaDescription,
 		MarkdownDescription: SchemaMarkdownDescription,
 		Attributes:          attrs,
-		Blocks:              records.BaseRecordBlocks(),
 	}
 }
