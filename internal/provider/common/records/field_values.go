@@ -54,7 +54,7 @@ func (n *NameValue) ToJSON() (string, error) {
 func NameFromFields(fields []utils.VaultRecordFieldResponse, label string) *NameValue {
 	for i := range fields {
 		f := &fields[i]
-		if f.Type != FieldTypeName || (label != "" && f.Label != label) || (label == "" && f.Label != "") {
+		if f.Type != FieldTypeName || (label != "" && f.Label != label) {
 			continue
 		}
 		var arr []nameJSON
@@ -63,9 +63,9 @@ func NameFromFields(fields []utils.VaultRecordFieldResponse, label string) *Name
 		}
 		v := arr[0]
 		return &NameValue{
-			First:  stringOrNull(v.First),
-			Middle: stringOrNull(v.Middle),
-			Last:   stringOrNull(v.Last),
+			First:  StringOrNull(v.First),
+			Middle: StringOrNull(v.Middle),
+			Last:   StringOrNull(v.Last),
 		}
 	}
 	return nil
@@ -117,7 +117,7 @@ func (p *PhoneValue) ToJSON() (string, error) {
 func PhonesFromField(fields []utils.VaultRecordFieldResponse, label string) []PhoneValue {
 	for i := range fields {
 		f := &fields[i]
-		if f.Type != FieldTypePhone || (label != "" && f.Label != label) || (label == "" && f.Label != "") {
+		if f.Type != FieldTypePhone || (label != "" && f.Label != label) {
 			continue
 		}
 		var arr []phoneJSON
@@ -127,10 +127,10 @@ func PhonesFromField(fields []utils.VaultRecordFieldResponse, label string) []Ph
 		out := make([]PhoneValue, 0, len(arr))
 		for _, v := range arr {
 			out = append(out, PhoneValue{
-				Region: stringOrNull(v.Region),
-				Number: stringOrNull(v.Number),
-				Ext:    stringOrNull(v.Ext),
-				Type:   stringOrNull(v.Type),
+				Region: StringOrNull(v.Region),
+				Number: StringOrNull(v.Number),
+				Ext:    StringOrNull(v.Ext),
+				Type:   StringOrNull(v.Type),
 			})
 		}
 		return out
@@ -214,7 +214,7 @@ func (a *AddressValue) ToJSON() (string, error) {
 func AddressFromFields(fields []utils.VaultRecordFieldResponse, label string) *AddressValue {
 	for i := range fields {
 		f := &fields[i]
-		if f.Type != FieldTypeAddress || (label != "" && f.Label != label) || (label == "" && f.Label != "") {
+		if f.Type != FieldTypeAddress || (label != "" && f.Label != label) {
 			continue
 		}
 		var arr []addressJSON
@@ -223,12 +223,12 @@ func AddressFromFields(fields []utils.VaultRecordFieldResponse, label string) *A
 		}
 		v := arr[0]
 		return &AddressValue{
-			Street1: stringOrNull(v.Street1),
-			Street2: stringOrNull(v.Street2),
-			City:    stringOrNull(v.City),
-			State:   stringOrNull(v.State),
-			Zip:     stringOrNull(v.Zip),
-			Country: stringOrNull(v.Country),
+			Street1: StringOrNull(v.Street1),
+			Street2: StringOrNull(v.Street2),
+			City:    StringOrNull(v.City),
+			State:   StringOrNull(v.State),
+			Zip:     StringOrNull(v.Zip),
+			Country: StringOrNull(v.Country),
 		}
 	}
 	return nil
@@ -275,7 +275,7 @@ func (h *HostValue) ToJSON() (string, error) {
 func HostFromFields(fields []utils.VaultRecordFieldResponse, label string) *HostValue {
 	for i := range fields {
 		f := &fields[i]
-		if f.Type != FieldTypeHost || (label != "" && f.Label != label) || (label == "" && f.Label != "") {
+		if f.Type != FieldTypeHost || (label != "" && f.Label != label) {
 			continue
 		}
 		var arr []hostJSON
@@ -284,8 +284,8 @@ func HostFromFields(fields []utils.VaultRecordFieldResponse, label string) *Host
 		}
 		v := arr[0]
 		return &HostValue{
-			HostName: stringOrNull(v.HostName),
-			Port:     stringOrNull(v.Port),
+			HostName: StringOrNull(v.HostName),
+			Port:     StringOrNull(v.Port),
 		}
 	}
 	return nil
@@ -334,7 +334,7 @@ func (p *PaymentCardValue) ToJSON() (string, error) {
 func PaymentCardFromFields(fields []utils.VaultRecordFieldResponse, label string) *PaymentCardValue {
 	for i := range fields {
 		f := &fields[i]
-		if f.Type != FieldTypePaymentCard || (label != "" && f.Label != label) || (label == "" && f.Label != "") {
+		if f.Type != FieldTypePaymentCard || (label != "" && f.Label != label) {
 			continue
 		}
 		var arr []paymentCardJSON
@@ -343,9 +343,9 @@ func PaymentCardFromFields(fields []utils.VaultRecordFieldResponse, label string
 		}
 		v := arr[0]
 		return &PaymentCardValue{
-			CardNumber:         stringOrNull(v.CardNumber),
-			CardExpirationDate: stringOrNull(v.CardExpirationDate),
-			CardSecurityCode:   stringOrNull(v.CardSecurityCode),
+			CardNumber:         StringOrNull(v.CardNumber),
+			CardExpirationDate: StringOrNull(v.CardExpirationDate),
+			CardSecurityCode:   StringOrNull(v.CardSecurityCode),
 		}
 	}
 	return nil
@@ -398,7 +398,7 @@ func (b *BankAccountValue) ToJSON() (string, error) {
 func BankAccountFromFields(fields []utils.VaultRecordFieldResponse, label string) *BankAccountValue {
 	for i := range fields {
 		f := &fields[i]
-		if f.Type != FieldTypeBankAccount || (label != "" && f.Label != label) || (label == "" && f.Label != "") {
+		if f.Type != FieldTypeBankAccount || (label != "" && f.Label != label) {
 			continue
 		}
 		var arr []bankAccountJSON
@@ -407,10 +407,10 @@ func BankAccountFromFields(fields []utils.VaultRecordFieldResponse, label string
 		}
 		v := arr[0]
 		return &BankAccountValue{
-			AccountType:   stringOrNull(v.AccountType),
-			OtherType:     stringOrNull(v.OtherType),
-			RoutingNumber: stringOrNull(v.RoutingNumber),
-			AccountNumber: stringOrNull(v.AccountNumber),
+			AccountType:   StringOrNull(v.AccountType),
+			OtherType:     StringOrNull(v.OtherType),
+			RoutingNumber: StringOrNull(v.RoutingNumber),
+			AccountNumber: StringOrNull(v.AccountNumber),
 		}
 	}
 	return nil
@@ -457,7 +457,7 @@ func (s *SecurityQuestionValue) ToJSON() (string, error) {
 func SecurityQuestionFromFields(fields []utils.VaultRecordFieldResponse, label string) *SecurityQuestionValue {
 	for i := range fields {
 		f := &fields[i]
-		if f.Type != FieldTypeSecurityQuestion || (label != "" && f.Label != label) || (label == "" && f.Label != "") {
+		if f.Type != FieldTypeSecurityQuestion || (label != "" && f.Label != label) {
 			continue
 		}
 		var arr []securityQuestionJSON
@@ -466,8 +466,8 @@ func SecurityQuestionFromFields(fields []utils.VaultRecordFieldResponse, label s
 		}
 		v := arr[0]
 		return &SecurityQuestionValue{
-			Question: stringOrNull(v.Question),
-			Answer:   stringOrNull(v.Answer),
+			Question: StringOrNull(v.Question),
+			Answer:   StringOrNull(v.Answer),
 		}
 	}
 	return nil
@@ -513,7 +513,7 @@ func (k *KeyPairValue) ToJSON() (string, error) {
 func KeyPairFromFields(fields []utils.VaultRecordFieldResponse, label string) *KeyPairValue {
 	for i := range fields {
 		f := &fields[i]
-		if f.Type != FieldTypeKeyPair || (label != "" && f.Label != label) || (label == "" && f.Label != "") {
+		if f.Type != FieldTypeKeyPair || (label != "" && f.Label != label) {
 			continue
 		}
 		var arr []keyPairJSON
@@ -522,8 +522,8 @@ func KeyPairFromFields(fields []utils.VaultRecordFieldResponse, label string) *K
 		}
 		v := arr[0]
 		return &KeyPairValue{
-			PublicKey:  stringOrNull(v.PublicKey),
-			PrivateKey: stringOrNull(v.PrivateKey),
+			PublicKey:  StringOrNull(v.PublicKey),
+			PrivateKey: StringOrNull(v.PrivateKey),
 		}
 	}
 	return nil
@@ -548,7 +548,8 @@ func stringOrEmpty(s types.String) string {
 	return s.ValueString()
 }
 
-func stringOrNull(s string) types.String {
+// StringOrNull returns a types.StringValue if non-empty, otherwise types.StringNull.
+func StringOrNull(s string) types.String {
 	if strings.TrimSpace(s) == "" {
 		return types.StringNull()
 	}
@@ -563,9 +564,6 @@ func FirstStringField(fields []utils.VaultRecordFieldResponse, fieldType, label 
 			continue
 		}
 		if label != "" && f.Label != label {
-			continue
-		}
-		if label == "" && f.Label != "" {
 			continue
 		}
 		var vals []string
@@ -599,9 +597,6 @@ func FirstRefUID(fields []utils.VaultRecordFieldResponse, fieldType, label strin
 		if label != "" && f.Label != label {
 			continue
 		}
-		if label == "" && f.Label != "" {
-			continue
-		}
 		var vals []string
 		if err := json.Unmarshal(f.Value, &vals); err != nil || len(vals) == 0 {
 			return types.StringNull()
@@ -621,9 +616,6 @@ func EpochMillisField(fields []utils.VaultRecordFieldResponse, fieldType, label 
 			continue
 		}
 		if label != "" && f.Label != label {
-			continue
-		}
-		if label == "" && f.Label != "" {
 			continue
 		}
 		var vals []json.Number

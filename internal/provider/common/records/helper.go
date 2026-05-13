@@ -43,8 +43,8 @@ func MapBaseVaultRecord(rec *utils.VaultRecordGetResponse, stateFolder types.Str
 	if strings.TrimSpace(rec.RecordUID) != "" {
 		base.Id = types.StringValue(strings.TrimSpace(rec.RecordUID))
 	}
-	base.Title = stringOrNull(rec.Title)
-	base.Notes = stringOrNull(rec.Notes)
+	base.Title = StringOrNull(rec.Title)
+	base.Notes = StringOrNull(rec.Notes)
 	base.Folder = ExtractFolderValue(rec.Folder, stateFolder)
 	base.Custom = ParseCustomFields(rec.Custom)
 }
