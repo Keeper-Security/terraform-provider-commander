@@ -10,15 +10,6 @@ The Keeper Commander provider enables Terraform to manage **enterprise** and **M
 
 -> **New to the Commander provider?** See the detailed [documentation](https://docs.keeper.io/en/keeperpam/secrets-manager/integrations/terraform-provider-commander) for information about features, prerequisites, setup and installation.
 
-## Features
-
-- **Enterprise Nodes** - Create, update, and manage organizational nodes in your Keeper enterprise hierarchy
-- **Enterprise Roles** - Define roles with enforcement policies to control user permissions and security settings
-- **Enterprise Teams** - Manage teams and team membership for shared access to records and folders
-- **Enterprise Users** - Provision and manage user accounts, role assignments, and team membership
-- **Managed Companies** (MSP) - Manage customer companies within an MSP enterprise environment
-- **Data Sources** - Look up existing enterprise resources by name or ID for use in your Terraform configurations
-
 ## Prerequisites
 
 1. A Keeper enterprise or MSP account with administrative privileges

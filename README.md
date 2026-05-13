@@ -56,7 +56,7 @@ Note the following Important Items:
 2) Make sure the following commands are in the list:
 
 ```
-this-device,sync-down,switch-to-mc,switch-to-msp,msp-add,msp-down,msp-info,msp-remove,msp-update,enterprise-info,enterprise-node,enterprise-user,enterprise-role,enterprise-team,enterprise-down,enterprise-push,team-approve,record-add,record-update,rm,get,list,record-type-info,share-folder,rmdir,rndir,mkdir,epm,scim,mv,pam,secrets-manager
+this-device,sync-down,switch-to-mc,switch-to-msp,msp-add,msp-down,msp-info,msp-remove,msp-update,enterprise-info,enterprise-node,enterprise-user,enterprise-role,enterprise-team,enterprise-down,enterprise-push,team-approve,record-add,record-update,rm,get,list,record-type-info,share-folder,rmdir,rndir,mkdir,epm,scim,mv,pam,secrets-manager,ln,share-record
 ```
 
 > If you encounter a 429 Too Many Requests error due to rate limiting, you can configure rate-limit for your service mode using the `-rl` or `--ratelimit flag`.
