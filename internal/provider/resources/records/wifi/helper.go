@@ -4,8 +4,11 @@
 package wifi
 
 import (
+	"context"
+
 	records "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records"
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/utils"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
@@ -47,10 +50,19 @@ func buildRecordUpdateCommand(recordUID string, plan, state WifiResourceModel) s
 }
 
 // mapVaultRecordToModel hydrates the Terraform state from a `get <uid> --format json` payload.
-func mapVaultRecordToModel(rec *utils.VaultRecordGetResponse, stateFolder types.String, m *WifiResourceModel) {
+func mapVaultRecordToModel(ctx context.Context, rec *utils.VaultRecordGetResponse, stateFolder types.String, m *WifiResourceModel) diag.Diagnostics {
 	records.MapBaseVaultRecord(rec, stateFolder, &m.BaseVaultRecordModel)
 	m.SSID = records.FirstStringField(rec.Fields, records.FieldTypeText, "SSID")
 	m.Password = records.FirstStringFieldAnyLabel(rec.Fields, records.FieldTypePassword)
 	m.Encryption = records.FirstStringFieldAnyLabel(rec.Fields, records.FieldTypeWifiEncryption)
 	m.IsSSIDHidden = records.FirstBoolFieldAnyLabel(rec.Fields, records.FieldTypeIsSSIDHidden)
+
+	// Parse share record permissions from the API response.
+	shareMap, diags := records.ParseSharePermissionsFromResponse(ctx, rec.UserPermissions)
+	if diags.HasError() {
+		return diags
+	}
+	m.Share = shareMap
+
+	return diags
 }

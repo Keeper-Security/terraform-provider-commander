@@ -60,6 +60,10 @@ func (r *WifiResource) Read(ctx context.Context, req resource.ReadRequest, resp 
 		return
 	}
 
-	mapVaultRecordToModel(&rec, state.Folder, &state)
+	resp.Diagnostics.Append(mapVaultRecordToModel(ctx, &rec, state.Folder, &state)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
 	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
 }

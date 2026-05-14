@@ -55,5 +55,11 @@ func (r *WifiResource) Update(ctx context.Context, req resource.UpdateRequest, r
 		}
 	}
 
+	// Reconcile share permissions (grant new/changed, revoke removed).
+	resp.Diagnostics.Append(records.ApplySharePermissions(ctx, r.ApiManager, uid, plan.Share, state.Share)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }

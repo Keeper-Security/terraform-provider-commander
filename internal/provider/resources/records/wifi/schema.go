@@ -37,8 +37,8 @@ func (r *WifiResource) Schema(ctx context.Context, req resource.SchemaRequest, r
 
 	attrs["encryption"] = schema.StringAttribute{
 		Optional:            true,
-		Description:         "Encryption type. One of: wpa, wep, noEncryption .",
-		MarkdownDescription: "Encryption type. One of: `wpa`,`wep`, `noEncryption`. Maps to the record's `wifiEncryption` field.",
+		Description:         "Encryption type. One of: wep, wpa, noEncryption.",
+		MarkdownDescription: "Encryption type. One of: `wep`, `wpa`, `noEncryption`. Maps to the record's `wifiEncryption` field.",
 		Validators: []validator.String{
 			utils.StringOneOfValidator("Encryption", AllowedEncryptions, true),
 		},
@@ -50,10 +50,11 @@ func (r *WifiResource) Schema(ctx context.Context, req resource.SchemaRequest, r
 		MarkdownDescription: "Whether the SSID is hidden (not broadcast). Maps to the record's `isSSIDHidden` field.",
 	}
 
+	attrs["share"] = records.ShareAttribute()
+
 	resp.Schema = schema.Schema{
 		Description:         SchemaDescription,
 		MarkdownDescription: SchemaMarkdownDescription,
 		Attributes:          attrs,
-		Blocks:              records.BaseRecordBlocks(),
 	}
 }

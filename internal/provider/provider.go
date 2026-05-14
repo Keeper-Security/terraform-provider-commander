@@ -25,6 +25,7 @@ import (
 	pamremotebrowserdatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/pam_records/pam_remote_browser"
 	pamuserdatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/pam_records/pam_user"
 	recordcontactdatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/records/contact"
+	recordwifidatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/records/wifi"
 	secretsmanagerdatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/secrets_manager"
 	sharedfolderdatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/shared_folder"
 	enterprisenode "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/enterprise_node"
@@ -228,6 +229,7 @@ func (p *CommanderProvider) DataSources(ctx context.Context) []func() datasource
 		epmpolicydatasource.NewEpmPolicyDataSource,
 		pamremotebrowserdatasource.NewPamRemoteBrowserDataSource,
 		pamuserdatasource.NewPamUserDataSource,
+		recordwifidatasource.NewWifiDataSource,
 		pamconfigurationdatasource.NewPamConfigurationDataSource,
 		pamdatabasedatasource.NewPamDatabaseDataSource,
 		pamdirectorydatasource.NewPamDirectoryDataSource,
