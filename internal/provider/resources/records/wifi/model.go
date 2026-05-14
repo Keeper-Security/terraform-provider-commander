@@ -3,16 +3,7 @@
 
 package wifi
 
-import (
-	records "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records"
-	"github.com/hashicorp/terraform-plugin-framework/types"
-)
+import commonrecordwifi "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/record_wifi"
 
 // WifiResourceModel maps a Keeper `wifiCredentials` vault record.
-type WifiResourceModel struct {
-	records.BaseVaultRecordModel
-	SSID         types.String `tfsdk:"ssid"`
-	Password     types.String `tfsdk:"password"`
-	Encryption   types.String `tfsdk:"encryption"`
-	IsSSIDHidden types.Bool   `tfsdk:"is_ssid_hidden"`
-}
+type WifiResourceModel = commonrecordwifi.WifiModel

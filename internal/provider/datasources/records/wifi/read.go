@@ -28,9 +28,9 @@ func (d *WifiDataSource) Read(ctx context.Context, req datasource.ReadRequest, r
 		return
 	}
 
-	recordUID := strings.TrimSpace(data.RecordUID.ValueString())
-	if recordUID == "" {
-		resp.Diagnostics.AddError(ErrSummaryReadFailed, "record_uid is empty")
+	lookup := strings.TrimSpace(data.Wifi.ValueString())
+	if lookup == "" {
+		resp.Diagnostics.AddError(ErrSummaryReadFailed, "wifi is empty")
 		return
 	}
 
@@ -39,13 +39,13 @@ func (d *WifiDataSource) Read(ctx context.Context, req datasource.ReadRequest, r
 		return
 	}
 
-	apiResp, err := commonpamrecords.FetchVaultRecord(ctx, d.ApiManager, recordUID)
+	apiResp, err := commonpamrecords.FetchVaultRecord(ctx, d.ApiManager, lookup)
 	if err != nil {
 		resp.Diagnostics.AddError(ErrSummaryReadFailed, err.Error())
 		return
 	}
 	if apiResp == nil || apiResp.Data == nil {
-		resp.Diagnostics.AddError(ErrSummaryReadFailed, fmt.Sprintf("record %q not found or empty response", recordUID))
+		resp.Diagnostics.AddError(ErrSummaryReadFailed, fmt.Sprintf("record %q not found or empty response", lookup))
 		return
 	}
 

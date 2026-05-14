@@ -15,10 +15,10 @@ func (d *WifiDataSource) Schema(ctx context.Context, req datasource.SchemaReques
 		Description:         SchemaDescription,
 		MarkdownDescription: SchemaMarkdownDescription,
 		Attributes: map[string]dschema.Attribute{
-			"record_uid": dschema.StringAttribute{
+			"wifi": dschema.StringAttribute{
 				Required:            true,
-				Description:         "Vault record UID of the wifiCredentials record to read.",
-				MarkdownDescription: "Vault **record UID** of the `wifiCredentials` record to read.",
+				Description:         "Vault record UID or title of the WIFI Login record to read.",
+				MarkdownDescription: "Vault **record UID** or title of the **WIFI Login** record to read.",
 			},
 			"id": dschema.StringAttribute{
 				Computed:            true,

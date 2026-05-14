@@ -1,28 +1,9 @@
-# commander_wifi (data source)
-#
-# Reads an existing WiFi credentials record (`wifiCredentials`) from the vault
-# by its record UID. Returns title, ssid, password (sensitive), encryption,
-# is_ssid_hidden, folder, notes, and any custom fields stored on the record.
-
-terraform {
-  required_providers {
-    commander = {
-      source = "keeper-security/commander"
-    }
-  }
-}
-
-provider "commander" {
-  service_mode_url     = "http://localhost:8080/api/v2/"
-  service_mode_api_key = "XXXXXXXXXXXXXX"
-}
-
 ###############################################################################
 # Usage 1 - Look up a WiFi record by record UID
 ###############################################################################
 
 data "commander_wifi" "office_guest" {
-  record_uid = "_REPLACE_WITH_RECORD_UID_"
+  wifi = "_REPLACE_WITH_RECORD_UID_OR_TITLE_"
 }
 
 ###############################################################################
@@ -30,7 +11,7 @@ data "commander_wifi" "office_guest" {
 ###############################################################################
 
 # data "commander_wifi" "from_managed_resource" {
-#   record_uid = commander_wifi.home.id
+#   wifi = commander_wifi.home.id
 # }
 
 ###############################################################################

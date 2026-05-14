@@ -4,21 +4,12 @@
 package wifi
 
 import (
-	records "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records"
+	commonrecordwifi "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/record_wifi"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
 // WifiDataSourceModel maps a Keeper `wifiCredentials` vault record for read-only access.
 type WifiDataSourceModel struct {
-	RecordUID    types.String               `tfsdk:"record_uid"`
-	Id           types.String               `tfsdk:"id"`
-	Title        types.String               `tfsdk:"title"`
-	Folder       types.String               `tfsdk:"folder"`
-	Notes        types.String               `tfsdk:"notes"`
-	SSID         types.String               `tfsdk:"ssid"`
-	Password     types.String               `tfsdk:"password"`
-	Encryption   types.String               `tfsdk:"encryption"`
-	IsSSIDHidden types.Bool                 `tfsdk:"is_ssid_hidden"`
-	Custom       []records.CustomFieldModel `tfsdk:"custom"`
-	Share        types.Map                  `tfsdk:"share"`
+	Wifi types.String `tfsdk:"wifi"`
+	commonrecordwifi.WifiModel
 }
