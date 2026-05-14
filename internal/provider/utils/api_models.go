@@ -324,6 +324,14 @@ type VaultRecordGetResponse struct {
 	Folder                       *RecordFolderResponse                 `json:"folder,omitempty"`
 	PamConfigurationUID          string                                `json:"pam_configuration_uid,omitempty"`
 	ConfigurationAllowedSettings *ConfigurationAllowedSettingsResponse `json:"configuration_allowed_settings,omitempty"`
+	UserPermissions              []UserPermissionResponse              `json:"user_permissions,omitempty"`
+}
+
+// UserPermissionResponse represents a single user permission entry from the API response.
+type UserPermissionResponse struct {
+	Username  string `json:"username"`
+	Shareable bool   `json:"shareable"`
+	Editable  bool   `json:"editable"`
 }
 
 // ConfigurationAllowedSettingsResponse maps the configuration_allowed_settings object from the API response.

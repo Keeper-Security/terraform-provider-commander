@@ -10,23 +10,28 @@ const (
 	CmdRecordDelete      = "rm"
 	CmdGetRecord         = "get"
 	CmdMv                = "mv"
+	CmdShareRecord       = "share-record"
 	CmdPamTunnelEdit     = "pam tunnel edit"
 	CmdPamConnectionEdit = "pam connection edit"
 )
 
 // Commander CLI command flags.
 const (
-	FlagFormatJSON = "--format json"
-	FlagForce      = "--force"
-	FlagQuiet      = "-q"
-	FlagTitle      = "--title"
-	FlagNotes      = "--notes"
-	FlagRbiUrl     = "rbiUrl"
-	FlagFolder     = "--folder"
-	FlagRecordType = "--record-type"
-	FlagRecord     = "--record"
-	FlagIncludeDag = "--include-dag"
-	FlagVerbose    = "--verbose"
+	FlagFormatJSON   = "--format json"
+	FlagForce        = "--force"
+	FlagQuiet        = "-q"
+	FlagTitle        = "--title"
+	FlagNotes        = "--notes"
+	FlagRbiUrl       = "rbiUrl"
+	FlagFolder       = "--folder"
+	FlagRecordType   = "--record-type"
+	FlagRecord       = "--record"
+	FlagIncludeDag   = "--include-dag"
+	FlagVerbose      = "--verbose"
+	FlagEmail        = "--email"
+	FlagShare        = "--share"
+	FlagWrite        = "--write"
+	FlagActionRevoke = "--action revoke"
 )
 
 // PAM tunnel / connection CLI flags.
@@ -59,6 +64,7 @@ const (
 	RecordTypePamMachine       = "pamMachine"
 	RecordTypePamUser          = "pamUser"
 	RecordTypePamRemoteBrowser = "pamRemoteBrowser"
+	RecordTypeContact          = "contact"
 )
 
 // Common schema attribute descriptions.
@@ -81,6 +87,8 @@ const (
 	ErrSummaryApplyPamTunnelSettingsFailed        = "Apply PAM Tunnel Settings Failed"
 	ErrSummaryApplyPamConnectionSettingsFailed    = "Apply PAM Connection Settings Failed"
 	ErrSummaryApplyPamConnectionFieldUpdateFailed = "Apply PAM Connection Field Update Failed"
+	ErrSummaryShareRecordFailed                   = "Share Record Failed"
+	ErrSummaryRevokeShareFailed                   = "Revoke Share Failed"
 )
 
 // Error details operation messages (second argument to ExecuteCommand and AddError; short description for logs).

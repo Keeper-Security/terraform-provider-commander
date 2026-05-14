@@ -7,6 +7,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"regexp"
 	"strconv"
 	"strings"
 
@@ -328,6 +329,39 @@ func (v mapKeysMinLengthValidator) ValidateMap(ctx context.Context, req validato
 				req.Path.AtMapKey(key),
 				"Invalid "+v.DisplayName,
 				v.DisplayName+" (map key) must be at least "+strconv.Itoa(v.MinLen)+" character(s) long, without leading or trailing whitespace.",
+			)
+		}
+	}
+}
+
+// ----- GENERIC: MAP KEYS EMAIL --------------------------------
+
+var emailRegex = regexp.MustCompile(`^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$`)
+
+func MapKeysEmailValidator() mapKeysEmailValidator {
+	return mapKeysEmailValidator{}
+}
+
+type mapKeysEmailValidator struct{}
+
+func (v mapKeysEmailValidator) Description(ctx context.Context) string {
+	return "All map keys must be valid email addresses."
+}
+
+func (v mapKeysEmailValidator) MarkdownDescription(ctx context.Context) string {
+	return "All map keys must be valid email addresses."
+}
+
+func (v mapKeysEmailValidator) ValidateMap(ctx context.Context, req validator.MapRequest, resp *validator.MapResponse) {
+	if req.ConfigValue.IsNull() || req.ConfigValue.IsUnknown() {
+		return
+	}
+	for key := range req.ConfigValue.Elements() {
+		if !emailRegex.MatchString(key) {
+			resp.Diagnostics.AddAttributeError(
+				req.Path.AtMapKey(key),
+				"Invalid Email Address",
+				fmt.Sprintf("Map key %q is not a valid email address.", key),
 			)
 		}
 	}
