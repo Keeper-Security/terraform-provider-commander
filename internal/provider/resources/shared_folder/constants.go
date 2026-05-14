@@ -25,7 +25,6 @@ const (
 	CmdMkdir       = "mkdir"
 	CmdRndir       = "rndir"
 	CmdRmdir       = "rmdir"
-	CmdMv          = "mv"
 	CmdShareFolder = "share-folder"
 )
 

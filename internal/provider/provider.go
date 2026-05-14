@@ -19,6 +19,15 @@ import (
 	epmpolicydatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/epm_policy"
 	folderdatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/folder"
 	managedcompanydatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/managed_company"
+	pamconfigurationdatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/pam_configuration"
+	pamdatabasedatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/pam_records/pam_database"
+	pamdirectorydatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/pam_records/pam_directory"
+	pammachinedatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/pam_records/pam_machine"
+	pamremotebrowserdatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/pam_records/pam_remote_browser"
+	pamuserdatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/pam_records/pam_user"
+	recordcontactdatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/records/contact"
+	recordwifidatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/records/wifi"
+	secretsmanagerdatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/secrets_manager"
 	sharedfolderdatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/shared_folder"
 	enterprisenode "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/enterprise_node"
 	enterprisepush "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/enterprise_push"
@@ -30,6 +39,15 @@ import (
 	epmpolicy "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/epm_policy"
 	folder "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/folder"
 	managedcompany "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/managed_company"
+	pamconfiguration "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/pam_configuration"
+	pamdatabase "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/pam_records/pam_database"
+	pamdirectory "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/pam_records/pam_directory"
+	pammachine "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/pam_records/pam_machine"
+	pamremotebrowser "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/pam_records/pam_remote_browser"
+	pamuser "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/pam_records/pam_user"
+	recordcontact "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/records/contact"
+	recordwifi "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/records/wifi"
+	secretsmanager "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/secrets_manager"
 	sharedfolder "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/shared_folder"
 	"github.com/hashicorp/terraform-plugin-framework/action"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
@@ -183,8 +201,17 @@ func (p *CommanderProvider) Resources(ctx context.Context) []func() resource.Res
 		enterpriseteam.NewEnterpriseTeamResource,
 		enterpriserole.NewEnterpriseRoleResource,
 		enterpriseuser.NewEnterpriseUserResource,
+		pamconfiguration.NewPamConfigurationResource,
+		pamremotebrowser.NewPamRemoteBrowserResource,
+		pamuser.NewPamUserResource,
+		pamdatabase.NewPamDatabaseResource,
+		pamdirectory.NewPamDirectoryResource,
+		pammachine.NewPamMachineResource,
 		sharedfolder.NewSharedFolderResource,
 		folder.NewFolderResource,
+		secretsmanager.NewSecretsManagerAppResource,
+		recordcontact.NewContactResource,
+		recordwifi.NewWifiResource,
 	}
 }
 
@@ -201,9 +228,18 @@ func (p *CommanderProvider) DataSources(ctx context.Context) []func() datasource
 		enterprisescimdatasource.NewEnterpriseScimDataSource,
 		enterpriseteamdatasource.NewEnterpriseTeamDataSource,
 		enterpriseuserdatasource.NewEnterpriseUserDataSource,
+		secretsmanagerdatasource.NewSecretsManagerDataSource,
 		epmpolicydatasource.NewEpmPolicyDataSource,
+		pamremotebrowserdatasource.NewPamRemoteBrowserDataSource,
+		pamuserdatasource.NewPamUserDataSource,
+		recordwifidatasource.NewWifiDataSource,
+		pamconfigurationdatasource.NewPamConfigurationDataSource,
+		pamdatabasedatasource.NewPamDatabaseDataSource,
+		pamdirectorydatasource.NewPamDirectoryDataSource,
+		pammachinedatasource.NewPamMachineDataSource,
 		sharedfolderdatasource.NewSharedFolderDataSource,
 		folderdatasource.NewFolderDataSource,
+		recordcontactdatasource.NewContactDataSource,
 	}
 }
 

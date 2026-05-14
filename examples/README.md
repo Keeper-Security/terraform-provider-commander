@@ -26,6 +26,8 @@ Other `.tf` files in these directories are ignored by the docs tool but can be u
 - **commander_enterprise_scim_push** — One-time push of SCIM data (Google, AD, or record) to a SCIM endpoint
 - **commander_epm_policy** — EPM (Endpoint Policy Management) policy
 - **commander_shared_folder** — Shared folder (vault path, default and per-record/per-user permissions)
+- **commander_pam_remote_browser** — PAM remote browser (RBI) vault record
+- **commander_pam_user** — PAM user vault record (login/password/PEM credentials, optional rotation settings)
 
 ## Data sources
 
@@ -36,6 +38,8 @@ Other `.tf` files in these directories are ignored by the docs tool but can be u
 - **commander_enterprise_user** — Look up an enterprise user
 - **commander_epm_policy** — Look up an EPM policy by policy ID
 - **commander_shared_folder** — Look up a shared folder by UID or vault path
+- **commander_pam_remote_browser** — Look up a PAM remote browser vault record by record UID
+- **commander_pam_user** — Look up a PAM user vault record by record UID
 
 ## Regenerating docs
 

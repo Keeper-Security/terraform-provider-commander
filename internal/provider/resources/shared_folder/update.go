@@ -63,7 +63,7 @@ func (r *SharedFolderResource) Update(ctx context.Context, req resource.UpdateRe
 		} else if planParent != stateParent {
 			src := EscapeDoubleQuotesForCLI(MvPathForCommander(statePath))
 			dst := EscapeDoubleQuotesForCLI(MvMoveTargetParent(planPath))
-			command := fmt.Sprintf(`%s "%s" "%s" %s %s`, CmdMv, src, dst, FlagForce, FlagSharedFolder)
+			command := fmt.Sprintf(`%s "%s" "%s" %s %s`, utils.CmdMv, src, dst, utils.FlagForce, FlagSharedFolder)
 			if _, err := r.ApiManager.ExecuteCommand(ctx, command, ErrOpMoveSF); err != nil {
 				resp.Diagnostics.AddError(ErrSummaryUpdateFailed, err.Error())
 				return
