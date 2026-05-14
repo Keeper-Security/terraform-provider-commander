@@ -55,9 +55,7 @@ func sortedSetStrings(set types.Set) []string {
 }
 
 // appendPamConfigBodyFlags appends shared `pam config new|edit` flags (after the subcommand / UID).
-// isUpdate: true for `pam config edit` (omits AI permission flags; Commander does not support them on edit yet).
-// false for `pam config new`.
-func appendPamConfigBodyFlags(parts *[]string, data *commonpamconfiguration.PamConfigurationResourceModel, isUpdate bool) {
+func appendPamConfigBodyFlags(parts *[]string, data *commonpamconfiguration.PamConfigurationResourceModel) {
 	*parts = append(*parts, fmt.Sprintf("%s %s", FlagEnvironment, commonpamconfiguration.QuoteShellSingle(data.Environment.ValueString())))
 	*parts = append(*parts, fmt.Sprintf("%s %s", FlagTitle, commonpamconfiguration.QuoteShellSingle(data.Title.ValueString())))
 	*parts = append(*parts, fmt.Sprintf("%s %s", FlagGateway, commonpamconfiguration.QuoteShellSingle(data.Gateway.ValueString())))
@@ -75,10 +73,8 @@ func appendPamConfigBodyFlags(parts *[]string, data *commonpamconfiguration.PamC
 	*parts = append(*parts, fmt.Sprintf("%s %s", FlagRemoteBrowserIsolation, boolToOnOff(data.RemoteBrowserIsolation)))
 	*parts = append(*parts, fmt.Sprintf("%s %s", FlagConnectionsRecording, boolToOnOff(data.ConnectionsRecording)))
 	*parts = append(*parts, fmt.Sprintf("%s %s", FlagTypescriptRecording, boolToOnOff(data.TypescriptRecording)))
-	if !isUpdate {
-		*parts = append(*parts, fmt.Sprintf("%s %s", FlagAIThreatDetection, boolToOnOff(data.AIThreatDetection)))
-		*parts = append(*parts, fmt.Sprintf("%s %s", FlagAITerminateSessionOnDetection, boolToOnOff(data.AITerminateSessionOnDetection)))
-	}
+	*parts = append(*parts, fmt.Sprintf("%s %s", FlagAIThreatDetection, boolToOnOff(data.AIThreatDetection)))
+	*parts = append(*parts, fmt.Sprintf("%s %s", FlagAITerminateSessionOnDetection, boolToOnOff(data.AITerminateSessionOnDetection)))
 
 	env := data.Environment.ValueString()
 	switch env {
@@ -99,14 +95,14 @@ func appendPamConfigBodyFlags(parts *[]string, data *commonpamconfiguration.PamC
 // Required attributes (environment, title, gateway, application_folder) are enforced by the schema.
 func buildPamConfigNewCommand(data *commonpamconfiguration.PamConfigurationResourceModel) string {
 	parts := []string{commonpamconfiguration.CmdPamConfig, commonpamconfiguration.CmdPamNew}
-	appendPamConfigBodyFlags(&parts, data, false)
+	appendPamConfigBodyFlags(&parts, data)
 	return strings.Join(parts, " ")
 }
 
 // buildPamConfigEditCommand builds `pam config edit '<uid>' ...` from the resource model.
 func buildPamConfigEditCommand(uid string, data *commonpamconfiguration.PamConfigurationResourceModel) string {
 	parts := []string{commonpamconfiguration.CmdPamConfig, commonpamconfiguration.CmdPamEdit, commonpamconfiguration.QuoteShellSingle(strings.TrimSpace(uid))}
-	appendPamConfigBodyFlags(&parts, data, true)
+	appendPamConfigBodyFlags(&parts, data)
 	return strings.Join(parts, " ")
 }
 

@@ -29,7 +29,7 @@ resource "commander_pam_configuration" "local_example" {
   gateway            = "my-gateway-uid"
   application_folder = "PAM Application Folder"
 
-  schedule     = "0 2 * * *"
+  schedule     = "0 2 * * * ?"
   port_mapping = ["22:2222", "3389:33389"]
 
   connections              = true
@@ -112,7 +112,7 @@ resource "commander_pam_configuration" "domain_example" {
   gateway            = "ad-gateway-uid"
   application_folder = "PAM Application Folder"
 
-  schedule = "0 3 * * 6"
+  schedule = "0 3 * * 6 ?"
 
   connections           = true
   tunneling             = true
