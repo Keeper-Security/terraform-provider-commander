@@ -341,7 +341,7 @@ func NotificationAttributesFromMapped(mappedStatus, apiMessage string, apiRequir
 
 // BuildPolicyViewCommand builds `epm policy view <id> --format json` for the given policy ID.
 func BuildPolicyViewCommand(policyID string) string {
-	policyID = strings.TrimSpace(policyID)
+	policyID = fmt.Sprintf("'%s'", strings.TrimSpace(policyID))
 	return strings.Join([]string{
 		CmdEpmPolicyView,
 		policyID,

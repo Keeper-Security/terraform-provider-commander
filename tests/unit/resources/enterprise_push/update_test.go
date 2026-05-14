@@ -94,14 +94,15 @@ func TestEnterprisePushResource_Update_FileReadFails(t *testing.T) {
 
 	r := newConfiguredResource(t, server)
 	sch, objType := getSchema(t)
-	rawPlan := tftypes.NewValue(objType, newPlanStateValues("id1", "/nonexistent/file.json", "sha256abc", []interface{}{"a@ex.com"}, nil))
+	// Plan adds a new email so the file-read path is triggered with a nonexistent file.
+	rawPlan := tftypes.NewValue(objType, newPlanStateValues("id1", "/nonexistent/file.json", "sha256abc", []interface{}{"a@ex.com", "b@ex.com"}, nil))
 	rawState := tftypes.NewValue(objType, newPlanStateValues("id1", "/nonexistent/file.json", "sha256abc", []interface{}{"a@ex.com"}, nil))
 
 	req := resource.UpdateRequest{
 		Plan:  tfsdk.Plan{Schema: sch, Raw: rawPlan},
 		State: tfsdk.State{Schema: sch, Raw: rawState},
 	}
-	var resp resource.UpdateResponse
+	resp := resource.UpdateResponse{State: tfsdk.State{Schema: sch, Raw: rawState}}
 	r.Update(context.Background(), req, &resp)
 	if !resp.Diagnostics.HasError() {
 		t.Error("expected diagnostics when file cannot be read")
