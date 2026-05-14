@@ -49,11 +49,6 @@ resource "commander_wifi" "home" {
   is_ssid_hidden = true
   notes          = "Living-room router"
 
-  custom {
-    type  = "text"
-    label = "Frequency"
-    value = "5GHz"
-  }
 
   custom = [
     {
