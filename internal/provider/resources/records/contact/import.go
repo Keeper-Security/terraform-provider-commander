@@ -20,19 +20,12 @@ func (r *ContactResource) ImportState(ctx context.Context, req resource.ImportSt
 		return
 	}
 	m := ContactResourceModel{
-		BaseVaultRecordModel: records.BaseVaultRecordModel{
-			Id:     types.StringValue(id),
-			Title:  types.StringNull(),
-			Notes:  types.StringNull(),
-			Folder: types.StringNull(),
-			Custom: nil,
-			Share:  types.MapNull(types.ObjectType{AttrTypes: records.SharePermissionsObjectType()}),
-		},
-		Name:       nil,
-		Company:    types.StringNull(),
-		Email:      types.StringNull(),
-		Phone:      nil,
-		AddressRef: types.StringNull(),
+		BaseVaultRecordModel: records.BaseVaultRecordModelImportValues(id),
+		Name:                 nil,
+		Company:              types.StringNull(),
+		Email:                types.StringNull(),
+		Phone:                nil,
+		AddressRef:           types.StringNull(),
 	}
 	resp.Diagnostics.Append(resp.State.Set(ctx, &m)...)
 }

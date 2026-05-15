@@ -1,7 +1,7 @@
 // Copyright Keeper Security, Inc. 2026
 // SPDX-License-Identifier: MPL-2.0
 
-package wifi
+package address
 
 import (
 	"context"
@@ -13,18 +13,20 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
-func (r *WifiResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+func (r *AddressResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	id := strings.TrimSpace(req.ID)
 	if id == "" {
-		resp.Diagnostics.AddError(utils.ERR_MSG_INVALID_IMPORT_ID, "Import ID cannot be empty. Use the WiFi record UID.")
+		resp.Diagnostics.AddError(utils.ERR_MSG_INVALID_IMPORT_ID, "Import ID cannot be empty. Use the Address record UID.")
 		return
 	}
-	m := WifiResourceModel{
+	m := AddressResourceModel{
 		BaseVaultRecordModel: records.BaseVaultRecordModelImportValues(id),
-		SSID:                 types.StringNull(),
-		Password:             types.StringNull(),
-		Encryption:           types.StringNull(),
-		IsSSIDHidden:         types.BoolNull(),
+		Street1:              types.StringNull(),
+		Street2:              types.StringNull(),
+		City:                 types.StringNull(),
+		State:                types.StringNull(),
+		Zip:                  types.StringNull(),
+		Country:              types.StringNull(),
 	}
 	resp.Diagnostics.Append(resp.State.Set(ctx, &m)...)
 }

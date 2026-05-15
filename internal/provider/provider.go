@@ -45,6 +45,7 @@ import (
 	pammachine "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/pam_records/pam_machine"
 	pamremotebrowser "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/pam_records/pam_remote_browser"
 	pamuser "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/pam_records/pam_user"
+	recordaddress "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/records/address"
 	recordcontact "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/records/contact"
 	recordwifi "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/records/wifi"
 	secretsmanager "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/secrets_manager"
@@ -212,6 +213,7 @@ func (p *CommanderProvider) Resources(ctx context.Context) []func() resource.Res
 		secretsmanager.NewSecretsManagerAppResource,
 		recordcontact.NewContactResource,
 		recordwifi.NewWifiResource,
+		recordaddress.NewAddressResource,
 	}
 }
 

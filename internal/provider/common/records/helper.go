@@ -424,3 +424,17 @@ func ParseSharePermissionsFromResponse(ctx context.Context, perms []utils.UserPe
 
 	return types.MapValue(types.ObjectType{AttrTypes: SharePermissionsObjectType()}, elements)
 }
+
+// BaseVaultRecordModelImportValues returns a BaseVaultRecordModel seeded for
+// ImportState: the given record UID and null values for every other attribute
+// (title, notes, folder, custom, share). The subsequent Read pass populates them.
+func BaseVaultRecordModelImportValues(id string) BaseVaultRecordModel {
+	return BaseVaultRecordModel{
+		Id:     types.StringValue(id),
+		Title:  types.StringNull(),
+		Notes:  types.StringNull(),
+		Folder: types.StringNull(),
+		Custom: nil,
+		Share:  types.MapNull(types.ObjectType{AttrTypes: SharePermissionsObjectType()}),
+	}
+}
