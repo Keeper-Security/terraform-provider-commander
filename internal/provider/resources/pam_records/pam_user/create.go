@@ -58,6 +58,13 @@ func (r *PamUserResource) Create(ctx context.Context, req resource.CreateRequest
 	if data.RotationSettings != nil {
 		editCmd := buildPamRotationEditCommand(createdRecordUID, data.RotationSettings)
 		if _, err := r.ApiManager.ExecuteCommand(ctx, editCmd, ErrDetailRotationEditFailed); err != nil {
+			delCmd := fmt.Sprintf("%s '%s' %s", utils.CmdRecordDelete, createdRecordUID, utils.FlagForce)
+			if _, delErr := r.ApiManager.ExecuteCommand(ctx, delCmd, utils.ErrDetailRecordDeleteFailed); delErr != nil {
+				resp.Diagnostics.AddWarning(
+					"PAM User rotation failed and rollback delete failed",
+					fmt.Sprintf("Rotation configuration failed: %v. Removing the newly created record also failed: %v. The pamUser may still exist (uid %s).", err, delErr, createdRecordUID),
+				)
+			}
 			resp.Diagnostics.AddError(ErrSummaryRotationEditFailed, err.Error())
 			return
 		}

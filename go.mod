@@ -7,6 +7,7 @@ require (
 	github.com/hashicorp/terraform-plugin-framework v1.19.0
 	github.com/hashicorp/terraform-plugin-go v0.31.0
 	github.com/hashicorp/terraform-plugin-testing v1.16.0
+	github.com/robfig/cron/v3 v3.0.1
 )
 
 require (

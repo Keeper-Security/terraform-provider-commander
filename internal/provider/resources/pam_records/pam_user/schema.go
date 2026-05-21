@@ -6,6 +6,7 @@ package pamuser
 import (
 	"context"
 
+	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/cronvalidate"
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/utils"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -98,6 +99,9 @@ func (r *PamUserResource) Schema(ctx context.Context, req resource.SchemaRequest
 				Optional:            true,
 				Description:         RotationSettingsDescription,
 				MarkdownDescription: RotationSettingsMarkdownDescription,
+				Validators: []validator.Object{
+					RotationScheduleCombinationValidator(),
+				},
 				Attributes: map[string]schema.Attribute{
 					"rotation_profile": schema.StringAttribute{
 						Optional:            true,
@@ -145,6 +149,9 @@ func (r *PamUserResource) Schema(ctx context.Context, req resource.SchemaRequest
 						Optional:            true,
 						Description:         RotScheduleCronDescription,
 						MarkdownDescription: RotScheduleCronMarkdownDescription,
+						Validators: []validator.String{
+							cronvalidate.RotationCronString{Name: "schedule_cron"},
+						},
 					},
 					"schedule_json": schema.StringAttribute{
 						Optional:            true,
@@ -165,6 +172,9 @@ func (r *PamUserResource) Schema(ctx context.Context, req resource.SchemaRequest
 						Optional:            true,
 						Description:         RotComplexityDescription,
 						MarkdownDescription: RotComplexityMarkdownDescription,
+						Validators: []validator.String{
+							RotationPasswordComplexityValidator(),
+						},
 					},
 				},
 			},

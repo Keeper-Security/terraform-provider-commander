@@ -7,6 +7,7 @@ import (
 	"context"
 	"strings"
 
+	commonpamrecords "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/pam_records"
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/utils"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 )
@@ -44,6 +45,12 @@ func (r *PamUserResource) Update(ctx context.Context, req resource.UpdateRequest
 	recordUID := strings.TrimSpace(plan.Id.ValueString())
 	if recordUID == "" {
 		resp.Diagnostics.AddError(ErrSummaryUpdateFailed, "PAM User record id is empty")
+		return
+	}
+
+	// Phase 0: move record when folder changes (path or UID), same as other PAM record resources.
+	if err := commonpamrecords.MoveRecordFromSourceToDestination(ctx, r.ApiManager, recordUID, plan.Folder.ValueString(), state.Folder.ValueString()); err != nil {
+		resp.Diagnostics.AddError(utils.ErrSummaryMoveRecordFailed, err.Error())
 		return
 	}
 
