@@ -62,6 +62,24 @@ resource "commander_pam_user" "mysql_app_account" {
 }
 
 ###############################################################################
+# Usage 1b - Folder: optional at create; changing `folder` moves the record
+#
+# If you omit `folder`, the pamUser is created in your vault root. To place it
+# in a Shared Folder from the start, set `folder` to a path (e.g.
+# `Shared Folders/PAM/Service Accounts`) or a folder UID.
+#
+# If you add or change `folder` later, the next `terraform apply` moves the
+# existing record (Commander `mv`), same as other PAM record resources.
+###############################################################################
+
+# resource "commander_pam_user" "folder_after_root" {
+#   title = "PAM User - start in root, move later"
+#   # Omit `folder` on first apply, then add the line below and apply again:
+#   # folder = "Shared Folders/PAM/Service Accounts"
+# }
+
+
+###############################################################################
 # Usage 2.1 - Rotation profile: "general"  (rotates ON a PAM resource)
 #
 # For type "general" you MUST pass:
@@ -201,7 +219,9 @@ resource "commander_pam_user" "mysql_app_account" {
 - `notes` (String) Optional notes for the PAM User record.
 - `password` (String, Sensitive) Password for the PAM User.
 - `private_pem_key` (String, Sensitive) Private PEM key associated with the PAM User.
-- `rotation_settings` (Attributes) Rotation settings for the PAM User record. Configures password rotation via `pam rotation edit`. (see [below for nested schema](#nestedatt--rotation_settings))
+- `rotation_settings` (Attributes) Rotation settings for the PAM User record. Configures password rotation via `pam rotation edit`.
+
+**Schedule:** use `on_demand` **or** at most one of `schedule_config`, `schedule_cron`, and `schedule_json` (they are mutually exclusive; see attribute descriptions). (see [below for nested schema](#nestedatt--rotation_settings))
 
 ### Read-Only
 
@@ -213,7 +233,7 @@ resource "commander_pam_user" "mysql_app_account" {
 Optional:
 
 - `admin_user` (String) UID of the PAM User record to use as admin credential when rotating.
-- `complexity` (String) Password complexity for rotation (e.g. `20,4,4,4,4` for length,upper,lower,digits,symbols).
+- `complexity` (String) Password complexity for rotation: `length,upper,lower,digits,symbols` as **five integers**. Password **length** must be **1–99**; upper, lower, digits, and symbols minimums must each be **0–99** (Keeper UI limits). Invalid values fail at plan time.
 - `configuration` (String) PAM Configuration UID to use for rotation.
 - `enabled` (Boolean) Whether rotation is enabled for this PAM User.
 - `iam_aad_config` (String) PAM Configuration UID for IAM or Azure AD users. Used instead of `resource` when `rotation_profile` is `iam_user`.
@@ -221,7 +241,7 @@ Optional:
 - `resource` (String) UID of the PAM resource record (machine or database) this user rotates on. Required when `rotation_profile` is `general`.
 - `rotation_profile` (String) Rotation profile type: `general` (resource-based), `iam_user` (IAM/Azure user), or `scripts_only` (run PAM scripts only).
 - `schedule_config` (Boolean) If `true`, uses the schedule from the PAM Configuration instead of a per-record schedule.
-- `schedule_cron` (String) Cron schedule for rotation (e.g. `56 17 * * *`).
+- `schedule_cron` (String) Cron schedule for rotation. Commander expects **5-field** (minutes first, e.g. `56 17 * * *`) or **6-field Quartz** (seconds first, e.g. `0 0 3 1 * ?`). Presets such as `@daily` are accepted when the parser supports them. Invalid expressions fail at **plan** time so the vault record is not created first.
 - `schedule_json` (String) JSON schedule for rotation.
 
 ## Import
