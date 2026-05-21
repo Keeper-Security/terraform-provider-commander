@@ -44,6 +44,24 @@ resource "commander_pam_user" "mysql_app_account" {
 }
 
 ###############################################################################
+# Usage 1b - Folder: optional at create; changing `folder` moves the record
+#
+# If you omit `folder`, the pamUser is created in your vault root. To place it
+# in a Shared Folder from the start, set `folder` to a path (e.g.
+# `Shared Folders/PAM/Service Accounts`) or a folder UID.
+#
+# If you add or change `folder` later, the next `terraform apply` moves the
+# existing record (Commander `mv`), same as other PAM record resources.
+###############################################################################
+
+# resource "commander_pam_user" "folder_after_root" {
+#   title = "PAM User - start in root, move later"
+#   # Omit `folder` on first apply, then add the line below and apply again:
+#   # folder = "Shared Folders/PAM/Service Accounts"
+# }
+
+
+###############################################################################
 # Usage 2.1 - Rotation profile: "general"  (rotates ON a PAM resource)
 #
 # For type "general" you MUST pass:
