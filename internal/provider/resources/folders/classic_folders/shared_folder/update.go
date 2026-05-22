@@ -1,7 +1,7 @@
 // Copyright Keeper Security, Inc. 2026
 // SPDX-License-Identifier: MPL-2.0
 
-package sharedfolder
+package classicsharedfolder
 
 import (
 	"context"
@@ -12,7 +12,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 )
 
-func (r *SharedFolderResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+func (r *ClassicSharedFolderResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	var plan SharedFolderResourceModel
 	var state SharedFolderResourceModel
 
@@ -97,7 +97,7 @@ func (r *SharedFolderResource) Update(ctx context.Context, req resource.UpdateRe
 }
 
 // BuildSharedFolderDefaultPermissionsCommand builds share-folder FOLDER_UID --email '*' --record '*' with --manage-users/--manage-records/--can-share/--can-edit on|off.
-// Used to apply default user_permissions and record_permissions to the shared folder (create or update).
+// Used to apply default user_permissions and record_permissions to the classic shared folder (create or update).
 func BuildSharedFolderDefaultPermissionsCommand(folderUID string, f DefaultPermissionFlags) string {
 	onOff := func(b bool) string {
 		if b {

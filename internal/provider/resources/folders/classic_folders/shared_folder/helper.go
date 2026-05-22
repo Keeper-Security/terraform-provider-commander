@@ -1,7 +1,7 @@
 // Copyright Keeper Security, Inc. 2026
 // SPDX-License-Identifier: MPL-2.0
 
-package sharedfolder
+package classicsharedfolder
 
 import (
 	"context"
@@ -15,7 +15,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
-// SplitSharedFolderPath splits a full vault path into parent (all but the last segment) and leaf (shared folder name).
+// SplitSharedFolderPath splits a full vault path into parent (all but the last segment) and leaf (classic shared folder name).
 // Example: "Templates/My Shared Folder 1" -> parent "Templates", leaf "My Shared Folder 1".
 // A path with no "/" has an empty parent and the whole string as leaf.
 func SplitSharedFolderPath(full string) (parent, leaf string) {
@@ -54,7 +54,7 @@ func MvPathForCommander(full string) string {
 }
 
 // MvMoveTargetParent returns the second argument to Commander `mv`: the destination parent folder only
-// (not the shared folder leaf). Example: plan "Templates/test4/My Shared Folder 1" -> "Templates/test4".
+// (not the classic shared folder leaf). Example: plan "Templates/test4/My Shared Folder 1" -> "Templates/test4".
 // Plan "My Shared Folder 1" (vault root, no parent path) -> "/".
 func MvMoveTargetParent(planPath string) string {
 	planPath = strings.TrimSpace(planPath)
@@ -122,7 +122,7 @@ func GetDefaultPermissions(data *SharedFolderResourceModel) DefaultPermissionFla
 	return f
 }
 
-// SyncSharedFolderRecords syncs records with the shared folder: grants only added/updated, removes removed.
+// SyncSharedFolderRecords syncs records with the classic shared folder: grants only added/updated, removes removed.
 // Skips grant for items that exist in state with the same value (no change).
 func SyncSharedFolderRecords(ctx context.Context, apiManager *api.ApiManager, folderUID string, planRecords, stateRecords types.Map) error {
 	planKeys := mapKeys(planRecords)
@@ -161,7 +161,7 @@ func SyncSharedFolderRecords(ctx context.Context, apiManager *api.ApiManager, fo
 	return nil
 }
 
-// SyncSharedFolderUsers syncs users with the shared folder: grants only added/updated, removes removed.
+// SyncSharedFolderUsers syncs users with the classic shared folder: grants only added/updated, removes removed.
 // Skips grant for items that exist in state with the same value (no change).
 func SyncSharedFolderUsers(ctx context.Context, apiManager *api.ApiManager, folderUID string, planUsers, stateUsers types.Map) error {
 	planKeys := mapKeys(planUsers)

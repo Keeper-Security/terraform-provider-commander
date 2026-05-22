@@ -6,7 +6,7 @@ package sharedfolder_test
 import (
 	"testing"
 
-	sharedfolder "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/folders/classic_folders/shared_folder"
+	classicsharedfolder "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/folders/classic_folders/shared_folder"
 )
 
 func TestSplitSharedFolderPath(t *testing.T) {
@@ -19,7 +19,7 @@ func TestSplitSharedFolderPath(t *testing.T) {
 		{"  A/B  ", "A", "B"},
 	}
 	for _, tc := range tests {
-		p, l := sharedfolder.SplitSharedFolderPath(tc.full)
+		p, l := classicsharedfolder.SplitSharedFolderPath(tc.full)
 		if p != tc.parent || l != tc.leaf {
 			t.Errorf("SplitSharedFolderPath(%q) = (%q,%q), want (%q,%q)", tc.full, p, l, tc.parent, tc.leaf)
 		}
@@ -36,7 +36,7 @@ func TestMvPathForCommander(t *testing.T) {
 		{"", ""},
 	}
 	for _, tc := range tests {
-		got := sharedfolder.MvPathForCommander(tc.in)
+		got := classicsharedfolder.MvPathForCommander(tc.in)
 		if got != tc.want {
 			t.Errorf("MvPathForCommander(%q) = %q, want %q", tc.in, got, tc.want)
 		}
@@ -53,7 +53,7 @@ func TestMvMoveTargetParent(t *testing.T) {
 		{"", ""},
 	}
 	for _, tc := range tests {
-		got := sharedfolder.MvMoveTargetParent(tc.planPath)
+		got := classicsharedfolder.MvMoveTargetParent(tc.planPath)
 		if got != tc.want {
 			t.Errorf("MvMoveTargetParent(%q) = %q, want %q", tc.planPath, got, tc.want)
 		}

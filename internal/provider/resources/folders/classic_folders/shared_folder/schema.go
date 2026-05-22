@@ -1,7 +1,7 @@
 // Copyright Keeper Security, Inc. 2026
 // SPDX-License-Identifier: MPL-2.0
 
-package sharedfolder
+package classicsharedfolder
 
 import (
 	"context"
@@ -43,7 +43,7 @@ var (
 	)
 )
 
-func (r *SharedFolderResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
+func (r *ClassicSharedFolderResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		Description:         DescResource,
 		MarkdownDescription: DescResource,

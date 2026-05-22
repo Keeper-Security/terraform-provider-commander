@@ -7,7 +7,7 @@ import (
 	"context"
 	"testing"
 
-	sharedfolder "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/folders/classic_folders/shared_folder"
+	classicsharedfolder "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/folders/classic_folders/shared_folder"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
@@ -16,7 +16,7 @@ import (
 
 func TestExpirationValidator(t *testing.T) {
 	ctx := context.Background()
-	v := sharedfolder.ExpirationValidator()
+	v := classicsharedfolder.ExpirationValidator()
 	p := path.Root("users").AtMapKey("u").AtName("expiration")
 
 	t.Run("never_ok", func(t *testing.T) {
@@ -88,7 +88,7 @@ func TestExpirationValidator(t *testing.T) {
 
 func TestUserExpirationManageUsersValidator(t *testing.T) {
 	ctx := context.Background()
-	v := sharedfolder.UserExpirationManageUsersValidator()
+	v := classicsharedfolder.UserExpirationManageUsersValidator()
 	objPath := path.Root("users").AtMapKey("alice")
 
 	attrTypes := map[string]attr.Type{

@@ -1,7 +1,7 @@
 // Copyright Keeper Security, Inc. 2026
 // SPDX-License-Identifier: MPL-2.0
 
-package sharedfolder
+package classicsharedfolder
 
 import (
 	"context"
@@ -10,21 +10,21 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 )
 
-var _ datasource.DataSource = &SharedFolderDataSource{}
-var _ datasource.DataSourceWithConfigure = &SharedFolderDataSource{}
+var _ datasource.DataSource = &ClassicSharedFolderDataSource{}
+var _ datasource.DataSourceWithConfigure = &ClassicSharedFolderDataSource{}
 
-type SharedFolderDataSource struct {
+type ClassicSharedFolderDataSource struct {
 	utils.BaseDataSource
 }
 
-func (d *SharedFolderDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_shared_folder"
+func (d *ClassicSharedFolderDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
+	resp.TypeName = req.ProviderTypeName + "_classic_shared_folder"
 }
 
-func (d *SharedFolderDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
+func (d *ClassicSharedFolderDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
 	d.ConfigureDataSource(ctx, req, resp)
 }
 
-func NewSharedFolderDataSource() datasource.DataSource {
-	return &SharedFolderDataSource{}
+func NewClassicSharedFolderDataSource() datasource.DataSource {
+	return &ClassicSharedFolderDataSource{}
 }

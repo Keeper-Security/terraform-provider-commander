@@ -15,9 +15,9 @@ import (
 )
 
 // ErrSharedFolderNotFound is returned when the get command yields no usable folder (deleted, wrong id/path, or empty response).
-var ErrSharedFolderNotFound = errors.New("shared folder not found")
+var ErrSharedFolderNotFound = errors.New("classic shared folder not found")
 
-// GetSharedFolderCommand builds the Commander CLI: get '<name-or-uid>' --format json (Commander accepts shared folder UID or vault path).
+// GetSharedFolderCommand builds the Commander CLI: get '<name-or-uid>' --format json (Commander accepts classic shared folder UID or vault path).
 func GetSharedFolderCommand(nameOrUID string) string {
 	return fmt.Sprintf("%s '%s' %s %s", cmdGet, nameOrUID, flagFormat, formatJSON)
 }
@@ -35,10 +35,10 @@ func ParseSharedFolderResponse(data any) (*utils.SharedFolderResponse, error) {
 	return &out, nil
 }
 
-// FetchSharedFolderByNameOrId loads a shared folder by vault path/name or UID; fails if the command errors or response has no folder.
+// FetchSharedFolderByNameOrId loads a classic shared folder by vault path/name or UID; fails if the command errors or response has no folder.
 func FetchSharedFolderByNameOrId(ctx context.Context, apiManager *api.ApiManager, nameOrUID string) (*utils.SharedFolderResponse, error) {
 	if nameOrUID == "" {
-		return nil, fmt.Errorf("shared folder name or id is empty")
+		return nil, fmt.Errorf("classic shared folder name or id is empty")
 	}
 	apiResp, err := apiManager.ExecuteCommand(ctx, GetSharedFolderCommand(nameOrUID), errOpGet)
 	if err != nil {
@@ -60,11 +60,11 @@ func FetchSharedFolderByNameOrId(ctx context.Context, apiManager *api.ApiManager
 	return out, nil
 }
 
-// MapResponseToModel maps unmarshaled get shared folder API data into m. priorUsers is used to
+// MapResponseToModel maps unmarshaled get classic shared folder API data into m. priorUsers is used to
 // preserve user map keys from existing state (resource refresh); pass null Map for data sources.
 func MapResponseToModel(api *utils.SharedFolderResponse, m *Model, priorUsers types.Map, priorRecords types.Map) error {
 	if api == nil {
-		return fmt.Errorf("shared folder API response is nil")
+		return fmt.Errorf("classic shared folder API response is nil")
 	}
 
 	m.Id = types.StringValue(api.SharedFolderUID)

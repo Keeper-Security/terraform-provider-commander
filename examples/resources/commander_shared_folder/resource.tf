@@ -1,7 +1,7 @@
-# commander_shared_folder — create and manage a Keeper shared folder via Commander.
+# commander_shared_folder — create and manage a Keeper classic shared folder via Commander.
 #
 # Required:
-#   name — Full vault path to the shared folder (e.g. "My Folder" at vault root, or
+#   name — Full vault path to the classic shared folder (e.g. "My Folder" at vault root, or
 #          "Templates/Team/Project Vault" where parent folders must exist). Updates:
 #          same parent + rename leaf uses rndir; different parent uses mv.
 #

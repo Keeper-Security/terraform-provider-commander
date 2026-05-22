@@ -1,10 +1,10 @@
-# commander_shared_folder (data source) — read an existing shared folder from Commander.
+# commander_shared_folder (data source) — read an existing classic shared folder from Commander.
 #
 # Required:
 #   shared_folder — Shared folder UID or vault path/name (passed to Commander: get '<value>' --format json).
 #
 # Computed:
-#   id                    — Canonical shared folder UID from the API (same as resource id after create).
+#   id                    — Canonical classic shared folder UID from the API (same as resource id after create).
 #   name                  — Vault path of the folder
 #   user_permissions      — Default manage_users / manage_records
 #   record_permissions    — Default can_share / can_edit

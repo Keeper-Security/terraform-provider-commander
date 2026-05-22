@@ -1,7 +1,7 @@
 // Copyright Keeper Security, Inc. 2026
 // SPDX-License-Identifier: MPL-2.0
 
-package sharedfolder
+package classicsharedfolder
 
 import commonsharedfolder "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/folders/classic_folders/shared_folder"
 
@@ -20,7 +20,7 @@ var (
 	UserEntryMapElemType   = commonsharedfolder.UserEntryMapElemType
 )
 
-// Commander CLI commands for shared folder operations.
+// Commander CLI commands for classic shared folder operations.
 const (
 	CmdMkdir       = "mkdir"
 	CmdRndir       = "rndir"
@@ -64,7 +64,7 @@ const (
 	KeyFolderUID = "folder_uid"
 )
 
-// API response keys for get shared folder response.
+// API response keys for get classic shared folder response.
 const (
 	KeySharedFolderUID = "shared_folder_uid"
 	KeyName            = "name"
@@ -87,16 +87,16 @@ const (
 
 // Error operation messages (second argument to ExecuteCommand; short description for logs).
 const (
-	ErrOpCreateSF           = "Unable to create shared folder"
-	ErrOpRenameSF           = "Unable to rename shared folder"
-	ErrOpMoveSF             = "Unable to move shared folder"
-	ErrOpUpdateDefaultPerms = "Unable to update shared folder default permissions"
-	ErrOpRemoveRecord       = "Unable to remove record from shared folder"
-	ErrOpAddUpdateRecord    = "Unable to add/update record in shared folder"
-	ErrOpRemoveUser         = "Unable to remove user from shared folder"
-	ErrOpAddUpdateUser      = "Unable to add/update user in shared folder"
-	ErrOpDeleteSF           = "Unable to delete shared folder"
-	ErrOpGetSF              = "Unable to get shared folder"
+	ErrOpCreateSF           = "Unable to create classic shared folder"
+	ErrOpRenameSF           = "Unable to rename classic shared folder"
+	ErrOpMoveSF             = "Unable to move classic shared folder"
+	ErrOpUpdateDefaultPerms = "Unable to update classic shared folder default permissions"
+	ErrOpRemoveRecord       = "Unable to remove record from classic shared folder"
+	ErrOpAddUpdateRecord    = "Unable to add/update record in classic shared folder"
+	ErrOpRemoveUser         = "Unable to remove user from classic shared folder"
+	ErrOpAddUpdateUser      = "Unable to add/update user in classic shared folder"
+	ErrOpDeleteSF           = "Unable to delete classic shared folder"
+	ErrOpGetSF              = "Unable to get classic shared folder"
 )
 
 // TimeLayoutExpiration is the expiration datetime format for Terraform config and share-folder --expire-at (yyyy-MM-ddTHH:mm:ss).
@@ -104,22 +104,22 @@ const TimeLayoutExpiration = "2006-01-02T15:04:05"
 
 // Schema and validator descriptions (resource and attribute level).
 const (
-	DescResource                 = "Manages a shared folder. Use this resource to create and manage shared folder."
-	DescDataSource               = "Look up an existing shared folder by UID or name."
-	DescDataSourceMD             = "Look up an existing shared folder by **UID** or **name**."
+	DescResource                 = "Manages a classic shared folder. Use this resource to create and manage classic shared folder. \n\nClassic shared folder uses classic permission model, Limits sharing to basic access levels. Recommended only for compatibility with older workflows. "
+	DescDataSource               = "Look up an existing classic shared folder by UID or name. \n\nClassic shared folder uses classic permission model"
+	DescDataSourceMD             = "Look up an existing classic shared folder by **UID** or **name**."
 	DescDataSourceSharedFolder   = "Shared folder UID or name to look up."
 	DescDataSourceSharedFolderMD = "Shared folder **UID** or **name** to look up."
-	DescDataSourceId             = "ID of the found shared folder."
-	DescDataSourceIdMD           = "**ID** of the found shared folder."
-	DescId                       = "The ID of the shared folder."
+	DescDataSourceId             = "ID of the found classic shared folder."
+	DescDataSourceIdMD           = "**ID** of the found classic shared folder."
+	DescId                       = "The ID of the classic shared folder."
 	DescName                     = "Shared folder name."
-	DescFolderLocation           = "Folder path or identifier where the shared folder is located."
-	DescUserPermissions          = "Default user permissions for the shared folder. When omitted, defaults to manage_users = false, manage_records = false. Allowed keys: manage_users, manage_records."
-	DescUserPermissionsMD        = "Default user permissions for the shared folder. When omitted, defaults to `manage_users = false`, `manage_records = false`. Allowed keys: `manage_users`, `manage_records`."
-	DescUserPermissionsManage    = "Allow managing users in the shared folder."
-	DescUserPermissionsRecords   = "Allow managing records in the shared folder."
-	DescRecordPermissions        = "Default record permissions for the shared folder. When omitted, defaults to can_share = false, can_edit = false. Allowed keys: can_share, can_edit."
-	DescRecordPermissionsMD      = "Default record permissions for the shared folder. When omitted, defaults to `can_share = false`, `can_edit = false`. Allowed keys: `can_share`, `can_edit`."
+	DescFolderLocation           = "Folder path or identifier where the classic shared folder is located."
+	DescUserPermissions          = "Default user permissions for the classic shared folder. When omitted, defaults to manage_users = false, manage_records = false. Allowed keys: manage_users, manage_records."
+	DescUserPermissionsMD        = "Default user permissions for the classic shared folder. When omitted, defaults to `manage_users = false`, `manage_records = false`. Allowed keys: `manage_users`, `manage_records`."
+	DescUserPermissionsManage    = "Allow managing users in the classic shared folder."
+	DescUserPermissionsRecords   = "Allow managing records in the classic shared folder."
+	DescRecordPermissions        = "Default record permissions for the classic shared folder. When omitted, defaults to can_share = false, can_edit = false. Allowed keys: can_share, can_edit."
+	DescRecordPermissionsMD      = "Default record permissions for the classic shared folder. When omitted, defaults to `can_share = false`, `can_edit = false`. Allowed keys: `can_share`, `can_edit`."
 	DescRecordPermissionsShare   = "Allow sharing records."
 	DescRecordPermissionsEdit    = "Allow editing records."
 	DescRecords                  = "Per-record permissions. Map key is record UID or name; value is an object with can_share and can_edit."

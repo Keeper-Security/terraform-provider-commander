@@ -18,5 +18,5 @@ const (
 	cmdGet     = "get"
 	flagFormat = "--format"
 	formatJSON = "json"
-	errOpGet   = "Unable to get shared folder"
+	errOpGet   = "Unable to get classic shared folder"
 )

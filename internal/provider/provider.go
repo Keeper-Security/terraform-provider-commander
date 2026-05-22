@@ -17,7 +17,7 @@ import (
 	enterpriseteamdatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/enterprise_team"
 	enterpriseuserdatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/enterprise_user"
 	epmpolicydatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/epm_policy"
-	sharedfolderdatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/folders/classic_folders/shared_folder"
+	classicsharedfolderdatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/folders/classic_folders/shared_folder"
 	managedcompanydatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/managed_company"
 	pamconfigurationdatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/pam_configuration"
 	pamdatabasedatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/records/classic_records/pam_records/pam_database"
@@ -34,7 +34,7 @@ import (
 	enterpriseteam "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/enterprise_team"
 	enterpriseuser "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/enterprise_user"
 	epmpolicy "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/epm_policy"
-	sharedfolder "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/folders/classic_folders/shared_folder"
+	classicsharedfolder "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/folders/classic_folders/shared_folder"
 	managedcompany "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/managed_company"
 	pamconfiguration "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/pam_configuration"
 	pamdatabase "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/records/classic_records/pam_records/pam_database"
@@ -201,7 +201,7 @@ func (p *CommanderProvider) Resources(ctx context.Context) []func() resource.Res
 		pamdatabase.NewPamDatabaseResource,
 		pamdirectory.NewPamDirectoryResource,
 		pammachine.NewPamMachineResource,
-		sharedfolder.NewSharedFolderResource,
+		classicsharedfolder.NewClassicSharedFolderResource,
 		secretsmanager.NewSecretsManagerAppResource,
 	}
 }
@@ -227,7 +227,7 @@ func (p *CommanderProvider) DataSources(ctx context.Context) []func() datasource
 		pamdatabasedatasource.NewPamDatabaseDataSource,
 		pamdirectorydatasource.NewPamDirectoryDataSource,
 		pammachinedatasource.NewPamMachineDataSource,
-		sharedfolderdatasource.NewSharedFolderDataSource,
+		classicsharedfolderdatasource.NewClassicSharedFolderDataSource,
 	}
 }
 

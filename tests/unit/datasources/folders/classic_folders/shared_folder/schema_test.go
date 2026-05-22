@@ -12,7 +12,7 @@ import (
 )
 
 func TestSharedFolderDataSource_Schema(t *testing.T) {
-	d := sharedfolderds.NewSharedFolderDataSource().(*sharedfolderds.SharedFolderDataSource)
+	d := sharedfolderds.NewClassicSharedFolderDataSource().(*sharedfolderds.ClassicSharedFolderDataSource)
 	req := datasource.SchemaRequest{}
 	var resp datasource.SchemaResponse
 	d.Schema(context.Background(), req, &resp)

@@ -1,7 +1,7 @@
 // Copyright Keeper Security, Inc. 2026
 // SPDX-License-Identifier: MPL-2.0
 
-package sharedfolder
+package classicsharedfolder
 
 import (
 	"context"
@@ -10,22 +10,22 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 )
 
-var _ resource.Resource = &SharedFolderResource{}
-var _ resource.ResourceWithConfigure = &SharedFolderResource{}
-var _ resource.ResourceWithImportState = &SharedFolderResource{}
+var _ resource.Resource = &ClassicSharedFolderResource{}
+var _ resource.ResourceWithConfigure = &ClassicSharedFolderResource{}
+var _ resource.ResourceWithImportState = &ClassicSharedFolderResource{}
 
-type SharedFolderResource struct {
+type ClassicSharedFolderResource struct {
 	utils.BaseResource
 }
 
-func (r *SharedFolderResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_shared_folder"
+func (r *ClassicSharedFolderResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
+	resp.TypeName = req.ProviderTypeName + "_classic_shared_folder"
 }
 
-func (r *SharedFolderResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+func (r *ClassicSharedFolderResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 	r.ConfigureResource(ctx, req, resp)
 }
 
-func NewSharedFolderResource() resource.Resource {
-	return &SharedFolderResource{}
+func NewClassicSharedFolderResource() resource.Resource {
+	return &ClassicSharedFolderResource{}
 }

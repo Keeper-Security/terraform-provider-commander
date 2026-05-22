@@ -1,7 +1,7 @@
 // Copyright Keeper Security, Inc. 2026
 // SPDX-License-Identifier: MPL-2.0
 
-package sharedfolder
+package classicsharedfolder
 
 import (
 	"context"
@@ -12,7 +12,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 )
 
-func (r *SharedFolderResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+func (r *ClassicSharedFolderResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	var state SharedFolderResourceModel
 
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
@@ -32,7 +32,7 @@ func (r *SharedFolderResource) Read(ctx context.Context, req resource.ReadReques
 
 	id := state.Id.ValueString()
 	if id == "" {
-		resp.Diagnostics.AddError(ErrSummaryReadFailed, "shared folder id is empty")
+		resp.Diagnostics.AddError(ErrSummaryReadFailed, "classic shared folder id is empty")
 		return
 	}
 

@@ -213,7 +213,7 @@ func isDecimalDigits(s string) bool {
 	return true
 }
 
-// SharedFolderRecordEntry is one element of the records array from get shared folder --format json.
+// SharedFolderRecordEntry is one element of the records array from get classic shared folder --format json.
 type SharedFolderRecordEntry struct {
 	RecordUID  string `json:"record_uid"`
 	RecordName string `json:"record_name"`
@@ -221,7 +221,7 @@ type SharedFolderRecordEntry struct {
 	CanEdit    bool   `json:"can_edit"`
 }
 
-// SharedFolderUserEntry is one element of the users array from get shared folder --format json.
+// SharedFolderUserEntry is one element of the users array from get classic shared folder --format json.
 type SharedFolderUserEntry struct {
 	Username      string `json:"username"`
 	UserID        string `json:"user_id"`

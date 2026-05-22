@@ -7,13 +7,13 @@ import (
 	"context"
 	"testing"
 
-	sharedfolder "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/folders/classic_folders/shared_folder"
+	classicsharedfolder "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/folders/classic_folders/shared_folder"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 )
 
 func TestSharedFolderResource_Schema(t *testing.T) {
-	r := sharedfolder.NewSharedFolderResource().(*sharedfolder.SharedFolderResource)
+	r := classicsharedfolder.NewClassicSharedFolderResource().(*classicsharedfolder.ClassicSharedFolderResource)
 	req := resource.SchemaRequest{}
 	var resp resource.SchemaResponse
 	r.Schema(context.Background(), req, &resp)

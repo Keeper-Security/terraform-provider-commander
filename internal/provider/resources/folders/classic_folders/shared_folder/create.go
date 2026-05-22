@@ -1,7 +1,7 @@
 // Copyright Keeper Security, Inc. 2026
 // SPDX-License-Identifier: MPL-2.0
 
-package sharedfolder
+package classicsharedfolder
 
 import (
 	"context"
@@ -13,7 +13,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
-func (r *SharedFolderResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+func (r *ClassicSharedFolderResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	var data SharedFolderResourceModel
 
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
@@ -39,7 +39,7 @@ func (r *SharedFolderResource) Create(ctx context.Context, req resource.CreateRe
 		return
 	}
 
-	// Phase 1: create shared folder with name, folder_location, user_permissions, record_permissions
+	// Phase 1: create classic shared folder with name, folder_location, user_permissions, record_permissions
 	command, err := buildCreateSharedFolderCommand(&data)
 	if err != nil {
 		resp.Diagnostics.AddError(ErrSummaryInvalidConfig, err.Error())

@@ -8,12 +8,12 @@ import (
 	"testing"
 
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/api"
-	sharedfolder "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/folders/classic_folders/shared_folder"
+	classicsharedfolder "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/folders/classic_folders/shared_folder"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 )
 
 func TestSharedFolderResource_Metadata(t *testing.T) {
-	r := sharedfolder.NewSharedFolderResource().(*sharedfolder.SharedFolderResource)
+	r := classicsharedfolder.NewClassicSharedFolderResource().(*classicsharedfolder.ClassicSharedFolderResource)
 	req := resource.MetadataRequest{ProviderTypeName: "commander"}
 	var resp resource.MetadataResponse
 	r.Metadata(context.Background(), req, &resp)
@@ -23,7 +23,7 @@ func TestSharedFolderResource_Metadata(t *testing.T) {
 }
 
 func TestSharedFolderResource_Configure_NilProviderData(t *testing.T) {
-	r := sharedfolder.NewSharedFolderResource().(*sharedfolder.SharedFolderResource)
+	r := classicsharedfolder.NewClassicSharedFolderResource().(*classicsharedfolder.ClassicSharedFolderResource)
 	req := resource.ConfigureRequest{ProviderData: nil}
 	var resp resource.ConfigureResponse
 	r.Configure(context.Background(), req, &resp)
@@ -33,7 +33,7 @@ func TestSharedFolderResource_Configure_NilProviderData(t *testing.T) {
 }
 
 func TestSharedFolderResource_Configure_InvalidProviderData(t *testing.T) {
-	r := sharedfolder.NewSharedFolderResource().(*sharedfolder.SharedFolderResource)
+	r := classicsharedfolder.NewClassicSharedFolderResource().(*classicsharedfolder.ClassicSharedFolderResource)
 	req := resource.ConfigureRequest{ProviderData: "not-api-manager"}
 	var resp resource.ConfigureResponse
 	r.Configure(context.Background(), req, &resp)
@@ -43,7 +43,7 @@ func TestSharedFolderResource_Configure_InvalidProviderData(t *testing.T) {
 }
 
 func TestSharedFolderResource_Configure_Success(t *testing.T) {
-	r := sharedfolder.NewSharedFolderResource().(*sharedfolder.SharedFolderResource)
+	r := classicsharedfolder.NewClassicSharedFolderResource().(*classicsharedfolder.ClassicSharedFolderResource)
 	am := &api.ApiManager{ServiceModeUrl: "http://test", ServiceModeApiKey: "key"}
 	req := resource.ConfigureRequest{ProviderData: am}
 	var resp resource.ConfigureResponse
@@ -53,13 +53,13 @@ func TestSharedFolderResource_Configure_Success(t *testing.T) {
 	}
 }
 
-func TestNewSharedFolderResource(t *testing.T) {
-	res := sharedfolder.NewSharedFolderResource()
+func TestNewClassicSharedFolderResource(t *testing.T) {
+	res := classicsharedfolder.NewClassicSharedFolderResource()
 	if res == nil {
-		t.Fatal("NewSharedFolderResource returned nil")
+		t.Fatal("NewClassicSharedFolderResource returned nil")
 	}
-	_, ok := res.(*sharedfolder.SharedFolderResource)
+	_, ok := res.(*classicsharedfolder.ClassicSharedFolderResource)
 	if !ok {
-		t.Errorf("expected *SharedFolderResource, got %T", res)
+		t.Errorf("expected *ClassicSharedFolderResource, got %T", res)
 	}
 }
