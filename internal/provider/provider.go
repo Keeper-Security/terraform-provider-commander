@@ -18,6 +18,7 @@ import (
 	enterpriseuserdatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/enterprise_user"
 	epmpolicydatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/epm_policy"
 	classicsharedfolderdatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/folders/classic_folders/shared_folder"
+	newfolderdatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/folders/new_folder"
 	managedcompanydatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/managed_company"
 	pamconfigurationdatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/pam_configuration"
 	pamdatabasedatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/records/classic_records/pam_records/pam_database"
@@ -35,6 +36,7 @@ import (
 	enterpriseuser "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/enterprise_user"
 	epmpolicy "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/epm_policy"
 	classicsharedfolder "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/folders/classic_folders/shared_folder"
+	newfolder "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/folders/new_folder"
 	managedcompany "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/managed_company"
 	pamconfiguration "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/pam_configuration"
 	pamdatabase "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/records/classic_records/pam_records/pam_database"
@@ -202,6 +204,7 @@ func (p *CommanderProvider) Resources(ctx context.Context) []func() resource.Res
 		pamdirectory.NewPamDirectoryResource,
 		pammachine.NewPamMachineResource,
 		classicsharedfolder.NewClassicSharedFolderResource,
+		newfolder.NewNewFolderResource,
 		secretsmanager.NewSecretsManagerAppResource,
 	}
 }
@@ -228,6 +231,7 @@ func (p *CommanderProvider) DataSources(ctx context.Context) []func() datasource
 		pamdirectorydatasource.NewPamDirectoryDataSource,
 		pammachinedatasource.NewPamMachineDataSource,
 		classicsharedfolderdatasource.NewClassicSharedFolderDataSource,
+		newfolderdatasource.NewNewFolderDataSource,
 	}
 }
 

@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"strings"
 
+	folderutils "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/folders/utils"
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/utils"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -30,42 +31,42 @@ func (r *ClassicSharedFolderResource) Create(ctx context.Context, req resource.C
 	}
 
 	if err := utils.SyncDown(ctx, r.ApiManager); err != nil {
-		resp.Diagnostics.AddError(ErrSummarySyncDownFailed, err.Error())
+		resp.Diagnostics.AddError(utils.ErrSummarySyncDownFailed, err.Error())
 		return
 	}
 
 	if err := validateSharedFolderRecordRefs(ctx, r.ApiManager, data.Records); err != nil {
-		resp.Diagnostics.AddError(ErrSummaryInvalidConfig, err.Error())
+		resp.Diagnostics.AddError(folderutils.ErrSummaryInvalidConfig, err.Error())
 		return
 	}
 
 	// Phase 1: create classic shared folder with name, folder_location, user_permissions, record_permissions
 	command, err := buildCreateSharedFolderCommand(&data)
 	if err != nil {
-		resp.Diagnostics.AddError(ErrSummaryInvalidConfig, err.Error())
+		resp.Diagnostics.AddError(folderutils.ErrSummaryInvalidConfig, err.Error())
 		return
 	}
 
-	apiResp, err := r.ApiManager.ExecuteCommand(ctx, command, ErrOpCreateSF)
+	apiResp, err := r.ApiManager.ExecuteCommand(ctx, command, folderutils.ErrOpCreate)
 	if err != nil {
-		resp.Diagnostics.AddError(ErrSummaryCreateFailed, err.Error())
+		resp.Diagnostics.AddError(folderutils.ErrSummaryCreateFailed, err.Error())
 		return
 	}
 
 	folderUID, err := extractFolderUIDFromCreateSharedFolderResponse(apiResp.Data)
 	if err != nil {
-		resp.Diagnostics.AddError(ErrSummaryCreateFailed, err.Error())
+		resp.Diagnostics.AddError(folderutils.ErrSummaryCreateFailed, err.Error())
 		return
 	}
 	data.Id = types.StringValue(folderUID)
 
 	// Phase 2: sync records and users (grant all; no prior state so nothing to remove)
 	if err := SyncSharedFolderRecords(ctx, r.ApiManager, folderUID, data.Records, types.MapNull(RecordEntryMapElemType)); err != nil {
-		resp.Diagnostics.AddError(ErrSummaryCreateFailed, err.Error())
+		resp.Diagnostics.AddError(folderutils.ErrSummaryCreateFailed, err.Error())
 		return
 	}
 	if err := SyncSharedFolderUsers(ctx, r.ApiManager, folderUID, data.Users, types.MapNull(UserEntryMapElemType)); err != nil {
-		resp.Diagnostics.AddError(ErrSummaryCreateFailed, err.Error())
+		resp.Diagnostics.AddError(folderutils.ErrSummaryCreateFailed, err.Error())
 		return
 	}
 

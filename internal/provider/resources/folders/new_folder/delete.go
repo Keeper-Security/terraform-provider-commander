@@ -1,7 +1,7 @@
 // Copyright Keeper Security, Inc. 2026
 // SPDX-License-Identifier: MPL-2.0
 
-package classicsharedfolder
+package newfolder
 
 import (
 	"context"
@@ -12,8 +12,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 )
 
-func (r *ClassicSharedFolderResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-	var state SharedFolderResourceModel
+func (r *NewFolderResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+	var state NewFolderResourceModel
 
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
@@ -33,7 +33,7 @@ func (r *ClassicSharedFolderResource) Delete(ctx context.Context, req resource.D
 		return
 	}
 
-	command := fmt.Sprintf("%s '%s' %s %s", CmdRmdir, state.Id.ValueString(), FlagForce, FlagQuiet)
+	command := fmt.Sprintf("%s '%s' %s %s", CmdNsfRmdir, state.Id.ValueString(), utils.FlagForce, utils.FlagQuiet)
 	if _, err := r.ApiManager.ExecuteCommand(ctx, command, folderutils.ErrOpDelete); err != nil {
 		resp.Diagnostics.AddError(folderutils.ErrSummaryDeleteFailed, err.Error())
 		return

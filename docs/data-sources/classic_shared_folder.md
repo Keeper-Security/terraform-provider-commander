@@ -21,8 +21,8 @@ Look up an existing classic shared folder by **UID** or **name**.
 
 ### Read-Only
 
-- `id` (String) **ID** of the found classic shared folder.
-- `name` (String) Shared folder name.
+- `id` (String) The folder **ID** assigned by Keeper.
+- `name` (String) **Folder name**.
 - `record_permissions` (Attributes) (see [below for nested schema](#nestedatt--record_permissions))
 - `records` (Attributes Map) Per-record permissions. Map key is record UID or name; value is an object with `can_share` and `can_edit`. (see [below for nested schema](#nestedatt--records))
 - `user_permissions` (Attributes) (see [below for nested schema](#nestedatt--user_permissions))
