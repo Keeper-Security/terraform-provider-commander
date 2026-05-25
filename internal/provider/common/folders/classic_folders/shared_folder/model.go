@@ -3,7 +3,10 @@
 
 package shared_folder
 
-import "github.com/hashicorp/terraform-plugin-framework/types"
+import (
+	folderutils "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/folders/utils"
+	"github.com/hashicorp/terraform-plugin-framework/types"
+)
 
 // UserPermissionsModel is default/global user permissions for the classic shared folder.
 type UserPermissionsModel struct {
@@ -19,8 +22,7 @@ type RecordPermissionsModel struct {
 
 // Model is the terraform-plugin-framework model for classic shared folder attributes (resource state and data source).
 type Model struct {
-	Id                types.String            `tfsdk:"id"`
-	Name              types.String            `tfsdk:"name"`
+	folderutils.IdentityModel
 	UserPermissions   *UserPermissionsModel   `tfsdk:"user_permissions"`
 	RecordPermissions *RecordPermissionsModel `tfsdk:"record_permissions"`
 	Records           types.Map               `tfsdk:"records"`

@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"strings"
 
+	folderutils "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/folders/utils"
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/utils"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 )
@@ -34,12 +35,12 @@ func (r *ClassicSharedFolderResource) Update(ctx context.Context, req resource.U
 	}
 
 	if err := utils.SyncDown(ctx, r.ApiManager); err != nil {
-		resp.Diagnostics.AddError(ErrSummarySyncDownFailed, err.Error())
+		resp.Diagnostics.AddError(utils.ErrSummarySyncDownFailed, err.Error())
 		return
 	}
 
 	if err := validateSharedFolderRecordRefs(ctx, r.ApiManager, plan.Records); err != nil {
-		resp.Diagnostics.AddError(ErrSummaryInvalidConfig, err.Error())
+		resp.Diagnostics.AddError(folderutils.ErrSummaryInvalidConfig, err.Error())
 		return
 	}
 
@@ -56,16 +57,16 @@ func (r *ClassicSharedFolderResource) Update(ctx context.Context, req resource.U
 		if planParent == stateParent && planLeaf != stateLeaf {
 			leaf := EscapeDoubleQuotesForCLI(planLeaf)
 			command := fmt.Sprintf("%s '%s' %s \"%s\"", CmdRndir, folderUID, FlagName, leaf)
-			if _, err := r.ApiManager.ExecuteCommand(ctx, command, ErrOpRenameSF); err != nil {
-				resp.Diagnostics.AddError(ErrSummaryUpdateFailed, err.Error())
+			if _, err := r.ApiManager.ExecuteCommand(ctx, command, folderutils.ErrOpRename); err != nil {
+				resp.Diagnostics.AddError(folderutils.ErrSummaryUpdateFailed, err.Error())
 				return
 			}
 		} else if planParent != stateParent {
 			src := EscapeDoubleQuotesForCLI(MvPathForCommander(statePath))
 			dst := EscapeDoubleQuotesForCLI(MvMoveTargetParent(planPath))
 			command := fmt.Sprintf(`%s "%s" "%s" %s %s`, utils.CmdMv, src, dst, utils.FlagForce, FlagSharedFolder)
-			if _, err := r.ApiManager.ExecuteCommand(ctx, command, ErrOpMoveSF); err != nil {
-				resp.Diagnostics.AddError(ErrSummaryUpdateFailed, err.Error())
+			if _, err := r.ApiManager.ExecuteCommand(ctx, command, folderutils.ErrOpMove); err != nil {
+				resp.Diagnostics.AddError(folderutils.ErrSummaryUpdateFailed, err.Error())
 				return
 			}
 		}
@@ -77,19 +78,19 @@ func (r *ClassicSharedFolderResource) Update(ctx context.Context, req resource.U
 	if planPerms != statePerms {
 		command := BuildSharedFolderDefaultPermissionsCommand(folderUID, planPerms)
 		if _, err := r.ApiManager.ExecuteCommand(ctx, command, ErrOpUpdateDefaultPerms); err != nil {
-			resp.Diagnostics.AddError(ErrSummaryUpdateFailed, err.Error())
+			resp.Diagnostics.AddError(folderutils.ErrSummaryUpdateFailed, err.Error())
 			return
 		}
 	}
 
 	// Sync records: remove removed, grant new/updated
 	if err := SyncSharedFolderRecords(ctx, r.ApiManager, folderUID, plan.Records, state.Records); err != nil {
-		resp.Diagnostics.AddError(ErrSummaryUpdateFailed, err.Error())
+		resp.Diagnostics.AddError(folderutils.ErrSummaryUpdateFailed, err.Error())
 		return
 	}
 	// Sync users: remove removed, grant new/updated
 	if err := SyncSharedFolderUsers(ctx, r.ApiManager, folderUID, plan.Users, state.Users); err != nil {
-		resp.Diagnostics.AddError(ErrSummaryUpdateFailed, err.Error())
+		resp.Diagnostics.AddError(folderutils.ErrSummaryUpdateFailed, err.Error())
 		return
 	}
 

@@ -20,7 +20,7 @@ Classic shared folder uses classic permission model, Limits sharing to basic acc
 
 ### Required
 
-- `name` (String) Shared folder name.
+- `name` (String) **Folder name**.
 
 ### Optional
 
@@ -31,7 +31,7 @@ Classic shared folder uses classic permission model, Limits sharing to basic acc
 
 ### Read-Only
 
-- `id` (String) The ID of the classic shared folder.
+- `id` (String) The folder **ID** assigned by Keeper.
 
 <a id="nestedatt--record_permissions"></a>
 ### Nested Schema for `record_permissions`

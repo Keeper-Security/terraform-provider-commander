@@ -332,3 +332,107 @@ func (v mapKeysMinLengthValidator) ValidateMap(ctx context.Context, req validato
 		}
 	}
 }
+
+// ----- GENERIC: MAP KEYS EMAIL --------------------------------
+// MapKeysEmailValidator validates that all keys in a map are non-empty and
+// look like email addresses: trimmed length >= 1, contain exactly one '@',
+// have at least one character before the '@', and at least one '.' after the
+// '@'. Used for map attributes where keys are user emails (e.g. share blocks).
+// DisplayName is used in error messages (e.g. "Share User Email").
+func MapKeysEmailValidator(displayName string) mapKeysEmailValidator {
+	return mapKeysEmailValidator{DisplayName: displayName}
+}
+
+type mapKeysEmailValidator struct {
+	DisplayName string
+}
+
+func (v mapKeysEmailValidator) Description(_ context.Context) string {
+	return "All " + v.DisplayName + " (map keys) must be non-empty email addresses (e.g. user@example.com)."
+}
+
+func (v mapKeysEmailValidator) MarkdownDescription(ctx context.Context) string {
+	return v.Description(ctx)
+}
+
+func (v mapKeysEmailValidator) ValidateMap(_ context.Context, req validator.MapRequest, resp *validator.MapResponse) {
+	if req.ConfigValue.IsNull() || req.ConfigValue.IsUnknown() {
+		return
+	}
+	for key := range req.ConfigValue.Elements() {
+		trimmed := strings.TrimSpace(key)
+		if trimmed == "" {
+			resp.Diagnostics.AddAttributeError(
+				req.Path.AtMapKey(key),
+				"Invalid "+v.DisplayName,
+				v.DisplayName+" (map key) must be a non-empty email address, without leading or trailing whitespace.",
+			)
+			continue
+		}
+		at := strings.Index(trimmed, "@")
+		// Reject if no '@', '@' at start, more than one '@', or no '.' in the domain part.
+		if at <= 0 || at != strings.LastIndex(trimmed, "@") || !strings.Contains(trimmed[at+1:], ".") {
+			resp.Diagnostics.AddAttributeError(
+				req.Path.AtMapKey(key),
+				"Invalid "+v.DisplayName,
+				fmt.Sprintf("%s (map key) %q is not a valid email address. Expected format: user@example.com.", v.DisplayName, key),
+			)
+		}
+	}
+}
+
+// ----- GENERIC: MAP VALUES STRING ONE-OF --------------------------------
+// MapValuesStringOneOfValidator validates that every string value in a map
+// attribute (whose element type is types.StringType) is one of Allowed.
+// DisplayName is used in error messages.
+func MapValuesStringOneOfValidator(displayName string, allowed []string) mapValuesStringOneOfValidator {
+	return mapValuesStringOneOfValidator{DisplayName: displayName, Allowed: allowed}
+}
+
+type mapValuesStringOneOfValidator struct {
+	DisplayName string
+	Allowed     []string
+}
+
+func (v mapValuesStringOneOfValidator) Description(_ context.Context) string {
+	return v.DisplayName + " (map values) must each be one of: " + strings.Join(v.Allowed, ", ") + "."
+}
+
+func (v mapValuesStringOneOfValidator) MarkdownDescription(ctx context.Context) string {
+	return v.Description(ctx)
+}
+
+func (v mapValuesStringOneOfValidator) ValidateMap(_ context.Context, req validator.MapRequest, resp *validator.MapResponse) {
+	if req.ConfigValue.IsNull() || req.ConfigValue.IsUnknown() {
+		return
+	}
+	for key, elem := range req.ConfigValue.Elements() {
+		strValue, ok := elem.(types.String)
+		if !ok {
+			resp.Diagnostics.AddAttributeError(
+				req.Path.AtMapKey(key),
+				"Invalid "+v.DisplayName,
+				fmt.Sprintf("Expected string value for %s, got: %T.", v.DisplayName, elem),
+			)
+			continue
+		}
+		if strValue.IsNull() || strValue.IsUnknown() {
+			continue
+		}
+		val := strValue.ValueString()
+		allowed := false
+		for _, a := range v.Allowed {
+			if val == a {
+				allowed = true
+				break
+			}
+		}
+		if !allowed {
+			resp.Diagnostics.AddAttributeError(
+				req.Path.AtMapKey(key),
+				"Invalid "+v.DisplayName,
+				fmt.Sprintf("%s value %q is not supported. Must be one of: %s.", v.DisplayName, val, strings.Join(v.Allowed, ", ")),
+			)
+		}
+	}
+}

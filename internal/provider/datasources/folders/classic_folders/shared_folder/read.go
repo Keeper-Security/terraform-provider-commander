@@ -7,7 +7,7 @@ import (
 	"context"
 
 	commonsharedfolder "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/folders/classic_folders/shared_folder"
-	sfres "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/folders/classic_folders/shared_folder"
+	folderutils "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/folders/utils"
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/utils"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -27,21 +27,21 @@ func (d *ClassicSharedFolderDataSource) Read(ctx context.Context, req datasource
 	}
 
 	if err := utils.SyncDown(ctx, d.ApiManager); err != nil {
-		resp.Diagnostics.AddError(sfres.ErrSummarySyncDownFailed, err.Error())
+		resp.Diagnostics.AddError(utils.ErrSummarySyncDownFailed, err.Error())
 		return
 	}
 
 	key := data.SharedFolder.ValueString()
 	apiData, err := commonsharedfolder.FetchSharedFolderByNameOrId(ctx, d.ApiManager, key)
 	if err != nil {
-		resp.Diagnostics.AddError(sfres.ErrSummaryReadFailed, err.Error())
+		resp.Diagnostics.AddError(folderutils.ErrSummaryReadFailed, err.Error())
 		return
 	}
 
 	priorUsers := types.MapNull(commonsharedfolder.UserEntryMapElemType)
 	priorRecords := types.MapNull(commonsharedfolder.RecordEntryMapElemType)
 	if err := commonsharedfolder.MapResponseToModel(apiData, &data.Model, priorUsers, priorRecords); err != nil {
-		resp.Diagnostics.AddError(sfres.ErrSummaryReadFailed, err.Error())
+		resp.Diagnostics.AddError(folderutils.ErrSummaryReadFailed, err.Error())
 		return
 	}
 

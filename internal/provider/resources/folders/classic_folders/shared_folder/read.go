@@ -8,6 +8,7 @@ import (
 	"errors"
 
 	commonsharedfolder "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/folders/classic_folders/shared_folder"
+	folderutils "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/folders/utils"
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/utils"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 )
@@ -26,13 +27,13 @@ func (r *ClassicSharedFolderResource) Read(ctx context.Context, req resource.Rea
 	}
 
 	if err := utils.SyncDown(ctx, r.ApiManager); err != nil {
-		resp.Diagnostics.AddError(ErrSummarySyncDownFailed, err.Error())
+		resp.Diagnostics.AddError(utils.ErrSummarySyncDownFailed, err.Error())
 		return
 	}
 
 	id := state.Id.ValueString()
 	if id == "" {
-		resp.Diagnostics.AddError(ErrSummaryReadFailed, "classic shared folder id is empty")
+		resp.Diagnostics.AddError(folderutils.ErrSummaryReadFailed, "classic shared folder id is empty")
 		return
 	}
 
@@ -43,12 +44,12 @@ func (r *ClassicSharedFolderResource) Read(ctx context.Context, req resource.Rea
 			resp.State.RemoveResource(ctx)
 			return
 		}
-		resp.Diagnostics.AddError(ErrSummaryReadFailed, err.Error())
+		resp.Diagnostics.AddError(folderutils.ErrSummaryReadFailed, err.Error())
 		return
 	}
 
 	if err := commonsharedfolder.MapResponseToModel(apiData, &state, state.Users, state.Records); err != nil {
-		resp.Diagnostics.AddError(ErrSummaryReadFailed, err.Error())
+		resp.Diagnostics.AddError(folderutils.ErrSummaryReadFailed, err.Error())
 		return
 	}
 
