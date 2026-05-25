@@ -380,10 +380,10 @@ func TestMapKeysEmailValidator_ValidEmails(t *testing.T) {
 	v := utils.MapKeysEmailValidator("Share User Email")
 	ctx := context.Background()
 	in := map[string]string{
-		"user@example.com":            "viewer",
-		"first.last@sub.example.com":  "share-manager",
-		"a+tag@host.co":               "content-manager",
-		"single.char@x.io":            "full-manager",
+		"user@example.com":           "viewer",
+		"first.last@sub.example.com": "share-manager",
+		"a+tag@host.co":              "content-manager",
+		"single.char@x.io":           "full-manager",
 	}
 	m, diags := types.MapValueFrom(ctx, types.StringType, in)
 	if diags.HasError() {

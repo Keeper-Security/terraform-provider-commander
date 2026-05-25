@@ -13,7 +13,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 )
 
-// Read loads the Keeper Drive folder identified by `new_folder` (UID or name)
+// Read loads the Keeper Drive folder identified by `new_folder` (UID or name).
 func (d *NewFolderDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
 	var data NewFolderDataSourceModel
 
@@ -49,7 +49,7 @@ func (d *NewFolderDataSource) Read(ctx context.Context, req datasource.ReadReque
 		return
 	}
 
-	if err := new_share.MapResponseToModel(apiData.UserPermissions, &data.Model.ShareModel); err != nil {
+	if err := new_share.MapResponseToModel(apiData.UserPermissions, &data.ShareModel); err != nil {
 		resp.Diagnostics.AddError(folderutils.ErrSummaryReadFailed, err.Error())
 		return
 	}

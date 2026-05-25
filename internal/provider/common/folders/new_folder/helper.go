@@ -20,7 +20,7 @@ import (
 // out-of-band and drop the resource from Terraform state.
 var ErrNestedSharedFolderNotFound = errors.New("nested shared folder not found")
 
-// BuildNewFolderGetCommand builds: nsf-get "ID_OR_NAME" --format json
+// BuildNewFolderGetCommand builds: nsf-get "ID_OR_NAME" --format json.
 func BuildNewFolderGetCommand(idOrName string) string {
 	return fmt.Sprintf(`%s "%s" %s`, utils.CmdNsfGet, idOrName, utils.FlagFormatJSON)
 }

@@ -3,7 +3,7 @@
 
 package utils
 
-// Command flags
+// Command flags.
 const (
 	FlagName = "--name"
 )
