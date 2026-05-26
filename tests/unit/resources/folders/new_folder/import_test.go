@@ -7,10 +7,12 @@ import (
 	"context"
 	"testing"
 
-	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/api"
+	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/new_share"
 	newfolder "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/folders/new_folder"
+	"github.com/Keeper-Security/terraform-provider-commander/tests/helpers"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
+	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
@@ -23,36 +25,45 @@ type importedState struct {
 }
 
 func TestNewFolderResource_ImportState_EmptyID(t *testing.T) {
-	r := newfolder.NewNewFolderResource().(*newfolder.NewFolderResource)
-	r.Configure(context.Background(), resource.ConfigureRequest{ProviderData: &api.ApiManager{}}, &resource.ConfigureResponse{})
+	mock := &helpers.CommandServer{}
+	server := startMockServer(mock, nil)
+	defer server.Close()
 
+	r := newConfiguredResource(t, server)
 	req := resource.ImportStateRequest{ID: ""}
 	var resp resource.ImportStateResponse
 	r.ImportState(context.Background(), req, &resp)
 	if !resp.Diagnostics.HasError() {
 		t.Error("expected diagnostics for empty import ID")
 	}
+	if mock.CommandCount() != 0 {
+		t.Errorf("expected no commands during import; got %d", mock.CommandCount())
+	}
 }
 
 func TestNewFolderResource_ImportState_WhitespaceOnlyID(t *testing.T) {
-	r := newfolder.NewNewFolderResource().(*newfolder.NewFolderResource)
-	r.Configure(context.Background(), resource.ConfigureRequest{ProviderData: &api.ApiManager{}}, &resource.ConfigureResponse{})
+	mock := &helpers.CommandServer{}
+	server := startMockServer(mock, nil)
+	defer server.Close()
 
+	r := newConfiguredResource(t, server)
 	req := resource.ImportStateRequest{ID: "   \t  "}
 	var resp resource.ImportStateResponse
 	r.ImportState(context.Background(), req, &resp)
 	if !resp.Diagnostics.HasError() {
 		t.Error("expected diagnostics for whitespace-only import ID (should be trimmed and rejected)")
 	}
+	if mock.CommandCount() != 0 {
+		t.Errorf("expected no commands during import; got %d", mock.CommandCount())
+	}
 }
 
 func TestNewFolderResource_ImportState_NoApiManager(t *testing.T) {
 	// Build an unconfigured resource directly. Configure is never called, so
-	// BaseResource.ApiManager stays nil and EnsureApiManager fails before any
-	// import ID validation.
+	// BaseResource.ApiManager stays nil and EnsureApiManager fails first.
 	r := newfolder.NewNewFolderResource().(*newfolder.NewFolderResource)
 
-	req := resource.ImportStateRequest{ID: "E6laPVJ1T3-sWchJCRaWOg"}
+	req := resource.ImportStateRequest{ID: "Cuuc9aK6VuATH49ewBf0zg"}
 	var resp resource.ImportStateResponse
 	r.ImportState(context.Background(), req, &resp)
 	if !resp.Diagnostics.HasError() {
@@ -60,54 +71,53 @@ func TestNewFolderResource_ImportState_NoApiManager(t *testing.T) {
 	}
 }
 
-func TestNewFolderResource_ImportState_Success_ByUID(t *testing.T) {
-	r := newfolder.NewNewFolderResource().(*newfolder.NewFolderResource)
-	r.Configure(context.Background(), resource.ConfigureRequest{ProviderData: &api.ApiManager{}}, &resource.ConfigureResponse{})
+func TestNewFolderResource_ImportState_Success_SetsIdAndNullDefaults(t *testing.T) {
+	// ImportState does not call the API; it just seeds Id (verbatim, after
+	// trim) and leaves Name and Share as null. The subsequent automatic Read
+	// hydrates the rest from nsf-get.
+	mock := &helpers.CommandServer{}
+	server := startMockServer(mock, nil)
+	defer server.Close()
 
+	r := newConfiguredResource(t, server)
 	sch, objType := getSchema(t)
 	emptyRaw := tftypes.NewValue(objType, newPlanStateValues(nil, nil, nil))
 
-	req := resource.ImportStateRequest{ID: "E6laPVJ1T3-sWchJCRaWOg"}
+	req := resource.ImportStateRequest{ID: "  Cuuc9aK6VuATH49ewBf0zg  "}
 	resp := resource.ImportStateResponse{State: tfsdk.State{Schema: sch, Raw: emptyRaw}}
 	r.ImportState(context.Background(), req, &resp)
 	if resp.Diagnostics.HasError() {
 		t.Fatalf("ImportState failed: %v", resp.Diagnostics)
 	}
 
+	// Sanity: ImportState makes no API calls; Read will, on the next step.
+	if mock.CommandCount() != 0 {
+		t.Errorf("expected no API calls during ImportState; got %d", mock.CommandCount())
+	}
+
 	var got importedState
 	if diags := resp.State.Get(context.Background(), &got); diags.HasError() {
 		t.Fatalf("State.Get: %v", diags)
 	}
-	if got.Id != "E6laPVJ1T3-sWchJCRaWOg" {
-		t.Errorf("imported id = %q, want %q", got.Id, "E6laPVJ1T3-sWchJCRaWOg")
+	if got.Id != "Cuuc9aK6VuATH49ewBf0zg" {
+		t.Errorf("imported id = %q (want trimmed UID %q)", got.Id, "Cuuc9aK6VuATH49ewBf0zg")
 	}
 	if got.Name != nil {
-		t.Errorf("name should be null after import (Read refreshes it), got %q", *got.Name)
+		t.Errorf("name should be null after import (Read populates it), got %q", *got.Name)
 	}
 	if got.Share != nil {
-		t.Errorf("share should be null after import (Optional-only semantics), got %v", got.Share)
+		t.Errorf("share should be null after import (Read populates it), got %v", got.Share)
 	}
 }
 
-func TestNewFolderResource_ImportState_Success_ByName_TrimsWhitespace(t *testing.T) {
-	r := newfolder.NewNewFolderResource().(*newfolder.NewFolderResource)
-	r.Configure(context.Background(), resource.ConfigureRequest{ProviderData: &api.ApiManager{}}, &resource.ConfigureResponse{})
-
-	sch, objType := getSchema(t)
-	emptyRaw := tftypes.NewValue(objType, newPlanStateValues(nil, nil, nil))
-
-	req := resource.ImportStateRequest{ID: "  Engineering  "}
-	resp := resource.ImportStateResponse{State: tfsdk.State{Schema: sch, Raw: emptyRaw}}
-	r.ImportState(context.Background(), req, &resp)
-	if resp.Diagnostics.HasError() {
-		t.Fatalf("ImportState failed: %v", resp.Diagnostics)
+func TestNewFolderResource_ImportState_NullValueType_MatchesSchema(t *testing.T) {
+	// Regression guard: the null we set for `share` must use the schema's
+	// element type (types.StringType via new_share.ShareEntryAttrType).
+	// Mis-matched element types would surface as a state conversion error.
+	if got := types.MapNull(new_share.ShareEntryAttrType); !got.IsNull() {
+		t.Errorf("MapNull(ShareEntryAttrType) should report IsNull()=true, got %v", got)
 	}
-
-	var got importedState
-	if diags := resp.State.Get(context.Background(), &got); diags.HasError() {
-		t.Fatalf("State.Get: %v", diags)
-	}
-	if got.Id != "Engineering" {
-		t.Errorf("imported id should be trimmed; got %q, want %q", got.Id, "Engineering")
+	if et := types.MapNull(new_share.ShareEntryAttrType).ElementType(context.Background()); et == nil || et.String() != types.StringType.String() {
+		t.Errorf("MapNull element type = %v, want %v", et, types.StringType)
 	}
 }

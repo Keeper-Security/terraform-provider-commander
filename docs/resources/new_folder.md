@@ -14,40 +14,6 @@ Manages a Nested Shared Folder.
 
 ```terraform
 # commander_new_folder — create and manage a nested shared folder (a.k.a. new folder) via Commander.
-#
-# Required:
-#   name — Folder name. Must be non-empty. Renames are supported in place via
-#          the Update path (folder UID stays the same).
-#
-# Computed:
-#   id — Keeper Drive folder UID. Stable across renames; use it for import,
-#        for data source lookups, and when referencing the folder from other
-#        resources.
-#
-# Optional:
-#   share — Map of share grants. Each key is a user email; each value is one
-#           of the allowed roles below. Omit the block entirely if you do not
-#           want Terraform to manage shares for this folder.
-#
-# Allowed share roles (one of):
-#   - "viewer"                  Read-only access to the folder contents.
-#   - "share-manager"           May re-share but not edit content.
-#   - "content-manager"         May edit / add / remove records and subfolders.
-#   - "content-share-manager"   content-manager + share-manager combined.
-#   - "full-manager"            All of the above; effectively co-owner
-#                               (the original owner remains the Keeper-side
-#                               owner of the folder).
-#
-# Notes on `share`:
-#   - The folder *owner* is managed by Keeper and is NOT represented in this
-#     block. If you read the API response back, the owner entry is filtered
-#     out automatically.
-#   - On every plan, Terraform reconciles the declared map against the API:
-#     adds new emails (grant), removes emails no longer present (revoke), and
-#     re-applies grant for any role change.
-#   - The block is fully optional. If you do not declare `share`, Terraform
-#     will NOT touch existing shares on the folder (no drift surfaced).
-
 # -----------------------------------------------------------------------------
 # Example 1: minimal folder — just a name.
 # -----------------------------------------------------------------------------
@@ -90,11 +56,15 @@ resource "commander_new_folder" "engineering" {
 
 # -----------------------------------------------------------------------------
 # Example 4: leave existing shares untouched.
-# Omit the share block entirely; Terraform will not grant or revoke anything,
-# even if shares exist on the folder server-side.
+# Omit the `share` block and tell Terraform to ignore drift on it; Read will
+# still refresh the value into state, but plans will not propose any changes.
 # -----------------------------------------------------------------------------
 # resource "commander_new_folder" "untouched_shares" {
 #   name = "Marketing / Templates"
+#
+#   lifecycle {
+#     ignore_changes = [share]
+#   }
 # }
 
 # -----------------------------------------------------------------------------
@@ -146,7 +116,7 @@ Import is supported using the following syntax:
 The [`terraform import` command](https://developer.hashicorp.com/terraform/cli/commands/import) can be used, for example:
 
 ```shell
-# Import an existing Keeper Drive folder into Terraform state.
+# Import an existing Nested Shared Folder into Terraform state.
 #
 # The import ID is either the folder UID (preferred) or the folder name.
 # Both forms are accepted; the canonical UID is written to state after the
@@ -154,23 +124,15 @@ The [`terraform import` command](https://developer.hashicorp.com/terraform/cli/c
 #
 # Preferred — by UID:
 #
-# terraform import commander_new_folder.engineering "E6laPVJ1T3-sWchJCRaWOg"
+# terraform import commander_new_folder.engineering "Cuuc9aK6VuATH49ewBf0zg"
 #
 # Alternative — by folder name:
 #
 # terraform import commander_new_folder.engineering "Engineering / Platform"
-#
-# Notes:
-#   - After import, Terraform runs Read to refresh `name` (and to canonicalize
-#     `id` to the UID even if you imported by name).
-#   - `share` is NOT populated by import. If you want Terraform to manage
-#     shares on this folder, add a `share = { ... }` block to the resource
-#     config; the next apply will reconcile it against the API.
-#
 # Or use the import block (Terraform >= 1.5) directly in configuration:
 #
 # import {
 #   to = commander_new_folder.engineering
-#   id = "E6laPVJ1T3-sWchJCRaWOg"
+#   id = "Cuuc9aK6VuATH49ewBf0zg"
 # }
 ```

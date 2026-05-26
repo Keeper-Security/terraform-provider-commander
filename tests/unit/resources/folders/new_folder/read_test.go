@@ -74,14 +74,18 @@ func TestNewFolderResource_Read_Success_ShareDeclared(t *testing.T) {
 	}
 }
 
-func TestNewFolderResource_Read_Success_ShareNotDeclared_LeavesShareNull(t *testing.T) {
+func TestNewFolderResource_Read_Success_ShareNullInState_PopulatedFromApi(t *testing.T) {
+	// Imports start with state.Share = null. Read must still hydrate share
+	// from the API so the imported resource reflects real-world ACLs (this
+	// matches classic_shared_folder semantics and the data source).
 	mock := &helpers.CommandServer{}
 	server := startMockServer(mock, func(cmd string, _ int) (string, interface{}) {
 		if strings.HasPrefix(cmd, "nsf-get") {
 			return "ok", map[string]interface{}{
 				"nested_share_folder_uid": "FID-2",
-				"name":                    "NoShareFolder",
+				"name":                    "ImportedFolder",
 				"user_permissions": []interface{}{
+					map[string]interface{}{"accessor": "owner@example.com", "role": "owner"},
 					map[string]interface{}{"accessor": "external@example.com", "role": "viewer"},
 				},
 			}
@@ -92,8 +96,8 @@ func TestNewFolderResource_Read_Success_ShareNotDeclared_LeavesShareNull(t *test
 
 	r := newConfiguredResource(t, server)
 	sch, objType := getSchema(t)
-	// share is null in prior state (user never declared it).
-	rawState := tftypes.NewValue(objType, newPlanStateValues("FID-2", "NoShareFolder", nil))
+	// share is null in prior state (post-ImportState shape).
+	rawState := tftypes.NewValue(objType, newPlanStateValues("FID-2", nil, nil))
 
 	req := resource.ReadRequest{State: tfsdk.State{Schema: sch, Raw: rawState}}
 	resp := resource.ReadResponse{State: tfsdk.State{Schema: sch, Raw: rawState}}
@@ -111,8 +115,20 @@ func TestNewFolderResource_Read_Success_ShareNotDeclared_LeavesShareNull(t *test
 	if diags := resp.State.Get(context.Background(), &got); diags.HasError() {
 		t.Fatalf("State.Get: %v", diags)
 	}
-	if got.Share != nil {
-		t.Errorf("expected share to remain null (user did not declare it), got: %v", got.Share)
+	if got.Name != "ImportedFolder" {
+		t.Errorf("name = %q, want ImportedFolder", got.Name)
+	}
+	if got.Share == nil {
+		t.Fatal("share should be populated from the API even when state.Share was null (import flow)")
+	}
+	if len(got.Share) != 1 {
+		t.Errorf("expected 1 share entry (owner filtered out), got %d (%v)", len(got.Share), got.Share)
+	}
+	if got.Share["external@example.com"] != "viewer" {
+		t.Errorf("share[external] = %q, want viewer", got.Share["external@example.com"])
+	}
+	if _, hasOwner := got.Share["owner@example.com"]; hasOwner {
+		t.Error("owner entry should not appear in share state")
 	}
 }
 
