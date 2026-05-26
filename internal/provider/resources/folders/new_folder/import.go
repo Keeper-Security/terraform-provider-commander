@@ -14,7 +14,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
-// ImportState supports import of a Keeper Drive (new) folder by UID or name.
+// ImportState supports import of a Nested Shared Folder by UID or name.
 func (r *NewFolderResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	if err := r.EnsureApiManager(); err != nil {
 		resp.Diagnostics.AddError(utils.ERR_MSG_PROVIDER_CONFIGURATION_ERROR, err.Error())

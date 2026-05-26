@@ -14,19 +14,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 )
 
-// Read refreshes the Terraform state for a Keeper Drive folder via nsf-get.
-//
-// Behavior:
-//   - empty id in state -> diagnostic error (this should never happen for a
-//     resource that completed Create; usually means hand-edited state).
-//   - nsf-get reports the folder no longer exists -> RemoveResource so the next
-//     plan re-creates it.
-//   - nsf-get succeeds -> refresh Name (and Id, defensively) from the API.
-//   - share block is reconciled from the API's user_permissions array only if
-//     the user is actually managing shares (state.Share is non-null). This is
-//     the Optional-only semantics: a user who never declared `share` in config
-//     should not see drift appear out of nowhere on refresh. Owner entries
-//     returned by the API are dropped by new_share.MapResponseToModel.
+// Read refreshes the Terraform state for a Nested Shared Folder via nsf-get.
 func (r *NewFolderResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	var state NewFolderResourceModel
 
@@ -66,11 +54,9 @@ func (r *NewFolderResource) Read(ctx context.Context, req resource.ReadRequest, 
 		return
 	}
 
-	if !state.Share.IsNull() && !state.Share.IsUnknown() {
-		if err := new_share.MapResponseToModel(apiData.UserPermissions, &state.ShareModel); err != nil {
-			resp.Diagnostics.AddError(folderutils.ErrSummaryReadFailed, err.Error())
-			return
-		}
+	if err := new_share.MapResponseToModel(apiData.UserPermissions, &state.ShareModel); err != nil {
+		resp.Diagnostics.AddError(folderutils.ErrSummaryReadFailed, err.Error())
+		return
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
