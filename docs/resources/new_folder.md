@@ -103,6 +103,7 @@ output "engineering_folder_share_map" {
 
 ### Optional
 
+- `folder_location` (String) Parent folder path where the folder will be created. Leave empty for vault root.
 - `share` (Map of String) Map of share permissions for this folder/record. Each map **key** is a **user email**; each **value** is one of: `viewer`, `share-manager`, `content-manager`, `content-share-manager`, `full-manager`. The folder/record **owner** is managed by Keeper and is not represented in this block.
 
 ### Read-Only

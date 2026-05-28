@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"strings"
 
-	commonnonsharedfolder "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/folders/classic_folders/non_shared_folder"
 	folderutils "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/folders/utils"
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/utils"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -43,7 +42,7 @@ func (r *NonSharedFolderResource) Create(ctx context.Context, req resource.Creat
 		return
 	}
 
-	folderUID, err := extractFolderUIDFromCreateResponse(apiResp.Data)
+	folderUID, err := folderutils.ExtractFolderUIDFromCreateResponse(apiResp.Data)
 	if err != nil {
 		resp.Diagnostics.AddError(folderutils.ErrSummaryCreateFailed, err.Error())
 		return
@@ -60,23 +59,8 @@ func (r *NonSharedFolderResource) Create(ctx context.Context, req resource.Creat
 
 func buildCreateNonSharedFolderCommand(data *NonSharedFolderResourceModel) string {
 
-	folderPath := commonnonsharedfolder.BuildFolderPath(data.Name.ValueString(), data.FolderLocation.ValueString())
-	parts := []string{CmdMkdir, FlagUserFolder, fmt.Sprintf(`"%s"`, commonnonsharedfolder.EscapeDoubleQuotesForCLI(folderPath))}
+	folderPath := folderutils.BuildFolderPath(data.Name.ValueString(), data.FolderLocation.ValueString())
+	parts := []string{CmdMkdir, FlagUserFolder, fmt.Sprintf(`"%s"`, folderutils.EscapeDoubleQuotesForCLI(folderPath))}
 
 	return strings.Join(parts, " ")
-}
-
-func extractFolderUIDFromCreateResponse(data any) (string, error) {
-	m, _ := data.(map[string]interface{})
-	v, ok := m[commonnonsharedfolder.KeyFolderUID]
-	if !ok || v == nil {
-		return "", fmt.Errorf("API response missing %s", commonnonsharedfolder.KeyFolderUID)
-	}
-	if s, ok := v.(string); ok {
-		if s == "" {
-			return "", fmt.Errorf("API response %s is empty", commonnonsharedfolder.KeyFolderUID)
-		}
-		return s, nil
-	}
-	return fmt.Sprintf("%v", v), nil
 }

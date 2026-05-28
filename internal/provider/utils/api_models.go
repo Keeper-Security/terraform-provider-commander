@@ -233,6 +233,7 @@ type SharedFolderUserEntry struct {
 // SharedFolderResponse is the data payload from get SHARED_FOLDER_ID --format json.
 type SharedFolderResponse struct {
 	SharedFolderUID string                    `json:"shared_folder_uid"`
+	Name            string                    `json:"name"`
 	Path            string                    `json:"path"`
 	ManageUsers     bool                      `json:"manage_users"`
 	ManageRecords   bool                      `json:"manage_records"`

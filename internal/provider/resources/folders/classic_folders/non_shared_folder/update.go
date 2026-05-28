@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"strings"
 
-	commonnonsharedfolder "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/folders/classic_folders/non_shared_folder"
 	folderutils "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/folders/utils"
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/utils"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -49,10 +48,10 @@ func (r *NonSharedFolderResource) Update(ctx context.Context, req resource.Updat
 
 	// Move first (before rename) so the source path using the old name is still valid.
 	if locationChanged {
-		statePath := commonnonsharedfolder.BuildFolderPath(state.Name.ValueString(), state.FolderLocation.ValueString())
-		planPath := commonnonsharedfolder.BuildFolderPath(state.Name.ValueString(), plan.FolderLocation.ValueString())
-		src := commonnonsharedfolder.EscapeDoubleQuotesForCLI(commonnonsharedfolder.MvPathForCommander(statePath))
-		dst := commonnonsharedfolder.EscapeDoubleQuotesForCLI(commonnonsharedfolder.MvMoveTargetParent(planPath))
+		statePath := folderutils.BuildFolderPath(state.Name.ValueString(), state.FolderLocation.ValueString())
+		planPath := folderutils.BuildFolderPath(state.Name.ValueString(), plan.FolderLocation.ValueString())
+		src := folderutils.EscapeDoubleQuotesForCLI(folderutils.MvPathForCommander(statePath))
+		dst := folderutils.EscapeDoubleQuotesForCLI(folderutils.MvMoveTargetParent(planPath))
 
 		command := fmt.Sprintf(`%s "%s" "%s" %s`, utils.CmdMv, src, dst, utils.FlagForce)
 		if _, err := r.ApiManager.ExecuteCommand(ctx, command, folderutils.ErrOpMove); err != nil {
@@ -71,7 +70,7 @@ func (r *NonSharedFolderResource) Update(ctx context.Context, req resource.Updat
 	}
 
 	// Sync records: link added, unlink removed
-	folderName := commonnonsharedfolder.BuildFolderPath(plan.Name.ValueString(), plan.FolderLocation.ValueString())
+	folderName := folderutils.BuildFolderPath(plan.Name.ValueString(), plan.FolderLocation.ValueString())
 	if err := SyncFolderRecords(ctx, r.ApiManager, folderUID, folderName, plan.Records, state.Records); err != nil {
 		resp.Diagnostics.AddError(folderutils.ErrSummaryUpdateFailed, err.Error())
 		return
@@ -82,7 +81,7 @@ func (r *NonSharedFolderResource) Update(ctx context.Context, req resource.Updat
 
 // buildRndirCommand builds: rndir '<folderUID>' -n "<newName>" -q.
 func buildRndirCommand(folderUID string, plan *NonSharedFolderResourceModel) string {
-	newName := commonnonsharedfolder.EscapeDoubleQuotesForCLI(plan.Name.ValueString())
+	newName := folderutils.EscapeDoubleQuotesForCLI(plan.Name.ValueString())
 	parts := []string{
 		fmt.Sprintf("%s '%s'", CmdRndir, folderUID),
 		FlagName,

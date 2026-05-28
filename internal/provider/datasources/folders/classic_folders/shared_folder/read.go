@@ -45,5 +45,11 @@ func (d *ClassicSharedFolderDataSource) Read(ctx context.Context, req datasource
 		return
 	}
 
+	// Data source prefers empty values over nulls so consumers can rely on
+	// concrete strings without nil checks (resource semantics keep nulls).
+	if data.FolderLocation.IsNull() {
+		data.FolderLocation = types.StringValue("")
+	}
+
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }

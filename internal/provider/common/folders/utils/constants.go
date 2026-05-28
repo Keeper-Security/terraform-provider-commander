@@ -8,6 +8,11 @@ const (
 	CmdRmdir = "rmdir"
 )
 
+// API response keys returned by Commander folder commands (mkdir/get/...).
+const (
+	KeyFolderUID = "folder_uid"
+)
+
 // Command flags.
 const (
 	FlagName = "--name"
@@ -15,16 +20,18 @@ const (
 
 // Terraform attribute names for folder identity fields.
 const (
-	AttrId   = "id"
-	AttrName = "name"
+	AttrId             = "id"
+	AttrName           = "name"
+	AttrFolderLocation = "folder_location"
 )
 
-// Schema descriptions for folder id and name (resource and data source).
+// Schema descriptions for folder id, name and folder_location (resource and data source).
 const (
-	DescId     = "The folder ID assigned by Keeper."
-	DescIdMD   = "The folder **ID** assigned by Keeper."
-	DescName   = "Folder name."
-	DescNameMD = "**Folder name**."
+	DescId             = "The folder ID assigned by Keeper."
+	DescIdMD           = "The folder **ID** assigned by Keeper."
+	DescName           = "Folder name."
+	DescNameMD         = "**Folder name**."
+	DescFolderLocation = "Parent folder path where the folder will be created. Leave empty for vault root."
 
 	// NameValidatorLabel is the human-readable field name passed to StringMinLengthValidator.
 	NameValidatorLabel = "Folder Name"

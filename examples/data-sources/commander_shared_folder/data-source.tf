@@ -5,7 +5,8 @@
 #
 # Computed:
 #   id                    — Canonical classic shared folder UID from the API (same as resource id after create).
-#   name                  — Vault path of the folder
+#   name                  — Leaf name of the folder (without parent path).
+#   folder_location       — Parent folder path where the folder lives (empty string when at vault root).
 #   user_permissions      — Default manage_users / manage_records
 #   record_permissions    — Default can_share / can_edit
 #   records               — Map record_uid => { can_share, can_edit }
@@ -30,8 +31,13 @@ output "folder_uid" {
   value       = data.commander_shared_folder.example.id
 }
 
-output "folder_path" {
+output "folder_name" {
   value = data.commander_shared_folder.example.name
+}
+
+output "folder_location" {
+  description = "Parent folder path; empty string when at vault root."
+  value       = data.commander_shared_folder.example.folder_location
 }
 
 output "folder_default_user_permissions" {

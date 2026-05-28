@@ -15,64 +15,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
-// SplitSharedFolderPath splits a full vault path into parent (all but the last segment) and leaf (classic shared folder name).
-// Example: "Templates/My Shared Folder 1" -> parent "Templates", leaf "My Shared Folder 1".
-// A path with no "/" has an empty parent and the whole string as leaf.
-func SplitSharedFolderPath(full string) (parent, leaf string) {
-	full = strings.TrimSpace(full)
-	if full == "" {
-		return "", ""
-	}
-	i := strings.LastIndex(full, "/")
-	if i < 0 {
-		return "", full
-	}
-	return strings.TrimSpace(full[:i]), strings.TrimSpace(full[i+1:])
-}
-
-// EscapeDoubleQuotesForCLI escapes double quotes for use inside double-quoted shell arguments.
-func EscapeDoubleQuotesForCLI(s string) string {
-	return strings.ReplaceAll(s, `"`, `\"`)
-}
-
-// MvPathForCommander normalizes a vault path for Commander `mv`. Paths with no parent
-// (no `/` — e.g. "My Shared Folder 1" at vault root) are prefixed with `/` so the CLI
-// targets the root folder. Paths that already start with `/` or contain `/` are unchanged.
-func MvPathForCommander(full string) string {
-	full = strings.TrimSpace(full)
-	if full == "" {
-		return full
-	}
-	if strings.HasPrefix(full, "/") {
-		return full
-	}
-	parent, leaf := SplitSharedFolderPath(full)
-	if parent == "" {
-		return "/" + leaf
-	}
-	return full
-}
-
-// MvMoveTargetParent returns the second argument to Commander `mv`: the destination parent folder only
-// (not the classic shared folder leaf). Example: plan "Templates/test4/My Shared Folder 1" -> "Templates/test4".
-// Plan "My Shared Folder 1" (vault root, no parent path) -> "/".
-func MvMoveTargetParent(planPath string) string {
-	planPath = strings.TrimSpace(planPath)
-	if planPath == "" {
-		return planPath
-	}
-	trim := planPath
-	if strings.HasPrefix(trim, "/") {
-		trim = strings.TrimSpace(trim[1:])
-	}
-	parent, _ := SplitSharedFolderPath(trim)
-	parent = strings.TrimSpace(parent)
-	if parent == "" {
-		return "/"
-	}
-	return parent
-}
-
 // DefaultPermissionFlags holds the four default permission booleans (user_permissions + record_permissions).
 type DefaultPermissionFlags struct {
 	ManageUsers   bool

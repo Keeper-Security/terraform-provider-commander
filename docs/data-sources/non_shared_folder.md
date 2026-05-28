@@ -66,7 +66,7 @@ output "folder_records" {
 
 ### Read-Only
 
-- `folder_location` (String) Parent folder path where the folder resides. Empty if at vault root.
+- `folder_location` (String) Parent folder path where the folder will be created. Leave empty for vault root.
 - `id` (String) The folder **ID** assigned by Keeper.
 - `name` (String) **Folder name**.
 - `records` (Set of String) Set of record UIDs linked to this folder.

@@ -5,8 +5,11 @@ package utils
 
 import "github.com/hashicorp/terraform-plugin-framework/types"
 
-// CommonFolderModel holds id and name attributes shared by folder resources and data sources.
+// CommonFolderModel holds id, name and folder_location attributes shared by folder
+// resources and data sources. folder_location holds the parent vault path (null
+// or empty at vault root).
 type CommonFolderModel struct {
-	Id   types.String `tfsdk:"id"`
-	Name types.String `tfsdk:"name"`
+	Id             types.String `tfsdk:"id"`
+	Name           types.String `tfsdk:"name"`
+	FolderLocation types.String `tfsdk:"folder_location"`
 }

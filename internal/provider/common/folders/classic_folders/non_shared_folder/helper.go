@@ -7,83 +7,15 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"strings"
 
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/api"
+	folderutils "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/folders/utils"
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/utils"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
 // ErrNonSharedFolderNotFound is returned when the get command yields no usable folder (deleted, wrong id/path, or empty response).
 var ErrNonSharedFolderNotFound = errors.New("non-shared folder not found")
-
-// SplitFolderPath splits a full vault path into parent and leaf name.
-// Example: "Parent/MyFolder" -> parent "Parent", leaf "MyFolder".
-// A path with no "/" returns empty parent and the whole string as leaf.
-func SplitFolderPath(full string) (parent, leaf string) {
-	full = strings.TrimSpace(full)
-	if full == "" {
-		return "", ""
-	}
-	i := strings.LastIndex(full, "/")
-	if i < 0 {
-		return "", full
-	}
-	return strings.TrimSpace(full[:i]), strings.TrimSpace(full[i+1:])
-}
-
-// EscapeDoubleQuotesForCLI escapes double quotes for use inside double-quoted shell arguments.
-func EscapeDoubleQuotesForCLI(s string) string {
-	return strings.ReplaceAll(s, `"`, `\"`)
-}
-
-// BuildFolderPath constructs the full folder path from name and optional folder_location.
-// If folderLocation is non-empty, the result is "folderLocation/name"; otherwise just "name".
-func BuildFolderPath(name, folderLocation string) string {
-	name = strings.TrimSpace(name)
-	folderLocation = strings.TrimSpace(folderLocation)
-	if folderLocation == "" {
-		return name
-	}
-	return folderLocation + "/" + name
-}
-
-// MvPathForCommander normalizes a vault path for Commander `mv`. Paths with no parent
-// (no `/` — at vault root) are prefixed with `/` so the CLI targets the root folder.
-func MvPathForCommander(full string) string {
-	full = strings.TrimSpace(full)
-	if full == "" {
-		return full
-	}
-	if strings.HasPrefix(full, "/") {
-		return full
-	}
-	parent, leaf := SplitFolderPath(full)
-	if parent == "" {
-		return "/" + leaf
-	}
-	return full
-}
-
-// MvMoveTargetParent returns the destination parent folder for Commander `mv`.
-// Example: "Templates/test4/MyFolder" -> "Templates/test4".
-// "MyFolder" (vault root) -> "/".
-func MvMoveTargetParent(planPath string) string {
-	planPath = strings.TrimSpace(planPath)
-	if planPath == "" {
-		return planPath
-	}
-	trim := planPath
-	if strings.HasPrefix(trim, "/") {
-		trim = strings.TrimSpace(trim[1:])
-	}
-	parent, _ := SplitFolderPath(trim)
-	parent = strings.TrimSpace(parent)
-	if parent == "" {
-		return "/"
-	}
-	return parent
-}
 
 // BuildGetFolderCommand builds the Commander CLI: get '<id-or-path>' --format json.
 func BuildGetFolderCommand(idOrPath string) string {
@@ -135,17 +67,7 @@ func MapResponseToModel(api *NonSharedFolderResponse, m *Model) error {
 	if api == nil {
 		return fmt.Errorf("non-shared folder API response is nil")
 	}
-	m.Id = types.StringValue(api.FolderUID)
-	m.Name = types.StringValue(api.Name)
-
-	if api.Path != "" {
-		parent, _ := SplitFolderPath(api.Path)
-		if parent != "" {
-			m.FolderLocation = types.StringValue(parent)
-		} else {
-			m.FolderLocation = types.StringNull()
-		}
-	}
+	folderutils.SetCommonFolderIdentityFromAPI(&m.CommonFolderModel, api.FolderUID, api.Name, api.Path)
 
 	if api.Records != nil {
 		uids := make([]string, 0, len(api.Records))

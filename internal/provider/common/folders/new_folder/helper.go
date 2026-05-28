@@ -71,14 +71,18 @@ func ParseNewFolderGetResponse(data any) (*NewFolderGetResponse, error) {
 }
 
 // MapResponseToModel maps nsf-get API data into the Terraform model's identity
-// fields (Id, Name). The share block is populated separately by callers via
-// new_share.MapResponseToModel so the Optional-only semantics of `share` can
-// be honored (skip the update when state.Share is null).
+// fields (Id, Name). folder_location is preserved from existing state since the
+// nsf-get response does not include a parent path. The share block is populated
+// separately by callers via new_share.MapResponseToModel so the Optional-only
+// semantics of `share` can be honored (skip the update when state.Share is null).
 func MapResponseToModel(apiData *NewFolderGetResponse, m *Model) error {
 	if apiData == nil {
 		return fmt.Errorf("folder API response is nil")
 	}
 	m.Id = types.StringValue(apiData.FolderUID)
 	m.Name = types.StringValue(apiData.Name)
+	if m.FolderLocation.IsUnknown() {
+		m.FolderLocation = types.StringNull()
+	}
 	return nil
 }

@@ -32,8 +32,9 @@ func (r *NewFolderResource) ImportState(ctx context.Context, req resource.Import
 
 	state := NewFolderResourceModel{
 		CommonFolderModel: folderutils.CommonFolderModel{
-			Id:   types.StringValue(importID),
-			Name: types.StringNull(),
+			Id:             types.StringValue(importID),
+			Name:           types.StringNull(),
+			FolderLocation: types.StringNull(),
 		},
 		ShareModel: new_share.ShareModel{
 			Share: types.MapNull(new_share.ShareEntryAttrType),

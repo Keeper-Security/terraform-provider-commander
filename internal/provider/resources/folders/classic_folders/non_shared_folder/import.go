@@ -33,11 +33,11 @@ func (r *NonSharedFolderResource) ImportState(ctx context.Context, req resource.
 
 	state := NonSharedFolderResourceModel{
 		CommonFolderModel: folderutils.CommonFolderModel{
-			Id:   types.StringValue(importID),
-			Name: types.StringNull(),
+			Id:             types.StringValue(importID),
+			Name:           types.StringNull(),
+			FolderLocation: types.StringNull(),
 		},
-		FolderLocation: types.StringNull(),
-		Records:        types.SetNull(types.StringType),
+		Records: types.SetNull(types.StringType),
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)

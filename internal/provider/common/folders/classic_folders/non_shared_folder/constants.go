@@ -7,9 +7,9 @@ package non_shared_folder
 // failures (logs / error context).
 const errOpGet = "Unable to get non-shared folder"
 
-// API response keys (get FOLDER_UID --format json).
+// API response keys (get FOLDER_UID --format json). KeyFolderUID lives in
+// folderutils since it is shared with the classic shared folder create response.
 const (
-	KeyFolderUID = "folder_uid"
-	KeyName      = "name"
-	KeyPath      = "path"
+	KeyName = "name"
+	KeyPath = "path"
 )

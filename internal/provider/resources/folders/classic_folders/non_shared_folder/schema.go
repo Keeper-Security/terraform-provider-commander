@@ -19,11 +19,6 @@ func (r *NonSharedFolderResource) Schema(ctx context.Context, req resource.Schem
 		Attributes: folderutils.MergeResourceAttributes(
 			folderutils.ResourceCommonFolderAttributes(),
 			map[string]schema.Attribute{
-				"folder_location": schema.StringAttribute{
-					Optional:            true,
-					Description:         DescFolderLocation,
-					MarkdownDescription: DescFolderLocation,
-				},
 				"records": schema.SetAttribute{
 					Optional:            true,
 					ElementType:         types.StringType,

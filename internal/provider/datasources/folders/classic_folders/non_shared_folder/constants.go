@@ -9,6 +9,5 @@ const (
 	DescDataSourceMD       = "Look up an existing vault folder by **UID** or **path**."
 	DescDataSourceFolder   = "Folder UID or vault path to look up."
 	DescDataSourceFolderMD = "Folder **UID** or **vault path** to look up."
-	DescFolderLocation     = "Parent folder path where the folder resides. Empty if at vault root."
 	DescRecords            = "Set of record UIDs linked to this folder."
 )

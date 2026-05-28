@@ -33,8 +33,9 @@ func (r *ClassicSharedFolderResource) ImportState(ctx context.Context, req resou
 
 	state := SharedFolderResourceModel{
 		CommonFolderModel: folderutils.CommonFolderModel{
-			Id:   types.StringValue(importID),
-			Name: types.StringNull(),
+			Id:             types.StringValue(importID),
+			Name:           types.StringNull(),
+			FolderLocation: types.StringNull(),
 		},
 		UserPermissions:   nil,
 		RecordPermissions: nil,

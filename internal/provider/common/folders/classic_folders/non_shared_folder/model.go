@@ -10,6 +10,5 @@ import (
 
 type Model struct {
 	folderutils.CommonFolderModel
-	FolderLocation types.String `tfsdk:"folder_location"`
-	Records        types.Set    `tfsdk:"records"`
+	Records types.Set `tfsdk:"records"`
 }

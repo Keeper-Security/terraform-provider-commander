@@ -8,7 +8,7 @@ import (
 	"fmt"
 
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/api"
-	commonnonsharedfolder "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/folders/classic_folders/non_shared_folder"
+	folderutils "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/folders/utils"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
@@ -48,7 +48,7 @@ func LinkRecords(ctx context.Context, apiManager *api.ApiManager, folderUID stri
 
 // UnlinkRecord removes a record from a folder via `rm -f "<folderName>/<record>"`.
 func UnlinkRecord(ctx context.Context, apiManager *api.ApiManager, folderName, record string) error {
-	path := commonnonsharedfolder.EscapeDoubleQuotesForCLI(folderName + "/" + record)
+	path := folderutils.EscapeDoubleQuotesForCLI(folderName + "/" + record)
 	cmd := fmt.Sprintf(`%s %s "%s"`, CmdRm, FlagForce, path)
 	if _, err := apiManager.ExecuteCommand(ctx, cmd, ErrOpUnlinkRecord); err != nil {
 		return err

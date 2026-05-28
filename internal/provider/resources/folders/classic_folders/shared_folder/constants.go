@@ -58,11 +58,6 @@ const (
 	WildcardAll = "*"
 )
 
-// API response keys (e.g. from mkdir/create response).
-const (
-	KeyFolderUID = "folder_uid"
-)
-
 // API response keys for get classic shared folder response.
 const (
 	KeySharedFolderUID = "shared_folder_uid"
@@ -91,9 +86,9 @@ const (
 const TimeLayoutExpiration = "2006-01-02T15:04:05"
 
 // Schema and validator descriptions used by the classic shared folder resource schema.
+// Identity (id, name, folder_location) descriptions come from folderutils.
 const (
 	DescResource               = "Manages a classic shared folder. Use this resource to create and manage classic shared folder. \n\nClassic shared folder uses classic permission model, Limits sharing to basic access levels. Recommended only for compatibility with older workflows. "
-	DescFolderLocation         = "Folder path or identifier where the classic shared folder is located."
 	DescUserPermissions        = "Default user permissions for the classic shared folder. When omitted, defaults to manage_users = false, manage_records = false. Allowed keys: manage_users, manage_records."
 	DescUserPermissionsMD      = "Default user permissions for the classic shared folder. When omitted, defaults to `manage_users = false`, `manage_records = false`. Allowed keys: `manage_users`, `manage_records`."
 	DescUserPermissionsManage  = "Allow managing users in the classic shared folder."

@@ -26,11 +26,6 @@ func (d *NonSharedFolderDataSource) Schema(ctx context.Context, req datasource.S
 			},
 			folderutils.DataSourceCommonFolderAttributes(),
 			map[string]dschema.Attribute{
-				"folder_location": dschema.StringAttribute{
-					Computed:            true,
-					Description:         DescFolderLocation,
-					MarkdownDescription: DescFolderLocation,
-				},
 				"records": dschema.SetAttribute{
 					Computed:            true,
 					ElementType:         types.StringType,

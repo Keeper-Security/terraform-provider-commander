@@ -28,10 +28,9 @@ const (
 	ErrOpUnlinkRecord = "Unable to remove record from folder"
 )
 
-// Schema descriptions used by the non-shared folder resource. Identity (id, name)
-// descriptions come from folderutils.
+// Schema descriptions used by the non-shared folder resource. Identity (id, name,
+// folder_location) descriptions come from folderutils.
 const (
-	DescResource       = "Manages a vault folder. Use this resource to create and manage a non-shared folder."
-	DescFolderLocation = "Parent folder path where the folder will be created. Leave empty for vault root."
-	DescRecords        = "Set of record UIDs or titles to link into this folder."
+	DescResource = "Manages a vault folder. Use this resource to create and manage a non-shared folder."
+	DescRecords  = "Set of record UIDs or titles to link into this folder."
 )
