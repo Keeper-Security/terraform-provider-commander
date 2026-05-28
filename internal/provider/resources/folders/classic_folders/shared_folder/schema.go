@@ -46,7 +46,7 @@ func (r *ClassicSharedFolderResource) Schema(ctx context.Context, req resource.S
 		Description:         DescResource,
 		MarkdownDescription: DescResource,
 		Attributes: folderutils.MergeResourceAttributes(
-			folderutils.ResourceIdentityAttributes(),
+			folderutils.ResourceCommonFolderAttributes(),
 			map[string]schema.Attribute{
 				"user_permissions": schema.SingleNestedAttribute{
 					Optional:            true,

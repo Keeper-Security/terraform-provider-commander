@@ -8,7 +8,7 @@ const (
 	CmdRecordAdd         = "record-add"
 	CmdRecordUpdate      = "record-update"
 	CmdRecordDelete      = "rm"
-	CmdGetRecord         = "get"
+	CmdGet               = "get"
 	CmdMv                = "mv"
 	CmdPamTunnelEdit     = "pam tunnel edit"
 	CmdPamConnectionEdit = "pam connection edit"

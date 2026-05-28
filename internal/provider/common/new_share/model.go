@@ -12,7 +12,7 @@ import "github.com/hashicorp/terraform-plugin-framework/types"
 // Example:
 //
 //	type Model struct {
-//	    folderutils.IdentityModel
+//	    folderutils.CommonFolderModel
 //	    new_share.ShareModel
 //	}
 type ShareModel struct {

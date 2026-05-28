@@ -24,7 +24,7 @@ func (d *NewFolderDataSource) Schema(ctx context.Context, req datasource.SchemaR
 					MarkdownDescription: DescDataSourceNewFolderMD,
 				},
 			},
-			folderutils.DataSourceIdentityAttributes(),
+			folderutils.DataSourceCommonFolderAttributes(),
 			new_share.DataSourceShareAttribute(),
 		),
 	}

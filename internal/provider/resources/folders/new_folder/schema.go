@@ -17,7 +17,7 @@ func (r *NewFolderResource) Schema(ctx context.Context, req resource.SchemaReque
 		Description:         DescResource,
 		MarkdownDescription: DescResource,
 		Attributes: folderutils.MergeResourceAttributes(
-			folderutils.ResourceIdentityAttributes(),
+			folderutils.ResourceCommonFolderAttributes(),
 			new_share.ResourceShareAttribute(),
 		),
 	}

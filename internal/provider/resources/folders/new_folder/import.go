@@ -31,7 +31,7 @@ func (r *NewFolderResource) ImportState(ctx context.Context, req resource.Import
 	}
 
 	state := NewFolderResourceModel{
-		IdentityModel: folderutils.IdentityModel{
+		CommonFolderModel: folderutils.CommonFolderModel{
 			Id:   types.StringValue(importID),
 			Name: types.StringNull(),
 		},

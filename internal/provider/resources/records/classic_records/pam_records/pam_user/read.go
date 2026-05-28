@@ -40,7 +40,7 @@ func (r *PamUserResource) Read(ctx context.Context, req resource.ReadRequest, re
 	}
 
 	// Phase 1: read the vault record.
-	command := fmt.Sprintf("%s '%s' %s", utils.CmdGetRecord, id, utils.FlagFormatJSON)
+	command := fmt.Sprintf("%s '%s' %s", utils.CmdGet, id, utils.FlagFormatJSON)
 	apiResp, err := r.ApiManager.ExecuteCommand(ctx, command, ErrDetailReadFailed)
 	if err != nil {
 		if errors.Is(err, api.ErrResourceNotFound) {

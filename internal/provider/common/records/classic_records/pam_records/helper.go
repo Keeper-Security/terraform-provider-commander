@@ -17,7 +17,7 @@ import (
 )
 
 func FetchVaultRecord(ctx context.Context, apiManager *api.ApiManager, recordUID string) (*api.RequestResultResponse, error) {
-	command := fmt.Sprintf("%s '%s' %s %s", utils.CmdGetRecord, recordUID, utils.FlagFormatJSON, utils.FlagIncludeDag)
+	command := fmt.Sprintf("%s '%s' %s %s", utils.CmdGet, recordUID, utils.FlagFormatJSON, utils.FlagIncludeDag)
 	apiResp, err := apiManager.ExecuteCommand(ctx, command, utils.ErrSummaryFetchVaultRecordFailed)
 
 	return apiResp, err
@@ -211,7 +211,9 @@ func parseStringToInt32(s string) types.Int32 {
 
 // normalizeConnectionJSON converts bare numeric JSON values to quoted strings
 // for fields that Go response structs declare as string but the API may return
-// as numbers (e.g. port, destPort, colorDepth, fontSize).
+// as numbers (e.g. port, destPort, fontSize). colorDepth is handled per
+// protocol: VNC declares it as string, RDP as int, so it is only coerced when
+// protocol == "vnc".
 func normalizeConnectionJSON(raw json.RawMessage) json.RawMessage {
 	var obj map[string]json.RawMessage
 	if err := json.Unmarshal(raw, &obj); err != nil {
@@ -219,7 +221,15 @@ func normalizeConnectionJSON(raw json.RawMessage) json.RawMessage {
 	}
 
 	stringFields := map[string]bool{
-		"port": true, "destPort": true, "colorDepth": true, "fontSize": true,
+		"port": true, "destPort": true, "fontSize": true,
+	}
+
+	var protocol string
+	if protocolRaw, ok := obj["protocol"]; ok {
+		_ = json.Unmarshal(protocolRaw, &protocol)
+	}
+	if protocol == ConnectionProtocolVnc {
+		stringFields["colorDepth"] = true
 	}
 
 	changed := false
@@ -483,13 +493,6 @@ func extractDatabaseConnectionFromResponse(dbConn *utils.DatabaseConnectionRespo
 func extractRdpConnectionFromResponse(rdpConn *utils.RdpConnectionResponse, pamEnabled *utils.PamSettingsEnabledResponse, existingRdp *ConnectionRdpModel) *ConnectionRdpModel {
 	rdp := &ConnectionRdpModel{}
 
-	// TODO: ColorDepth and ServerLayout are not yet returned by the read CLI response.
-	// Once the CLI supports them, replace this state-preservation with API values.
-	if existingRdp != nil {
-		rdp.ColorDepth = existingRdp.ColorDepth
-		rdp.ServerLayout = existingRdp.ServerLayout
-	}
-
 	if pamEnabled != nil {
 		rdp.SessionRecording = optionalBoolValue(pamEnabled.SessionRecording)
 	} else {
@@ -497,7 +500,31 @@ func extractRdpConnectionFromResponse(rdpConn *utils.RdpConnectionResponse, pamE
 	}
 
 	if rdpConn == nil {
+		// Preserve prior state for fields the API may omit (defaults or UI-only
+		// toggles like "Disable Dynamic Resizing" for ResizeMethod) so a missing
+		// rdp connection block does not produce a spurious plan diff.
+		if existingRdp != nil {
+			rdp.ColorDepth = existingRdp.ColorDepth
+			rdp.ServerLayout = existingRdp.ServerLayout
+			rdp.ResizeMethod = existingRdp.ResizeMethod
+		}
 		return rdp
+	}
+
+	if rdpConn.ColorDepth > 0 {
+		rdp.ColorDepth = types.Int32Value(int32(rdpConn.ColorDepth))
+	} else if existingRdp != nil {
+		rdp.ColorDepth = existingRdp.ColorDepth
+	} else {
+		rdp.ColorDepth = types.Int32Null()
+	}
+
+	if strings.TrimSpace(rdpConn.ServerLayout) != "" {
+		rdp.ServerLayout = types.StringValue(rdpConn.ServerLayout)
+	} else if existingRdp != nil {
+		rdp.ServerLayout = existingRdp.ServerLayout
+	} else {
+		rdp.ServerLayout = types.StringNull()
 	}
 
 	rdp.RecordingIncludeKeys = optionalBoolValue(rdpConn.RecordingIncludeKeys)
@@ -536,7 +563,18 @@ func extractRdpConnectionFromResponse(rdpConn *utils.RdpConnectionResponse, pamE
 	rdp.Timezone = setStringOrNull(rdpConn.Timezone)
 	rdp.ClientName = setStringOrNull(rdpConn.ClientName)
 	rdp.InitialProgram = setStringOrNull(rdpConn.InitialProgram)
-	rdp.ResizeMethod = setStringOrNull(rdpConn.ResizeMethod)
+
+	// resizeMethod is coupled to the UI's "Disable Dynamic Resizing" checkbox,
+	// which is not a real API field. When that checkbox is enabled in the UI,
+	// the API omits resizeMethod from the response. To avoid a phantom plan diff
+	// in that case, fall back to the prior state value when the API value is empty.
+	if strings.TrimSpace(rdpConn.ResizeMethod) != "" {
+		rdp.ResizeMethod = types.StringValue(rdpConn.ResizeMethod)
+	} else if existingRdp != nil {
+		rdp.ResizeMethod = existingRdp.ResizeMethod
+	} else {
+		rdp.ResizeMethod = types.StringNull()
+	}
 
 	if rdpConn.Dpi > 0 {
 		rdp.Dpi = types.Int32Value(int32(rdpConn.Dpi))
@@ -1383,12 +1421,6 @@ func buildVncConnectionMap(connection *CommonPamSettingsConnectionResourceModel)
 func extractVncConnectionFromResponse(vncConn *utils.VncConnectionResponse, pamEnabled *utils.PamSettingsEnabledResponse, existingVnc *ConnectionVncModel) *ConnectionVncModel {
 	vnc := &ConnectionVncModel{}
 
-	// TODO: ColorDepth may not be returned by the read CLI response.
-	// Preserve from existing state until confirmed.
-	if existingVnc != nil {
-		vnc.ColorDepth = existingVnc.ColorDepth
-	}
-
 	if pamEnabled != nil {
 		vnc.SessionRecording = optionalBoolValue(pamEnabled.SessionRecording)
 	} else {
@@ -1396,6 +1428,9 @@ func extractVncConnectionFromResponse(vncConn *utils.VncConnectionResponse, pamE
 	}
 
 	if vncConn == nil {
+		if existingVnc != nil {
+			vnc.ColorDepth = existingVnc.ColorDepth
+		}
 		return vnc
 	}
 
@@ -1413,8 +1448,12 @@ func extractVncConnectionFromResponse(vncConn *utils.VncConnectionResponse, pamE
 	vnc.ClipboardEncoding = setStringOrNull(vncConn.ClipboardEncoding)
 	vnc.Cursor = setStringOrNull(vncConn.Cursor)
 
-	if vncConn.ColorDepth != "" {
+	if strings.TrimSpace(vncConn.ColorDepth) != "" {
 		vnc.ColorDepth = parseStringToInt32(vncConn.ColorDepth)
+	} else if existingVnc != nil {
+		vnc.ColorDepth = existingVnc.ColorDepth
+	} else {
+		vnc.ColorDepth = types.Int32Null()
 	}
 
 	if vncConn.Sftp != nil {

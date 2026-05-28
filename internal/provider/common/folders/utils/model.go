@@ -5,8 +5,8 @@ package utils
 
 import "github.com/hashicorp/terraform-plugin-framework/types"
 
-// IdentityModel holds id and name attributes shared by folder resources and data sources.
-type IdentityModel struct {
+// CommonFolderModel holds id and name attributes shared by folder resources and data sources.
+type CommonFolderModel struct {
 	Id   types.String `tfsdk:"id"`
 	Name types.String `tfsdk:"name"`
 }

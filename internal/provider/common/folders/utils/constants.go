@@ -3,6 +3,11 @@
 
 package utils
 
+// Commander CLI commands for non-shared folder operations.
+const (
+	CmdRmdir = "rmdir"
+)
+
 // Command flags.
 const (
 	FlagName = "--name"

@@ -24,7 +24,6 @@ var (
 const (
 	CmdMkdir       = "mkdir"
 	CmdRndir       = "rndir"
-	CmdRmdir       = "rmdir"
 	CmdShareFolder = "share-folder"
 )
 
