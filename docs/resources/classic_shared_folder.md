@@ -24,6 +24,7 @@ Classic shared folder uses classic permission model, Limits sharing to basic acc
 
 ### Optional
 
+- `folder_location` (String) Parent folder path where the folder will be created. Leave empty for vault root.
 - `record_permissions` (Attributes) Default record permissions for the classic shared folder. When omitted, defaults to `can_share = false`, `can_edit = false`. Allowed keys: `can_share`, `can_edit`. (see [below for nested schema](#nestedatt--record_permissions))
 - `records` (Attributes Map) Per-record permissions. Map key is record UID or name; value is an object with `can_share` and `can_edit`. (see [below for nested schema](#nestedatt--records))
 - `user_permissions` (Attributes) Default user permissions for the classic shared folder. When omitted, defaults to `manage_users = false`, `manage_records = false`. Allowed keys: `manage_users`, `manage_records`. (see [below for nested schema](#nestedatt--user_permissions))

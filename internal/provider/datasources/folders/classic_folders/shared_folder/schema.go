@@ -24,7 +24,7 @@ func (d *ClassicSharedFolderDataSource) Schema(ctx context.Context, req datasour
 					MarkdownDescription: DescDataSourceSharedFolderMD,
 				},
 			},
-			folderutils.DataSourceIdentityAttributes(),
+			folderutils.DataSourceCommonFolderAttributes(),
 			map[string]dschema.Attribute{
 				"user_permissions": dschema.SingleNestedAttribute{
 					Computed: true,

@@ -1,20 +1,21 @@
 // Copyright Keeper Security, Inc. 2026
 // SPDX-License-Identifier: MPL-2.0
 
-package classicsharedfolder
+package nonsharedfolder
 
 import (
 	"context"
 
-	commonsharedfolder "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/folders/classic_folders/shared_folder"
+	commonnonsharedfolder "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/folders/classic_folders/non_shared_folder"
 	folderutils "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/folders/utils"
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/utils"
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
-func (d *ClassicSharedFolderDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-	var data SharedFolderDataSourceModel
+func (d *NonSharedFolderDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
+	var data FolderDataSourceModel
 
 	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
 	if resp.Diagnostics.HasError() {
@@ -31,24 +32,25 @@ func (d *ClassicSharedFolderDataSource) Read(ctx context.Context, req datasource
 		return
 	}
 
-	key := data.SharedFolder.ValueString()
-	apiData, err := commonsharedfolder.FetchSharedFolderByNameOrId(ctx, d.ApiManager, key)
+	key := data.Folder.ValueString()
+	apiData, err := commonnonsharedfolder.FetchFolderByNameOrId(ctx, d.ApiManager, key)
 	if err != nil {
 		resp.Diagnostics.AddError(folderutils.ErrSummaryReadFailed, err.Error())
 		return
 	}
 
-	priorUsers := types.MapNull(commonsharedfolder.UserEntryMapElemType)
-	priorRecords := types.MapNull(commonsharedfolder.RecordEntryMapElemType)
-	if err := commonsharedfolder.MapResponseToModel(apiData, &data.Model, priorUsers, priorRecords); err != nil {
+	if err := commonnonsharedfolder.MapResponseToModel(apiData, &data.Model); err != nil {
 		resp.Diagnostics.AddError(folderutils.ErrSummaryReadFailed, err.Error())
 		return
 	}
 
 	// Data source prefers empty values over nulls so consumers can rely on
-	// concrete strings without nil checks (resource semantics keep nulls).
+	// concrete strings/sets without nil checks (resource semantics keep nulls).
 	if data.FolderLocation.IsNull() {
 		data.FolderLocation = types.StringValue("")
+	}
+	if data.Records.IsNull() {
+		data.Records = types.SetValueMust(types.StringType, []attr.Value{})
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)

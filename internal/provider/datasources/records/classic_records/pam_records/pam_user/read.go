@@ -41,7 +41,7 @@ func (d *PamUserDataSource) Read(ctx context.Context, req datasource.ReadRequest
 	}
 
 	// Phase 1: fetch the vault record via `get '<uid>' --format json`.
-	command := fmt.Sprintf("%s '%s' %s", utils.CmdGetRecord, recordUID, utils.FlagFormatJSON)
+	command := fmt.Sprintf("%s '%s' %s", utils.CmdGet, recordUID, utils.FlagFormatJSON)
 	apiResp, err := d.ApiManager.ExecuteCommand(ctx, command, ErrDetailReadFailed)
 	if err != nil {
 		resp.Diagnostics.AddError(ErrSummaryReadFailed, err.Error())

@@ -9,6 +9,7 @@ import (
 	"fmt"
 
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/api"
+	folderutils "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/folders/utils"
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/utils"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -67,8 +68,8 @@ func MapResponseToModel(api *utils.SharedFolderResponse, m *Model, priorUsers ty
 		return fmt.Errorf("classic shared folder API response is nil")
 	}
 
-	m.Id = types.StringValue(api.SharedFolderUID)
-	m.Name = types.StringValue(api.Path)
+	folderutils.SetCommonFolderIdentityFromAPI(&m.CommonFolderModel, api.SharedFolderUID, api.Name, api.Path)
+
 	m.UserPermissions = &UserPermissionsModel{
 		ManageUsers:   types.BoolValue(api.ManageUsers),
 		ManageRecords: types.BoolValue(api.ManageRecords),

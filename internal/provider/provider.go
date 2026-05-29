@@ -17,6 +17,7 @@ import (
 	enterpriseteamdatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/enterprise_team"
 	enterpriseuserdatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/enterprise_user"
 	epmpolicydatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/epm_policy"
+	nonsharedfolderdatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/folders/classic_folders/non_shared_folder"
 	classicsharedfolderdatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/folders/classic_folders/shared_folder"
 	newfolderdatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/folders/new_folder"
 	managedcompanydatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/managed_company"
@@ -35,6 +36,7 @@ import (
 	enterpriseteam "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/enterprise_team"
 	enterpriseuser "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/enterprise_user"
 	epmpolicy "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/epm_policy"
+	nonsharedfolder "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/folders/classic_folders/non_shared_folder"
 	classicsharedfolder "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/folders/classic_folders/shared_folder"
 	newfolder "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/folders/new_folder"
 	managedcompany "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/managed_company"
@@ -206,6 +208,7 @@ func (p *CommanderProvider) Resources(ctx context.Context) []func() resource.Res
 		classicsharedfolder.NewClassicSharedFolderResource,
 		newfolder.NewNewFolderResource,
 		secretsmanager.NewSecretsManagerAppResource,
+		nonsharedfolder.NewNonSharedFolderResource,
 	}
 }
 
@@ -232,6 +235,7 @@ func (p *CommanderProvider) DataSources(ctx context.Context) []func() datasource
 		pammachinedatasource.NewPamMachineDataSource,
 		classicsharedfolderdatasource.NewClassicSharedFolderDataSource,
 		newfolderdatasource.NewNewFolderDataSource,
+		nonsharedfolderdatasource.NewNonSharedFolderDataSource,
 	}
 }
 

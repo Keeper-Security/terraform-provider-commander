@@ -1,7 +1,7 @@
 // Copyright Keeper Security, Inc. 2026
 // SPDX-License-Identifier: MPL-2.0
 
-package classicsharedfolder
+package nonsharedfolder
 
 import (
 	"context"
@@ -13,10 +13,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
-// ImportState supports import by classic shared folder UID.
-// Import ID: the classic shared folder UID (e.g. "BTbjhOmqw9iYal3OQJ9UAQ").
+// ImportState supports terraform import by folder UID.
+// Import ID: the folder UID (e.g. "NJiANrRnbuvVEOgnqjiYaw").
 // After import, Terraform runs Read to refresh state from the API.
-func (r *ClassicSharedFolderResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+func (r *NonSharedFolderResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	if err := r.EnsureApiManager(); err != nil {
 		resp.Diagnostics.AddError(utils.ERR_MSG_PROVIDER_CONFIGURATION_ERROR, err.Error())
 		return
@@ -26,21 +26,18 @@ func (r *ClassicSharedFolderResource) ImportState(ctx context.Context, req resou
 	if importID == "" {
 		resp.Diagnostics.AddError(
 			utils.ERR_MSG_INVALID_IMPORT_ID,
-			"Import ID cannot be empty. Use the classic shared folder name or UID.",
+			"Import ID cannot be empty. Use the folder UID.",
 		)
 		return
 	}
 
-	state := SharedFolderResourceModel{
+	state := NonSharedFolderResourceModel{
 		CommonFolderModel: folderutils.CommonFolderModel{
 			Id:             types.StringValue(importID),
 			Name:           types.StringNull(),
 			FolderLocation: types.StringNull(),
 		},
-		UserPermissions:   nil,
-		RecordPermissions: nil,
-		Records:           types.MapNull(RecordEntryMapElemType),
-		Users:             types.MapNull(UserEntryMapElemType),
+		Records: types.SetNull(types.StringType),
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)

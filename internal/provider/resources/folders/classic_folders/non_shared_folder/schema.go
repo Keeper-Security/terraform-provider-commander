@@ -1,24 +1,31 @@
 // Copyright Keeper Security, Inc. 2026
 // SPDX-License-Identifier: MPL-2.0
 
-package newfolder
+package nonsharedfolder
 
 import (
 	"context"
 
 	folderutils "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/folders/utils"
-	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/new_share"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
-func (r *NewFolderResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
+func (r *NonSharedFolderResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		Description:         DescResource,
 		MarkdownDescription: DescResource,
 		Attributes: folderutils.MergeResourceAttributes(
 			folderutils.ResourceCommonFolderAttributes(),
-			new_share.ResourceShareAttribute(),
+			map[string]schema.Attribute{
+				"records": schema.SetAttribute{
+					Optional:            true,
+					ElementType:         types.StringType,
+					Description:         DescRecords,
+					MarkdownDescription: DescRecords,
+				},
+			},
 		),
 	}
 }

@@ -12,8 +12,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 )
 
-// ResourceIdentityAttributes returns computed id and required name attributes for folder resources.
-func ResourceIdentityAttributes() map[string]schema.Attribute {
+// ResourceCommonFolderAttributes returns computed id, required name and optional
+// folder_location attributes for folder resources.
+func ResourceCommonFolderAttributes() map[string]schema.Attribute {
 	return map[string]schema.Attribute{
 		AttrId: schema.StringAttribute{
 			Computed: true,
@@ -31,11 +32,16 @@ func ResourceIdentityAttributes() map[string]schema.Attribute {
 				providerutils.StringMinLengthValidator(NameValidatorLabel, 1, false),
 			},
 		},
+		AttrFolderLocation: schema.StringAttribute{
+			Optional:            true,
+			Description:         DescFolderLocation,
+			MarkdownDescription: DescFolderLocation,
+		},
 	}
 }
 
-// DataSourceIdentityAttributes returns computed id and name attributes for folder data sources.
-func DataSourceIdentityAttributes() map[string]dschema.Attribute {
+// DataSourceCommonFolderAttributes returns computed id, name and folder_location attributes for folder data sources.
+func DataSourceCommonFolderAttributes() map[string]dschema.Attribute {
 	return map[string]dschema.Attribute{
 		AttrId: dschema.StringAttribute{
 			Computed:            true,
@@ -46,6 +52,11 @@ func DataSourceIdentityAttributes() map[string]dschema.Attribute {
 			Computed:            true,
 			Description:         DescName,
 			MarkdownDescription: DescNameMD,
+		},
+		AttrFolderLocation: dschema.StringAttribute{
+			Computed:            true,
+			Description:         DescFolderLocation,
+			MarkdownDescription: DescFolderLocation,
 		},
 	}
 }

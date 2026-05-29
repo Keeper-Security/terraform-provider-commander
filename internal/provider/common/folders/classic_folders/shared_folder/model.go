@@ -22,7 +22,7 @@ type RecordPermissionsModel struct {
 
 // Model is the terraform-plugin-framework model for classic shared folder attributes (resource state and data source).
 type Model struct {
-	folderutils.IdentityModel
+	folderutils.CommonFolderModel
 	UserPermissions   *UserPermissionsModel   `tfsdk:"user_permissions"`
 	RecordPermissions *RecordPermissionsModel `tfsdk:"record_permissions"`
 	Records           types.Map               `tfsdk:"records"`

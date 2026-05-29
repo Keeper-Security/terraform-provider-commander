@@ -47,28 +47,30 @@ func (r *ClassicSharedFolderResource) Update(ctx context.Context, req resource.U
 	plan.Id = state.Id
 	folderUID := plan.Id.ValueString()
 
-	// Name is "parent/Shared Folder Name" or just "Shared Folder Name". Same parent + different leaf -> rndir; different parent -> mv.
-	if !plan.Name.Equal(state.Name) {
-		planPath := plan.Name.ValueString()
-		statePath := state.Name.ValueString()
-		planParent, planLeaf := SplitSharedFolderPath(planPath)
-		stateParent, stateLeaf := SplitSharedFolderPath(statePath)
+	nameChanged := !plan.Name.Equal(state.Name)
+	locationChanged := !plan.FolderLocation.Equal(state.FolderLocation)
 
-		if planParent == stateParent && planLeaf != stateLeaf {
-			leaf := EscapeDoubleQuotesForCLI(planLeaf)
-			command := fmt.Sprintf("%s '%s' %s \"%s\"", CmdRndir, folderUID, FlagName, leaf)
-			if _, err := r.ApiManager.ExecuteCommand(ctx, command, folderutils.ErrOpRename); err != nil {
-				resp.Diagnostics.AddError(folderutils.ErrSummaryUpdateFailed, err.Error())
-				return
-			}
-		} else if planParent != stateParent {
-			src := EscapeDoubleQuotesForCLI(MvPathForCommander(statePath))
-			dst := EscapeDoubleQuotesForCLI(MvMoveTargetParent(planPath))
-			command := fmt.Sprintf(`%s "%s" "%s" %s %s`, utils.CmdMv, src, dst, utils.FlagForce, FlagSharedFolder)
-			if _, err := r.ApiManager.ExecuteCommand(ctx, command, folderutils.ErrOpMove); err != nil {
-				resp.Diagnostics.AddError(folderutils.ErrSummaryUpdateFailed, err.Error())
-				return
-			}
+	// Move first (before rename) so the source path using the old name is still valid.
+	if locationChanged {
+		statePath := folderutils.BuildFolderPath(state.Name.ValueString(), state.FolderLocation.ValueString())
+		planPath := folderutils.BuildFolderPath(state.Name.ValueString(), plan.FolderLocation.ValueString())
+		src := folderutils.EscapeDoubleQuotesForCLI(folderutils.MvPathForCommander(statePath))
+		dst := folderutils.EscapeDoubleQuotesForCLI(folderutils.MvMoveTargetParent(planPath))
+
+		command := fmt.Sprintf(`%s "%s" "%s" %s %s`, utils.CmdMv, src, dst, utils.FlagForce, FlagSharedFolder)
+		if _, err := r.ApiManager.ExecuteCommand(ctx, command, folderutils.ErrOpMove); err != nil {
+			resp.Diagnostics.AddError(folderutils.ErrSummaryUpdateFailed, err.Error())
+			return
+		}
+	}
+
+	// Rename via rndir (after move, so folder is already in the new location).
+	if nameChanged {
+		leaf := folderutils.EscapeDoubleQuotesForCLI(plan.Name.ValueString())
+		command := fmt.Sprintf("%s '%s' %s \"%s\"", CmdRndir, folderUID, FlagName, leaf)
+		if _, err := r.ApiManager.ExecuteCommand(ctx, command, folderutils.ErrOpRename); err != nil {
+			resp.Diagnostics.AddError(folderutils.ErrSummaryUpdateFailed, err.Error())
+			return
 		}
 	}
 

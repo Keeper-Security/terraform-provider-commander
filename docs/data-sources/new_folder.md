@@ -53,6 +53,7 @@ output "new_folder_share" {
 
 ### Read-Only
 
+- `folder_location` (String) Parent folder path where the folder will be created. Leave empty for vault root.
 - `id` (String) The folder **ID** assigned by Keeper.
 - `name` (String) **Folder name**.
 - `share` (Map of String) Map of share permissions for this folder/record. Each map **key** is a **user email**; each **value** is one of: `viewer`, `share-manager`, `content-manager`, `content-share-manager`, `full-manager`. The folder/record **owner** is managed by Keeper and is not represented in this block.

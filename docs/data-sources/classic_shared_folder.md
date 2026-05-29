@@ -21,6 +21,7 @@ Look up an existing classic shared folder by **UID** or **name**.
 
 ### Read-Only
 
+- `folder_location` (String) Parent folder path where the folder will be created. Leave empty for vault root.
 - `id` (String) The folder **ID** assigned by Keeper.
 - `name` (String) **Folder name**.
 - `record_permissions` (Attributes) (see [below for nested schema](#nestedatt--record_permissions))

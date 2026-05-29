@@ -53,7 +53,7 @@ func (r *ClassicSharedFolderResource) Create(ctx context.Context, req resource.C
 		return
 	}
 
-	folderUID, err := extractFolderUIDFromCreateSharedFolderResponse(apiResp.Data)
+	folderUID, err := folderutils.ExtractFolderUIDFromCreateResponse(apiResp.Data)
 	if err != nil {
 		resp.Diagnostics.AddError(folderutils.ErrSummaryCreateFailed, err.Error())
 		return
@@ -81,29 +81,13 @@ func buildCreateSharedFolderCommand(data *SharedFolderResourceModel) (command st
 		return "", fmt.Errorf("name is required")
 	}
 
-	parts := []string{CmdMkdir, FlagSharedFolder, fmt.Sprintf(`"%s"`, name)}
+	folderPath := folderutils.BuildFolderPath(name, data.FolderLocation.ValueString())
+	parts := []string{CmdMkdir, FlagSharedFolder, fmt.Sprintf(`"%s"`, folderutils.EscapeDoubleQuotesForCLI(folderPath))}
 	permFlags := GetDefaultPermissions(data)
 	parts = append(parts, DefaultPermissionFlagsForMkdir(permFlags)...)
 
 	command = strings.Join(parts, " ")
 	return command, nil
-}
-
-// extractFolderUIDFromResponse extracts folder_uid from the API response Data (map from JSON).
-// If folder_uid is not a string (e.g. number from JSON), it is converted to string.
-func extractFolderUIDFromCreateSharedFolderResponse(data any) (string, error) {
-	m, _ := data.(map[string]interface{})
-	v, ok := m[KeyFolderUID]
-	if !ok || v == nil {
-		return "", fmt.Errorf("API response missing %s", KeyFolderUID)
-	}
-	if s, ok := v.(string); ok {
-		if s == "" {
-			return "", fmt.Errorf("API response %s is empty", KeyFolderUID)
-		}
-		return s, nil
-	}
-	return fmt.Sprintf("%v", v), nil
 }
 
 // DefaultPermissionFlagsForMkdir returns flag names only for true values (for mkdir --manage-users etc.).
