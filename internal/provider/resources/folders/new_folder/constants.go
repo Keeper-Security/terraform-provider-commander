@@ -17,3 +17,7 @@ const (
 const (
 	DescResource = "Manages a Nested Shared Folder."
 )
+
+const (
+	ErrSummaryMoveNotSupported = "Move operation is not supported for Nested Share Folders."
+)

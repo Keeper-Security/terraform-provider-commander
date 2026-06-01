@@ -23,8 +23,8 @@ const (
 // same flags (--email, --action, --role). Callers pick which one to pass based
 // on whether they are sharing a folder or a record.
 const (
-	CmdShareFolder = "nsf-share-folder"
-	CmdShareRecord = "nsf-share-record"
+	CmdNsfShareFolder = "nsf-share-folder"
+	CmdNsfShareRecord = "nsf-share-record"
 )
 
 // Command flags shared by nsf-share-folder and nsf-share-record.
@@ -37,7 +37,8 @@ const (
 // share --action values.
 const (
 	ActionGrant  = "grant"
-	ActionRevoke = "revoke"
+	ActionRevoke = "revoke" // Used for removing a user from a nsf record
+	ActionRemove = "remove" // Used for removing a user from a nsf folder
 )
 
 // Permission role values accepted by the `share` attribute. RoleOwner is only

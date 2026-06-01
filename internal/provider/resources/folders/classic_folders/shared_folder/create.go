@@ -77,10 +77,8 @@ func (r *ClassicSharedFolderResource) Create(ctx context.Context, req resource.C
 // Folder path: if folder_location is set, "folder_location/name", otherwise "name".
 func buildCreateSharedFolderCommand(data *SharedFolderResourceModel) (command string, err error) {
 	name := data.Name.ValueString()
-	if name == "" {
-		return "", fmt.Errorf("name is required")
-	}
 
+	// Build the folder path: if folder_location is set, "folder_location/name", otherwise "name".
 	folderPath := folderutils.BuildFolderPath(name, data.FolderLocation.ValueString())
 	parts := []string{CmdMkdir, FlagSharedFolder, fmt.Sprintf(`"%s"`, folderutils.EscapeDoubleQuotesForCLI(folderPath))}
 	permFlags := GetDefaultPermissions(data)

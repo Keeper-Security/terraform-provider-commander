@@ -11,7 +11,7 @@ import (
 )
 
 func TestBuildGrantCommand_Folder(t *testing.T) {
-	got := new_share.BuildGrantCommand(new_share.CmdShareFolder, "FOLDER_UID_1", "user@example.com", "viewer")
+	got := new_share.BuildGrantCommand(new_share.CmdNsfShareFolder, "FOLDER_UID_1", "user@example.com", "viewer")
 	want := `nsf-share-folder "FOLDER_UID_1" --email='user@example.com' --action=grant --role='viewer'`
 	if got != want {
 		t.Errorf("BuildGrantCommand =\n  %q\nwant\n  %q", got, want)
@@ -19,7 +19,7 @@ func TestBuildGrantCommand_Folder(t *testing.T) {
 }
 
 func TestBuildGrantCommand_Record(t *testing.T) {
-	got := new_share.BuildGrantCommand(new_share.CmdShareRecord, "REC_UID_1", "alice@example.com", "full-manager")
+	got := new_share.BuildGrantCommand(new_share.CmdNsfShareRecord, "REC_UID_1", "alice@example.com", "full-manager")
 	want := `nsf-share-record "REC_UID_1" --email='alice@example.com' --action=grant --role='full-manager'`
 	if got != want {
 		t.Errorf("BuildGrantCommand =\n  %q\nwant\n  %q", got, want)
@@ -27,16 +27,24 @@ func TestBuildGrantCommand_Record(t *testing.T) {
 }
 
 func TestBuildGrantCommand_EscapesEmailWithApostrophe(t *testing.T) {
-	got := new_share.BuildGrantCommand(new_share.CmdShareFolder, "F1", "o'brien@example.com", "viewer")
+	got := new_share.BuildGrantCommand(new_share.CmdNsfShareFolder, "F1", "o'brien@example.com", "viewer")
 	want := `nsf-share-folder "F1" --email='o''brien@example.com' --action=grant --role='viewer'`
 	if got != want {
 		t.Errorf("BuildGrantCommand =\n  %q\nwant\n  %q", got, want)
 	}
 }
 
-func TestBuildRevokeCommand(t *testing.T) {
-	got := new_share.BuildRevokeCommand(new_share.CmdShareFolder, "FOLDER_UID_1", "user@example.com")
-	want := `nsf-share-folder "FOLDER_UID_1" --email='user@example.com' --action=revoke`
+func TestBuildRevokeCommand_FolderUsesRevoke(t *testing.T) {
+	got := new_share.BuildRevokeCommand(new_share.CmdNsfShareFolder, "FOLDER_UID_1", "user@example.com")
+	want := `nsf-share-folder "FOLDER_UID_1" --email='user@example.com' --action=remove`
+	if got != want {
+		t.Errorf("BuildRevokeCommand =\n  %q\nwant\n  %q", got, want)
+	}
+}
+
+func TestBuildRevokeCommand_RecordUsesRemove(t *testing.T) {
+	got := new_share.BuildRevokeCommand(new_share.CmdNsfShareRecord, "REC_UID_1", "user@example.com")
+	want := `nsf-share-record "REC_UID_1" --email='user@example.com' --action=revoke`
 	if got != want {
 		t.Errorf("BuildRevokeCommand =\n  %q\nwant\n  %q", got, want)
 	}

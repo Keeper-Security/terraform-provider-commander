@@ -6,6 +6,7 @@ package newfolder
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	folderutils "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/folders/utils"
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/new_share"
@@ -33,7 +34,11 @@ func (r *NewFolderResource) Create(ctx context.Context, req resource.CreateReque
 	}
 
 	// Create new folder (Nested Share Folder)
-	command := fmt.Sprintf(`%s "%s"`, CmdNsfMkdir, data.Name.ValueString())
+	command, err := buildCreateNewFolderCommand(&data)
+	if err != nil {
+		resp.Diagnostics.AddError(folderutils.ErrSummaryInvalidConfig, err.Error())
+		return
+	}
 
 	apiResp, err := r.ApiManager.ExecuteCommand(ctx, command, folderutils.ErrOpCreate)
 	if err != nil {
@@ -43,10 +48,23 @@ func (r *NewFolderResource) Create(ctx context.Context, req resource.CreateReque
 
 	data.Id = types.StringValue(string(apiResp.Message))
 
-	if err := new_share.SyncSharePermissions(ctx, r.ApiManager, new_share.CmdShareFolder, data.Id.ValueString(), data.Share, types.MapNull(new_share.ShareEntryAttrType)); err != nil {
+	// Sync the share permissions - share the folder to the users in the share block.
+	if err := new_share.SyncSharePermissions(ctx, r.ApiManager, new_share.CmdNsfShareFolder, data.Id.ValueString(), data.Share, types.MapNull(new_share.ShareEntryAttrType)); err != nil {
 		resp.Diagnostics.AddError(folderutils.ErrSummaryCreateFailed, err.Error())
 		return
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+}
+
+// It creates the nsf directory command and the folder path used as NAME.
+func buildCreateNewFolderCommand(data *NewFolderResourceModel) (command string, err error) {
+	name := data.Name.ValueString()
+
+	// Build the folder path: if folder_location is set, "folder_location/name", otherwise "name".
+	folderPath := folderutils.BuildFolderPath(name, data.FolderLocation.ValueString())
+	parts := []string{CmdNsfMkdir, fmt.Sprintf(`"%s"`, folderutils.EscapeDoubleQuotesForCLI(folderPath))}
+
+	command = strings.Join(parts, " ")
+	return command, nil
 }
