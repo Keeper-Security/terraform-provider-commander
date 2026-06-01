@@ -6,9 +6,8 @@ package pamremotebrowser
 import (
 	"context"
 	"fmt"
-	"strings"
 
-	commonpamremotebrowser "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/classic_records/pam_records/pam_remote_browser"
+	commonpamremotebrowser "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/pam_records/pam_remote_browser"
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/utils"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -32,8 +31,7 @@ func (r *PamRemoteBrowserResource) Create(ctx context.Context, req resource.Crea
 		return
 	}
 
-	// Phase 1: create the record
-	command := buildAddPamRemoteBrowserRecordCommand(data)
+	command := commonpamremotebrowser.BuildAddCommand(utils.CmdRecordAdd, data)
 	apiResp, err := r.ApiManager.ExecuteCommand(ctx, command, ErrDetailAddPamRemoteBrowserRecordFailed)
 	if err != nil {
 		resp.Diagnostics.AddError(ErrSummaryAddPamRemoteBrowserRecordFailed, err.Error())
@@ -47,9 +45,8 @@ func (r *PamRemoteBrowserResource) Create(ctx context.Context, req resource.Crea
 	}
 	data.Id = types.StringValue(createdRecordUID)
 
-	// Phase 2: apply PAM remote browser settings (`pam rbi edit`).
 	if data.PamRemoteBrowserSettings != nil {
-		editCmd := BuildPamRbiEditCommand(createdRecordUID, data.PamRemoteBrowserSettings)
+		editCmd := commonpamremotebrowser.BuildPamRbiEditCommand(createdRecordUID, data.PamRemoteBrowserSettings)
 		if _, err := r.ApiManager.ExecuteCommand(ctx, editCmd, ErrDetailPamRbiEditFailed); err != nil {
 			resp.Diagnostics.AddError(ErrSummaryPamRbiEditFailed, err.Error())
 			return
@@ -57,29 +54,4 @@ func (r *PamRemoteBrowserResource) Create(ctx context.Context, req resource.Crea
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
-}
-
-func buildAddPamRemoteBrowserRecordCommand(data commonpamremotebrowser.PamRemoteBrowserResourceModel) string {
-	parts := []string{utils.CmdRecordAdd}
-
-	// Record type
-	parts = append(parts, fmt.Sprintf("%s %s", utils.FlagRecordType, utils.RecordTypePamRemoteBrowser))
-
-	// Title
-	parts = append(parts, fmt.Sprintf("%s '%s'", utils.FlagTitle, data.Title.ValueString()))
-
-	// URL
-	parts = append(parts, fmt.Sprintf("'%s=%s'", utils.FlagRbiUrl, data.Url.ValueString()))
-
-	// Folder
-	if !data.Folder.IsNull() {
-		parts = append(parts, fmt.Sprintf("%s '%s'", utils.FlagFolder, data.Folder.ValueString()))
-	}
-
-	// Notes
-	if !data.Notes.IsNull() {
-		parts = append(parts, fmt.Sprintf("%s '%s'", utils.FlagNotes, data.Notes.ValueString()))
-	}
-
-	return strings.Join(parts, " ")
 }

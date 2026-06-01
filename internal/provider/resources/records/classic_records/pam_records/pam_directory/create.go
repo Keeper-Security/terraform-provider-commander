@@ -6,10 +6,9 @@ package pamdirectory
 import (
 	"context"
 	"fmt"
-	"strings"
 
-	commonpamrecords "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/classic_records/pam_records"
-	commonpamdirectory "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/classic_records/pam_records/pam_directory"
+	commonpamrecords "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/pam_records"
+	commonpamdirectory "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/pam_records/pam_directory"
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/utils"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -33,7 +32,7 @@ func (r *PamDirectoryResource) Create(ctx context.Context, req resource.CreateRe
 		return
 	}
 
-	command := buildAddPamDirectoryRecordCommand(data)
+	command := commonpamdirectory.BuildAddCommand(utils.CmdRecordAdd, data)
 	apiResp, err := r.ApiManager.ExecuteCommand(ctx, command, ErrDetailAddPamDirectoryRecordFailed)
 	if err != nil {
 		resp.Diagnostics.AddError(ErrSummaryAddPamDirectoryRecordFailed, err.Error())
@@ -55,31 +54,4 @@ func (r *PamDirectoryResource) Create(ctx context.Context, req resource.CreateRe
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
-}
-
-func buildAddPamDirectoryRecordCommand(data commonpamdirectory.PamDirectoryResourceModel) string {
-	parts := []string{utils.CmdRecordAdd}
-
-	parts = append(parts, fmt.Sprintf("%s %s", utils.FlagRecordType, utils.RecordTypePamDirectory))
-	parts = append(parts, fmt.Sprintf("%s '%s'", utils.FlagTitle, data.Title.ValueString()))
-
-	commonpamrecords.AppendHostnameOrIPField(&parts, data.HostnameOrIP)
-	commonpamrecords.AppendOptionalCheckboxField(&parts, FlagUseSSL, data.UseSSL)
-	commonpamrecords.AppendOptionalTextField(&parts, FlagDomainName, data.DomainName)
-	appendAlternativeIPsField(&parts, data.AlternativeIPs)
-	commonpamrecords.AppendOptionalTextField(&parts, FlagDirectoryId, data.DirectoryId)
-	appendOptionalDirectoryTypeField(&parts, data.DirectoryType)
-	commonpamrecords.AppendOptionalTextField(&parts, FlagUserMatch, data.UserMatch)
-	commonpamrecords.AppendOptionalTextField(&parts, FlagProviderGroup, data.ProviderGroup)
-	commonpamrecords.AppendOptionalTextField(&parts, FlagProviderRegion, data.ProviderRegion)
-
-	if !data.Folder.IsNull() {
-		parts = append(parts, fmt.Sprintf("%s '%s'", utils.FlagFolder, data.Folder.ValueString()))
-	}
-
-	if !data.Notes.IsNull() {
-		parts = append(parts, fmt.Sprintf("%s '%s'", utils.FlagNotes, data.Notes.ValueString()))
-	}
-
-	return strings.Join(parts, " ")
 }

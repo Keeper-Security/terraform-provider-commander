@@ -6,10 +6,9 @@ package pamdatabase
 import (
 	"context"
 	"fmt"
-	"strings"
 
-	commonpamrecords "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/classic_records/pam_records"
-	commonpamdatabase "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/classic_records/pam_records/pam_database"
+	commonpamrecords "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/pam_records"
+	commonpamdatabase "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/pam_records/pam_database"
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/utils"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -33,7 +32,7 @@ func (r *PamDatabaseResource) Create(ctx context.Context, req resource.CreateReq
 		return
 	}
 
-	command := buildAddPamDatabaseRecordCommand(data)
+	command := commonpamdatabase.BuildAddCommand(utils.CmdRecordAdd, data)
 	apiResp, err := r.ApiManager.ExecuteCommand(ctx, command, ErrDetailAddPamDatabaseRecordFailed)
 	if err != nil {
 		resp.Diagnostics.AddError(ErrSummaryAddPamDatabaseRecordFailed, err.Error())
@@ -55,28 +54,4 @@ func (r *PamDatabaseResource) Create(ctx context.Context, req resource.CreateReq
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
-}
-
-func buildAddPamDatabaseRecordCommand(data commonpamdatabase.PamDatabaseResourceModel) string {
-	parts := []string{utils.CmdRecordAdd}
-
-	parts = append(parts, fmt.Sprintf("%s %s", utils.FlagRecordType, utils.RecordTypePamDatabase))
-	parts = append(parts, fmt.Sprintf("%s '%s'", utils.FlagTitle, data.Title.ValueString()))
-
-	commonpamrecords.AppendHostnameOrIPField(&parts, data.HostnameOrIP)
-	commonpamrecords.AppendOptionalCheckboxField(&parts, FlagUseSSL, data.UseSSL)
-	commonpamrecords.AppendOptionalTextField(&parts, FlagDatabaseId, data.DatabaseId)
-	appendOptionalDatabaseTypeField(&parts, data.DatabaseType)
-	commonpamrecords.AppendOptionalTextField(&parts, FlagProviderGroup, data.ProviderGroup)
-	commonpamrecords.AppendOptionalTextField(&parts, FlagProviderRegion, data.ProviderRegion)
-
-	if !data.Folder.IsNull() {
-		parts = append(parts, fmt.Sprintf("%s '%s'", utils.FlagFolder, data.Folder.ValueString()))
-	}
-
-	if !data.Notes.IsNull() {
-		parts = append(parts, fmt.Sprintf("%s '%s'", utils.FlagNotes, data.Notes.ValueString()))
-	}
-
-	return strings.Join(parts, " ")
 }

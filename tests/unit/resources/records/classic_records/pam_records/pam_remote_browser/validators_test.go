@@ -7,7 +7,7 @@ import (
 	"context"
 	"testing"
 
-	pamremotebrowser "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/records/classic_records/pam_records/pam_remote_browser"
+	commonpamremotebrowser "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/pam_records/pam_remote_browser"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -15,7 +15,7 @@ import (
 
 func TestAudioBitDepthValidator_Valid(t *testing.T) {
 	ctx := context.Background()
-	v := pamremotebrowser.AudioBitDepthValidator{}
+	v := commonpamremotebrowser.AudioBitDepthValidator{}
 	p := path.Root("audio_bit_depth")
 
 	for _, val := range []int64{8, 16} {
@@ -32,7 +32,7 @@ func TestAudioBitDepthValidator_Valid(t *testing.T) {
 
 func TestAudioBitDepthValidator_Invalid(t *testing.T) {
 	ctx := context.Background()
-	v := pamremotebrowser.AudioBitDepthValidator{}
+	v := commonpamremotebrowser.AudioBitDepthValidator{}
 	p := path.Root("audio_bit_depth")
 
 	for _, val := range []int64{0, 4, 12, 24, 32} {
@@ -49,7 +49,7 @@ func TestAudioBitDepthValidator_Invalid(t *testing.T) {
 
 func TestAudioBitDepthValidator_NullAndUnknown(t *testing.T) {
 	ctx := context.Background()
-	v := pamremotebrowser.AudioBitDepthValidator{}
+	v := commonpamremotebrowser.AudioBitDepthValidator{}
 	p := path.Root("audio_bit_depth")
 
 	var resp validator.Int64Response
@@ -67,7 +67,7 @@ func TestAudioBitDepthValidator_NullAndUnknown(t *testing.T) {
 
 func TestAudioBitDepthValidator_Descriptions(t *testing.T) {
 	ctx := context.Background()
-	v := pamremotebrowser.AudioBitDepthValidator{}
+	v := commonpamremotebrowser.AudioBitDepthValidator{}
 	if v.Description(ctx) == "" {
 		t.Error("Description should not be empty")
 	}
@@ -78,7 +78,7 @@ func TestAudioBitDepthValidator_Descriptions(t *testing.T) {
 
 func TestAudioChannelsValidator_Valid(t *testing.T) {
 	ctx := context.Background()
-	v := pamremotebrowser.AudioChannelsValidator{}
+	v := commonpamremotebrowser.AudioChannelsValidator{}
 	p := path.Root("audio_channels")
 
 	for _, val := range []int32{1, 2} {
@@ -95,7 +95,7 @@ func TestAudioChannelsValidator_Valid(t *testing.T) {
 
 func TestAudioChannelsValidator_Invalid(t *testing.T) {
 	ctx := context.Background()
-	v := pamremotebrowser.AudioChannelsValidator{}
+	v := commonpamremotebrowser.AudioChannelsValidator{}
 	p := path.Root("audio_channels")
 
 	for _, val := range []int32{0, 3, 5, 8} {
@@ -112,7 +112,7 @@ func TestAudioChannelsValidator_Invalid(t *testing.T) {
 
 func TestAudioChannelsValidator_NullAndUnknown(t *testing.T) {
 	ctx := context.Background()
-	v := pamremotebrowser.AudioChannelsValidator{}
+	v := commonpamremotebrowser.AudioChannelsValidator{}
 	p := path.Root("audio_channels")
 
 	var resp validator.Int32Response
@@ -130,7 +130,7 @@ func TestAudioChannelsValidator_NullAndUnknown(t *testing.T) {
 
 func TestAudioChannelsValidator_Descriptions(t *testing.T) {
 	ctx := context.Background()
-	v := pamremotebrowser.AudioChannelsValidator{}
+	v := commonpamremotebrowser.AudioChannelsValidator{}
 	if v.Description(ctx) == "" {
 		t.Error("Description should not be empty")
 	}

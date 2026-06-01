@@ -325,6 +325,15 @@ type VaultRecordGetResponse struct {
 	Folder                       *RecordFolderResponse                 `json:"folder,omitempty"`
 	PamConfigurationUID          string                                `json:"pam_configuration_uid,omitempty"`
 	ConfigurationAllowedSettings *ConfigurationAllowedSettingsResponse `json:"configuration_allowed_settings,omitempty"`
+	UserPermissions              []UserPermissionEntry                 `json:"user_permissions,omitempty"`
+}
+
+// UserPermissionEntry is one element of the API response's user_permissions
+// array, present on shared records and folders returned by `get` / `nsf-get`.
+// new_share.UserPermissionEntry aliases this type.
+type UserPermissionEntry struct {
+	Accessor string `json:"accessor"`
+	Role     string `json:"role"`
 }
 
 // ConfigurationAllowedSettingsResponse maps the configuration_allowed_settings object from the API response.

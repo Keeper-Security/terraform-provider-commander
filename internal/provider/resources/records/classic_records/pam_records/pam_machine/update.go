@@ -5,11 +5,10 @@ package pammachine
 
 import (
 	"context"
-	"fmt"
 	"strings"
 
-	commonpamrecords "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/classic_records/pam_records"
-	commonpammachine "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/classic_records/pam_records/pam_machine"
+	commonpamrecords "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/pam_records"
+	commonpammachine "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/pam_records/pam_machine"
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/utils"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 )
@@ -49,22 +48,19 @@ func (r *PamMachineResource) Update(ctx context.Context, req resource.UpdateRequ
 		return
 	}
 
-	// Phase 0: Move record to destination folder if folder is changed.
 	if err := commonpamrecords.MoveRecordFromSourceToDestination(ctx, r.ApiManager, state.Id.ValueString(), plan.Folder.ValueString(), state.Folder.ValueString()); err != nil {
 		resp.Diagnostics.AddError(utils.ErrSummaryMoveRecordFailed, err.Error())
 		return
 	}
 
-	// Phase 1: record fields.
-	if recordUpdateHasMutations(plan, state) {
-		cmd := buildUpdatePamMachineRecordCommand(recordUID, plan, state)
+	if commonpammachine.RecordUpdateHasMutations(plan, state) {
+		cmd := commonpammachine.BuildUpdateCommand(utils.CmdRecordUpdate, recordUID, plan, state)
 		if _, err := r.ApiManager.ExecuteCommand(ctx, cmd, ErrDetailPamMachineRecordUpdateFailed); err != nil {
 			resp.Diagnostics.AddError(ErrSummaryPamMachineRecordUpdateFailed, err.Error())
 			return
 		}
 	}
 
-	// Phase 2 – apply PAM settings when pam_settings fields are defined.
 	if plan.PamSettings != nil {
 		if err := commonpamrecords.ApplyPamSettings(ctx, r.ApiManager, recordUID, plan.PamSettings, state.PamSettings); err != nil {
 			resp.Diagnostics.AddError(utils.ErrSummaryApplyPamSettingsFailed, err.Error())
@@ -73,35 +69,4 @@ func (r *PamMachineResource) Update(ctx context.Context, req resource.UpdateRequ
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
-}
-
-func buildUpdatePamMachineRecordCommand(recordUID string, plan, state commonpammachine.PamMachineResourceModel) string {
-	parts := []string{
-		utils.CmdRecordUpdate,
-		fmt.Sprintf("%s '%s'", utils.FlagRecord, recordUID),
-	}
-
-	if !plan.Title.Equal(state.Title) {
-		parts = append(parts, fmt.Sprintf("%s '%s'", utils.FlagTitle, plan.Title.ValueString()))
-	}
-
-	if !commonpamrecords.HostnameOrIPEqual(plan.HostnameOrIP, state.HostnameOrIP) {
-		commonpamrecords.AppendHostnameOrIPField(&parts, plan.HostnameOrIP)
-	}
-
-	commonpamrecords.AppendChangedTextField(&parts, FlagOperatingSystem, plan.OperatingSystem, state.OperatingSystem)
-	commonpamrecords.AppendChangedTextField(&parts, FlagInstanceName, plan.InstanceName, state.InstanceName)
-	commonpamrecords.AppendChangedTextField(&parts, FlagInstanceId, plan.InstanceId, state.InstanceId)
-	commonpamrecords.AppendChangedTextField(&parts, FlagProviderGroup, plan.ProviderGroup, state.ProviderGroup)
-	commonpamrecords.AppendChangedTextField(&parts, FlagProviderRegion, plan.ProviderRegion, state.ProviderRegion)
-
-	if !plan.Notes.Equal(state.Notes) && !plan.Notes.IsUnknown() {
-		if plan.Notes.IsNull() {
-			parts = append(parts, fmt.Sprintf("%s ''", utils.FlagNotes))
-		} else {
-			parts = append(parts, fmt.Sprintf("%s '%s'", utils.FlagNotes, plan.Notes.ValueString()))
-		}
-	}
-
-	return strings.Join(parts, " ")
 }

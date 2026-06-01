@@ -5,12 +5,13 @@ package pamuser
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"strings"
 
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/api"
+	commonpamrecords "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/pam_records"
+	commonpamuser "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/pam_records/pam_user"
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/utils"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 )
@@ -30,7 +31,7 @@ func (r *PamUserResource) Read(ctx context.Context, req resource.ReadRequest, re
 
 	id := strings.TrimSpace(state.Id.ValueString())
 	if id == "" {
-		resp.Diagnostics.AddError(ErrSummaryReadFailed, "PAM User record id is empty")
+		resp.Diagnostics.AddError(commonpamuser.ErrSummaryReadFailed, "PAM User record id is empty")
 		return
 	}
 
@@ -39,15 +40,13 @@ func (r *PamUserResource) Read(ctx context.Context, req resource.ReadRequest, re
 		return
 	}
 
-	// Phase 1: read the vault record.
-	command := fmt.Sprintf("%s '%s' %s", utils.CmdGet, id, utils.FlagFormatJSON)
-	apiResp, err := r.ApiManager.ExecuteCommand(ctx, command, ErrDetailReadFailed)
+	apiResp, err := commonpamrecords.FetchVaultRecord(ctx, r.ApiManager, id)
 	if err != nil {
 		if errors.Is(err, api.ErrResourceNotFound) {
 			resp.State.RemoveResource(ctx)
 			return
 		}
-		resp.Diagnostics.AddError(ErrSummaryReadFailed, err.Error())
+		resp.Diagnostics.AddError(commonpamuser.ErrSummaryReadFailed, err.Error())
 		return
 	}
 
@@ -58,47 +57,28 @@ func (r *PamUserResource) Read(ctx context.Context, req resource.ReadRequest, re
 
 	var rec utils.VaultRecordGetResponse
 	if err := utils.UnmarshalApiResponse(apiResp.Data, &rec); err != nil {
-		resp.Diagnostics.AddError(ErrSummaryReadFailed, err.Error())
+		resp.Diagnostics.AddError(commonpamuser.ErrSummaryReadFailed, err.Error())
 		return
 	}
 
 	if rec.Type != "" && rec.Type != utils.RecordTypePamUser {
 		resp.Diagnostics.AddError(
-			ErrSummaryReadFailed,
+			commonpamuser.ErrSummaryReadFailed,
 			fmt.Sprintf("vault record type is %q, expected %q", rec.Type, utils.RecordTypePamUser),
 		)
 		return
 	}
 
-	mapVaultRecordToState(&rec, &state)
+	commonpamuser.MapVaultRecordToState(&rec, &state)
 
-	// Phase 2: always read rotation info — needed for import to auto-discover rotation state.
-	rotCmd := fmt.Sprintf("%s %s '%s'", CmdPamRotationInfo, FlagRecordShort, id)
-	rotResp, err2 := r.ApiManager.ExecuteCommand(ctx, rotCmd, ErrDetailRotationInfoFailed)
+	rotCmd := fmt.Sprintf("%s %s '%s'", commonpamuser.CmdPamRotationInfo, commonpamuser.FlagRecordShort, id)
+	rotResp, err2 := r.ApiManager.ExecuteCommand(ctx, rotCmd, commonpamuser.ErrDetailRotationInfoFailed)
 	if err2 == nil && rotResp != nil {
-		messages := parseFlexibleMessageToLines(rotResp.Message.String())
-		if hasRotationData(messages) {
-			parseRotationInfoMessage(messages, state.RotationSettings, &state)
+		messages := commonpamuser.ParseFlexibleMessageToLines(rotResp.Message.String())
+		if commonpamuser.HasRotationData(messages) {
+			commonpamuser.ParseRotationInfoMessage(messages, state.RotationSettings, &state)
 		}
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
-}
-
-// parseFlexibleMessageToLines converts the FlexibleMessage string (may be a JSON array or plain string)
-// into individual lines for parsing.
-func parseFlexibleMessageToLines(raw string) []string {
-	raw = strings.TrimSpace(raw)
-	if raw == "" {
-		return nil
-	}
-
-	// FlexibleMessage serializes arrays as JSON strings — try to unmarshal as []string first.
-	var arr []string
-	if err := json.Unmarshal([]byte(raw), &arr); err == nil {
-		return arr
-	}
-
-	// Fallback: split on newlines for plain text.
-	return strings.Split(raw, "\n")
 }

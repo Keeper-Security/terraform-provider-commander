@@ -35,7 +35,7 @@ data "commander_pam_user" "mysql_app_account" {
 ###############################################################################
 
 # data "commander_pam_user" "from_managed_resource" {
-#   record_uid = commander_pam_user.mysql_app_account.id
+#   record_uid = commander_classic_pam_user.mysql_app_account.id
 # }
 
 ###############################################################################

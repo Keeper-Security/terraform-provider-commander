@@ -5,11 +5,10 @@ package pamdatabase
 
 import (
 	"context"
-	"fmt"
 	"strings"
 
-	commonpamrecords "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/classic_records/pam_records"
-	commonpamdatabase "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/classic_records/pam_records/pam_database"
+	commonpamrecords "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/pam_records"
+	commonpamdatabase "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/pam_records/pam_database"
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/utils"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 )
@@ -54,8 +53,8 @@ func (r *PamDatabaseResource) Update(ctx context.Context, req resource.UpdateReq
 		return
 	}
 
-	if recordUpdateHasMutations(plan, state) {
-		cmd := buildUpdatePamDatabaseRecordCommand(recordUID, plan, state)
+	if commonpamdatabase.RecordUpdateHasMutations(plan, state) {
+		cmd := commonpamdatabase.BuildUpdateCommand(utils.CmdRecordUpdate, recordUID, plan, state)
 		if _, err := r.ApiManager.ExecuteCommand(ctx, cmd, ErrDetailPamDatabaseRecordUpdateFailed); err != nil {
 			resp.Diagnostics.AddError(ErrSummaryPamDatabaseRecordUpdateFailed, err.Error())
 			return
@@ -70,39 +69,4 @@ func (r *PamDatabaseResource) Update(ctx context.Context, req resource.UpdateReq
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
-}
-
-func buildUpdatePamDatabaseRecordCommand(recordUID string, plan, state commonpamdatabase.PamDatabaseResourceModel) string {
-	parts := []string{
-		utils.CmdRecordUpdate,
-		fmt.Sprintf("%s '%s'", utils.FlagRecord, recordUID),
-	}
-
-	if !plan.Title.Equal(state.Title) {
-		parts = append(parts, fmt.Sprintf("%s '%s'", utils.FlagTitle, plan.Title.ValueString()))
-	}
-
-	if !commonpamrecords.HostnameOrIPEqual(plan.HostnameOrIP, state.HostnameOrIP) {
-		commonpamrecords.AppendHostnameOrIPField(&parts, plan.HostnameOrIP)
-	}
-
-	commonpamrecords.AppendChangedCheckboxField(&parts, FlagUseSSL, plan.UseSSL, state.UseSSL)
-	commonpamrecords.AppendChangedTextField(&parts, FlagDatabaseId, plan.DatabaseId, state.DatabaseId)
-
-	if !plan.DatabaseType.Equal(state.DatabaseType) {
-		appendOptionalDatabaseTypeField(&parts, plan.DatabaseType)
-	}
-
-	commonpamrecords.AppendChangedTextField(&parts, FlagProviderGroup, plan.ProviderGroup, state.ProviderGroup)
-	commonpamrecords.AppendChangedTextField(&parts, FlagProviderRegion, plan.ProviderRegion, state.ProviderRegion)
-
-	if !plan.Notes.Equal(state.Notes) && !plan.Notes.IsUnknown() {
-		if plan.Notes.IsNull() {
-			parts = append(parts, fmt.Sprintf("%s ''", utils.FlagNotes))
-		} else {
-			parts = append(parts, fmt.Sprintf("%s '%s'", utils.FlagNotes, plan.Notes.ValueString()))
-		}
-	}
-
-	return strings.Join(parts, " ")
 }

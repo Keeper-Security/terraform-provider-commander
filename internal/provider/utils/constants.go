@@ -13,6 +13,8 @@ const (
 	CmdPamTunnelEdit     = "pam tunnel edit"
 	CmdPamConnectionEdit = "pam connection edit"
 	CmdNsfGet            = "nsf-get"
+	CmdNsfRecordAdd      = "nsf-record-add"
+	CmdNsfRecordUpdate   = "nsf-record-update"
 )
 
 // Commander CLI command flags.

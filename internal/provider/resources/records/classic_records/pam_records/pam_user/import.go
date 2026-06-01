@@ -22,19 +22,8 @@ func (r *PamUserResource) ImportState(ctx context.Context, req resource.ImportSt
 		return
 	}
 
-	state := PamUserResourceModel{
-		Id:                types.StringValue(importID),
-		Title:             types.StringNull(),
-		Login:             types.StringNull(),
-		Password:          types.StringNull(),
-		Folder:            types.StringNull(),
-		Notes:             types.StringNull(),
-		DistinguishedName: types.StringNull(),
-		PrivatePEMKey:     types.StringNull(),
-		ConnectDatabase:   types.StringNull(),
-		Managed:           types.BoolNull(),
-		RotationSettings:  nil,
-	}
+	state := PamUserResourceModel{}
+	state.Id = types.StringValue(importID)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
 }

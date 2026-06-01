@@ -4,7 +4,7 @@
 package pamdatabase
 
 import (
-	commonpamdatabase "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/classic_records/pam_records/pam_database"
+	commonpamdatabase "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/pam_records/pam_database"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 

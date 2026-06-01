@@ -4,17 +4,6 @@
 package pamdirectory
 
 const (
-	FlagUseSSL         = "f.checkbox.useSSL"
-	FlagDomainName     = "f.text.domainName"
-	FlagAlternativeIPs = "f.multiline.alternativeIPs"
-	FlagDirectoryId    = "f.text.directoryId"
-	FlagDirectoryType  = "directoryType"
-	FlagUserMatch      = "f.text.userMatch"
-	FlagProviderGroup  = "f.text.providerGroup"
-	FlagProviderRegion = "f.text.providerRegion"
-)
-
-const (
 	ErrSummaryAddPamDirectoryRecordFailed    = "Failed to add PAM directory record"
 	ErrSummaryPamDirectoryRecordUpdateFailed = "Failed to update PAM directory record"
 	ErrSummaryPamDirectoryReadFailed         = "Failed to read PAM directory record"

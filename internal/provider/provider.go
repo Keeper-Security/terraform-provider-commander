@@ -46,6 +46,11 @@ import (
 	pammachine "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/records/classic_records/pam_records/pam_machine"
 	pamremotebrowser "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/records/classic_records/pam_records/pam_remote_browser"
 	pamuser "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/records/classic_records/pam_records/pam_user"
+	newpamdatabase "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/records/new_records/pam_records/pam_database"
+	newpamdirectory "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/records/new_records/pam_records/pam_directory"
+	newpammachine "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/records/new_records/pam_records/pam_machine"
+	newpamremotebrowser "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/records/new_records/pam_records/pam_remote_browser"
+	newpamuser "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/records/new_records/pam_records/pam_user"
 	secretsmanager "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/secrets_manager"
 	"github.com/hashicorp/terraform-plugin-framework/action"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
@@ -205,6 +210,11 @@ func (p *CommanderProvider) Resources(ctx context.Context) []func() resource.Res
 		pamdatabase.NewPamDatabaseResource,
 		pamdirectory.NewPamDirectoryResource,
 		pammachine.NewPamMachineResource,
+		newpamdatabase.NewPamDatabaseResource,
+		newpamdirectory.NewPamDirectoryResource,
+		newpammachine.NewPamMachineResource,
+		newpamremotebrowser.NewPamRemoteBrowserResource,
+		newpamuser.NewPamUserResource,
 		classicsharedfolder.NewClassicSharedFolderResource,
 		newfolder.NewNewFolderResource,
 		secretsmanager.NewSecretsManagerAppResource,
