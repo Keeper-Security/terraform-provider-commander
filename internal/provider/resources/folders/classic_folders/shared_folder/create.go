@@ -41,12 +41,7 @@ func (r *ClassicSharedFolderResource) Create(ctx context.Context, req resource.C
 	}
 
 	// Phase 1: create classic shared folder with name, folder_location, user_permissions, record_permissions
-	command, err := buildCreateSharedFolderCommand(&data)
-	if err != nil {
-		resp.Diagnostics.AddError(folderutils.ErrSummaryInvalidConfig, err.Error())
-		return
-	}
-
+	command := buildCreateSharedFolderCommand(&data)
 	apiResp, err := r.ApiManager.ExecuteCommand(ctx, command, folderutils.ErrOpCreate)
 	if err != nil {
 		resp.Diagnostics.AddError(folderutils.ErrSummaryCreateFailed, err.Error())
@@ -75,7 +70,7 @@ func (r *ClassicSharedFolderResource) Create(ctx context.Context, req resource.C
 
 // buildMkdirCommand builds the "mkdir --shared-folder" command and the folder path used as NAME.
 // Folder path: if folder_location is set, "folder_location/name", otherwise "name".
-func buildCreateSharedFolderCommand(data *SharedFolderResourceModel) (command string, err error) {
+func buildCreateSharedFolderCommand(data *SharedFolderResourceModel) (command string) {
 	name := data.Name.ValueString()
 
 	// Build the folder path: if folder_location is set, "folder_location/name", otherwise "name".
@@ -85,7 +80,7 @@ func buildCreateSharedFolderCommand(data *SharedFolderResourceModel) (command st
 	parts = append(parts, DefaultPermissionFlagsForMkdir(permFlags)...)
 
 	command = strings.Join(parts, " ")
-	return command, nil
+	return command
 }
 
 // DefaultPermissionFlagsForMkdir returns flag names only for true values (for mkdir --manage-users etc.).
