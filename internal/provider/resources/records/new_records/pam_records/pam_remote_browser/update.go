@@ -65,7 +65,7 @@ func (r *PamRemoteBrowserResource) Update(ctx context.Context, req resource.Upda
 		}
 	}
 
-	if err := new_share.SyncSharePermissions(ctx, r.ApiManager, new_share.CmdShareRecord, recordUID, plan.Share, state.Share); err != nil {
+	if err := new_share.SyncSharePermissions(ctx, r.ApiManager, new_share.CmdNsfShareRecord, recordUID, plan.Share, state.Share); err != nil {
 		resp.Diagnostics.AddError(ErrSummaryPamRemoteBrowserRecordUpdateFailed, err.Error())
 		return
 	}

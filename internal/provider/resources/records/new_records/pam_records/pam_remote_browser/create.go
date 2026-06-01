@@ -54,7 +54,7 @@ func (r *PamRemoteBrowserResource) Create(ctx context.Context, req resource.Crea
 		}
 	}
 
-	if err := new_share.SyncSharePermissions(ctx, r.ApiManager, new_share.CmdShareRecord, createdRecordUID, data.Share, types.MapNull(new_share.ShareEntryAttrType)); err != nil {
+	if err := new_share.SyncSharePermissions(ctx, r.ApiManager, new_share.CmdNsfShareRecord, createdRecordUID, data.Share, types.MapNull(new_share.ShareEntryAttrType)); err != nil {
 		resp.Diagnostics.AddError(ErrSummaryAddPamRemoteBrowserRecordFailed, err.Error())
 		return
 	}

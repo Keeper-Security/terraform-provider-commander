@@ -69,7 +69,7 @@ func (r *PamDirectoryResource) Update(ctx context.Context, req resource.UpdateRe
 		}
 	}
 
-	if err := new_share.SyncSharePermissions(ctx, r.ApiManager, new_share.CmdShareRecord, recordUID, plan.Share, state.Share); err != nil {
+	if err := new_share.SyncSharePermissions(ctx, r.ApiManager, new_share.CmdNsfShareRecord, recordUID, plan.Share, state.Share); err != nil {
 		resp.Diagnostics.AddError(ErrSummaryPamDirectoryRecordUpdateFailed, err.Error())
 		return
 	}
