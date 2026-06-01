@@ -52,7 +52,7 @@ func TestSyncSharePermissions_EmptyIdReturnsError(t *testing.T) {
 	plan := stringMap(t, map[string]string{"a@x.com": "viewer"})
 	state := types.MapNull(types.StringType)
 
-	err := new_share.SyncSharePermissions(context.Background(), am, new_share.CmdShareFolder, "", plan, state)
+	err := new_share.SyncSharePermissions(context.Background(), am, new_share.CmdNsfShareFolder, "", plan, state)
 	if err == nil {
 		t.Fatal("expected error for empty id")
 	}
@@ -73,7 +73,7 @@ func TestSyncSharePermissions_GrantsAllOnInitialCreate(t *testing.T) {
 	})
 	state := types.MapNull(types.StringType)
 
-	if err := new_share.SyncSharePermissions(context.Background(), am, new_share.CmdShareFolder, "FID", plan, state); err != nil {
+	if err := new_share.SyncSharePermissions(context.Background(), am, new_share.CmdNsfShareFolder, "FID", plan, state); err != nil {
 		t.Fatalf("SyncSharePermissions: %v", err)
 	}
 	if got, want := mock.CommandCount(), 2; got != want {
@@ -104,7 +104,7 @@ func TestSyncSharePermissions_RevokesRemovedAndGrantsChanged(t *testing.T) {
 		"d@x.com": "content-manager",
 	})
 
-	if err := new_share.SyncSharePermissions(context.Background(), am, new_share.CmdShareRecord, "REC1", plan, state); err != nil {
+	if err := new_share.SyncSharePermissions(context.Background(), am, new_share.CmdNsfShareRecord, "REC1", plan, state); err != nil {
 		t.Fatalf("SyncSharePermissions: %v", err)
 	}
 
@@ -114,7 +114,7 @@ func TestSyncSharePermissions_RevokesRemovedAndGrantsChanged(t *testing.T) {
 	}
 
 	sort.Strings(seen)
-	mustContain(t, seen, `nsf-share-record "REC1" --email='c@x.com' --action=revoke`)
+	mustContain(t, seen, `nsf-share-record "REC1" --email='c@x.com' --action=remove`)
 	mustContain(t, seen, `nsf-share-record "REC1" --email='b@x.com' --action=grant --role='full-manager'`)
 	mustContain(t, seen, `nsf-share-record "REC1" --email='d@x.com' --action=grant --role='content-manager'`)
 
@@ -137,7 +137,7 @@ func TestSyncSharePermissions_NullPlanRevokesAll(t *testing.T) {
 	})
 	plan := types.MapNull(types.StringType)
 
-	if err := new_share.SyncSharePermissions(context.Background(), am, new_share.CmdShareFolder, "F1", plan, state); err != nil {
+	if err := new_share.SyncSharePermissions(context.Background(), am, new_share.CmdNsfShareFolder, "F1", plan, state); err != nil {
 		t.Fatalf("SyncSharePermissions: %v", err)
 	}
 	if got, want := mock.CommandCount(), 2; got != want {
@@ -154,7 +154,7 @@ func TestSyncSharePermissions_GrantErrorAborts(t *testing.T) {
 	plan := stringMap(t, map[string]string{"a@x.com": "viewer"})
 	state := types.MapNull(types.StringType)
 
-	if err := new_share.SyncSharePermissions(context.Background(), am, new_share.CmdShareFolder, "F1", plan, state); err == nil {
+	if err := new_share.SyncSharePermissions(context.Background(), am, new_share.CmdNsfShareFolder, "F1", plan, state); err == nil {
 		t.Error("expected error when grant API call fails")
 	}
 }

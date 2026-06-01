@@ -34,6 +34,12 @@ func (r *NewFolderResource) Update(ctx context.Context, req resource.UpdateReque
 		return
 	}
 
+	// Throw error if user tries to change the folder location as it is not supported
+	if !plan.FolderLocation.Equal(state.FolderLocation) {
+		resp.Diagnostics.AddError(commonfolderutils.ErrSummaryInvalidConfig, ErrSummaryMoveNotSupported)
+		return
+	}
+
 	if err := utils.SyncDown(ctx, r.ApiManager); err != nil {
 		resp.Diagnostics.AddError(utils.ErrSummarySyncDownFailed, err.Error())
 		return
@@ -49,7 +55,8 @@ func (r *NewFolderResource) Update(ctx context.Context, req resource.UpdateReque
 		}
 	}
 
-	if err := new_share.SyncSharePermissions(ctx, r.ApiManager, new_share.CmdShareFolder, plan.Id.ValueString(), plan.Share, state.Share); err != nil {
+	// Sync the share permissions - share the folder to the users in the share block.
+	if err := new_share.SyncSharePermissions(ctx, r.ApiManager, new_share.CmdNsfShareFolder, plan.Id.ValueString(), plan.Share, state.Share); err != nil {
 		resp.Diagnostics.AddError(commonfolderutils.ErrSummaryUpdateFailed, err.Error())
 		return
 	}

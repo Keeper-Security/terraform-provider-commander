@@ -17,7 +17,7 @@ import (
 //
 //	<command> "<id>" --email=<email> --action=grant --role=<role>
 //
-// command is one of CmdShareFolder / CmdShareRecord. id is the folder UID or
+// command is one of CmdNsfShareFolder / CmdNsfShareRecord. id is the folder UID or
 // record UID. email and role are passed through; callers are expected to have
 // already validated them via the schema validators.
 func BuildGrantCommand(command, id, email, role string) string {
@@ -32,14 +32,27 @@ func BuildGrantCommand(command, id, email, role string) string {
 
 // BuildRevokeCommand builds the CLI command for revoking a share:
 //
-//	<command> "<id>" --email=<email> --action=revoke
+//	<command> "<id>" --email=<email> --action=<revoke|remove>
+//
+// The --action value is derived from command: nsf-share-folder uses
+// ActionRemove, nsf-share-record uses ActionRevoke.
 func BuildRevokeCommand(command, id, email string) string {
 	return fmt.Sprintf(`%s "%s" %s=%s %s=%s`,
 		command,
 		escapeDoubleQuotes(id),
 		FlagEmail, quote(email),
-		FlagAction, ActionRevoke,
+		FlagAction, revokeActionFor(command),
 	)
+}
+
+// revokeActionFor returns the --action value used to remove a user from a
+// share. Folders accept "remove"; records accept "revoke". Unknown commands
+// fall back to ActionRevoke for forward compatibility.
+func revokeActionFor(command string) string {
+	if command == CmdNsfShareFolder {
+		return ActionRemove
+	}
+	return ActionRevoke
 }
 
 // SyncSharePermissions reconciles plan vs state for the `share` attribute
@@ -50,7 +63,7 @@ func BuildRevokeCommand(command, id, email string) string {
 //   - emails in both, role changed -> grant (CLI treats grant as upsert)
 //   - emails in both, role unchanged -> skip (no API call)
 //
-// command is CmdShareFolder for folder resources or CmdShareRecord for record
+// command is CmdNsfShareFolder for folder resources or CmdNsfShareRecord for record
 // resources. id is the folder/record UID. If planShare or stateShare is null
 // or unknown it is treated as an empty map.
 //
