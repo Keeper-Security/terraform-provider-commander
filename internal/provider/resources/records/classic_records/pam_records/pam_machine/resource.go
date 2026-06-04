@@ -7,7 +7,6 @@ import (
 	"context"
 
 	commonpamrecords "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/pam_records"
-	commonpammachine "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/pam_records/pam_machine"
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/utils"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 )
@@ -33,8 +32,8 @@ func (r *PamMachineResource) ModifyPlan(ctx context.Context, req resource.Modify
 		return
 	}
 
-	var plan commonpammachine.PamMachineResourceModel
-	var state commonpammachine.PamMachineResourceModel
+	var plan PamMachineResourceModel
+	var state PamMachineResourceModel
 
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 	if resp.Diagnostics.HasError() {

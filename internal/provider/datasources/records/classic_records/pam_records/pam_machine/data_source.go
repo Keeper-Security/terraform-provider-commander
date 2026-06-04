@@ -19,7 +19,7 @@ type PamMachineDataSource struct {
 }
 
 func (d *PamMachineDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_pam_machine"
+	resp.TypeName = req.ProviderTypeName + "_classic_pam_machine"
 }
 
 func (d *PamMachineDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {

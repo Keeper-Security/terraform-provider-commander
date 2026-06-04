@@ -41,6 +41,22 @@ resource "commander_classic_pam_user" "mysql_app_account" {
   private_pem_key    = "_REPLACE_WITH_PEM_KEY_OR_USE_file()_"
   connect_database   = "billing_prod"
   managed            = true
+
+  # ----------------------------------------------------------------
+  # Per-user share permissions (optional).
+  # Map key = user email. Each value is { can_share, can_edit }.
+  # Both flags default to false (view-only).
+  # Omit the block entirely to skip share reconciliation.
+  # ----------------------------------------------------------------
+  share = {
+    "alice@example.com" = {
+      can_share = true
+      can_edit  = true
+    }
+    "bob@example.com" = {
+      can_edit = true
+    }
+  }
 }
 
 ###############################################################################

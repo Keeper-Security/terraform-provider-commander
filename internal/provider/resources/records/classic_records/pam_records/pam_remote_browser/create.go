@@ -7,6 +7,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/classic_share"
 	commonpamremotebrowser "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/pam_records/pam_remote_browser"
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/utils"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -14,7 +15,7 @@ import (
 )
 
 func (r *PamRemoteBrowserResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	var data commonpamremotebrowser.PamRemoteBrowserResourceModel
+	var data PamRemoteBrowserResourceModel
 
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
 	if resp.Diagnostics.HasError() {
@@ -31,7 +32,7 @@ func (r *PamRemoteBrowserResource) Create(ctx context.Context, req resource.Crea
 		return
 	}
 
-	command := commonpamremotebrowser.BuildAddCommand(utils.CmdRecordAdd, data)
+	command := commonpamremotebrowser.BuildAddCommand(utils.CmdRecordAdd, data.PamRemoteBrowserResourceModel)
 	apiResp, err := r.ApiManager.ExecuteCommand(ctx, command, ErrDetailAddPamRemoteBrowserRecordFailed)
 	if err != nil {
 		resp.Diagnostics.AddError(ErrSummaryAddPamRemoteBrowserRecordFailed, err.Error())
@@ -51,6 +52,11 @@ func (r *PamRemoteBrowserResource) Create(ctx context.Context, req resource.Crea
 			resp.Diagnostics.AddError(ErrSummaryPamRbiEditFailed, err.Error())
 			return
 		}
+	}
+
+	if err := classic_share.SyncSharePermissions(ctx, r.ApiManager, createdRecordUID, data.Share, types.MapNull(classic_share.ShareEntryAttrType)); err != nil {
+		resp.Diagnostics.AddError(ErrSummaryAddPamRemoteBrowserRecordFailed, err.Error())
+		return
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)

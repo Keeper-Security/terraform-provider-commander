@@ -36,6 +36,18 @@ resource "commander_classic_pam_directory" "active_directory" {
   provider_region = "us-east-1"
   notes           = "Primary domain controller for corp.example.com"
   folder          = "_REPLACE_WITH_SHARED_FOLDER_UID_"
+
+  # ----------------------------------------------------------------
+  # Per-user share permissions (optional).
+  # Map key = user email. Each value is { can_share, can_edit }.
+  # Both flags default to false (view-only).
+  # ----------------------------------------------------------------
+  share = {
+    "alice@example.com" = {
+      can_share = true
+      can_edit  = true
+    }
+  }
 }
 
 # ------------------------------------------------------------------

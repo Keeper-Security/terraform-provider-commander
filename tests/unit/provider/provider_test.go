@@ -62,8 +62,8 @@ func TestCommanderProvider_Resources(t *testing.T) {
 func TestCommanderProvider_DataSources(t *testing.T) {
 	p := commander.New("test")()
 	dataSources := p.DataSources(context.Background())
-	if len(dataSources) != 17 {
-		t.Errorf("expected 17 data sources, got %d", len(dataSources))
+	if len(dataSources) != 22 {
+		t.Errorf("expected 22 data sources, got %d", len(dataSources))
 	}
 	for i, factory := range dataSources {
 		ds := factory()

@@ -7,6 +7,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/classic_share"
 	commonpamrecords "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/pam_records"
 	commonpammachine "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/pam_records/pam_machine"
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/utils"
@@ -15,7 +16,7 @@ import (
 )
 
 func (r *PamMachineResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	var data commonpammachine.PamMachineResourceModel
+	var data PamMachineResourceModel
 
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
 	if resp.Diagnostics.HasError() {
@@ -32,7 +33,7 @@ func (r *PamMachineResource) Create(ctx context.Context, req resource.CreateRequ
 		return
 	}
 
-	command := commonpammachine.BuildAddCommand(utils.CmdRecordAdd, data)
+	command := commonpammachine.BuildAddCommand(utils.CmdRecordAdd, data.PamMachineResourceModel)
 	apiResp, err := r.ApiManager.ExecuteCommand(ctx, command, ErrDetailAddPamMachineRecordFailed)
 	if err != nil {
 		resp.Diagnostics.AddError(ErrSummaryAddPamMachineRecordFailed, err.Error())
@@ -51,6 +52,11 @@ func (r *PamMachineResource) Create(ctx context.Context, req resource.CreateRequ
 			resp.Diagnostics.AddError(utils.ErrSummaryApplyPamTunnelSettingsFailed, err.Error())
 			return
 		}
+	}
+
+	if err := classic_share.SyncSharePermissions(ctx, r.ApiManager, createdRecordUID, data.Share, types.MapNull(classic_share.ShareEntryAttrType)); err != nil {
+		resp.Diagnostics.AddError(ErrSummaryAddPamMachineRecordFailed, err.Error())
+		return
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)

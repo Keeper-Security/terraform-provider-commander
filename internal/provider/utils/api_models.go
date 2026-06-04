@@ -329,11 +329,24 @@ type VaultRecordGetResponse struct {
 }
 
 // UserPermissionEntry is one element of the API response's user_permissions
-// array, present on shared records and folders returned by `get` / `nsf-get`.
-// new_share.UserPermissionEntry aliases this type.
+// array. The same JSON array key (`user_permissions`) is returned in two
+// different shapes depending on the record style:
+//
+//   - NSF (nsf-get / nsf-share-*) entries carry {accessor, role}; consumed
+//     by new_share.MapResponseToModel.
+//   - Classic (get / share-record) entries carry {username, shareable,
+//     editable}; consumed by classic_share.MapResponseToModel.
+//
+// All fields use `omitempty` so each helper sees zero values for the
+// irrelevant shape and naturally filters them out.
+// new_share.UserPermissionEntry and classic_share.UserPermissionEntry both
+// alias this type.
 type UserPermissionEntry struct {
-	Accessor string `json:"accessor"`
-	Role     string `json:"role"`
+	Accessor  string `json:"accessor,omitempty"`
+	Role      string `json:"role,omitempty"`
+	Username  string `json:"username,omitempty"`
+	Shareable bool   `json:"shareable,omitempty"`
+	Editable  bool   `json:"editable,omitempty"`
 }
 
 // ConfigurationAllowedSettingsResponse maps the configuration_allowed_settings object from the API response.

@@ -7,6 +7,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/classic_share"
 	commonpamrecords "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/pam_records"
 	commonpamdirectory "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/pam_records/pam_directory"
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/utils"
@@ -15,7 +16,7 @@ import (
 )
 
 func (r *PamDirectoryResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	var data commonpamdirectory.PamDirectoryResourceModel
+	var data PamDirectoryResourceModel
 
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
 	if resp.Diagnostics.HasError() {
@@ -32,7 +33,7 @@ func (r *PamDirectoryResource) Create(ctx context.Context, req resource.CreateRe
 		return
 	}
 
-	command := commonpamdirectory.BuildAddCommand(utils.CmdRecordAdd, data)
+	command := commonpamdirectory.BuildAddCommand(utils.CmdRecordAdd, data.PamDirectoryResourceModel)
 	apiResp, err := r.ApiManager.ExecuteCommand(ctx, command, ErrDetailAddPamDirectoryRecordFailed)
 	if err != nil {
 		resp.Diagnostics.AddError(ErrSummaryAddPamDirectoryRecordFailed, err.Error())
@@ -51,6 +52,11 @@ func (r *PamDirectoryResource) Create(ctx context.Context, req resource.CreateRe
 			resp.Diagnostics.AddError(utils.ErrSummaryApplyPamTunnelSettingsFailed, err.Error())
 			return
 		}
+	}
+
+	if err := classic_share.SyncSharePermissions(ctx, r.ApiManager, createdRecordUID, data.Share, types.MapNull(classic_share.ShareEntryAttrType)); err != nil {
+		resp.Diagnostics.AddError(ErrSummaryAddPamDirectoryRecordFailed, err.Error())
+		return
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)

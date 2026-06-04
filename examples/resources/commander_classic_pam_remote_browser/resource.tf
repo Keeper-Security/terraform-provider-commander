@@ -38,4 +38,16 @@ resource "commander_classic_pam_remote_browser" "intranet_app" {
     audio_bit_depth   = 16
     audio_sample_rate = 48000
   }
+
+  # ----------------------------------------------------------------
+  # Per-user share permissions (optional).
+  # Map key = user email. Each value is { can_share, can_edit }.
+  # Both flags default to false (view-only).
+  # ----------------------------------------------------------------
+  share = {
+    "alice@example.com" = {
+      can_share = true
+      can_edit  = true
+    }
+  }
 }

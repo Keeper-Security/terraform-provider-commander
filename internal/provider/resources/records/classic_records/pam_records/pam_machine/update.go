@@ -7,6 +7,7 @@ import (
 	"context"
 	"strings"
 
+	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/classic_share"
 	commonpamrecords "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/pam_records"
 	commonpammachine "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/pam_records/pam_machine"
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/utils"
@@ -14,8 +15,8 @@ import (
 )
 
 func (r *PamMachineResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var plan commonpammachine.PamMachineResourceModel
-	var state commonpammachine.PamMachineResourceModel
+	var plan PamMachineResourceModel
+	var state PamMachineResourceModel
 
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 	if resp.Diagnostics.HasError() {
@@ -53,8 +54,8 @@ func (r *PamMachineResource) Update(ctx context.Context, req resource.UpdateRequ
 		return
 	}
 
-	if commonpammachine.RecordUpdateHasMutations(plan, state) {
-		cmd := commonpammachine.BuildUpdateCommand(utils.CmdRecordUpdate, recordUID, plan, state)
+	if commonpammachine.RecordUpdateHasMutations(plan.PamMachineResourceModel, state.PamMachineResourceModel) {
+		cmd := commonpammachine.BuildUpdateCommand(utils.CmdRecordUpdate, recordUID, plan.PamMachineResourceModel, state.PamMachineResourceModel)
 		if _, err := r.ApiManager.ExecuteCommand(ctx, cmd, ErrDetailPamMachineRecordUpdateFailed); err != nil {
 			resp.Diagnostics.AddError(ErrSummaryPamMachineRecordUpdateFailed, err.Error())
 			return
@@ -66,6 +67,11 @@ func (r *PamMachineResource) Update(ctx context.Context, req resource.UpdateRequ
 			resp.Diagnostics.AddError(utils.ErrSummaryApplyPamSettingsFailed, err.Error())
 			return
 		}
+	}
+
+	if err := classic_share.SyncSharePermissions(ctx, r.ApiManager, recordUID, plan.Share, state.Share); err != nil {
+		resp.Diagnostics.AddError(ErrSummaryPamMachineRecordUpdateFailed, err.Error())
+		return
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)

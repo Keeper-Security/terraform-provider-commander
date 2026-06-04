@@ -30,6 +30,22 @@ resource "commander_classic_pam_database" "full_fields" {
   provider_region = "us-east-1"
   notes           = "Primary PostgreSQL database for production workloads."
   folder          = "_REPLACE_WITH_SHARED_FOLDER_UID_"
+
+  # ----------------------------------------------------------------
+  # Per-user share permissions (optional).
+  # Map key = user email. Each value is { can_share, can_edit }.
+  # Both flags default to false (view-only).
+  # Omit the block entirely to skip share reconciliation.
+  # ----------------------------------------------------------------
+  share = {
+    "alice@example.com" = {
+      can_share = true
+      can_edit  = true
+    }
+    "bob@example.com" = {
+      can_edit = true
+    }
+  }
 }
 
 # ------------------------------------------------------------------

@@ -37,6 +37,13 @@ var pamRemoteBrowserSettingsAttrTypes = map[string]tftypes.Type{
 	"audio_sample_rate":        tftypes.Number,
 }
 
+var shareElementAttrTypes = map[string]tftypes.Type{
+	"can_share": tftypes.Bool,
+	"can_edit":  tftypes.Bool,
+}
+
+var shareMapType = tftypes.Map{ElementType: tftypes.Object{AttributeTypes: shareElementAttrTypes}}
+
 var pamRemoteBrowserAttrTypes = map[string]tftypes.Type{
 	"id":     tftypes.String,
 	"title":  tftypes.String,
@@ -46,6 +53,7 @@ var pamRemoteBrowserAttrTypes = map[string]tftypes.Type{
 	"pam_remote_browser_settings": tftypes.Object{
 		AttributeTypes: pamRemoteBrowserSettingsAttrTypes,
 	},
+	"share": shareMapType,
 }
 
 func pamRemoteBrowserObjectType() tftypes.Object {
@@ -110,6 +118,7 @@ func newPlanStateValues(
 		"notes":                       tftypes.NewValue(tftypes.String, notes),
 		"folder":                      tftypes.NewValue(tftypes.String, folder),
 		"pam_remote_browser_settings": settingsVal,
+		"share":                       tftypes.NewValue(shareMapType, nil),
 	}
 }
 

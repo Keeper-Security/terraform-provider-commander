@@ -3,7 +3,10 @@
 
 package pamuser
 
-import "github.com/hashicorp/terraform-plugin-framework/types"
+import (
+	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/classic_share"
+	"github.com/hashicorp/terraform-plugin-framework/types"
+)
 
 type PamUserDataSourceModel struct {
 	RecordUID         types.String                       `tfsdk:"record_uid"`
@@ -18,6 +21,7 @@ type PamUserDataSourceModel struct {
 	ConnectDatabase   types.String                       `tfsdk:"connect_database"`
 	Managed           types.Bool                         `tfsdk:"managed"`
 	RotationSettings  *PamUserDataSourceRotationSettings `tfsdk:"rotation_settings"`
+	classic_share.ShareModel
 }
 
 type PamUserDataSourceRotationSettings struct {

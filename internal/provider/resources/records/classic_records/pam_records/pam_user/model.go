@@ -4,12 +4,17 @@
 package pamuser
 
 import (
+	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/classic_share"
 	commonpamuser "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/pam_records/pam_user"
 )
 
-// PamUserResourceModel is the classic PAM User resource model, aliased to the
-// shared model used by both classic and new PAM User resources.
-type PamUserResourceModel = commonpamuser.PamUserSharedModel
+// PamUserResourceModel is the classic PAM User resource state model: the
+// shared PAM User fields plus the `share` attribute reconciled via the
+// classic_share package and the `share-record` Commander CLI.
+type PamUserResourceModel struct {
+	commonpamuser.PamUserSharedModel
+	classic_share.ShareModel
+}
 
 // PamUserRotationSettings is aliased to the shared rotation settings model.
 type PamUserRotationSettings = commonpamuser.PamUserRotationSettings

@@ -7,6 +7,7 @@ import (
 	"context"
 	"strings"
 
+	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/classic_share"
 	commonpamrecords "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/pam_records"
 	commonpamremotebrowser "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/pam_records/pam_remote_browser"
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/utils"
@@ -24,15 +25,20 @@ func (r *PamRemoteBrowserResource) ImportState(ctx context.Context, req resource
 		return
 	}
 
-	state := commonpamremotebrowser.PamRemoteBrowserResourceModel{
-		CommonPamRecordsResourceModel: commonpamrecords.CommonPamRecordsResourceModel{
-			Id:     types.StringValue(importID),
-			Title:  types.StringNull(),
-			Notes:  types.StringNull(),
-			Folder: types.StringNull(),
+	state := PamRemoteBrowserResourceModel{
+		PamRemoteBrowserResourceModel: commonpamremotebrowser.PamRemoteBrowserResourceModel{
+			CommonPamRecordsResourceModel: commonpamrecords.CommonPamRecordsResourceModel{
+				Id:     types.StringValue(importID),
+				Title:  types.StringNull(),
+				Notes:  types.StringNull(),
+				Folder: types.StringNull(),
+			},
+			Url:                      types.StringNull(),
+			PamRemoteBrowserSettings: nil,
 		},
-		Url:                      types.StringNull(),
-		PamRemoteBrowserSettings: nil,
+		ShareModel: classic_share.ShareModel{
+			Share: types.MapNull(classic_share.ShareEntryAttrType),
+		},
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)

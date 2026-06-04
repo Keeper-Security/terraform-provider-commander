@@ -6,6 +6,8 @@ package pamdatabase
 import (
 	"context"
 
+	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/classic_share"
+	folderutils "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/folders/utils"
 	commonpamrecords "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/pam_records"
 	commonpamdatabase "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/pam_records/pam_database"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
@@ -14,9 +16,9 @@ import (
 
 func (d *PamDatabaseDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = dschema.Schema{
-		Description:         "Use this data source to look up a PAM database record by UID or name.",
-		MarkdownDescription: "Use this data source to look up a **PAM database** record by **UID** or **name**.",
-		Attributes: map[string]dschema.Attribute{
+		Description:         "Use this data source to look up a classic PAM database record by UID or name and read its per-user share permissions.",
+		MarkdownDescription: "Use this data source to look up a **classic PAM database** record by **UID** or **name** and read its **per-user share permissions**.",
+		Attributes: folderutils.MergeDataSourceAttributes(map[string]dschema.Attribute{
 			"pam_database": dschema.StringAttribute{
 				Required:            true,
 				Description:         "PAM database record UID or name to read.",
@@ -85,6 +87,6 @@ func (d *PamDatabaseDataSource) Schema(ctx context.Context, req datasource.Schem
 				MarkdownDescription: commonpamdatabase.FolderMarkdownDescription,
 			},
 			"pam_settings": commonpamrecords.CommonPamSettingsDataSourceAttribute(),
-		},
+		}, classic_share.DataSourceShareAttribute()),
 	}
 }

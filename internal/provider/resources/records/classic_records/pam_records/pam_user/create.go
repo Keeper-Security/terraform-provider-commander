@@ -7,6 +7,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/classic_share"
 	commonpamuser "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/pam_records/pam_user"
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/utils"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -31,7 +32,7 @@ func (r *PamUserResource) Create(ctx context.Context, req resource.CreateRequest
 		return
 	}
 
-	command := commonpamuser.BuildAddCommand(utils.CmdRecordAdd, data)
+	command := commonpamuser.BuildAddCommand(utils.CmdRecordAdd, data.PamUserSharedModel)
 	apiResp, err := r.ApiManager.ExecuteCommand(ctx, command, commonpamuser.ErrDetailCreateFailed)
 	if err != nil {
 		resp.Diagnostics.AddError(commonpamuser.ErrSummaryCreateFailed, err.Error())
@@ -67,6 +68,11 @@ func (r *PamUserResource) Create(ctx context.Context, req resource.CreateRequest
 			resp.Diagnostics.AddError(commonpamuser.ErrSummaryRotationEditFailed, err.Error())
 			return
 		}
+	}
+
+	if err := classic_share.SyncSharePermissions(ctx, r.ApiManager, createdRecordUID, data.Share, types.MapNull(classic_share.ShareEntryAttrType)); err != nil {
+		resp.Diagnostics.AddError(commonpamuser.ErrSummaryCreateFailed, err.Error())
+		return
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)

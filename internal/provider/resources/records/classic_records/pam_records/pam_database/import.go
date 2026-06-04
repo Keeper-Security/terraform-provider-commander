@@ -7,6 +7,7 @@ import (
 	"context"
 	"strings"
 
+	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/classic_share"
 	commonpamrecords "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/pam_records"
 	commonpamdatabase "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/pam_records/pam_database"
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/utils"
@@ -24,20 +25,25 @@ func (r *PamDatabaseResource) ImportState(ctx context.Context, req resource.Impo
 		return
 	}
 
-	state := commonpamdatabase.PamDatabaseResourceModel{
-		CommonPamRecordsResourceModel: commonpamrecords.CommonPamRecordsResourceModel{
-			Id:     types.StringValue(importID),
-			Title:  types.StringNull(),
-			Notes:  types.StringNull(),
-			Folder: types.StringNull(),
+	state := PamDatabaseResourceModel{
+		PamDatabaseResourceModel: commonpamdatabase.PamDatabaseResourceModel{
+			CommonPamRecordsResourceModel: commonpamrecords.CommonPamRecordsResourceModel{
+				Id:     types.StringValue(importID),
+				Title:  types.StringNull(),
+				Notes:  types.StringNull(),
+				Folder: types.StringNull(),
+			},
+			HostnameOrIP:   nil,
+			UseSSL:         types.BoolNull(),
+			DatabaseId:     types.StringNull(),
+			DatabaseType:   types.StringNull(),
+			ProviderGroup:  types.StringNull(),
+			ProviderRegion: types.StringNull(),
+			PamSettings:    nil,
 		},
-		HostnameOrIP:   nil,
-		UseSSL:         types.BoolNull(),
-		DatabaseId:     types.StringNull(),
-		DatabaseType:   types.StringNull(),
-		ProviderGroup:  types.StringNull(),
-		ProviderRegion: types.StringNull(),
-		PamSettings:    nil,
+		ShareModel: classic_share.ShareModel{
+			Share: types.MapNull(classic_share.ShareEntryAttrType),
+		},
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)

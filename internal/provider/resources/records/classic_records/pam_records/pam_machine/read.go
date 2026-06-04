@@ -10,6 +10,7 @@ import (
 	"strings"
 
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/api"
+	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/classic_share"
 	commonpamrecords "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/pam_records"
 	commonpammachine "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/pam_records/pam_machine"
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/utils"
@@ -17,7 +18,7 @@ import (
 )
 
 func (r *PamMachineResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-	var state commonpammachine.PamMachineResourceModel
+	var state PamMachineResourceModel
 
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
@@ -40,7 +41,6 @@ func (r *PamMachineResource) Read(ctx context.Context, req resource.ReadRequest,
 		return
 	}
 
-	// Fetch the vault record with DAG.
 	apiResp, err := commonpamrecords.FetchVaultRecord(ctx, r.ApiManager, id)
 	if err != nil {
 		if errors.Is(err, api.ErrResourceNotFound) {
@@ -56,7 +56,6 @@ func (r *PamMachineResource) Read(ctx context.Context, req resource.ReadRequest,
 		return
 	}
 
-	// Unmarshal the API response to the vault record model.
 	var rec utils.VaultRecordGetResponse
 	if err := utils.UnmarshalApiResponse(apiResp.Data, &rec); err != nil {
 		resp.Diagnostics.AddError(ErrSummaryPamMachineReadFailed, err.Error())
@@ -71,8 +70,13 @@ func (r *PamMachineResource) Read(ctx context.Context, req resource.ReadRequest,
 		return
 	}
 
-	resp.Diagnostics.Append(commonpammachine.MapVaultRecordGetResponseToPamMachineModel(&rec, &state)...)
+	resp.Diagnostics.Append(commonpammachine.MapVaultRecordGetResponseToPamMachineModel(&rec, &state.PamMachineResourceModel)...)
 	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	if err := classic_share.MapResponseToModel(rec.UserPermissions, &state.ShareModel); err != nil {
+		resp.Diagnostics.AddError(ErrSummaryPamMachineReadFailed, err.Error())
 		return
 	}
 

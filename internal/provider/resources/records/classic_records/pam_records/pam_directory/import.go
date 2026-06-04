@@ -7,6 +7,7 @@ import (
 	"context"
 	"strings"
 
+	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/classic_share"
 	commonpamrecords "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/pam_records"
 	commonpamdirectory "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/pam_records/pam_directory"
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/utils"
@@ -24,23 +25,28 @@ func (r *PamDirectoryResource) ImportState(ctx context.Context, req resource.Imp
 		return
 	}
 
-	state := commonpamdirectory.PamDirectoryResourceModel{
-		CommonPamRecordsResourceModel: commonpamrecords.CommonPamRecordsResourceModel{
-			Id:     types.StringValue(importID),
-			Title:  types.StringNull(),
-			Notes:  types.StringNull(),
-			Folder: types.StringNull(),
+	state := PamDirectoryResourceModel{
+		PamDirectoryResourceModel: commonpamdirectory.PamDirectoryResourceModel{
+			CommonPamRecordsResourceModel: commonpamrecords.CommonPamRecordsResourceModel{
+				Id:     types.StringValue(importID),
+				Title:  types.StringNull(),
+				Notes:  types.StringNull(),
+				Folder: types.StringNull(),
+			},
+			HostnameOrIP:   nil,
+			UseSSL:         types.BoolNull(),
+			DomainName:     types.StringNull(),
+			AlternativeIPs: types.SetNull(types.StringType),
+			DirectoryId:    types.StringNull(),
+			DirectoryType:  types.StringNull(),
+			UserMatch:      types.StringNull(),
+			ProviderGroup:  types.StringNull(),
+			ProviderRegion: types.StringNull(),
+			PamSettings:    nil,
 		},
-		HostnameOrIP:   nil,
-		UseSSL:         types.BoolNull(),
-		DomainName:     types.StringNull(),
-		AlternativeIPs: types.SetNull(types.StringType),
-		DirectoryId:    types.StringNull(),
-		DirectoryType:  types.StringNull(),
-		UserMatch:      types.StringNull(),
-		ProviderGroup:  types.StringNull(),
-		ProviderRegion: types.StringNull(),
-		PamSettings:    nil,
+		ShareModel: classic_share.ShareModel{
+			Share: types.MapNull(classic_share.ShareEntryAttrType),
+		},
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)

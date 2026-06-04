@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/classic_share"
 	commonpamrecords "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/pam_records"
 	commonpamuser "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/pam_records/pam_user"
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/utils"
@@ -67,6 +68,11 @@ func (d *PamUserDataSource) Read(ctx context.Context, req datasource.ReadRequest
 	}
 
 	mapVaultRecordToDataSource(&rec, &data)
+
+	if err := classic_share.MapResponseToModel(rec.UserPermissions, &data.ShareModel); err != nil {
+		resp.Diagnostics.AddError(ErrSummaryReadFailed, err.Error())
+		return
+	}
 
 	// Phase 2: fetch rotation info via `pam rotation info -r '<uid>'`.
 	rotCmd := fmt.Sprintf("%s -r '%s'", commonpamuser.CmdPamRotationInfo, recordUID)

@@ -10,6 +10,7 @@ import (
 	"strings"
 
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/api"
+	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/classic_share"
 	commonpamrecords "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/pam_records"
 	commonpamremotebrowser "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/pam_records/pam_remote_browser"
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/utils"
@@ -17,7 +18,7 @@ import (
 )
 
 func (r *PamRemoteBrowserResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-	var state commonpamremotebrowser.PamRemoteBrowserResourceModel
+	var state PamRemoteBrowserResourceModel
 
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
@@ -69,8 +70,13 @@ func (r *PamRemoteBrowserResource) Read(ctx context.Context, req resource.ReadRe
 		return
 	}
 
-	resp.Diagnostics.Append(commonpamremotebrowser.MapVaultRecordGetResponseToPamRemoteBrowserModel(ctx, &rec, &state)...)
+	resp.Diagnostics.Append(commonpamremotebrowser.MapVaultRecordGetResponseToPamRemoteBrowserModel(ctx, &rec, &state.PamRemoteBrowserResourceModel)...)
 	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	if err := classic_share.MapResponseToModel(rec.UserPermissions, &state.ShareModel); err != nil {
+		resp.Diagnostics.AddError(ErrSummaryPamRemoteBrowserReadFailed, err.Error())
 		return
 	}
 

@@ -7,6 +7,7 @@ import (
 	"context"
 	"strings"
 
+	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/classic_share"
 	commonpamrecords "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/pam_records"
 	commonpamremotebrowser "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/pam_records/pam_remote_browser"
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/utils"
@@ -14,8 +15,8 @@ import (
 )
 
 func (r *PamRemoteBrowserResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var plan commonpamremotebrowser.PamRemoteBrowserResourceModel
-	var state commonpamremotebrowser.PamRemoteBrowserResourceModel
+	var plan PamRemoteBrowserResourceModel
+	var state PamRemoteBrowserResourceModel
 
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 	if resp.Diagnostics.HasError() {
@@ -48,8 +49,8 @@ func (r *PamRemoteBrowserResource) Update(ctx context.Context, req resource.Upda
 		return
 	}
 
-	if commonpamremotebrowser.RecordUpdateHasMutations(plan, state) {
-		cmd := commonpamremotebrowser.BuildUpdateCommand(utils.CmdRecordUpdate, recordUID, plan, state)
+	if commonpamremotebrowser.RecordUpdateHasMutations(plan.PamRemoteBrowserResourceModel, state.PamRemoteBrowserResourceModel) {
+		cmd := commonpamremotebrowser.BuildUpdateCommand(utils.CmdRecordUpdate, recordUID, plan.PamRemoteBrowserResourceModel, state.PamRemoteBrowserResourceModel)
 		if _, err := r.ApiManager.ExecuteCommand(ctx, cmd, ErrDetailPamRemoteBrowserRecordUpdateFailed); err != nil {
 			resp.Diagnostics.AddError(ErrSummaryPamRemoteBrowserRecordUpdateFailed, err.Error())
 			return
@@ -62,6 +63,11 @@ func (r *PamRemoteBrowserResource) Update(ctx context.Context, req resource.Upda
 			resp.Diagnostics.AddError(ErrSummaryPamRbiEditFailed, err.Error())
 			return
 		}
+	}
+
+	if err := classic_share.SyncSharePermissions(ctx, r.ApiManager, recordUID, plan.Share, state.Share); err != nil {
+		resp.Diagnostics.AddError(ErrSummaryPamRemoteBrowserRecordUpdateFailed, err.Error())
+		return
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)

@@ -20,6 +20,13 @@ import (
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
+var dsShareElementAttrTypes = map[string]tftypes.Type{
+	"can_share": tftypes.Bool,
+	"can_edit":  tftypes.Bool,
+}
+
+var dsShareMapType = tftypes.Map{ElementType: tftypes.Object{AttributeTypes: dsShareElementAttrTypes}}
+
 var dsSettingsAttrTypes = map[string]tftypes.Type{
 	"configuration":            tftypes.String,
 	"remote_browser_isolation": tftypes.Bool,
@@ -49,6 +56,7 @@ var dsAttrTypes = map[string]tftypes.Type{
 	"pam_remote_browser_settings": tftypes.Object{
 		AttributeTypes: dsSettingsAttrTypes,
 	},
+	"share": dsShareMapType,
 }
 
 func dsObjectType() tftypes.Object {
@@ -65,6 +73,7 @@ func newDSConfigValues(remoteBrowser interface{}) map[string]tftypes.Value {
 		"notes":                       tftypes.NewValue(tftypes.String, nil),
 		"folder":                      tftypes.NewValue(tftypes.String, nil),
 		"pam_remote_browser_settings": tftypes.NewValue(settingsObjType, nil),
+		"share":                       tftypes.NewValue(dsShareMapType, nil),
 	}
 }
 

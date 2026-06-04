@@ -7,6 +7,7 @@ import (
 	"context"
 	"strings"
 
+	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/classic_share"
 	commonpamrecords "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/pam_records"
 	commonpamdirectory "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/pam_records/pam_directory"
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/utils"
@@ -14,8 +15,8 @@ import (
 )
 
 func (r *PamDirectoryResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var plan commonpamdirectory.PamDirectoryResourceModel
-	var state commonpamdirectory.PamDirectoryResourceModel
+	var plan PamDirectoryResourceModel
+	var state PamDirectoryResourceModel
 
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 	if resp.Diagnostics.HasError() {
@@ -53,8 +54,8 @@ func (r *PamDirectoryResource) Update(ctx context.Context, req resource.UpdateRe
 		return
 	}
 
-	if commonpamdirectory.RecordUpdateHasMutations(plan, state) {
-		cmd := commonpamdirectory.BuildUpdateCommand(utils.CmdRecordUpdate, recordUID, plan, state)
+	if commonpamdirectory.RecordUpdateHasMutations(plan.PamDirectoryResourceModel, state.PamDirectoryResourceModel) {
+		cmd := commonpamdirectory.BuildUpdateCommand(utils.CmdRecordUpdate, recordUID, plan.PamDirectoryResourceModel, state.PamDirectoryResourceModel)
 		if _, err := r.ApiManager.ExecuteCommand(ctx, cmd, ErrDetailPamDirectoryRecordUpdateFailed); err != nil {
 			resp.Diagnostics.AddError(ErrSummaryPamDirectoryRecordUpdateFailed, err.Error())
 			return
@@ -66,6 +67,11 @@ func (r *PamDirectoryResource) Update(ctx context.Context, req resource.UpdateRe
 			resp.Diagnostics.AddError(utils.ErrSummaryApplyPamSettingsFailed, err.Error())
 			return
 		}
+	}
+
+	if err := classic_share.SyncSharePermissions(ctx, r.ApiManager, recordUID, plan.Share, state.Share); err != nil {
+		resp.Diagnostics.AddError(ErrSummaryPamDirectoryRecordUpdateFailed, err.Error())
+		return
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)

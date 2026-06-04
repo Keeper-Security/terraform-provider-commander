@@ -6,6 +6,8 @@ package pamuser
 import (
 	"context"
 
+	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/classic_share"
+	folderutils "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/folders/utils"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	dschema "github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 )
@@ -14,7 +16,7 @@ func (d *PamUserDataSource) Schema(ctx context.Context, req datasource.SchemaReq
 	resp.Schema = dschema.Schema{
 		Description:         SchemaDescription,
 		MarkdownDescription: SchemaMarkdownDescription,
-		Attributes: map[string]dschema.Attribute{
+		Attributes: folderutils.MergeDataSourceAttributes(map[string]dschema.Attribute{
 			"record_uid": dschema.StringAttribute{
 				Required:            true,
 				Description:         "Vault record UID of the pamUser record to read.",
@@ -134,6 +136,6 @@ func (d *PamUserDataSource) Schema(ctx context.Context, req datasource.SchemaReq
 					},
 				},
 			},
-		},
+		}, classic_share.DataSourceShareAttribute()),
 	}
 }

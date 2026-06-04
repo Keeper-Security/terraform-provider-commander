@@ -14,6 +14,21 @@ resource "commander_classic_pam_machine" "example" {
   notes            = "Primary production server."
   folder           = "_REPLACE_WITH_SHARED_FOLDER_UID_"
 
+  # ----------------------------------------------------------------
+  # Per-user share permissions (optional).
+  # Map key = user email. Each value is { can_share, can_edit }.
+  # Both flags default to false (view-only).
+  # ----------------------------------------------------------------
+  share = {
+    "alice@example.com" = {
+      can_share = true
+      can_edit  = true
+    }
+    "bob@example.com" = {
+      can_edit = true
+    }
+  }
+
   pam_settings {
     configuration              = "_REPLACE_WITH_PAM_CONFIGURATION_UID_"
     administrative_credentials = "_REPLACE_WITH_ADMIN_CREDENTIAL_UID_"

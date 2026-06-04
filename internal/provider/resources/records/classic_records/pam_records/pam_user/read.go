@@ -10,6 +10,7 @@ import (
 	"strings"
 
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/api"
+	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/classic_share"
 	commonpamrecords "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/pam_records"
 	commonpamuser "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/pam_records/pam_user"
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/utils"
@@ -69,15 +70,20 @@ func (r *PamUserResource) Read(ctx context.Context, req resource.ReadRequest, re
 		return
 	}
 
-	commonpamuser.MapVaultRecordToState(&rec, &state)
+	commonpamuser.MapVaultRecordToState(&rec, &state.PamUserSharedModel)
 
 	rotCmd := fmt.Sprintf("%s %s '%s'", commonpamuser.CmdPamRotationInfo, commonpamuser.FlagRecordShort, id)
 	rotResp, err2 := r.ApiManager.ExecuteCommand(ctx, rotCmd, commonpamuser.ErrDetailRotationInfoFailed)
 	if err2 == nil && rotResp != nil {
 		messages := commonpamuser.ParseFlexibleMessageToLines(rotResp.Message.String())
 		if commonpamuser.HasRotationData(messages) {
-			commonpamuser.ParseRotationInfoMessage(messages, state.RotationSettings, &state)
+			commonpamuser.ParseRotationInfoMessage(messages, state.RotationSettings, &state.PamUserSharedModel)
 		}
+	}
+
+	if err := classic_share.MapResponseToModel(rec.UserPermissions, &state.ShareModel); err != nil {
+		resp.Diagnostics.AddError(commonpamuser.ErrSummaryReadFailed, err.Error())
+		return
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)

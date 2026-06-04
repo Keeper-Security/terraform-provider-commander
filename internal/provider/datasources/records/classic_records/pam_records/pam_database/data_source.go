@@ -18,7 +18,7 @@ type PamDatabaseDataSource struct {
 }
 
 func (d *PamDatabaseDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_pam_database"
+	resp.TypeName = req.ProviderTypeName + "_classic_pam_database"
 }
 
 func (d *PamDatabaseDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {

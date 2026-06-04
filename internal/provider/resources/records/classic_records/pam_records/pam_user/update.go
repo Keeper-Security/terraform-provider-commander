@@ -7,6 +7,7 @@ import (
 	"context"
 	"strings"
 
+	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/classic_share"
 	commonpamrecords "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/pam_records"
 	commonpamuser "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/pam_records/pam_user"
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/utils"
@@ -54,8 +55,8 @@ func (r *PamUserResource) Update(ctx context.Context, req resource.UpdateRequest
 		return
 	}
 
-	if commonpamuser.UpdateHasMutations(plan, state) {
-		cmd := commonpamuser.BuildUpdateCommand(utils.CmdRecordUpdate, recordUID, plan, state)
+	if commonpamuser.UpdateHasMutations(plan.PamUserSharedModel, state.PamUserSharedModel) {
+		cmd := commonpamuser.BuildUpdateCommand(utils.CmdRecordUpdate, recordUID, plan.PamUserSharedModel, state.PamUserSharedModel)
 		if _, err := r.ApiManager.ExecuteCommand(ctx, cmd, commonpamuser.ErrDetailUpdateFailed); err != nil {
 			resp.Diagnostics.AddError(commonpamuser.ErrSummaryUpdateFailed, err.Error())
 			return
@@ -68,6 +69,11 @@ func (r *PamUserResource) Update(ctx context.Context, req resource.UpdateRequest
 			resp.Diagnostics.AddError(commonpamuser.ErrSummaryRotationEditFailed, err.Error())
 			return
 		}
+	}
+
+	if err := classic_share.SyncSharePermissions(ctx, r.ApiManager, recordUID, plan.Share, state.Share); err != nil {
+		resp.Diagnostics.AddError(commonpamuser.ErrSummaryUpdateFailed, err.Error())
+		return
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)

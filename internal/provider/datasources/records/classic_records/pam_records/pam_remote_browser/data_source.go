@@ -19,7 +19,7 @@ type PamRemoteBrowserDataSource struct {
 }
 
 func (d *PamRemoteBrowserDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_pam_remote_browser"
+	resp.TypeName = req.ProviderTypeName + "_classic_pam_remote_browser"
 }
 
 func (d *PamRemoteBrowserDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
