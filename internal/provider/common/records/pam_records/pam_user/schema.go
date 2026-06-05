@@ -50,12 +50,12 @@ func SharedAttributes() map[string]schema.Attribute {
 			Description:         PasswordDescription,
 			MarkdownDescription: PasswordMarkdownDescription,
 		},
-		"folder": schema.StringAttribute{
+		"folder_location": schema.StringAttribute{
 			Optional:            true,
 			Description:         FolderDescription,
 			MarkdownDescription: FolderMarkdownDescription,
 			Validators: []validator.String{
-				utils.StringMinLengthValidator("Folder", 1, true),
+				utils.StringMinLengthValidator("Folder Location", 1, true),
 			},
 		},
 		"notes": schema.StringAttribute{

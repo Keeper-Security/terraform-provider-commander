@@ -29,7 +29,7 @@ resource "commander_classic_pam_database" "full_fields" {
   provider_group  = "AWS"
   provider_region = "us-east-1"
   notes           = "Primary PostgreSQL database for production workloads."
-  folder          = "_REPLACE_WITH_SHARED_FOLDER_UID_"
+  folder_location = "_REPLACE_WITH_SHARED_FOLDER_UID_"
 
   # ----------------------------------------------------------------
   # Per-user share permissions (optional).
@@ -65,7 +65,7 @@ resource "commander_classic_pam_database" "with_pam_settings" {
   provider_group  = "AWS"
   provider_region = "us-west-2"
   notes           = "MongoDB cluster accessed via Kubernetes gateway."
-  folder          = "_REPLACE_WITH_SHARED_FOLDER_UID_"
+  folder_location = "_REPLACE_WITH_SHARED_FOLDER_UID_"
 
   pam_settings {
     configuration              = "_REPLACE_WITH_PAM_CONFIGURATION_UID_"

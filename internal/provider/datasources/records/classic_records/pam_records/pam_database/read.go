@@ -75,7 +75,7 @@ func (d *PamDatabaseDataSource) Read(ctx context.Context, req datasource.ReadReq
 	data.Id = state.Id
 	data.Title = state.Title
 	data.Notes = state.Notes
-	data.Folder = state.Folder
+	data.FolderLocation = state.FolderLocation
 	data.HostnameOrIP = state.HostnameOrIP
 	data.UseSSL = state.UseSSL
 	data.DatabaseId = state.DatabaseId

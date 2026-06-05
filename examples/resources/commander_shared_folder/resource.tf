@@ -62,31 +62,3 @@ resource "commander_shared_folder" "example" {
     }
   }
 }
-
-# Minimal folder at vault root (defaults only; empty records/users maps).
-# resource "commander_shared_folder" "minimal" {
-#   name = "Team Read-only"
-# }
-
-# Move example: change folder_location to relocate the folder under a different parent.
-# resource "commander_shared_folder" "example" {
-#   name            = "My Project Vault"
-#   folder_location = "Archive/2026"
-# }
-
-output "shared_folder_id" {
-  description = "UID for lookups, import id, and Commander APIs."
-  value       = commander_shared_folder.example.id
-}
-
-output "shared_folder_name" {
-  value = commander_shared_folder.example.name
-}
-
-output "shared_folder_location" {
-  value = commander_shared_folder.example.folder_location
-}
-
-output "shared_folder_default_record_permissions" {
-  value = commander_shared_folder.example.record_permissions
-}

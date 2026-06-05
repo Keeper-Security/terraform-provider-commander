@@ -53,7 +53,7 @@ resource "commander_new_pam_directory" "active_directory" {
   provider_group  = "Azure"
   provider_region = "us-east-1"
   notes           = "Primary domain controller for corp.example.com"
-  folder          = "_REPLACE_WITH_NSF_FOLDER_UID_"
+  folder_location = "_REPLACE_WITH_NSF_FOLDER_UID_"
 
   # ----------------------------------------------------------------
   # Per-user share permissions (optional).
@@ -111,7 +111,7 @@ resource "commander_new_pam_directory" "full" {
   provider_group  = "AWS"
   provider_region = "us-west-2"
   notes           = "Production domain controller with full PAM settings."
-  folder          = "_REPLACE_WITH_NSF_FOLDER_UID_"
+  folder_location = "_REPLACE_WITH_NSF_FOLDER_UID_"
 
   pam_settings {
     configuration              = "_REPLACE_WITH_PAM_CONFIGURATION_UID_"
@@ -202,7 +202,7 @@ resource "commander_new_pam_directory" "tunnel_only" {
 - `directory_id` (String) **Instance ID** for AD resource in Azure and AWS hosted environments
 - `directory_type` (String) **Directory type**, used for formatting of messaging. Must be one of: `active_directory`, `openldap`.
 - `domain_name` (String) **Domain managed by the directory**.
-- `folder` (String) Folder **UID** or path to store PAM directory record in your Keeper vault. If not provided, the record will be stored in the root path of vault.
+- `folder_location` (String) Folder **UID** or path to store PAM directory record in your Keeper vault. If not provided, the record will be stored in the root path of vault.
 - `notes` (String) **Notes** for this PAM directory record.
 - `pam_settings` (Block, Optional) **PAM settings** for the record, including connection, tunnel, and administrative options. (see [below for nested schema](#nestedblock--pam_settings))
 - `provider_group` (String) **Provider Group** for directories hosted in Azure.

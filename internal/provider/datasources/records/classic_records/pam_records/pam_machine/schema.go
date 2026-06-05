@@ -81,7 +81,7 @@ func (d *PamMachineDataSource) Schema(ctx context.Context, req datasource.Schema
 				Description:         commonpammachine.NotesDescription,
 				MarkdownDescription: commonpammachine.NotesMarkdownDescription,
 			},
-			"folder": dschema.StringAttribute{
+			"folder_location": dschema.StringAttribute{
 				Computed:            true,
 				Description:         commonpammachine.FolderDescription,
 				MarkdownDescription: commonpammachine.FolderMarkdownDescription,

@@ -33,8 +33,8 @@ func BuildAddCommand(cmd string, data PamRemoteBrowserResourceModel) string {
 	parts = append(parts, fmt.Sprintf("%s '%s'", utils.FlagTitle, data.Title.ValueString()))
 	parts = append(parts, fmt.Sprintf("'%s=%s'", utils.FlagRbiUrl, data.Url.ValueString()))
 
-	if !data.Folder.IsNull() {
-		parts = append(parts, fmt.Sprintf("%s '%s'", utils.FlagFolder, data.Folder.ValueString()))
+	if !data.FolderLocation.IsNull() {
+		parts = append(parts, fmt.Sprintf("%s '%s'", utils.FlagFolder, data.FolderLocation.ValueString()))
 	}
 
 	if !data.Notes.IsNull() {
@@ -72,7 +72,7 @@ func RecordUpdateHasMutations(plan, state PamRemoteBrowserResourceModel) bool {
 	return !plan.Title.Equal(state.Title) ||
 		!plan.Url.Equal(state.Url) ||
 		(!plan.Notes.Equal(state.Notes) && !plan.Notes.IsNull() && !plan.Notes.IsUnknown()) ||
-		(!plan.Folder.Equal(state.Folder) && !plan.Folder.IsNull() && !plan.Folder.IsUnknown())
+		(!plan.FolderLocation.Equal(state.FolderLocation) && !plan.FolderLocation.IsNull() && !plan.FolderLocation.IsUnknown())
 }
 
 // BuildPamRbiEditCommand builds `pam rbi edit --record <uid> ...` shared by
@@ -259,7 +259,7 @@ func MapVaultRecordGetResponseToPamRemoteBrowserModel(ctx context.Context, rec *
 		state.Notes = types.StringValue(rec.Notes)
 	}
 
-	state.Folder = utils.ExtractFolderValue(rec.FolderLocation, state.Folder)
+	state.FolderLocation = utils.ExtractFolderValue(rec.FolderLocation, state.FolderLocation)
 
 	var rbiURL string
 	var settingsConn *utils.PamRemoteBrowserSettingsFieldConnectionResponse

@@ -27,7 +27,7 @@ resource "commander_new_pam_machine" "example" {
   provider_group   = "AWS"
   provider_region  = "us-east-1"
   notes            = "Primary production server."
-  folder           = "_REPLACE_WITH_NSF_FOLDER_UID_"
+  folder_location  = "_REPLACE_WITH_NSF_FOLDER_UID_"
 
   # ----------------------------------------------------------------
   # Per-user share permissions (optional).

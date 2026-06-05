@@ -69,7 +69,7 @@ func TestMapVaultRecordGetResponse_EmptyFields(t *testing.T) {
 	if !state.Notes.IsNull() {
 		t.Error("expected null notes for whitespace-only")
 	}
-	if !state.Folder.IsNull() {
+	if !state.FolderLocation.IsNull() {
 		t.Error("expected null folder for whitespace-only")
 	}
 	if !state.Url.IsNull() {
@@ -295,8 +295,8 @@ func TestMapVaultRecordGetResponse_WithFolder(t *testing.T) {
 	if diags.HasError() {
 		t.Fatalf("unexpected errors: %v", diags)
 	}
-	if state.Folder.ValueString() != "my-folder" {
-		t.Errorf("expected folder my-folder, got %s", state.Folder.ValueString())
+	if state.FolderLocation.ValueString() != "my-folder" {
+		t.Errorf("expected folder my-folder, got %s", state.FolderLocation.ValueString())
 	}
 }
 

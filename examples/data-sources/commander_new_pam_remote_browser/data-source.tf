@@ -21,7 +21,7 @@ output "rbi_notes" {
 }
 
 output "rbi_folder" {
-  value = data.commander_new_pam_remote_browser.existing.folder
+  value = data.commander_new_pam_remote_browser.existing.folder_location
 }
 
 output "rbi_settings" {

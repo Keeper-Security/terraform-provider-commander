@@ -23,8 +23,8 @@ resource "commander_classic_pam_remote_browser" "intranet_app" {
   title = "PAM RBI - intranet.example.com"
   url   = "https://intranet.example.com/app/login"
 
-  notes  = "Internal HR portal; RBI + autofill + URL allow lists."
-  folder = "Shared Folders/PAM/Remote Browser" # optional; use folder UID or path Commander accepts
+  notes           = "Internal HR portal; RBI + autofill + URL allow lists."
+  folder_location = "Shared Folders/PAM/Remote Browser" # optional; use folder UID or path Commander accepts
 
   pam_remote_browser_settings = {
     # Required when this nested block is present — PAM configuration that owns RBI for this record.
@@ -84,7 +84,7 @@ resource "commander_classic_pam_remote_browser" "intranet_app" {
 
 ### Optional
 
-- `folder` (String) Folder **UID** or path to store PAM remote browser record in your Keeper vault. If not provided, the record will be stored in the root path of vault.
+- `folder_location` (String) Folder **UID** or path to store PAM remote browser record in your Keeper vault. If not provided, the record will be stored in the root path of vault.
 - `notes` (String) Optional **notes** for this PAM remote browser record.
 - `pam_remote_browser_settings` (Attributes) PAM **settings** for the PAM remote browser record. (see [below for nested schema](#nestedatt--pam_remote_browser_settings))
 - `share` (Attributes Map) Map of share permissions for this record. Each map **key** is a **user email**; each **value** is an object with `can_share` and `can_edit` booleans. The record **owner** is managed by Keeper and is not represented in this block. (see [below for nested schema](#nestedatt--share))

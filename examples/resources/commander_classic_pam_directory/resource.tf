@@ -35,7 +35,7 @@ resource "commander_classic_pam_directory" "active_directory" {
   provider_group  = "Azure"
   provider_region = "us-east-1"
   notes           = "Primary domain controller for corp.example.com"
-  folder          = "_REPLACE_WITH_SHARED_FOLDER_UID_"
+  folder_location = "_REPLACE_WITH_SHARED_FOLDER_UID_"
 
   # ----------------------------------------------------------------
   # Per-user share permissions (optional).
@@ -94,7 +94,7 @@ resource "commander_classic_pam_directory" "full" {
   provider_group  = "AWS"
   provider_region = "us-west-2"
   notes           = "Production domain controller with full PAM settings."
-  folder          = "_REPLACE_WITH_SHARED_FOLDER_UID_"
+  folder_location = "_REPLACE_WITH_SHARED_FOLDER_UID_"
 
   pam_settings {
     configuration              = "_REPLACE_WITH_PAM_CONFIGURATION_UID_"

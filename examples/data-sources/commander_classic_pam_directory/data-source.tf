@@ -55,7 +55,7 @@ output "pam_directory_notes" {
 }
 
 output "pam_directory_folder" {
-  value = data.commander_classic_pam_directory.existing.folder
+  value = data.commander_classic_pam_directory.existing.folder_location
 }
 
 output "pam_directory_settings" {

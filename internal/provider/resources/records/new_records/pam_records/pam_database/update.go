@@ -49,7 +49,7 @@ func (r *PamDatabaseResource) Update(ctx context.Context, req resource.UpdateReq
 		return
 	}
 
-	if err := commonpamrecords.MoveRecordFromSourceToDestination(ctx, r.ApiManager, state.Id.ValueString(), plan.Folder.ValueString(), state.Folder.ValueString()); err != nil {
+	if err := commonpamrecords.MoveRecordFromSourceToDestination(ctx, r.ApiManager, state.Id.ValueString(), plan.FolderLocation.ValueString(), state.FolderLocation.ValueString()); err != nil {
 		resp.Diagnostics.AddError(utils.ErrSummaryMoveRecordFailed, err.Error())
 		return
 	}

@@ -28,10 +28,10 @@ func (r *PamRemoteBrowserResource) ImportState(ctx context.Context, req resource
 	state := PamRemoteBrowserResourceModel{
 		PamRemoteBrowserResourceModel: commonpamremotebrowser.PamRemoteBrowserResourceModel{
 			CommonPamRecordsResourceModel: commonpamrecords.CommonPamRecordsResourceModel{
-				Id:     types.StringValue(importID),
-				Title:  types.StringNull(),
-				Notes:  types.StringNull(),
-				Folder: types.StringNull(),
+				Id:             types.StringValue(importID),
+				Title:          types.StringNull(),
+				Notes:          types.StringNull(),
+				FolderLocation: types.StringNull(),
 			},
 			Url:                      types.StringNull(),
 			PamRemoteBrowserSettings: nil,

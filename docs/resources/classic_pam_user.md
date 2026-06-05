@@ -53,7 +53,7 @@ resource "commander_classic_pam_user" "mysql_app_account" {
   title              = "MySQL - billing app service account"
   login              = "svc_billing"
   password           = "_REPLACE_WITH_STRONG_PASSWORD_"
-  folder             = "Shared Folders/PAM/Database Users"
+  folder_location    = "Shared Folders/PAM/Database Users"
   notes              = "Service account used by the billing app to connect to MySQL prod."
   distinguished_name = "CN=svc_billing,OU=Service Accounts,DC=corp,DC=local"
   private_pem_key    = "_REPLACE_WITH_PEM_KEY_OR_USE_file()_"
@@ -78,20 +78,20 @@ resource "commander_classic_pam_user" "mysql_app_account" {
 }
 
 ###############################################################################
-# Usage 1b - Folder: optional at create; changing `folder` moves the record
+# Usage 1b - Folder: optional at create; changing `folder_location` moves the record
 #
-# If you omit `folder`, the pamUser is created in your vault root. To place it
-# in a Shared Folder from the start, set `folder` to a path (e.g.
+# If you omit `folder_location`, the pamUser is created in your vault root. To place it
+# in a Shared Folder from the start, set `folder_location` to a path (e.g.
 # `Shared Folders/PAM/Service Accounts`) or a folder UID.
 #
-# If you add or change `folder` later, the next `terraform apply` moves the
+# If you add or change `folder_location` later, the next `terraform apply` moves the
 # existing record (Commander `mv`), same as other PAM record resources.
 ###############################################################################
 
 # resource "commander_classic_pam_user" "folder_after_root" {
 #   title = "PAM User - start in root, move later"
-#   # Omit `folder` on first apply, then add the line below and apply again:
-#   # folder = "Shared Folders/PAM/Service Accounts"
+#   # Omit `folder_location` on first apply, then add the line below and apply again:
+#   # folder_location = "Shared Folders/PAM/Service Accounts"
 # }
 
 
@@ -229,7 +229,7 @@ resource "commander_classic_pam_user" "mysql_app_account" {
 
 - `connect_database` (String) Database name the PAM User connects to.
 - `distinguished_name` (String) LDAP distinguished name of the PAM User (e.g. `CN=svc_myapp,OU=Service Accounts,DC=corp,DC=local`).
-- `folder` (String) Folder path or UID where the record will be stored.
+- `folder_location` (String) Folder path or UID where the record will be stored.
 - `login` (String) Login (username) for the PAM User.
 - `managed` (Boolean) Whether this PAM User account is managed by Keeper.
 - `notes` (String) Optional notes for the PAM User record.

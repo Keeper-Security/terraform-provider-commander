@@ -34,8 +34,8 @@ func BuildAddCommand(cmd string, data PamDirectoryResourceModel) string {
 	commonpamrecords.AppendOptionalTextField(&parts, FlagProviderGroup, data.ProviderGroup)
 	commonpamrecords.AppendOptionalTextField(&parts, FlagProviderRegion, data.ProviderRegion)
 
-	if !data.Folder.IsNull() {
-		parts = append(parts, fmt.Sprintf("%s '%s'", utils.FlagFolder, data.Folder.ValueString()))
+	if !data.FolderLocation.IsNull() {
+		parts = append(parts, fmt.Sprintf("%s '%s'", utils.FlagFolder, data.FolderLocation.ValueString()))
 	}
 
 	if !data.Notes.IsNull() {
@@ -144,7 +144,7 @@ func MapVaultRecordGetResponseToPamDirectoryModel(rec *utils.VaultRecordGetRespo
 	state.Title = setStringOrNull(rec.Title)
 	state.Notes = setStringOrNull(rec.Notes)
 
-	state.Folder = utils.ExtractFolderValue(rec.FolderLocation, state.Folder)
+	state.FolderLocation = utils.ExtractFolderValue(rec.FolderLocation, state.FolderLocation)
 
 	state.HostnameOrIP = ExtractPamHostnameFieldValue(rec.Fields)
 	state.UseSSL = extractCheckboxFieldValue(rec.Fields, "useSSL")

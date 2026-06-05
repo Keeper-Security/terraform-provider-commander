@@ -617,13 +617,13 @@ func TestMapVaultRecordGetResponse_FolderFromResponse_StateMatchesUID(t *testing
 		},
 	}
 	var state commonpamdirectory.PamDirectoryResourceModel
-	state.Folder = types.StringValue("folder-uid-123")
+	state.FolderLocation = types.StringValue("folder-uid-123")
 	diags := commonpamdirectory.MapVaultRecordGetResponseToPamDirectoryModel(rec, &state)
 	if diags.HasError() {
 		t.Fatalf("unexpected errors: %v", diags)
 	}
-	if state.Folder.ValueString() != "folder-uid-123" {
-		t.Errorf("expected folder folder-uid-123 (preserved), got %s", state.Folder.ValueString())
+	if state.FolderLocation.ValueString() != "folder-uid-123" {
+		t.Errorf("expected folder folder-uid-123 (preserved), got %s", state.FolderLocation.ValueString())
 	}
 }
 
@@ -637,13 +637,13 @@ func TestMapVaultRecordGetResponse_FolderFromResponse_StateMatchesPath(t *testin
 		},
 	}
 	var state commonpamdirectory.PamDirectoryResourceModel
-	state.Folder = types.StringValue("Test/My Folder")
+	state.FolderLocation = types.StringValue("Test/My Folder")
 	diags := commonpamdirectory.MapVaultRecordGetResponseToPamDirectoryModel(rec, &state)
 	if diags.HasError() {
 		t.Fatalf("unexpected errors: %v", diags)
 	}
-	if state.Folder.ValueString() != "Test/My Folder" {
-		t.Errorf("expected folder Test/My Folder (preserved), got %s", state.Folder.ValueString())
+	if state.FolderLocation.ValueString() != "Test/My Folder" {
+		t.Errorf("expected folder Test/My Folder (preserved), got %s", state.FolderLocation.ValueString())
 	}
 }
 
@@ -653,12 +653,12 @@ func TestMapVaultRecordGetResponse_FolderNilInResponse(t *testing.T) {
 		Title:     "No Folder",
 	}
 	var state commonpamdirectory.PamDirectoryResourceModel
-	state.Folder = types.StringValue("some-folder")
+	state.FolderLocation = types.StringValue("some-folder")
 	diags := commonpamdirectory.MapVaultRecordGetResponseToPamDirectoryModel(rec, &state)
 	if diags.HasError() {
 		t.Fatalf("unexpected errors: %v", diags)
 	}
-	if !state.Folder.IsNull() {
+	if !state.FolderLocation.IsNull() {
 		t.Error("expected null folder when API response has no folder")
 	}
 }

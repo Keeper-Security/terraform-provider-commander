@@ -432,19 +432,19 @@ func TestMapVaultRecordGetResponse_FolderStateMatchesUID(t *testing.T) {
 		FolderLocation: &utils.FolderLocationResponse{UID: "folder-uid-123", Path: "Test/My Folder"},
 	}
 	var state commonpamdatabase.PamDatabaseResourceModel
-	state.Folder = types.StringValue("folder-uid-123")
+	state.FolderLocation = types.StringValue("folder-uid-123")
 	commonpamdatabase.MapVaultRecordGetResponseToPamDatabaseModel(rec, &state)
-	if state.Folder.ValueString() != "folder-uid-123" {
-		t.Errorf("expected folder folder-uid-123 (preserved), got %s", state.Folder.ValueString())
+	if state.FolderLocation.ValueString() != "folder-uid-123" {
+		t.Errorf("expected folder folder-uid-123 (preserved), got %s", state.FolderLocation.ValueString())
 	}
 }
 
 func TestMapVaultRecordGetResponse_FolderNilInResponse(t *testing.T) {
 	rec := &utils.VaultRecordGetResponse{RecordUID: "uid-nofolder", Title: "No Folder"}
 	var state commonpamdatabase.PamDatabaseResourceModel
-	state.Folder = types.StringValue("some-folder")
+	state.FolderLocation = types.StringValue("some-folder")
 	commonpamdatabase.MapVaultRecordGetResponseToPamDatabaseModel(rec, &state)
-	if !state.Folder.IsNull() {
+	if !state.FolderLocation.IsNull() {
 		t.Error("expected null folder when API response has no folder")
 	}
 }

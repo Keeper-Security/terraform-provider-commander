@@ -44,7 +44,7 @@ func (d *PamUserDataSource) Schema(ctx context.Context, req datasource.SchemaReq
 				Description:         commonpamuser.PasswordDescription,
 				MarkdownDescription: commonpamuser.PasswordMarkdownDescription,
 			},
-			"folder": dschema.StringAttribute{
+			"folder_location": dschema.StringAttribute{
 				Computed:            true,
 				Description:         commonpamuser.FolderDescription,
 				MarkdownDescription: commonpamuser.FolderMarkdownDescription,

@@ -41,7 +41,7 @@ output "pam_database_notes" {
 }
 
 output "pam_database_folder" {
-  value = data.commander_new_pam_database.existing.folder
+  value = data.commander_new_pam_database.existing.folder_location
 }
 
 output "pam_database_settings" {

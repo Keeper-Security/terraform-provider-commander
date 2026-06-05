@@ -43,7 +43,7 @@ func (d *PamUserDataSource) Schema(ctx context.Context, req datasource.SchemaReq
 				Description:         "Password for the PAM User.",
 				MarkdownDescription: "**Password** for the PAM User.",
 			},
-			"folder": dschema.StringAttribute{
+			"folder_location": dschema.StringAttribute{
 				Computed:            true,
 				Description:         "Folder UID or path for the record.",
 				MarkdownDescription: "**Folder** UID or path for the record.",

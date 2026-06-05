@@ -56,7 +56,7 @@ output "pam_machine_notes" {
 }
 
 output "pam_machine_folder" {
-  value = data.commander_classic_pam_machine.existing.folder
+  value = data.commander_classic_pam_machine.existing.folder_location
 }
 
 output "pam_machine_settings" {
@@ -80,7 +80,7 @@ output "pam_machine_share" {
 
 ### Read-Only
 
-- `folder` (String) Folder **UID** or path to store PAM machine record in your Keeper vault. If not provided, the record will be stored in the root path of vault.
+- `folder_location` (String) Folder **UID** or path to store PAM machine record in your Keeper vault. If not provided, the record will be stored in the root path of vault.
 - `hostname_or_ip` (Attributes) **Hostname or IP address** with an optional port for the PAM machine. (see [below for nested schema](#nestedatt--hostname_or_ip))
 - `id` (String) The PAM machine record **UID** assigned by Keeper after create.
 - `instance_id` (String) **Azure or AWS Instance ID**

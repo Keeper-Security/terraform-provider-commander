@@ -28,10 +28,10 @@ func (r *PamDirectoryResource) ImportState(ctx context.Context, req resource.Imp
 	state := PamDirectoryResourceModel{
 		PamDirectoryResourceModel: commonpamdirectory.PamDirectoryResourceModel{
 			CommonPamRecordsResourceModel: commonpamrecords.CommonPamRecordsResourceModel{
-				Id:     types.StringValue(importID),
-				Title:  types.StringNull(),
-				Notes:  types.StringNull(),
-				Folder: types.StringNull(),
+				Id:             types.StringValue(importID),
+				Title:          types.StringNull(),
+				Notes:          types.StringNull(),
+				FolderLocation: types.StringNull(),
 			},
 			HostnameOrIP:   nil,
 			UseSSL:         types.BoolNull(),

@@ -57,7 +57,7 @@ output "pam_user_login" {
 }
 
 output "pam_user_folder" {
-  value = data.commander_classic_pam_user.mysql_app_account.folder
+  value = data.commander_classic_pam_user.mysql_app_account.folder_location
 }
 
 output "pam_user_distinguished_name" {
@@ -137,7 +137,7 @@ output "pam_user_share" {
 
 - `connect_database` (String) **Database name** the PAM User connects to.
 - `distinguished_name` (String) **LDAP distinguished name** of the PAM User.
-- `folder` (String) **Folder** UID or path for the record.
+- `folder_location` (String) **Folder** UID or path for the record.
 - `id` (String) Same as **record_uid** from the vault.
 - `login` (String) **Login** (username) for the PAM User.
 - `managed` (Boolean) Whether this PAM User account is **managed** by Keeper.

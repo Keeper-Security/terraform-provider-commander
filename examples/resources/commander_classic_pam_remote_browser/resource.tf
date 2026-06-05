@@ -2,8 +2,8 @@ resource "commander_classic_pam_remote_browser" "intranet_app" {
   title = "PAM RBI - intranet.example.com"
   url   = "https://intranet.example.com/app/login"
 
-  notes  = "Internal HR portal; RBI + autofill + URL allow lists."
-  folder = "Shared Folders/PAM/Remote Browser" # optional; use folder UID or path Commander accepts
+  notes           = "Internal HR portal; RBI + autofill + URL allow lists."
+  folder_location = "Shared Folders/PAM/Remote Browser" # optional; use folder UID or path Commander accepts
 
   pam_remote_browser_settings = {
     # Required when this nested block is present — PAM configuration that owns RBI for this record.

@@ -349,13 +349,13 @@ func TestMapVaultRecordGetResponse_FolderFromResponse_StateMatchesUID(t *testing
 		},
 	}
 	var state commonpammachine.PamMachineResourceModel
-	state.Folder = types.StringValue("folder-uid-123")
+	state.FolderLocation = types.StringValue("folder-uid-123")
 	diags := commonpammachine.MapVaultRecordGetResponseToPamMachineModel(rec, &state)
 	if diags.HasError() {
 		t.Fatalf("unexpected errors: %v", diags)
 	}
-	if state.Folder.ValueString() != "folder-uid-123" {
-		t.Errorf("expected folder folder-uid-123 (preserved), got %s", state.Folder.ValueString())
+	if state.FolderLocation.ValueString() != "folder-uid-123" {
+		t.Errorf("expected folder folder-uid-123 (preserved), got %s", state.FolderLocation.ValueString())
 	}
 }
 
@@ -369,13 +369,13 @@ func TestMapVaultRecordGetResponse_FolderFromResponse_StateMatchesPath(t *testin
 		},
 	}
 	var state commonpammachine.PamMachineResourceModel
-	state.Folder = types.StringValue("Test/My Folder")
+	state.FolderLocation = types.StringValue("Test/My Folder")
 	diags := commonpammachine.MapVaultRecordGetResponseToPamMachineModel(rec, &state)
 	if diags.HasError() {
 		t.Fatalf("unexpected errors: %v", diags)
 	}
-	if state.Folder.ValueString() != "Test/My Folder" {
-		t.Errorf("expected folder Test/My Folder (preserved), got %s", state.Folder.ValueString())
+	if state.FolderLocation.ValueString() != "Test/My Folder" {
+		t.Errorf("expected folder Test/My Folder (preserved), got %s", state.FolderLocation.ValueString())
 	}
 }
 
@@ -389,13 +389,13 @@ func TestMapVaultRecordGetResponse_FolderFromResponse_StateDoesNotMatch(t *testi
 		},
 	}
 	var state commonpammachine.PamMachineResourceModel
-	state.Folder = types.StringValue("old-folder-uid")
+	state.FolderLocation = types.StringValue("old-folder-uid")
 	diags := commonpammachine.MapVaultRecordGetResponseToPamMachineModel(rec, &state)
 	if diags.HasError() {
 		t.Fatalf("unexpected errors: %v", diags)
 	}
-	if state.Folder.ValueString() != "folder-uid-789" {
-		t.Errorf("expected folder folder-uid-789 (from response UID), got %s", state.Folder.ValueString())
+	if state.FolderLocation.ValueString() != "folder-uid-789" {
+		t.Errorf("expected folder folder-uid-789 (from response UID), got %s", state.FolderLocation.ValueString())
 	}
 }
 
@@ -405,12 +405,12 @@ func TestMapVaultRecordGetResponse_FolderNilInResponse(t *testing.T) {
 		Title:     "No Folder",
 	}
 	var state commonpammachine.PamMachineResourceModel
-	state.Folder = types.StringValue("some-folder")
+	state.FolderLocation = types.StringValue("some-folder")
 	diags := commonpammachine.MapVaultRecordGetResponseToPamMachineModel(rec, &state)
 	if diags.HasError() {
 		t.Fatalf("unexpected errors: %v", diags)
 	}
-	if !state.Folder.IsNull() {
+	if !state.FolderLocation.IsNull() {
 		t.Error("expected null folder when API response has no folder")
 	}
 }

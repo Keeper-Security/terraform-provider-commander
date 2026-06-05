@@ -33,7 +33,7 @@ resource "commander_classic_pam_machine" "example" {
   provider_group   = "AWS"
   provider_region  = "us-east-1"
   notes            = "Primary production server."
-  folder           = "_REPLACE_WITH_SHARED_FOLDER_UID_"
+  folder_location  = "_REPLACE_WITH_SHARED_FOLDER_UID_"
 
   # ----------------------------------------------------------------
   # Per-user share permissions (optional).
@@ -343,7 +343,7 @@ resource "commander_classic_pam_machine" "example" {
 
 ### Optional
 
-- `folder` (String) Folder **UID** or path to store PAM machine record in your Keeper vault. If not provided, the record will be stored in the root path of vault.
+- `folder_location` (String) Folder **UID** or path to store PAM machine record in your Keeper vault. If not provided, the record will be stored in the root path of vault.
 - `instance_id` (String) **Azure or AWS Instance ID**
 - `instance_name` (String) **Azure or AWS Instance Name**
 - `notes` (String) **Notes** for this PAM machine record.

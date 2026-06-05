@@ -77,7 +77,7 @@ func (d *PamRemoteBrowserDataSource) Read(ctx context.Context, req datasource.Re
 	data.Title = mapped.Title
 	data.Url = mapped.Url
 	data.Notes = mapped.Notes
-	data.Folder = mapped.Folder
+	data.FolderLocation = mapped.FolderLocation
 	data.PamRemoteBrowserSettings = mapped.PamRemoteBrowserSettings
 
 	if err := classic_share.MapResponseToModel(rec.UserPermissions, &data.ShareModel); err != nil {

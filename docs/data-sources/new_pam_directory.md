@@ -70,7 +70,7 @@ output "pam_directory_notes" {
 }
 
 output "pam_directory_folder" {
-  value = data.commander_new_pam_directory.existing.folder
+  value = data.commander_new_pam_directory.existing.folder_location
 }
 
 output "pam_directory_settings" {
@@ -111,7 +111,7 @@ output "corp_dc_configuration" {
 - `directory_id` (String) **Instance ID** for AD resource in Azure and AWS hosted environments
 - `directory_type` (String) **Directory type**, used for formatting of messaging. Must be one of: `active_directory`, `openldap`.
 - `domain_name` (String) **Domain managed by the directory**.
-- `folder` (String) Folder **UID** or path to store PAM directory record in your Keeper vault. If not provided, the record will be stored in the root path of vault.
+- `folder_location` (String) Folder **UID** or path to store PAM directory record in your Keeper vault. If not provided, the record will be stored in the root path of vault.
 - `hostname_or_ip` (Attributes) **Hostname or IP address** with an optional administrative port for the PAM directory. (see [below for nested schema](#nestedatt--hostname_or_ip))
 - `id` (String) The PAM directory record **UID** assigned by Keeper after create.
 - `notes` (String) **Notes** for this PAM directory record.

@@ -56,7 +56,7 @@ output "pam_database_notes" {
 }
 
 output "pam_database_folder" {
-  value = data.commander_new_pam_database.existing.folder
+  value = data.commander_new_pam_database.existing.folder_location
 }
 
 output "pam_database_settings" {
@@ -83,7 +83,7 @@ output "pam_database_share" {
 
 - `database_id` (String) **Azure or AWS Resource ID**
 - `database_type` (String) **Database type** of the PAM database. Must be one of: `postgresql`, `postgresql-flexible`, `mysql`, `mysql-flexible`, `mariadb`, `mariadb-flexible`, `mssql`, `oracle`, `mongodb`.
-- `folder` (String) Folder **UID** or path to store PAM database record in your Keeper vault. If not provided, the record will be stored in the root path of vault.
+- `folder_location` (String) Folder **UID** or path to store PAM database record in your Keeper vault. If not provided, the record will be stored in the root path of vault.
 - `hostname_or_ip` (Attributes) **Hostname or IP address** with an optional administrative port for the PAM database. (see [below for nested schema](#nestedatt--hostname_or_ip))
 - `id` (String) The PAM database record **UID** assigned by Keeper after create.
 - `notes` (String) **Notes** for this PAM database record.

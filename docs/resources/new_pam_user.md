@@ -51,7 +51,7 @@ resource "commander_new_pam_user" "mysql_app_account" {
   title              = "MySQL - billing app service account"
   login              = "svc_billing"
   password           = "_REPLACE_WITH_STRONG_PASSWORD_"
-  folder             = "_REPLACE_WITH_NSF_FOLDER_UID_OR_PATH_"
+  folder_location    = "_REPLACE_WITH_NSF_FOLDER_UID_OR_PATH_"
   notes              = "Service account used by the billing app to connect to MySQL prod."
   distinguished_name = "CN=svc_billing,OU=Service Accounts,DC=corp,DC=local"
   private_pem_key    = "_REPLACE_WITH_PEM_KEY_OR_USE_file()_"
@@ -166,7 +166,7 @@ resource "commander_new_pam_user" "mysql_app_account" {
 
 - `connect_database` (String) Database name the PAM User connects to.
 - `distinguished_name` (String) LDAP distinguished name of the PAM User (e.g. `CN=svc_myapp,OU=Service Accounts,DC=corp,DC=local`).
-- `folder` (String) Folder path or UID where the record will be stored.
+- `folder_location` (String) Folder path or UID where the record will be stored.
 - `login` (String) Login (username) for the PAM User.
 - `managed` (Boolean) Whether this PAM User account is managed by Keeper.
 - `notes` (String) Optional notes for the PAM User record.

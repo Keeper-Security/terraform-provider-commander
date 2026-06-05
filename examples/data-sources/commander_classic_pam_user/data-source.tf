@@ -39,7 +39,7 @@ output "pam_user_login" {
 }
 
 output "pam_user_folder" {
-  value = data.commander_classic_pam_user.mysql_app_account.folder
+  value = data.commander_classic_pam_user.mysql_app_account.folder_location
 }
 
 output "pam_user_distinguished_name" {

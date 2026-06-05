@@ -41,7 +41,7 @@ output "pam_machine_notes" {
 }
 
 output "pam_machine_folder" {
-  value = data.commander_classic_pam_machine.existing.folder
+  value = data.commander_classic_pam_machine.existing.folder_location
 }
 
 output "pam_machine_settings" {

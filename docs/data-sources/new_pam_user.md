@@ -54,7 +54,7 @@ output "pam_user_login" {
 }
 
 output "pam_user_folder" {
-  value = data.commander_new_pam_user.mysql_app_account.folder
+  value = data.commander_new_pam_user.mysql_app_account.folder_location
 }
 
 output "pam_user_distinguished_name" {
@@ -131,7 +131,7 @@ output "pam_user_share" {
 
 - `connect_database` (String) Database name the PAM User connects to.
 - `distinguished_name` (String) LDAP distinguished name of the PAM User (e.g. `CN=svc_myapp,OU=Service Accounts,DC=corp,DC=local`).
-- `folder` (String) Folder path or UID where the record will be stored.
+- `folder_location` (String) Folder path or UID where the record will be stored.
 - `id` (String) The unique identifier (UID) of the PAM User record.
 - `login` (String) Login (username) for the PAM User.
 - `managed` (Boolean) Whether this PAM User account is managed by Keeper.

@@ -28,8 +28,8 @@ func quoteShellSingle(s string) string {
 func BuildAddCommand(cmd string, data PamUserSharedModel) string {
 	parts := []string{cmd}
 
-	if !data.Folder.IsNull() && !data.Folder.IsUnknown() {
-		parts = append(parts, fmt.Sprintf("%s %s", utils.FlagFolder, quoteShellSingle(data.Folder.ValueString())))
+	if !data.FolderLocation.IsNull() && !data.FolderLocation.IsUnknown() {
+		parts = append(parts, fmt.Sprintf("%s %s", utils.FlagFolder, quoteShellSingle(data.FolderLocation.ValueString())))
 	}
 
 	parts = append(parts, fmt.Sprintf("%s %s", utils.FlagTitle, quoteShellSingle(data.Title.ValueString())))
@@ -165,7 +165,7 @@ func MapVaultRecordToState(rec *utils.VaultRecordGetResponse, state *PamUserShar
 
 	state.Title = stringOrNull(rec.Title)
 	state.Notes = stringOrNull(rec.Notes)
-	state.Folder = utils.ExtractFolderValue(rec.FolderLocation, state.Folder)
+	state.FolderLocation = utils.ExtractFolderValue(rec.FolderLocation, state.FolderLocation)
 
 	for i := range rec.Fields {
 		f := &rec.Fields[i]

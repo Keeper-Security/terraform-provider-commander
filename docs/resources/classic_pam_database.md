@@ -50,7 +50,7 @@ resource "commander_classic_pam_database" "full_fields" {
   provider_group  = "AWS"
   provider_region = "us-east-1"
   notes           = "Primary PostgreSQL database for production workloads."
-  folder          = "_REPLACE_WITH_SHARED_FOLDER_UID_"
+  folder_location = "_REPLACE_WITH_SHARED_FOLDER_UID_"
 
   # ----------------------------------------------------------------
   # Per-user share permissions (optional).
@@ -86,7 +86,7 @@ resource "commander_classic_pam_database" "with_pam_settings" {
   provider_group  = "AWS"
   provider_region = "us-west-2"
   notes           = "MongoDB cluster accessed via Kubernetes gateway."
-  folder          = "_REPLACE_WITH_SHARED_FOLDER_UID_"
+  folder_location = "_REPLACE_WITH_SHARED_FOLDER_UID_"
 
   pam_settings {
     configuration              = "_REPLACE_WITH_PAM_CONFIGURATION_UID_"
@@ -139,7 +139,7 @@ resource "commander_classic_pam_database" "with_pam_settings" {
 
 - `database_id` (String) **Azure or AWS Resource ID**
 - `database_type` (String) **Database type** of the PAM database. Must be one of: `postgresql`, `postgresql-flexible`, `mysql`, `mysql-flexible`, `mariadb`, `mariadb-flexible`, `mssql`, `oracle`, `mongodb`.
-- `folder` (String) Folder **UID** or path to store PAM database record in your Keeper vault. If not provided, the record will be stored in the root path of vault.
+- `folder_location` (String) Folder **UID** or path to store PAM database record in your Keeper vault. If not provided, the record will be stored in the root path of vault.
 - `notes` (String) **Notes** for this PAM database record.
 - `pam_settings` (Block, Optional) **PAM settings** for the record, including connection, tunnel, and administrative options. (see [below for nested schema](#nestedblock--pam_settings))
 - `provider_group` (String) **Azure or AWS Provider Group**.

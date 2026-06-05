@@ -75,7 +75,7 @@ func (d *PamMachineDataSource) Read(ctx context.Context, req datasource.ReadRequ
 	data.Id = state.Id
 	data.Title = state.Title
 	data.Notes = state.Notes
-	data.Folder = state.Folder
+	data.FolderLocation = state.FolderLocation
 	data.HostnameOrIP = state.HostnameOrIP
 	data.OperatingSystem = state.OperatingSystem
 	data.InstanceName = state.InstanceName

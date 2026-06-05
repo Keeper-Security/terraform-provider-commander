@@ -28,10 +28,10 @@ func (r *PamMachineResource) ImportState(ctx context.Context, req resource.Impor
 	state := PamMachineResourceModel{
 		PamMachineResourceModel: commonpammachine.PamMachineResourceModel{
 			CommonPamRecordsResourceModel: commonpamrecords.CommonPamRecordsResourceModel{
-				Id:     types.StringValue(importID),
-				Title:  types.StringNull(),
-				Notes:  types.StringNull(),
-				Folder: types.StringNull(),
+				Id:             types.StringValue(importID),
+				Title:          types.StringNull(),
+				Notes:          types.StringNull(),
+				FolderLocation: types.StringNull(),
 			},
 			HostnameOrIP:    nil,
 			OperatingSystem: types.StringNull(),

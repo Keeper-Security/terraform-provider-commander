@@ -44,7 +44,7 @@ func (d *PamRemoteBrowserDataSource) Schema(ctx context.Context, req datasource.
 				Description:         commonpamremotebrowser.NotesDescription,
 				MarkdownDescription: commonpamremotebrowser.NotesMarkdownDescription,
 			},
-			"folder": dschema.StringAttribute{
+			"folder_location": dschema.StringAttribute{
 				Computed:            true,
 				Description:         commonpamremotebrowser.FolderDescription,
 				MarkdownDescription: commonpamremotebrowser.FolderMarkdownDescription,
