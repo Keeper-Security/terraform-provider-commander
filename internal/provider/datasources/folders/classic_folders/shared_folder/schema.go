@@ -8,6 +8,7 @@ import (
 
 	folderutils "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/folders/utils"
 	sfres "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/folders/classic_folders/shared_folder"
+	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/utils"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	dschema "github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 )
@@ -16,7 +17,7 @@ func (d *ClassicSharedFolderDataSource) Schema(ctx context.Context, req datasour
 	resp.Schema = dschema.Schema{
 		Description:         DescDataSource,
 		MarkdownDescription: DescDataSourceMD,
-		Attributes: folderutils.MergeDataSourceAttributes(
+		Attributes: utils.MergeDataSourceAttributes(
 			map[string]dschema.Attribute{
 				"shared_folder": dschema.StringAttribute{
 					Required:            true,

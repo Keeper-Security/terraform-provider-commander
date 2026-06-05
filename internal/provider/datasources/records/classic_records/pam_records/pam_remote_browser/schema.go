@@ -7,8 +7,8 @@ import (
 	"context"
 
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/classic_share"
-	folderutils "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/folders/utils"
 	commonpamremotebrowser "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/pam_records/pam_remote_browser"
+	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/utils"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	dschema "github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -18,7 +18,7 @@ func (d *PamRemoteBrowserDataSource) Schema(ctx context.Context, req datasource.
 	resp.Schema = dschema.Schema{
 		Description:         "Use this data source to look up a classic PAM remote browser record by UID or name and read its per-user share permissions. You can use this data source to reference a PAM remote browser record from other resources.",
 		MarkdownDescription: "Use this data source to look up a **classic PAM remote browser** record by **UID** or **name** and read its **per-user share permissions**. You can use this data source to reference a PAM remote browser record from other resources.",
-		Attributes: folderutils.MergeDataSourceAttributes(map[string]dschema.Attribute{
+		Attributes: utils.MergeDataSourceAttributes(map[string]dschema.Attribute{
 			"remote_browser": dschema.StringAttribute{
 				Required:            true,
 				Description:         "PAM remote browser record UID or name to read.",

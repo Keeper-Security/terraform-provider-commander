@@ -7,9 +7,9 @@ import (
 	"context"
 
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/classic_share"
-	folderutils "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/folders/utils"
 	commonpamrecords "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/pam_records"
 	commonpamdatabase "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/pam_records/pam_database"
+	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/utils"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 )
@@ -22,7 +22,7 @@ func (r *PamDatabaseResource) Schema(ctx context.Context, req resource.SchemaReq
 		MarkdownDescription: "Creates and manages a **classic PAM database record** with **PAM settings** and **per-user share permissions** in your Keeper vault.\n\n" +
 			"A PAM Database record is a type of KeeperPAM resource that represents a database server, either on-prem or hosted in the cloud.\n\n" +
 			"For more information, see the [PAM Database documentation](https://docs.keeper.io/en/keeperpam/privileged-access-manager/getting-started/pam-resources/pam-database).",
-		Attributes: folderutils.MergeResourceAttributes(
+		Attributes: utils.MergeResourceAttributes(
 			commonpamdatabase.SharedAttributes(),
 			classic_share.ResourceShareAttribute(),
 		),

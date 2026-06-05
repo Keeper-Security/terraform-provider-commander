@@ -7,6 +7,7 @@ import (
 	"context"
 
 	folderutils "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/folders/utils"
+	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/utils"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -16,7 +17,7 @@ func (r *NonSharedFolderResource) Schema(ctx context.Context, req resource.Schem
 	resp.Schema = schema.Schema{
 		Description:         DescResource,
 		MarkdownDescription: DescResource,
-		Attributes: folderutils.MergeResourceAttributes(
+		Attributes: utils.MergeResourceAttributes(
 			folderutils.ResourceCommonFolderAttributes(),
 			map[string]schema.Attribute{
 				"records": schema.SetAttribute{

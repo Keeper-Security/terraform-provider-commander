@@ -6,10 +6,10 @@ package newpamdatabase
 import (
 	"context"
 
-	folderutils "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/folders/utils"
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/new_share"
 	commonpamrecords "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/pam_records"
 	commonpamdatabase "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/pam_records/pam_database"
+	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/utils"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	dschema "github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 )
@@ -18,7 +18,7 @@ func (d *PamDatabaseDataSource) Schema(ctx context.Context, req datasource.Schem
 	resp.Schema = dschema.Schema{
 		Description:         "Use this data source to look up a new (nested-shared) PAM database record by UID or name and read its per-user share permissions.",
 		MarkdownDescription: "Use this data source to look up a **new (nested-shared) PAM database** record by **UID** or **name** and read its **per-user share permissions**.",
-		Attributes: folderutils.MergeDataSourceAttributes(map[string]dschema.Attribute{
+		Attributes: utils.MergeDataSourceAttributes(map[string]dschema.Attribute{
 			"pam_database": dschema.StringAttribute{
 				Required:            true,
 				Description:         "PAM database record UID or name to read.",

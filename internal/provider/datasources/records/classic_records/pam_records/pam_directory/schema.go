@@ -7,9 +7,9 @@ import (
 	"context"
 
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/classic_share"
-	folderutils "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/folders/utils"
 	commonpamrecords "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/pam_records"
 	commonpamdirectory "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/pam_records/pam_directory"
+	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/utils"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	dschema "github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -19,7 +19,7 @@ func (d *PamDirectoryDataSource) Schema(ctx context.Context, req datasource.Sche
 	resp.Schema = dschema.Schema{
 		Description:         "Use this data source to look up a classic PAM directory record by UID or name and read its per-user share permissions.",
 		MarkdownDescription: "Use this data source to look up a **classic PAM directory** record by **UID** or **name** and read its **per-user share permissions**.",
-		Attributes: folderutils.MergeDataSourceAttributes(map[string]dschema.Attribute{
+		Attributes: utils.MergeDataSourceAttributes(map[string]dschema.Attribute{
 			"pam_directory": dschema.StringAttribute{
 				Required:            true,
 				Description:         "PAM directory record UID or name to read.",

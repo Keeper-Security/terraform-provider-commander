@@ -7,6 +7,7 @@ import (
 	"context"
 
 	folderutils "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/folders/utils"
+	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/utils"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -45,7 +46,7 @@ func (r *ClassicSharedFolderResource) Schema(ctx context.Context, req resource.S
 	resp.Schema = schema.Schema{
 		Description:         DescResource,
 		MarkdownDescription: DescResource,
-		Attributes: folderutils.MergeResourceAttributes(
+		Attributes: utils.MergeResourceAttributes(
 			folderutils.ResourceCommonFolderAttributes(),
 			map[string]schema.Attribute{
 				"user_permissions": schema.SingleNestedAttribute{

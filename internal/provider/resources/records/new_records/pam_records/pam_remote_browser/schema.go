@@ -6,9 +6,9 @@ package newpamremotebrowser
 import (
 	"context"
 
-	folderutils "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/folders/utils"
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/new_share"
 	commonpamremotebrowser "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/pam_records/pam_remote_browser"
+	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/utils"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 )
@@ -21,7 +21,7 @@ func (r *PamRemoteBrowserResource) Schema(ctx context.Context, req resource.Sche
 		MarkdownDescription: "Creates and manages a **Nested-Shared (new) PAM remote browser** record with **share permissions** in your Keeper vault.\n\n" +
 			"A PAM Remote Browser is a type of KeeperPAM resource that represents a remote browser isolation target, such as a protected internal application or cloud-based web app.\n\n" +
 			"For more information, see [Keeper PAM Remote Browser documentation](https://docs.keeper.io/en/keeperpam/privileged-access-manager/getting-started/pam-resources/pam-remote-browser).",
-		Attributes: folderutils.MergeResourceAttributes(
+		Attributes: utils.MergeResourceAttributes(
 			commonpamremotebrowser.SharedAttributes(),
 			new_share.ResourceShareAttribute(),
 		),

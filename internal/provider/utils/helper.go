@@ -14,7 +14,9 @@ import (
 
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/api"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
+	dschema "github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
@@ -934,4 +936,26 @@ func NormalizeFolderPath(p string) string {
 		parts[i] = strings.TrimSpace(part)
 	}
 	return strings.Join(parts, "/")
+}
+
+// MergeResourceAttributes combines resource attribute maps; later maps override earlier keys.
+func MergeResourceAttributes(maps ...map[string]schema.Attribute) map[string]schema.Attribute {
+	result := map[string]schema.Attribute{}
+	for _, m := range maps {
+		for k, v := range m {
+			result[k] = v
+		}
+	}
+	return result
+}
+
+// MergeDataSourceAttributes combines data source attribute maps; later maps override earlier keys.
+func MergeDataSourceAttributes(maps ...map[string]dschema.Attribute) map[string]dschema.Attribute {
+	result := map[string]dschema.Attribute{}
+	for _, m := range maps {
+		for k, v := range m {
+			result[k] = v
+		}
+	}
+	return result
 }
