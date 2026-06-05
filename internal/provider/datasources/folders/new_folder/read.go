@@ -38,7 +38,7 @@ func (d *NewFolderDataSource) Read(ctx context.Context, req datasource.ReadReque
 		return
 	}
 
-	apiData, err := commonnewfolder.FetchNewFolderByNameOrId(ctx, d.ApiManager, key)
+	apiData, err := commonnewfolder.FetchNsfFolderByNameOrId(ctx, d.ApiManager, key)
 	if err != nil {
 		resp.Diagnostics.AddError(folderutils.ErrSummaryReadFailed, err.Error())
 		return

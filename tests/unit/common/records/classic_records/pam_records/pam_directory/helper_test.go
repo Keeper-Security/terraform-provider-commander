@@ -7,7 +7,6 @@ import (
 	"encoding/json"
 	"testing"
 
-	commonpamrecords "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/pam_records"
 	commonpamdirectory "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/pam_records/pam_directory"
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/utils"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -612,7 +611,7 @@ func TestMapVaultRecordGetResponse_FolderFromResponse_StateMatchesUID(t *testing
 	rec := &utils.VaultRecordGetResponse{
 		RecordUID: "uid-folder",
 		Title:     "Folder Test",
-		Folder: &utils.RecordFolderResponse{
+		FolderLocation: &utils.FolderLocationResponse{
 			UID:  "folder-uid-123",
 			Path: "Test/My Folder",
 		},
@@ -632,7 +631,7 @@ func TestMapVaultRecordGetResponse_FolderFromResponse_StateMatchesPath(t *testin
 	rec := &utils.VaultRecordGetResponse{
 		RecordUID: "uid-folder2",
 		Title:     "Folder Path Test",
-		Folder: &utils.RecordFolderResponse{
+		FolderLocation: &utils.FolderLocationResponse{
 			UID:  "folder-uid-456",
 			Path: "Test/My Folder",
 		},
@@ -665,7 +664,7 @@ func TestMapVaultRecordGetResponse_FolderNilInResponse(t *testing.T) {
 }
 
 func TestExtractFolderValue_NilFolder(t *testing.T) {
-	result := commonpamrecords.ExtractFolderValue(nil, types.StringValue("any"))
+	result := utils.ExtractFolderValue(nil, types.StringValue("any"))
 	if !result.IsNull() {
 		t.Error("expected null for nil folder response")
 	}

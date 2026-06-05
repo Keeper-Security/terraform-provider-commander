@@ -213,36 +213,6 @@ func isDecimalDigits(s string) bool {
 	return true
 }
 
-// SharedFolderRecordEntry is one element of the records array from get classic shared folder --format json.
-type SharedFolderRecordEntry struct {
-	RecordUID  string `json:"record_uid"`
-	RecordName string `json:"record_name"`
-	CanShare   bool   `json:"can_share"`
-	CanEdit    bool   `json:"can_edit"`
-}
-
-// SharedFolderUserEntry is one element of the users array from get classic shared folder --format json.
-type SharedFolderUserEntry struct {
-	Username      string `json:"username"`
-	UserID        string `json:"user_id"`
-	ManageUsers   bool   `json:"manage_users"`
-	ManageRecords bool   `json:"manage_records"`
-	Expiration    string `json:"expiration"`
-}
-
-// SharedFolderResponse is the data payload from get SHARED_FOLDER_ID --format json.
-type SharedFolderResponse struct {
-	SharedFolderUID string                    `json:"shared_folder_uid"`
-	Name            string                    `json:"name"`
-	Path            string                    `json:"path"`
-	ManageUsers     bool                      `json:"manage_users"`
-	ManageRecords   bool                      `json:"manage_records"`
-	CanShare        bool                      `json:"can_share"`
-	CanEdit         bool                      `json:"can_edit"`
-	Records         []SharedFolderRecordEntry `json:"records"`
-	Users           []SharedFolderUserEntry   `json:"users"`
-}
-
 // PamConfigListSharedFolder is the shared_folder object from pam config list --format json.
 type PamConfigListSharedFolder struct {
 	Name string `json:"name"`
@@ -322,7 +292,7 @@ type VaultRecordGetResponse struct {
 	PamSettingsEnabled           *PamSettingsEnabledResponse           `json:"pamSettingsEnabled,omitempty"`
 	DagDebug                     *DagDebugResponse                     `json:"dagDebug,omitempty"`
 	AssociatedCredentials        *AssociatedCredentialsResponse        `json:"associatedCredentials,omitempty"`
-	Folder                       *RecordFolderResponse                 `json:"folder,omitempty"`
+	FolderLocation               *FolderLocationResponse               `json:"folder,omitempty"`
 	PamConfigurationUID          string                                `json:"pam_configuration_uid,omitempty"`
 	ConfigurationAllowedSettings *ConfigurationAllowedSettingsResponse `json:"configuration_allowed_settings,omitempty"`
 	UserPermissions              []UserPermissionEntry                 `json:"user_permissions,omitempty"`
@@ -355,7 +325,15 @@ type ConfigurationAllowedSettingsResponse struct {
 	RemoteBrowserIsolation bool `json:"remote_browser_isolation"`
 }
 
-type RecordFolderResponse struct {
+/*
+FolderLocationResponse is struct of folder field that is returned by the API response for get <record/folder> --format json.
+Which consists of uid and path where record/folder is located.
+
+To use this struct in type of api response of folder and record response like:
+
+folder type FolderLocationResponse  'json:"folder"'.
+*/
+type FolderLocationResponse struct {
 	UID  string `json:"uid"`
 	Path string `json:"path"`
 }

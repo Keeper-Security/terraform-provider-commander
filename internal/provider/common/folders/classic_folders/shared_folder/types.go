@@ -4,9 +4,41 @@
 package shared_folder
 
 import (
+	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/utils"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
+
+// SharedFolderRecordEntry is one element of the records array from get classic shared folder --format json.
+type SharedFolderRecordEntry struct {
+	RecordUID  string `json:"record_uid"`
+	RecordName string `json:"record_name"`
+	CanShare   bool   `json:"can_share"`
+	CanEdit    bool   `json:"can_edit"`
+}
+
+// SharedFolderUserEntry is one element of the users array from get classic shared folder --format json.
+type SharedFolderUserEntry struct {
+	Username      string `json:"username"`
+	UserID        string `json:"user_id"`
+	ManageUsers   bool   `json:"manage_users"`
+	ManageRecords bool   `json:"manage_records"`
+	Expiration    string `json:"expiration"`
+}
+
+// SharedFolderResponse is the data payload from get SHARED_FOLDER_ID --format json.
+type SharedFolderResponse struct {
+	FolderUID      string                       `json:"folder_uid"`
+	Name           string                       `json:"name"`
+	Path           string                       `json:"path"`
+	ManageUsers    bool                         `json:"manage_users"`
+	ManageRecords  bool                         `json:"manage_records"`
+	CanShare       bool                         `json:"can_share"`
+	CanEdit        bool                         `json:"can_edit"`
+	Records        []SharedFolderRecordEntry    `json:"records"`
+	Users          []SharedFolderUserEntry      `json:"users"`
+	FolderLocation utils.FolderLocationResponse `json:"folder"`
+}
 
 // RecordEntryMapElemType is the object type for each entry in the records map.
 var RecordEntryMapElemType = types.ObjectType{

@@ -115,7 +115,7 @@ func MapVaultRecordGetResponseToPamDatabaseModel(rec *utils.VaultRecordGetRespon
 	state.Title = setStringOrNull(rec.Title)
 	state.Notes = setStringOrNull(rec.Notes)
 
-	state.Folder = commonpamrecords.ExtractFolderValue(rec.Folder, state.Folder)
+	state.Folder = utils.ExtractFolderValue(rec.FolderLocation, state.Folder)
 
 	state.HostnameOrIP = ExtractPamHostnameFieldValue(rec.Fields)
 	state.UseSSL = extractCheckboxFieldValue(rec.Fields, "useSSL")

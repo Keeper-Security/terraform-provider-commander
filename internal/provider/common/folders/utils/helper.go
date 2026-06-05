@@ -6,8 +6,6 @@ package utils
 import (
 	"fmt"
 	"strings"
-
-	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
 // BuildFolderPath constructs the full vault folder path from a leaf name and
@@ -79,24 +77,6 @@ func MvMoveTargetParent(planPath string) string {
 		return "/"
 	}
 	return parent
-}
-
-// SetCommonFolderIdentityFromAPI populates Id, Name and FolderLocation on m.
-// fullPath (when non-empty) is split via SplitFolderPath; the parent becomes
-// FolderLocation (or null at vault root). When fullPath is empty, only Id and
-// Name are set and FolderLocation is left untouched (so callers can pre-seed it).
-func SetCommonFolderIdentityFromAPI(m *CommonFolderModel, uid, name, fullPath string) {
-	m.Id = types.StringValue(uid)
-	m.Name = types.StringValue(name)
-	if fullPath == "" {
-		return
-	}
-	parent, _ := SplitFolderPath(fullPath)
-	if parent != "" {
-		m.FolderLocation = types.StringValue(parent)
-	} else {
-		m.FolderLocation = types.StringNull()
-	}
 }
 
 // ExtractFolderUIDFromCreateResponse pulls KeyFolderUID ("folder_uid") out of

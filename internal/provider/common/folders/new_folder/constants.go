@@ -4,12 +4,6 @@
 // Package new_folder holds types and API helpers for Keeper Drive (new) folder resources.
 package new_folder
 
-// API response keys (nsf-mkdir / nsf-get JSON).
-const (
-	KeyKeeperDriveFolderUID = "nested_share_folder_uid"
-	KeyName                 = "name"
-)
-
 // ExecuteCommand operation descriptions (logs / error context).
 const (
 	ErrOpCreate = "Unable to create Keeper Drive folder"

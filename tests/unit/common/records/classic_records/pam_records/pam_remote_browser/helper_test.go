@@ -278,7 +278,7 @@ func TestMapVaultRecordGetResponse_WithFolder(t *testing.T) {
 	rec := &utils.VaultRecordGetResponse{
 		RecordUID: "uid-789",
 		Title:     "Folder Test",
-		Folder: &utils.RecordFolderResponse{
+		FolderLocation: &utils.FolderLocationResponse{
 			UID:  "my-folder",
 			Path: "Test/My Folder",
 		},

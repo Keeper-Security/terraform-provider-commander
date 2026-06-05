@@ -9,7 +9,6 @@ import (
 	"fmt"
 
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/api"
-	folderutils "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/folders/utils"
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/utils"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
@@ -67,7 +66,10 @@ func MapResponseToModel(api *NonSharedFolderResponse, m *Model) error {
 	if api == nil {
 		return fmt.Errorf("non-shared folder API response is nil")
 	}
-	folderutils.SetCommonFolderIdentityFromAPI(&m.CommonFolderModel, api.FolderUID, api.Name, api.Path)
+
+	m.Id = types.StringValue(api.FolderUID)
+	m.Name = types.StringValue(api.Name)
+	m.FolderLocation = utils.ExtractFolderValue(&api.FolderLocation, m.FolderLocation)
 
 	if api.Records != nil {
 		uids := make([]string, 0, len(api.Records))

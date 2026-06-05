@@ -9,7 +9,6 @@ import (
 	"fmt"
 
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/api"
-	folderutils "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/folders/utils"
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/utils"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -25,11 +24,11 @@ func GetSharedFolderCommand(nameOrUID string) string {
 
 // ParseSharedFolderResponse unmarshals API result data into SharedFolderResponse.
 // If data is nil, returns (nil, nil) so callers can treat as missing resource.
-func ParseSharedFolderResponse(data any) (*utils.SharedFolderResponse, error) {
+func ParseSharedFolderResponse(data any) (*SharedFolderResponse, error) {
 	if data == nil {
 		return nil, nil
 	}
-	var out utils.SharedFolderResponse
+	var out SharedFolderResponse
 	if err := utils.UnmarshalApiResponse(data, &out); err != nil {
 		return nil, err
 	}
@@ -37,7 +36,7 @@ func ParseSharedFolderResponse(data any) (*utils.SharedFolderResponse, error) {
 }
 
 // FetchSharedFolderByNameOrId loads a classic shared folder by vault path/name or UID; fails if the command errors or response has no folder.
-func FetchSharedFolderByNameOrId(ctx context.Context, apiManager *api.ApiManager, nameOrUID string) (*utils.SharedFolderResponse, error) {
+func FetchSharedFolderByNameOrId(ctx context.Context, apiManager *api.ApiManager, nameOrUID string) (*SharedFolderResponse, error) {
 	if nameOrUID == "" {
 		return nil, fmt.Errorf("classic shared folder name or id is empty")
 	}
@@ -55,20 +54,22 @@ func FetchSharedFolderByNameOrId(ctx context.Context, apiManager *api.ApiManager
 	if out == nil {
 		return nil, ErrSharedFolderNotFound
 	}
-	if out.SharedFolderUID == "" {
-		return nil, fmt.Errorf("get response missing shared_folder_uid")
+	if out.FolderUID == "" {
+		return nil, fmt.Errorf("get response missing folder_uid")
 	}
 	return out, nil
 }
 
 // MapResponseToModel maps unmarshaled get classic shared folder API data into m. priorUsers is used to
 // preserve user map keys from existing state (resource refresh); pass null Map for data sources.
-func MapResponseToModel(api *utils.SharedFolderResponse, m *Model, priorUsers types.Map, priorRecords types.Map) error {
+func MapResponseToModel(api *SharedFolderResponse, m *Model, priorUsers types.Map, priorRecords types.Map) error {
 	if api == nil {
 		return fmt.Errorf("classic shared folder API response is nil")
 	}
 
-	folderutils.SetCommonFolderIdentityFromAPI(&m.CommonFolderModel, api.SharedFolderUID, api.Name, api.Path)
+	m.Id = types.StringValue(api.FolderUID)
+	m.Name = types.StringValue(api.Name)
+	m.FolderLocation = utils.ExtractFolderValue(&api.FolderLocation, m.FolderLocation)
 
 	m.UserPermissions = &UserPermissionsModel{
 		ManageUsers:   types.BoolValue(api.ManageUsers),
@@ -96,7 +97,7 @@ func MapResponseToModel(api *utils.SharedFolderResponse, m *Model, priorUsers ty
 
 // recordEntryMapKey picks the records map key for an API row. If prior state already keys this record
 // by record_uid or record_name, the same key is reused; otherwise record_name is preferred, then record_uid.
-func recordEntryMapKey(rec utils.SharedFolderRecordEntry, priorRecords types.Map) string {
+func recordEntryMapKey(rec SharedFolderRecordEntry, priorRecords types.Map) string {
 	if !priorRecords.IsNull() && !priorRecords.IsUnknown() {
 		for k := range priorRecords.Elements() {
 			if rec.RecordUID != "" && k == rec.RecordUID {
@@ -113,7 +114,7 @@ func recordEntryMapKey(rec utils.SharedFolderRecordEntry, priorRecords types.Map
 	return rec.RecordUID
 }
 
-func buildRecordsMapFromAPIResponse(entries []utils.SharedFolderRecordEntry, priorRecords types.Map) (types.Map, error) {
+func buildRecordsMapFromAPIResponse(entries []SharedFolderRecordEntry, priorRecords types.Map) (types.Map, error) {
 	elements := make(map[string]attr.Value)
 	for _, rec := range entries {
 		key := recordEntryMapKey(rec, priorRecords)
@@ -136,7 +137,7 @@ func buildRecordsMapFromAPIResponse(entries []utils.SharedFolderRecordEntry, pri
 	return mapVal, nil
 }
 
-func userEntryMapKey(u utils.SharedFolderUserEntry, priorUsers types.Map) string {
+func userEntryMapKey(u SharedFolderUserEntry, priorUsers types.Map) string {
 	if !priorUsers.IsNull() && !priorUsers.IsUnknown() {
 		for k := range priorUsers.Elements() {
 			if u.UserID != "" && k == u.UserID {
@@ -153,7 +154,7 @@ func userEntryMapKey(u utils.SharedFolderUserEntry, priorUsers types.Map) string
 	return u.UserID
 }
 
-func buildUsersMapFromAPIResponse(entries []utils.SharedFolderUserEntry, priorUsers types.Map) (types.Map, error) {
+func buildUsersMapFromAPIResponse(entries []SharedFolderUserEntry, priorUsers types.Map) (types.Map, error) {
 	elements := make(map[string]attr.Value)
 	for _, u := range entries {
 		key := userEntryMapKey(u, priorUsers)

@@ -3,14 +3,14 @@
 page_title: "commander_classic_pam_machine Resource - commander"
 subcategory: ""
 description: |-
-  Creates and manages PAM machine record with pam settings in your Keeper vault.
+  Creates and manages a classic PAM machine record with PAM settings and per-user share permissions in your Keeper vault.
   A PAM Machine record is a type of KeeperPAM resource that represents a workload, such as a Windows or Linux server.
   For more information, see the PAM Machine documentation https://docs.keeper.io/en/keeperpam/privileged-access-manager/getting-started/pam-resources/pam-machine.
 ---
 
 # commander_classic_pam_machine (Resource)
 
-Creates and manages **PAM machine record with pam settings** in your Keeper vault.
+Creates and manages a **classic PAM machine record** with **PAM settings** and **per-user share permissions** in your Keeper vault.
 
 A PAM Machine record is a type of KeeperPAM resource that represents a workload, such as a Windows or Linux server.
 
@@ -34,6 +34,21 @@ resource "commander_classic_pam_machine" "example" {
   provider_region  = "us-east-1"
   notes            = "Primary production server."
   folder           = "_REPLACE_WITH_SHARED_FOLDER_UID_"
+
+  # ----------------------------------------------------------------
+  # Per-user share permissions (optional).
+  # Map key = user email. Each value is { can_share, can_edit }.
+  # Both flags default to false (view-only).
+  # ----------------------------------------------------------------
+  share = {
+    "alice@example.com" = {
+      can_share = true
+      can_edit  = true
+    }
+    "bob@example.com" = {
+      can_edit = true
+    }
+  }
 
   pam_settings {
     configuration              = "_REPLACE_WITH_PAM_CONFIGURATION_UID_"
@@ -336,6 +351,7 @@ resource "commander_classic_pam_machine" "example" {
 - `pam_settings` (Block, Optional) **PAM settings** for the record, including connection, tunnel, and administrative options. (see [below for nested schema](#nestedblock--pam_settings))
 - `provider_group` (String) **Provider group** of the PAM machine.
 - `provider_region` (String) **AWS region** of hosted directory.
+- `share` (Attributes Map) Map of share permissions for this record. Each map **key** is a **user email**; each **value** is an object with `can_share` and `can_edit` booleans. The record **owner** is managed by Keeper and is not represented in this block. (see [below for nested schema](#nestedatt--share))
 
 ### Read-Only
 
@@ -638,6 +654,16 @@ Optional:
 - `re_use_port` (Boolean) Whether to **reuse the port** for tunneling. Only applicable when tunneling is enabled.
 - `remote_target_port` (Number) **Remote target port** for the tunnel. Only applicable when tunneling is enabled.
 - `use_specified_local_port` (Boolean) Whether to use a **specified local port** for tunneling. Only applicable when tunneling is enabled.
+
+
+
+<a id="nestedatt--share"></a>
+### Nested Schema for `share`
+
+Optional:
+
+- `can_edit` (Boolean) Allow the user to edit this record. Defaults to `false`.
+- `can_share` (Boolean) Allow the user to re-share this record with other users. Defaults to `false`.
 
 ## Import
 

@@ -105,7 +105,7 @@ func MapVaultRecordGetResponseToPamMachineModel(rec *utils.VaultRecordGetRespons
 	state.Title = setStringOrNull(rec.Title)
 	state.Notes = setStringOrNull(rec.Notes)
 
-	state.Folder = commonpamrecords.ExtractFolderValue(rec.Folder, state.Folder)
+	state.Folder = utils.ExtractFolderValue(rec.FolderLocation, state.Folder)
 
 	// pamHostname field
 	state.HostnameOrIP = ExtractPamHostnameFieldValue(rec.Fields)

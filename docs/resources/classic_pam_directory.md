@@ -3,14 +3,14 @@
 page_title: "commander_classic_pam_directory Resource - commander"
 subcategory: ""
 description: |-
-  Creates and manages PAM directory record with pam settings in your Keeper vault.
+  Creates and manages a classic PAM directory record with PAM settings and per-user share permissions in your Keeper vault.
   A PAM Directory record is a type of KeeperPAM resource that represents an Active Directory or OpenLDAP service, either on-prem or hosted in the cloud.
   For more information, see the PAM Directory documentation https://docs.keeper.io/en/keeperpam/privileged-access-manager/getting-started/pam-resources/pam-directory.
 ---
 
 # commander_classic_pam_directory (Resource)
 
-Creates and manages **PAM directory record with pam settings** in your Keeper vault.
+Creates and manages a **classic PAM directory record** with **PAM settings** and **per-user share permissions** in your Keeper vault.
 
 A PAM Directory record is a type of KeeperPAM resource that represents an Active Directory or OpenLDAP service, either on-prem or hosted in the cloud.
 
@@ -57,6 +57,18 @@ resource "commander_classic_pam_directory" "active_directory" {
   provider_region = "us-east-1"
   notes           = "Primary domain controller for corp.example.com"
   folder          = "_REPLACE_WITH_SHARED_FOLDER_UID_"
+
+  # ----------------------------------------------------------------
+  # Per-user share permissions (optional).
+  # Map key = user email. Each value is { can_share, can_edit }.
+  # Both flags default to false (view-only).
+  # ----------------------------------------------------------------
+  share = {
+    "alice@example.com" = {
+      can_share = true
+      can_edit  = true
+    }
+  }
 }
 
 # ------------------------------------------------------------------
@@ -194,6 +206,7 @@ resource "commander_classic_pam_directory" "tunnel_only" {
 - `pam_settings` (Block, Optional) **PAM settings** for the record, including connection, tunnel, and administrative options. (see [below for nested schema](#nestedblock--pam_settings))
 - `provider_group` (String) **Provider Group** for directories hosted in Azure.
 - `provider_region` (String) **AWS region** of hosted directory.
+- `share` (Attributes Map) Map of share permissions for this record. Each map **key** is a **user email**; each **value** is an object with `can_share` and `can_edit` booleans. The record **owner** is managed by Keeper and is not represented in this block. (see [below for nested schema](#nestedatt--share))
 - `use_ssl` (Boolean) Whether to use **SSL** while connecting to the directory resource.
 - `user_match` (String) **Match on OU** to filter found users during Discovery. Either match the right side of the DN or surround with slashes for a regular expression. Example: `OU=Users,DC=company,DC=com` or `/OU=Users/`
 
@@ -498,6 +511,16 @@ Optional:
 - `re_use_port` (Boolean) Whether to **reuse the port** for tunneling. Only applicable when tunneling is enabled.
 - `remote_target_port` (Number) **Remote target port** for the tunnel. Only applicable when tunneling is enabled.
 - `use_specified_local_port` (Boolean) Whether to use a **specified local port** for tunneling. Only applicable when tunneling is enabled.
+
+
+
+<a id="nestedatt--share"></a>
+### Nested Schema for `share`
+
+Optional:
+
+- `can_edit` (Boolean) Allow the user to edit this record. Defaults to `false`.
+- `can_share` (Boolean) Allow the user to re-share this record with other users. Defaults to `false`.
 
 ## Import
 

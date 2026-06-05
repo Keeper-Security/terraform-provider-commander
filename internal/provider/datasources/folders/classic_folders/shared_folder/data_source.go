@@ -18,7 +18,7 @@ type ClassicSharedFolderDataSource struct {
 }
 
 func (d *ClassicSharedFolderDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_classic_shared_folder"
+	resp.TypeName = req.ProviderTypeName + "_shared_folder"
 }
 
 func (d *ClassicSharedFolderDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {

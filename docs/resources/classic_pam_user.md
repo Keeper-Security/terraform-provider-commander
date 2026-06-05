@@ -59,6 +59,22 @@ resource "commander_classic_pam_user" "mysql_app_account" {
   private_pem_key    = "_REPLACE_WITH_PEM_KEY_OR_USE_file()_"
   connect_database   = "billing_prod"
   managed            = true
+
+  # ----------------------------------------------------------------
+  # Per-user share permissions (optional).
+  # Map key = user email. Each value is { can_share, can_edit }.
+  # Both flags default to false (view-only).
+  # Omit the block entirely to skip share reconciliation.
+  # ----------------------------------------------------------------
+  share = {
+    "alice@example.com" = {
+      can_share = true
+      can_edit  = true
+    }
+    "bob@example.com" = {
+      can_edit = true
+    }
+  }
 }
 
 ###############################################################################
@@ -222,6 +238,7 @@ resource "commander_classic_pam_user" "mysql_app_account" {
 - `rotation_settings` (Attributes) Rotation settings for the PAM User record. Configures password rotation via `pam rotation edit`.
 
 **Schedule:** use `on_demand` **or** at most one of `schedule_config`, `schedule_cron`, and `schedule_json` (they are mutually exclusive; see attribute descriptions). (see [below for nested schema](#nestedatt--rotation_settings))
+- `share` (Attributes Map) Map of share permissions for this record. Each map **key** is a **user email**; each **value** is an object with `can_share` and `can_edit` booleans. The record **owner** is managed by Keeper and is not represented in this block. (see [below for nested schema](#nestedatt--share))
 
 ### Read-Only
 
@@ -243,6 +260,15 @@ Optional:
 - `schedule_config` (Boolean) If `true`, uses the schedule from the PAM Configuration instead of a per-record schedule.
 - `schedule_cron` (String) Cron schedule for rotation. Commander expects **5-field** (minutes first, e.g. `56 17 * * *`) or **6-field Quartz** (seconds first, e.g. `0 0 3 1 * ?`). Presets such as `@daily` are accepted when the parser supports them. Invalid expressions fail at **plan** time so the vault record is not created first.
 - `schedule_json` (String) JSON schedule for rotation.
+
+
+<a id="nestedatt--share"></a>
+### Nested Schema for `share`
+
+Optional:
+
+- `can_edit` (Boolean) Allow the user to edit this record. Defaults to `false`.
+- `can_share` (Boolean) Allow the user to re-share this record with other users. Defaults to `false`.
 
 ## Import
 

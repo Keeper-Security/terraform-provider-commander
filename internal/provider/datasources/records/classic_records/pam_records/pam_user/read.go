@@ -95,7 +95,7 @@ func mapVaultRecordToDataSource(rec *utils.VaultRecordGetResponse, data *PamUser
 
 	data.Title = stringOrNull(rec.Title)
 	data.Notes = stringOrNull(rec.Notes)
-	data.Folder = commonpamrecords.ExtractFolderValue(rec.Folder, data.Folder)
+	data.Folder = utils.ExtractFolderValue(rec.FolderLocation, data.Folder)
 
 	for i := range rec.Fields {
 		f := &rec.Fields[i]

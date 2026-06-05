@@ -3,14 +3,14 @@
 page_title: "commander_classic_pam_database Resource - commander"
 subcategory: ""
 description: |-
-  Creates and manages PAM database record with pam settings in your Keeper vault.
+  Creates and manages a classic PAM database record with PAM settings and per-user share permissions in your Keeper vault.
   A PAM Database record is a type of KeeperPAM resource that represents a database server, either on-prem or hosted in the cloud.
   For more information, see the PAM Database documentation https://docs.keeper.io/en/keeperpam/privileged-access-manager/getting-started/pam-resources/pam-database.
 ---
 
 # commander_classic_pam_database (Resource)
 
-Creates and manages **PAM database record with pam settings** in your Keeper vault.
+Creates and manages a **classic PAM database record** with **PAM settings** and **per-user share permissions** in your Keeper vault.
 
 A PAM Database record is a type of KeeperPAM resource that represents a database server, either on-prem or hosted in the cloud.
 
@@ -51,6 +51,22 @@ resource "commander_classic_pam_database" "full_fields" {
   provider_region = "us-east-1"
   notes           = "Primary PostgreSQL database for production workloads."
   folder          = "_REPLACE_WITH_SHARED_FOLDER_UID_"
+
+  # ----------------------------------------------------------------
+  # Per-user share permissions (optional).
+  # Map key = user email. Each value is { can_share, can_edit }.
+  # Both flags default to false (view-only).
+  # Omit the block entirely to skip share reconciliation.
+  # ----------------------------------------------------------------
+  share = {
+    "alice@example.com" = {
+      can_share = true
+      can_edit  = true
+    }
+    "bob@example.com" = {
+      can_edit = true
+    }
+  }
 }
 
 # ------------------------------------------------------------------
@@ -128,6 +144,7 @@ resource "commander_classic_pam_database" "with_pam_settings" {
 - `pam_settings` (Block, Optional) **PAM settings** for the record, including connection, tunnel, and administrative options. (see [below for nested schema](#nestedblock--pam_settings))
 - `provider_group` (String) **Azure or AWS Provider Group**.
 - `provider_region` (String) **Azure or AWS Provider Region**.
+- `share` (Attributes Map) Map of share permissions for this record. Each map **key** is a **user email**; each **value** is an object with `can_share` and `can_edit` booleans. The record **owner** is managed by Keeper and is not represented in this block. (see [below for nested schema](#nestedatt--share))
 - `use_ssl` (Boolean) Whether to use **SSL** while connecting to the database resource.
 
 ### Read-Only
@@ -431,6 +448,16 @@ Optional:
 - `re_use_port` (Boolean) Whether to **reuse the port** for tunneling. Only applicable when tunneling is enabled.
 - `remote_target_port` (Number) **Remote target port** for the tunnel. Only applicable when tunneling is enabled.
 - `use_specified_local_port` (Boolean) Whether to use a **specified local port** for tunneling. Only applicable when tunneling is enabled.
+
+
+
+<a id="nestedatt--share"></a>
+### Nested Schema for `share`
+
+Optional:
+
+- `can_edit` (Boolean) Allow the user to edit this record. Defaults to `false`.
+- `can_share` (Boolean) Allow the user to re-share this record with other users. Defaults to `false`.
 
 ## Import
 

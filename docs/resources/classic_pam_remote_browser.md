@@ -3,14 +3,14 @@
 page_title: "commander_classic_pam_remote_browser Resource - commander"
 subcategory: ""
 description: |-
-  Manages PAM remote browser record in your Keeper vault.
+  Manages a classic PAM remote browser record with per-user share permissions in your Keeper vault.
   A PAM Remote Browser is a type of KeeperPAM resource that represents a remote browser isolation target, such as a protected internal application or cloud-based web app.
   For more information, see Keeper PAM Remote Browser documentation https://docs.keeper.io/en/keeperpam/privileged-access-manager/getting-started/pam-resources/pam-remote-browser.
 ---
 
 # commander_classic_pam_remote_browser (Resource)
 
-Manages **PAM remote browser** record in your Keeper vault.
+Manages a **classic PAM remote browser** record with **per-user share permissions** in your Keeper vault.
 
 A PAM Remote Browser is a type of KeeperPAM resource that represents a remote browser isolation target, such as a protected internal application or cloud-based web app.
 
@@ -59,6 +59,18 @@ resource "commander_classic_pam_remote_browser" "intranet_app" {
     audio_bit_depth   = 16
     audio_sample_rate = 48000
   }
+
+  # ----------------------------------------------------------------
+  # Per-user share permissions (optional).
+  # Map key = user email. Each value is { can_share, can_edit }.
+  # Both flags default to false (view-only).
+  # ----------------------------------------------------------------
+  share = {
+    "alice@example.com" = {
+      can_share = true
+      can_edit  = true
+    }
+  }
 }
 ```
 
@@ -75,6 +87,7 @@ resource "commander_classic_pam_remote_browser" "intranet_app" {
 - `folder` (String) Folder **UID** or path to store PAM remote browser record in your Keeper vault. If not provided, the record will be stored in the root path of vault.
 - `notes` (String) Optional **notes** for this PAM remote browser record.
 - `pam_remote_browser_settings` (Attributes) PAM **settings** for the PAM remote browser record. (see [below for nested schema](#nestedatt--pam_remote_browser_settings))
+- `share` (Attributes Map) Map of share permissions for this record. Each map **key** is a **user email**; each **value** is an object with `can_share` and `can_edit` booleans. The record **owner** is managed by Keeper and is not represented in this block. (see [below for nested schema](#nestedatt--share))
 
 ### Read-Only
 
@@ -104,6 +117,15 @@ Optional:
 - `ignore_server_cert` (Boolean) **Ignore Server Certificate**.
 - `key_events` (Boolean) **Manage key events for session recording**.
 - `remote_browser_isolation` (Boolean) Enable **remote browser isolation**.
+
+
+<a id="nestedatt--share"></a>
+### Nested Schema for `share`
+
+Optional:
+
+- `can_edit` (Boolean) Allow the user to edit this record. Defaults to `false`.
+- `can_share` (Boolean) Allow the user to re-share this record with other users. Defaults to `false`.
 
 ## Import
 

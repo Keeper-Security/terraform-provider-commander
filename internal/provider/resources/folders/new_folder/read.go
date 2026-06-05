@@ -39,7 +39,7 @@ func (r *NewFolderResource) Read(ctx context.Context, req resource.ReadRequest, 
 		return
 	}
 
-	apiData, err := commonnewfolder.FetchNewFolderByNameOrId(ctx, r.ApiManager, id)
+	apiData, err := commonnewfolder.FetchNsfFolderByNameOrId(ctx, r.ApiManager, id)
 	if err != nil {
 		if errors.Is(err, commonnewfolder.ErrNestedSharedFolderNotFound) {
 			resp.State.RemoveResource(ctx)

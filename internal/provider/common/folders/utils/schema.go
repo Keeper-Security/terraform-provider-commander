@@ -36,6 +36,9 @@ func ResourceCommonFolderAttributes() map[string]schema.Attribute {
 			Optional:            true,
 			Description:         DescFolderLocation,
 			MarkdownDescription: DescFolderLocation,
+			PlanModifiers: []planmodifier.String{
+				FolderLocationSemanticEquality(),
+			},
 		},
 	}
 }

@@ -25,11 +25,11 @@ func BuildNewFolderGetCommand(idOrName string) string {
 	return fmt.Sprintf(`%s "%s" %s`, utils.CmdNsfGet, idOrName, utils.FlagFormatJSON)
 }
 
-// FetchNewFolderByNameOrId loads a Keeper Drive folder by UID or name via
+// FetchNsfFolderByNameOrId loads a Keeper Drive folder by UID or name via
 // nsf-get. Returns ErrKeeperDriveFolderNotFound when the backend reports the
 // folder does not exist (so callers can RemoveResource) or any other error
 // when the call itself fails.
-func FetchNewFolderByNameOrId(ctx context.Context, apiManager *api.ApiManager, nameOrUID string) (*NewFolderGetResponse, error) {
+func FetchNsfFolderByNameOrId(ctx context.Context, apiManager *api.ApiManager, nameOrUID string) (*NewFolderGetResponse, error) {
 	if nameOrUID == "" {
 		return nil, fmt.Errorf("new folder name or id is empty")
 	}
@@ -53,7 +53,7 @@ func FetchNewFolderByNameOrId(ctx context.Context, apiManager *api.ApiManager, n
 		return nil, ErrNestedSharedFolderNotFound
 	}
 	if out.FolderUID == "" {
-		return nil, fmt.Errorf("get response missing nested_share_folder_uid")
+		return nil, fmt.Errorf("get response missing folder_uid")
 	}
 	return out, nil
 }
@@ -79,10 +79,10 @@ func MapResponseToModel(apiData *NewFolderGetResponse, m *Model) error {
 	if apiData == nil {
 		return fmt.Errorf("folder API response is nil")
 	}
+
 	m.Id = types.StringValue(apiData.FolderUID)
 	m.Name = types.StringValue(apiData.Name)
-	if m.FolderLocation.IsUnknown() {
-		m.FolderLocation = types.StringNull()
-	}
+	m.FolderLocation = utils.ExtractFolderValue(&apiData.FolderLocation, m.FolderLocation)
+
 	return nil
 }
