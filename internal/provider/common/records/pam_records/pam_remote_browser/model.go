@@ -5,7 +5,7 @@
 package pamremotebrowser
 
 import (
-	commonpamrecords "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/pam_records"
+	commonrecordsutils "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/utils"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
@@ -32,7 +32,7 @@ type PamRemoteBrowserSettingsModel struct {
 // PamRemoteBrowserResourceModel is the Terraform state shared by
 // commander_classic_pam_remote_browser and commander_new_pam_remote_browser.
 type PamRemoteBrowserResourceModel struct {
-	commonpamrecords.CommonPamRecordsResourceModel
+	commonrecordsutils.BaseVaultRecordModel
 
 	Url types.String `tfsdk:"url"`
 

@@ -1,16 +1,45 @@
-# commander_new_folder — create and manage a nested shared folder (a.k.a. new folder) via Commander.
-# -----------------------------------------------------------------------------
-# Example 1: minimal folder — just a name.
-# -----------------------------------------------------------------------------
+# commander_new_folder — create and manage a Nested Shared Folder (a.k.a. "new folder") via Commander.
+#
+# Required:
+#   name — Folder leaf name (without parent path), e.g. "Platform".
+#
+# Computed:
+#   id   — Folder UID (stable across renames; use for import and data source lookups).
+#
+# Optional:
+#   folder_location — Parent vault path where the folder will be created (e.g.
+#                     "Engineering/Platform"). Leave empty or omit for vault root.
+#                     Whitespace around "/" separators is ignored (e.g. "A / B" == "A/B").
+#                     Cannot be changed after creation; moving a Nested Shared
+#                     Folder to a new parent is not supported by this resource.
+#   share           — Map of email-or-user-UID => role granted on the folder.
+#                     Allowed roles: viewer, share-manager, content-manager,
+#                     content-share-manager, full-manager. Owner is implicit and
+#                     never appears in this map. Omit the attribute or use
+#                     `lifecycle.ignore_changes = [share]` to leave existing
+#                     out-of-band shares untouched.
+
+# ----------------------------------------------------------------------------
+# Usage 1 — Minimal folder at vault root (no shares)
+# ----------------------------------------------------------------------------
 resource "commander_new_folder" "minimal" {
   name = "Engineering"
 }
 
-# -----------------------------------------------------------------------------
-# Example 2: folder with a full share map covering every supported role.
-# -----------------------------------------------------------------------------
+# ----------------------------------------------------------------------------
+# Usage 2 — Nested folder under an existing parent path
+# ----------------------------------------------------------------------------
+resource "commander_new_folder" "platform" {
+  name            = "Platform"
+  folder_location = "Engineering"
+}
+
+# ----------------------------------------------------------------------------
+# Usage 3 — Nested folder with a full share map covering every supported role
+# ----------------------------------------------------------------------------
 resource "commander_new_folder" "engineering" {
-  name = "Engineering / Platform"
+  name            = "Platform Secrets"
+  folder_location = "Engineering / Platform"
 
   share = {
     # Read-only access for a contractor.
@@ -30,33 +59,36 @@ resource "commander_new_folder" "engineering" {
   }
 }
 
-# -----------------------------------------------------------------------------
-# Example 3: rename in place.
-# Update the `name` and apply — the folder UID (id) stays the same.
-# -----------------------------------------------------------------------------
+# ----------------------------------------------------------------------------
+# Usage 4 — Rename in place
+# Update the `name` and apply; the folder UID (id) and folder_location stay the
+# same. Changing folder_location is rejected (move not supported).
+# ----------------------------------------------------------------------------
 # resource "commander_new_folder" "engineering" {
-#   name = "Engineering / Platform (renamed)"
+#   name            = "Platform Secrets (renamed)"
+#   folder_location = "Engineering / Platform"
 #   # share = { ... } // unchanged
 # }
 
-# -----------------------------------------------------------------------------
-# Example 4: leave existing shares untouched.
-# Omit the `share` block and tell Terraform to ignore drift on it; Read will
-# still refresh the value into state, but plans will not propose any changes.
-# -----------------------------------------------------------------------------
+# ----------------------------------------------------------------------------
+# Usage 5 — Leave existing shares untouched
+# Omit the `share` attribute and tell Terraform to ignore drift on it; Read
+# still refreshes the value into state, but plans will not propose any changes.
+# ----------------------------------------------------------------------------
 # resource "commander_new_folder" "untouched_shares" {
-#   name = "Marketing / Templates"
+#   name            = "Templates"
+#   folder_location = "Marketing"
 #
 #   lifecycle {
 #     ignore_changes = [share]
 #   }
 # }
 
-# -----------------------------------------------------------------------------
-# Outputs — useful for wiring this folder into other resources / modules.
-# -----------------------------------------------------------------------------
+# ----------------------------------------------------------------------------
+# Outputs — useful for wiring this folder into other resources / modules
+# ----------------------------------------------------------------------------
 output "engineering_folder_uid" {
-  description = "Keeper Drive folder UID for the Engineering folder. Stable across renames."
+  description = "Nested Shared Folder UID. Stable across renames; pass to data sources or downstream record resources."
   value       = commander_new_folder.engineering.id
 }
 
@@ -64,16 +96,21 @@ output "engineering_folder_name" {
   value = commander_new_folder.engineering.name
 }
 
+output "engineering_folder_location" {
+  description = "Parent vault path the folder was created under (null/empty for vault root)."
+  value       = commander_new_folder.engineering.folder_location
+}
+
 output "engineering_folder_share_map" {
   description = "Currently-managed share grants (owner filtered out)."
   value       = commander_new_folder.engineering.share
 }
 
-# -----------------------------------------------------------------------------
+# ----------------------------------------------------------------------------
 # Importing an existing folder into Terraform state.
 # See ./import.sh for the CLI form. Or use the import block (Terraform >= 1.5):
-# -----------------------------------------------------------------------------
+# ----------------------------------------------------------------------------
 # import {
 #   to = commander_new_folder.engineering
-#   id = "E6laPVJ1T3-sWchJCRaWOg" # folder UID
+#   id = "E6laPVJ1T3-sWchJCRaWOg" # folder UID (preferred) or folder name
 # }

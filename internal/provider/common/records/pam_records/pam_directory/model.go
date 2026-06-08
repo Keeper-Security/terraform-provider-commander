@@ -7,12 +7,13 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
 	commonpamrecords "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/pam_records"
+	commonrecordsutils "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/utils"
 )
 
 // PamDirectoryResourceModel is the Terraform state shared by
 // commander_classic_pam_directory and commander_new_pam_directory.
 type PamDirectoryResourceModel struct {
-	commonpamrecords.CommonPamRecordsResourceModel
+	commonrecordsutils.BaseVaultRecordModel
 
 	HostnameOrIP   *commonpamrecords.HostnameOrIPModel `tfsdk:"hostname_or_ip"`
 	UseSSL         types.Bool                          `tfsdk:"use_ssl"`

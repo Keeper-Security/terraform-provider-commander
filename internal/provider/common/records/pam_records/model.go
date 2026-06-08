@@ -7,13 +7,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
-type CommonPamRecordsResourceModel struct {
-	Id             types.String `tfsdk:"id"`
-	Title          types.String `tfsdk:"title"`
-	Notes          types.String `tfsdk:"notes"`
-	FolderLocation types.String `tfsdk:"folder_location"`
-}
-
 // HostnameOrIPModel maps the nested hostname_or_ip object.
 type HostnameOrIPModel struct {
 	HostName           types.String `tfsdk:"hostname"`

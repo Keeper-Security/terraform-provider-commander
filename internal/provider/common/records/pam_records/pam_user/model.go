@@ -4,7 +4,7 @@
 package pamuser
 
 import (
-	pamrecords "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/pam_records"
+	commonrecordsutils "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/utils"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
@@ -12,7 +12,7 @@ import (
 // by both classic and new PAM User resources. It excludes share-extension
 // fields, which classic and new resources add separately.
 type PamUserSharedModel struct {
-	pamrecords.CommonPamRecordsResourceModel
+	commonrecordsutils.BaseVaultRecordModel
 
 	Login             types.String             `tfsdk:"login"`
 	Password          types.String             `tfsdk:"password"`

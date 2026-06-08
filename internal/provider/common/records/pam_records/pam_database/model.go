@@ -7,10 +7,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
 	commonpamrecords "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/pam_records"
+	commonrecordsutils "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/utils"
 )
 
 type PamDatabaseResourceModel struct {
-	commonpamrecords.CommonPamRecordsResourceModel
+	commonrecordsutils.BaseVaultRecordModel
 
 	HostnameOrIP   *commonpamrecords.HostnameOrIPModel `tfsdk:"hostname_or_ip"`
 	UseSSL         types.Bool                          `tfsdk:"use_ssl"`

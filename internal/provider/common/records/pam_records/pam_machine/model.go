@@ -6,13 +6,14 @@ package pammachine
 
 import (
 	commonpamrecords "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/pam_records"
+	commonrecordsutils "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/utils"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
 // PamMachineResourceModel is the Terraform state shared by
 // commander_classic_pam_machine and commander_new_pam_machine.
 type PamMachineResourceModel struct {
-	commonpamrecords.CommonPamRecordsResourceModel
+	commonrecordsutils.BaseVaultRecordModel
 
 	HostnameOrIP    *commonpamrecords.HostnameOrIPModel `tfsdk:"hostname_or_ip"`
 	OperatingSystem types.String                        `tfsdk:"operating_system"`

@@ -8,8 +8,8 @@ import (
 	"strings"
 
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/new_share"
-	commonpamrecords "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/pam_records"
 	commonpamdirectory "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/pam_records/pam_directory"
+	commonrecordsutils "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/utils"
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/utils"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -27,7 +27,7 @@ func (r *PamDirectoryResource) ImportState(ctx context.Context, req resource.Imp
 
 	state := PamDirectoryResourceModel{
 		PamDirectoryResourceModel: commonpamdirectory.PamDirectoryResourceModel{
-			CommonPamRecordsResourceModel: commonpamrecords.CommonPamRecordsResourceModel{
+			BaseVaultRecordModel: commonrecordsutils.BaseVaultRecordModel{
 				Id:             types.StringValue(importID),
 				Title:          types.StringNull(),
 				Notes:          types.StringNull(),
