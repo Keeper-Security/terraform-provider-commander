@@ -10,7 +10,7 @@
 #   user_permissions      — Default manage_users / manage_records
 #   record_permissions    — Default can_share / can_edit
 #   records               — Map record_uid => { can_share, can_edit }
-#   users                 — Map email/uid => { manage_users, manage_records, expiration }
+#   users                 — Map email/uid => { manage_users, manage_records }
 
 # Look up by vault path (use the same path you use in commander_shared_folder.name, or any path Commander accepts).
 data "commander_shared_folder" "example" {

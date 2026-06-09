@@ -92,11 +92,6 @@ func (d *ClassicSharedFolderDataSource) Schema(ctx context.Context, req datasour
 								Description:         sfres.DescUserManageRecords,
 								MarkdownDescription: sfres.DescUserManageRecords,
 							},
-							"expiration": dschema.StringAttribute{
-								Computed:            true,
-								Description:         sfres.DescExpiration,
-								MarkdownDescription: sfres.DescExpiration,
-							},
 						},
 					},
 				},

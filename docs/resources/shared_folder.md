@@ -31,11 +31,7 @@ Classic shared folder uses classic permission model, Limits sharing to basic acc
 #   user_permissions      — default manage_users / manage_records (both default false)
 #   record_permissions    — default can_share / can_edit (both default false)
 #   records               — map of record_uid => per-record can_share / can_edit
-#   users                 — map of email or user UID => manage_*, expiration
-#
-# Expiration per user: "never" or absolute time as yyyy-MM-ddTHH:mm:ss.
-# manage_users must be false when expiration is a datetime (not "never").
-
+#   users                 — map of email or user UID => manage_users, manage_records
 resource "commander_shared_folder" "example" {
   # Leaf name only.
   name            = "My Project Vault"
@@ -66,17 +62,14 @@ resource "commander_shared_folder" "example" {
     "alice@example.com" = {
       manage_users   = true
       manage_records = false
-      expiration     = "never"
     }
     "bob@example.com" = {
       manage_users   = false
       manage_records = true
-      expiration     = "never"
     }
     "contractor@example.com" = {
       manage_users   = false
       manage_records = false
-      expiration     = "2026-12-31T23:59:59"
     }
   }
 }
@@ -133,7 +126,6 @@ Optional:
 
 Optional:
 
-- `expiration` (String) Access expiration: "never" or absolute datetime as yyyy-MM-ddTHH:mm:ss (e.g. 2026-04-02T11:11:00). Defaults to `never` if not set.
 - `manage_records` (Boolean) Allow this user to manage records. Defaults to `false` if not set.
 - `manage_users` (Boolean) Allow this user to manage users. Defaults to `false` if not set.
 

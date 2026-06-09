@@ -13,8 +13,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/objectdefault"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
-	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
@@ -123,9 +121,6 @@ func (r *ClassicSharedFolderResource) Schema(ctx context.Context, req resource.S
 					Description:         DescUsers,
 					MarkdownDescription: DescUsersMD,
 					NestedObject: schema.NestedAttributeObject{
-						Validators: []validator.Object{
-							UserExpirationManageUsersValidator(),
-						},
 						Attributes: map[string]schema.Attribute{
 							"manage_users": schema.BoolAttribute{
 								Optional:            true,
@@ -140,16 +135,6 @@ func (r *ClassicSharedFolderResource) Schema(ctx context.Context, req resource.S
 								MarkdownDescription: DescUserManageRecords,
 								Computed:            true,
 								Default:             booldefault.StaticBool(false),
-							},
-							"expiration": schema.StringAttribute{
-								Optional:            true,
-								Description:         DescExpiration,
-								MarkdownDescription: DescExpiration,
-								Computed:            true,
-								Default:             stringdefault.StaticString("never"),
-								Validators: []validator.String{
-									ExpirationValidator(),
-								},
 							},
 						},
 					},

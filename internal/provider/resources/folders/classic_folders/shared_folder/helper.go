@@ -7,7 +7,6 @@ import (
 	"context"
 	"fmt"
 	"strings"
-	"time"
 
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/api"
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/utils"
@@ -113,7 +112,7 @@ func SyncSharedFolderUsers(ctx context.Context, apiManager *api.ApiManager, fold
 	// Remove: in state but not in plan
 	for emailOrID := range stateKeys {
 		if !planKeys[emailOrID] {
-			cmd := buildSharedFolderUserCommand(ActionRemove, folderUID, emailOrID, false, false, "")
+			cmd := buildSharedFolderUserCommand(ActionRemove, folderUID, emailOrID, false, false)
 			if _, err := apiManager.ExecuteCommand(ctx, cmd, ErrOpRemoveUser); err != nil {
 				return err
 			}
@@ -132,8 +131,8 @@ func SyncSharedFolderUsers(ctx context.Context, apiManager *api.ApiManager, fold
 					continue // unchanged, skip grant
 				}
 			}
-			manageUsers, manageRecords, expiration := getUserAttrs(planObj)
-			cmd := buildSharedFolderUserCommand(ActionGrant, folderUID, emailOrID, manageUsers, manageRecords, expiration)
+			manageUsers, manageRecords := getUserAttrs(planObj)
+			cmd := buildSharedFolderUserCommand(ActionGrant, folderUID, emailOrID, manageUsers, manageRecords)
 			if _, err := apiManager.ExecuteCommand(ctx, cmd, ErrOpAddUpdateUser); err != nil {
 				return err
 			}
@@ -169,11 +168,11 @@ func recordEntryEqual(a, b types.Object) bool {
 	return canShareA == canShareB && canEditA == canEditB
 }
 
-// userEntryEqual returns true if both objects have the same manage_users, manage_records, and expiration.
+// userEntryEqual returns true if both objects have the same manage_users and manage_records.
 func userEntryEqual(a, b types.Object) bool {
-	muA, mrA, expA := getUserAttrs(a)
-	muB, mrB, expB := getUserAttrs(b)
-	return muA == muB && mrA == mrB && strings.TrimSpace(expA) == strings.TrimSpace(expB)
+	muA, mrA := getUserAttrs(a)
+	muB, mrB := getUserAttrs(b)
+	return muA == muB && mrA == mrB
 }
 
 func getRecordAttrs(obj types.Object) (canShare, canEdit bool) {
@@ -187,7 +186,7 @@ func getRecordAttrs(obj types.Object) (canShare, canEdit bool) {
 	return canShare, canEdit
 }
 
-func getUserAttrs(obj types.Object) (manageUsers, manageRecords bool, expiration string) {
+func getUserAttrs(obj types.Object) (manageUsers, manageRecords bool) {
 	attrs := obj.Attributes()
 	if v, ok := attrs[AttrManageUsers].(types.Bool); ok && !v.IsNull() {
 		manageUsers = v.ValueBool()
@@ -195,10 +194,7 @@ func getUserAttrs(obj types.Object) (manageUsers, manageRecords bool, expiration
 	if v, ok := attrs[AttrManageRecords].(types.Bool); ok && !v.IsNull() {
 		manageRecords = v.ValueBool()
 	}
-	if v, ok := attrs[AttrExpiration].(types.String); ok && !v.IsNull() && !v.IsUnknown() {
-		expiration = v.ValueString()
-	}
-	return manageUsers, manageRecords, expiration
+	return manageUsers, manageRecords
 }
 
 // buildSharedFolderRecordCommand builds share-folder --action grant|remove SF_ID --record RECORD_ID [--can-share on|off --can-edit on|off].
@@ -219,9 +215,9 @@ func buildSharedFolderRecordCommand(action, folderUID, recordID string, canShare
 	return fmt.Sprintf("%s %s %s %s %s", base, FlagCanShare, canShareVal, FlagCanEdit, canEditVal)
 }
 
-// buildSharedFolderUserCommand builds share-folder --action grant|remove SF_ID --email EMAIL_OR_ID [--manage-users on|off --manage-records on|off [--expire-at|--expire-in VALUE]].
-// For remove, permission and expiration args are ignored.
-func buildSharedFolderUserCommand(action, folderUID, emailOrID string, manageUsers, manageRecords bool, expiration string) string {
+// buildSharedFolderUserCommand builds share-folder --action grant|remove SF_ID --email EMAIL_OR_ID [--manage-users on|off --manage-records on|off].
+// For remove, permission args are ignored.
+func buildSharedFolderUserCommand(action, folderUID, emailOrID string, manageUsers, manageRecords bool) string {
 	base := fmt.Sprintf("%s %s %s '%s' %s '%s'", CmdShareFolder, FlagAction, action, folderUID, FlagEmail, emailOrID)
 	if action != ActionGrant {
 		return base
@@ -237,24 +233,5 @@ func buildSharedFolderUserCommand(action, folderUID, emailOrID string, manageUse
 		mr = ValueOn
 	}
 	parts = append(parts, FlagManageRecords, mr)
-	expFlag, expVal := expirationFlagAndValue(expiration)
-	if expFlag != "" && expVal != "" {
-		parts = append(parts, expFlag, fmt.Sprintf("'%s'", expVal))
-	}
 	return strings.Join(parts, " ")
-}
-
-// expirationFlagAndValue returns (--expire-at, value) for yyyy-MM-ddTHH:mm:ss, or ("", "") when empty.
-func expirationFlagAndValue(exp string) (flag string, value string) {
-	exp = strings.TrimSpace(exp)
-	if exp == "" {
-		return "", ""
-	}
-	if expirationNever.MatchString(exp) {
-		return FlagExpireAt, ValueNever
-	}
-	if t, err := time.Parse(TimeLayoutExpiration, exp); err == nil {
-		return FlagExpireAt, t.Format(TimeLayoutExpiration)
-	}
-	return "", ""
 }

@@ -86,6 +86,7 @@ func MapResponseToModel(api *SharedFolderResponse, m *Model, priorUsers types.Ma
 	}
 	m.Records = recordsMap
 
+	// in buildUsersMapFromAPIResponse also pass api.Teams
 	usersMap, err := buildUsersMapFromAPIResponse(api.Users, priorUsers)
 	if err != nil {
 		return fmt.Errorf("users: %w", err)
@@ -165,12 +166,12 @@ func buildUsersMapFromAPIResponse(entries []SharedFolderUserEntry, priorUsers ty
 			map[string]attr.Type{
 				AttrManageUsers:   types.BoolType,
 				AttrManageRecords: types.BoolType,
-				AttrExpiration:    types.StringType,
+				// AttrExpiration: types.StringType, // disabled with the schema attribute
 			},
 			map[string]attr.Value{
 				AttrManageUsers:   types.BoolValue(u.ManageUsers),
 				AttrManageRecords: types.BoolValue(u.ManageRecords),
-				AttrExpiration:    types.StringValue(u.Expiration),
+				// AttrExpiration: types.StringValue(u.Expiration), // disabled with the schema attribute
 			},
 		)
 	}

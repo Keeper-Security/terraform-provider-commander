@@ -53,6 +53,5 @@ var UserEntryMapElemType = types.ObjectType{
 	AttrTypes: map[string]attr.Type{
 		AttrManageUsers:   types.BoolType,
 		AttrManageRecords: types.BoolType,
-		AttrExpiration:    types.StringType,
 	},
 }

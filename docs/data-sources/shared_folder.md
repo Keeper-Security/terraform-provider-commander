@@ -25,7 +25,7 @@ Look up an existing classic shared folder by **UID** or **name**.
 #   user_permissions      — Default manage_users / manage_records
 #   record_permissions    — Default can_share / can_edit
 #   records               — Map record_uid => { can_share, can_edit }
-#   users                 — Map email/uid => { manage_users, manage_records, expiration }
+#   users                 — Map email/uid => { manage_users, manage_records }
 
 # Look up by vault path (use the same path you use in commander_shared_folder.name, or any path Commander accepts).
 data "commander_shared_folder" "example" {
@@ -121,6 +121,5 @@ Read-Only:
 
 Read-Only:
 
-- `expiration` (String) Access expiration: "never" or absolute datetime as yyyy-MM-ddTHH:mm:ss (e.g. 2026-04-02T11:11:00). Defaults to `never` if not set.
 - `manage_records` (Boolean) Allow this user to manage records. Defaults to `false` if not set.
 - `manage_users` (Boolean) Allow this user to manage users. Defaults to `false` if not set.
