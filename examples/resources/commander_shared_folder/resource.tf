@@ -13,7 +13,7 @@
 #   user_permissions      — default manage_users / manage_records (both default false)
 #   record_permissions    — default can_share / can_edit (both default false)
 #   records               — map of record_uid => per-record can_share / can_edit
-#   users                 — map of email or user UID => manage_users, manage_records
+#   users                 — map of User Email/UID or Team Name/UID => manage_users, manage_records
 resource "commander_shared_folder" "example" {
   # Leaf name only.
   name            = "My Project Vault"

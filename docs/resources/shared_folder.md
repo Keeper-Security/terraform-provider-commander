@@ -31,7 +31,7 @@ Classic shared folder uses classic permission model, Limits sharing to basic acc
 #   user_permissions      — default manage_users / manage_records (both default false)
 #   record_permissions    — default can_share / can_edit (both default false)
 #   records               — map of record_uid => per-record can_share / can_edit
-#   users                 — map of email or user UID => manage_users, manage_records
+#   users                 — map of User Email/UID or Team Name/UID => manage_users, manage_records
 resource "commander_shared_folder" "example" {
   # Leaf name only.
   name            = "My Project Vault"
@@ -88,7 +88,7 @@ resource "commander_shared_folder" "example" {
 - `record_permissions` (Attributes) Default record permissions for the classic shared folder. When omitted, defaults to `can_share = false`, `can_edit = false`. Allowed keys: `can_share`, `can_edit`. (see [below for nested schema](#nestedatt--record_permissions))
 - `records` (Attributes Map) Per-record permissions. Map key is record UID or name; value is an object with `can_share` and `can_edit`. (see [below for nested schema](#nestedatt--records))
 - `user_permissions` (Attributes) Default user permissions for the classic shared folder. When omitted, defaults to `manage_users = false`, `manage_records = false`. Allowed keys: `manage_users`, `manage_records`. (see [below for nested schema](#nestedatt--user_permissions))
-- `users` (Attributes Map) Per-user permissions. Map key is user email or UID; value is an object with `manage_users`, `manage_records`, and `expiration` (`"never"` or `yyyy-MM-ddTHH:mm:ss`). (see [below for nested schema](#nestedatt--users))
+- `users` (Attributes Map) Per-user permissions. Map key is User Email/UID or Team Name/UID; value is an object with `manage_users`, `manage_records`. (see [below for nested schema](#nestedatt--users))
 
 ### Read-Only
 

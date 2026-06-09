@@ -17,13 +17,19 @@ type SharedFolderRecordEntry struct {
 	CanEdit    bool   `json:"can_edit"`
 }
 
-// SharedFolderUserEntry is one element of the users array from get classic shared folder --format json.
-type SharedFolderUserEntry struct {
-	Username      string `json:"username"`
-	UserID        string `json:"user_id"`
-	ManageUsers   bool   `json:"manage_users"`
-	ManageRecords bool   `json:"manage_records"`
-	Expiration    string `json:"expiration"`
+// SharedFolderUserTeamEntry is one element of the users array from get classic shared folder --format json.
+type SharedFolderUserTeamEntry struct {
+	// User specific fields
+	Username string `json:"username"`
+	UserID   string `json:"user_id"`
+
+	// Team specific fields
+	TeamName string `json:"name"`
+	TeamId   string `json:"team_uid"`
+
+	// Common for both users and teams
+	ManageUsers   bool `json:"manage_users"`
+	ManageRecords bool `json:"manage_records"`
 }
 
 // SharedFolderResponse is the data payload from get SHARED_FOLDER_ID --format json.
@@ -36,7 +42,8 @@ type SharedFolderResponse struct {
 	CanShare       bool                         `json:"can_share"`
 	CanEdit        bool                         `json:"can_edit"`
 	Records        []SharedFolderRecordEntry    `json:"records"`
-	Users          []SharedFolderUserEntry      `json:"users"`
+	Users          []SharedFolderUserTeamEntry  `json:"users"`
+	Teams          []SharedFolderUserTeamEntry  `json:"teams,omitempty"`
 	FolderLocation utils.FolderLocationResponse `json:"folder"`
 }
 

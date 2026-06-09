@@ -86,8 +86,7 @@ func MapResponseToModel(api *SharedFolderResponse, m *Model, priorUsers types.Ma
 	}
 	m.Records = recordsMap
 
-	// in buildUsersMapFromAPIResponse also pass api.Teams
-	usersMap, err := buildUsersMapFromAPIResponse(api.Users, priorUsers)
+	usersMap, err := buildUsersMapFromAPIResponse(api.Users, api.Teams, priorUsers)
 	if err != nil {
 		return fmt.Errorf("users: %w", err)
 	}
@@ -138,46 +137,69 @@ func buildRecordsMapFromAPIResponse(entries []SharedFolderRecordEntry, priorReco
 	return mapVal, nil
 }
 
-func userEntryMapKey(u SharedFolderUserEntry, priorUsers types.Map) string {
+// userOrTeamEntryMapKey picks the users-map key for an API row that may represent
+// either a user (Username/UserID populated) or a team (TeamName/TeamId populated).
+// If prior state already keys this row by name or id, the same key is reused so
+// the model stays stable across refreshes; otherwise the populated name is
+// preferred, then the populated id.
+func userOrTeamEntryMapKey(e SharedFolderUserTeamEntry, priorUsers types.Map) string {
+	name := e.Username
+	if name == "" {
+		name = e.TeamName
+	}
+	id := e.UserID
+	if id == "" {
+		id = e.TeamId
+	}
 	if !priorUsers.IsNull() && !priorUsers.IsUnknown() {
 		for k := range priorUsers.Elements() {
-			if u.UserID != "" && k == u.UserID {
+			if id != "" && k == id {
 				return k
 			}
-			if u.Username != "" && k == u.Username {
+			if name != "" && k == name {
 				return k
 			}
 		}
 	}
-	if u.Username != "" {
-		return u.Username
+	if name != "" {
+		return name
 	}
-	return u.UserID
+	return id
 }
 
-func buildUsersMapFromAPIResponse(entries []SharedFolderUserEntry, priorUsers types.Map) (types.Map, error) {
-	elements := make(map[string]attr.Value)
-	for _, u := range entries {
-		key := userEntryMapKey(u, priorUsers)
-		if key == "" {
-			continue
-		}
-		elements[key] = types.ObjectValueMust(
-			map[string]attr.Type{
-				AttrManageUsers:   types.BoolType,
-				AttrManageRecords: types.BoolType,
-				// AttrExpiration: types.StringType, // disabled with the schema attribute
-			},
-			map[string]attr.Value{
-				AttrManageUsers:   types.BoolValue(u.ManageUsers),
-				AttrManageRecords: types.BoolValue(u.ManageRecords),
-				// AttrExpiration: types.StringValue(u.Expiration), // disabled with the schema attribute
-			},
-		)
+// buildUsersMapFromAPIResponse projects the API's users and teams arrays into a
+// single Terraform users map keyed by user email/UID or team name/UID. Commander's
+// share-folder --email flag resolves either form, so users and teams share one
+// block on both the read and write paths.
+func buildUsersMapFromAPIResponse(usersEntries []SharedFolderUserTeamEntry, teamsEntries []SharedFolderUserTeamEntry, priorUsers types.Map) (types.Map, error) {
+	elements := make(map[string]attr.Value, len(usersEntries)+len(teamsEntries))
+	for _, e := range usersEntries {
+		addUserOrTeamEntry(elements, e, priorUsers)
+	}
+	for _, e := range teamsEntries {
+		addUserOrTeamEntry(elements, e, priorUsers)
 	}
 	mapVal, diags := types.MapValue(UserEntryMapElemType, elements)
 	if diags.HasError() {
 		return types.MapNull(UserEntryMapElemType), fmt.Errorf("failed to build users map: %v", diags)
 	}
 	return mapVal, nil
+}
+
+// addUserOrTeamEntry inserts e into elements under its computed key.
+func addUserOrTeamEntry(elements map[string]attr.Value, e SharedFolderUserTeamEntry, priorUsers types.Map) {
+	key := userOrTeamEntryMapKey(e, priorUsers)
+	if key == "" {
+		return
+	}
+	elements[key] = types.ObjectValueMust(
+		map[string]attr.Type{
+			AttrManageUsers:   types.BoolType,
+			AttrManageRecords: types.BoolType,
+		},
+		map[string]attr.Value{
+			AttrManageUsers:   types.BoolValue(e.ManageUsers),
+			AttrManageRecords: types.BoolValue(e.ManageRecords),
+		},
+	)
 }

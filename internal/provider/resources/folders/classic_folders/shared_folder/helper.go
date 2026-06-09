@@ -102,17 +102,18 @@ func SyncSharedFolderRecords(ctx context.Context, apiManager *api.ApiManager, fo
 	return nil
 }
 
-// SyncSharedFolderUsers syncs users with the classic shared folder: grants only added/updated, removes removed.
+// SyncSharedFolderUsers syncs users and teams with the classic shared folder: grants only added/updated, removes removed.
 // Skips grant for items that exist in state with the same value (no change).
+// Map keys may be a user email/UID or a team name/UID; share-folder --email resolves both.
 func SyncSharedFolderUsers(ctx context.Context, apiManager *api.ApiManager, folderUID string, planUsers, stateUsers types.Map) error {
 	planKeys := mapKeys(planUsers)
 	stateKeys := mapKeys(stateUsers)
 	stateElements := mapElements(stateUsers)
 
 	// Remove: in state but not in plan
-	for emailOrID := range stateKeys {
-		if !planKeys[emailOrID] {
-			cmd := buildSharedFolderUserCommand(ActionRemove, folderUID, emailOrID, false, false)
+	for userOrTeamKey := range stateKeys {
+		if !planKeys[userOrTeamKey] {
+			cmd := buildSharedFolderUserCommand(ActionRemove, folderUID, userOrTeamKey, false, false)
 			if _, err := apiManager.ExecuteCommand(ctx, cmd, ErrOpRemoveUser); err != nil {
 				return err
 			}
@@ -121,18 +122,18 @@ func SyncSharedFolderUsers(ctx context.Context, apiManager *api.ApiManager, fold
 
 	// Grant: only if added (not in state) or updated (in state but value changed)
 	if !planUsers.IsNull() && !planUsers.IsUnknown() {
-		for emailOrID, planVal := range planUsers.Elements() {
+		for userOrTeamKey, planVal := range planUsers.Elements() {
 			planObj, ok := planVal.(types.Object)
 			if !ok {
-				return fmt.Errorf("invalid user entry for key %q", emailOrID)
+				return fmt.Errorf("invalid user/team entry for key %q", userOrTeamKey)
 			}
-			if stateVal, inState := stateElements[emailOrID]; inState {
+			if stateVal, inState := stateElements[userOrTeamKey]; inState {
 				if stateObj, ok := stateVal.(types.Object); ok && userEntryEqual(planObj, stateObj) {
 					continue // unchanged, skip grant
 				}
 			}
 			manageUsers, manageRecords := getUserAttrs(planObj)
-			cmd := buildSharedFolderUserCommand(ActionGrant, folderUID, emailOrID, manageUsers, manageRecords)
+			cmd := buildSharedFolderUserCommand(ActionGrant, folderUID, userOrTeamKey, manageUsers, manageRecords)
 			if _, err := apiManager.ExecuteCommand(ctx, cmd, ErrOpAddUpdateUser); err != nil {
 				return err
 			}
@@ -215,10 +216,11 @@ func buildSharedFolderRecordCommand(action, folderUID, recordID string, canShare
 	return fmt.Sprintf("%s %s %s %s %s", base, FlagCanShare, canShareVal, FlagCanEdit, canEditVal)
 }
 
-// buildSharedFolderUserCommand builds share-folder --action grant|remove SF_ID --email EMAIL_OR_ID [--manage-users on|off --manage-records on|off].
+// buildSharedFolderUserCommand builds share-folder --action grant|remove SF_ID --email USER_OR_TEAM_KEY [--manage-users on|off --manage-records on|off].
+// USER_OR_TEAM_KEY is a user email/UID or a team name/UID; Commander's --email flag resolves either form.
 // For remove, permission args are ignored.
-func buildSharedFolderUserCommand(action, folderUID, emailOrID string, manageUsers, manageRecords bool) string {
-	base := fmt.Sprintf("%s %s %s '%s' %s '%s'", CmdShareFolder, FlagAction, action, folderUID, FlagEmail, emailOrID)
+func buildSharedFolderUserCommand(action, folderUID, userOrTeamKey string, manageUsers, manageRecords bool) string {
+	base := fmt.Sprintf("%s %s %s '%s' %s '%s'", CmdShareFolder, FlagAction, action, folderUID, FlagEmail, userOrTeamKey)
 	if action != ActionGrant {
 		return base
 	}

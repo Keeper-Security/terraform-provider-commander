@@ -25,7 +25,7 @@ Look up an existing classic shared folder by **UID** or **name**.
 #   user_permissions      — Default manage_users / manage_records
 #   record_permissions    — Default can_share / can_edit
 #   records               — Map record_uid => { can_share, can_edit }
-#   users                 — Map email/uid => { manage_users, manage_records }
+#   users                 — Map User Email/UID or Team Name/UID => { manage_users, manage_records }
 
 # Look up by vault path (use the same path you use in commander_shared_folder.name, or any path Commander accepts).
 data "commander_shared_folder" "example" {
@@ -87,7 +87,7 @@ output "folder_user_overrides" {
 - `record_permissions` (Attributes) (see [below for nested schema](#nestedatt--record_permissions))
 - `records` (Attributes Map) Per-record permissions. Map key is record UID or name; value is an object with `can_share` and `can_edit`. (see [below for nested schema](#nestedatt--records))
 - `user_permissions` (Attributes) (see [below for nested schema](#nestedatt--user_permissions))
-- `users` (Attributes Map) Per-user permissions. Map key is user email or UID; value is an object with `manage_users`, `manage_records`, and `expiration` (`"never"` or `yyyy-MM-ddTHH:mm:ss`). (see [below for nested schema](#nestedatt--users))
+- `users` (Attributes Map) Per-user permissions. Map key is User Email/UID or Team Name/UID; value is an object with `manage_users`, `manage_records`. (see [below for nested schema](#nestedatt--users))
 
 <a id="nestedatt--record_permissions"></a>
 ### Nested Schema for `record_permissions`

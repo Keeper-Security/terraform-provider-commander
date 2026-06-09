@@ -70,11 +70,6 @@ func TestSharedFolderResource_Schema(t *testing.T) {
 	if !ok {
 		t.Fatal("expected users to be MapNestedAttribute")
 	}
-	// expiration attribute is temporarily disabled; re-enable the validators-presence and
-	// users.expiration assertions when the attribute is restored in the resource schema.
-	// if len(users.NestedObject.Validators) == 0 {
-	// 	t.Error("expected users nested object validators (manage_users vs expiration)")
-	// }
 	userAttrs := users.NestedObject.Attributes
 	if err := assertBoolDefault(t, userAttrs["manage_users"], "users.manage_users"); err != nil {
 		t.Error(err)
@@ -82,19 +77,6 @@ func TestSharedFolderResource_Schema(t *testing.T) {
 	if err := assertBoolDefault(t, userAttrs["manage_records"], "users.manage_records"); err != nil {
 		t.Error(err)
 	}
-	if _, present := userAttrs["expiration"]; present {
-		t.Error("did not expect users.expiration attribute while it is disabled")
-	}
-	// expAttr, ok := userAttrs["expiration"].(schema.StringAttribute)
-	// if !ok {
-	// 	t.Fatal("expected users.expiration StringAttribute")
-	// }
-	// if expAttr.StringDefaultValue() == nil {
-	// 	t.Error("expected users.expiration to have a string default")
-	// }
-	// if len(expAttr.Validators) == 0 {
-	// 	t.Error("expected users.expiration validators")
-	// }
 }
 
 func assertBoolDefault(t *testing.T, attr schema.Attribute, label string) error {
