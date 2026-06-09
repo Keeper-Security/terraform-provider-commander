@@ -206,7 +206,7 @@ resource "commander_classic_pam_directory" "tunnel_only" {
 - `pam_settings` (Block, Optional) **PAM settings** for the record, including connection, tunnel, and administrative options. (see [below for nested schema](#nestedblock--pam_settings))
 - `provider_group` (String) **Provider Group** for directories hosted in Azure.
 - `provider_region` (String) **AWS region** of hosted directory.
-- `share` (Attributes Map) Map of share permissions for this record. Each map **key** is a **user email**; each **value** is an object with `can_share` and `can_edit` booleans. The record **owner** is managed by Keeper and is not represented in this block. (see [below for nested schema](#nestedatt--share))
+- `share` (Attributes Map) Mapping of share permissions for this record. Each map **key** is a **user email**; each **value** is an object with `can_share` and `can_edit` booleans. (see [below for nested schema](#nestedatt--share))
 - `use_ssl` (Boolean) Whether to use **SSL** while connecting to the directory resource.
 - `user_match` (String) **Match on OU** to filter found users during Discovery. Either match the right side of the DN or surround with slashes for a regular expression. Example: `OU=Users,DC=company,DC=com` or `/OU=Users/`
 

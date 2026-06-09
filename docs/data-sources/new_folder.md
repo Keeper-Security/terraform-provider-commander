@@ -56,4 +56,5 @@ output "new_folder_share" {
 - `folder_location` (String) Parent folder path where the folder will be created. Leave empty for vault root.
 - `id` (String) The folder **ID** assigned by Keeper.
 - `name` (String) **Folder name**.
-- `share` (Map of String) Map of share permissions for this folder/record. Each map **key** is a **user email**; each **value** is one of: `viewer`, `share-manager`, `content-manager`, `content-share-manager`, `full-manager`. The folder/record **owner** is managed by Keeper and is not represented in this block.
+- `records` (Set of String) Set of record UIDs linked to this folder.
+- `share` (Map of String) Mapping of share permissions for this folder or record. For folders, keys can identify either users (**UID** or **email**) or teams (**UID** or **name**). For records, keys can identify users only (**UID** or **email**). Values specify the permission level: `viewer`, `share-manager`, `content-manager`, `content-share-manager`, or `full-manager`.

@@ -145,7 +145,7 @@ output "pam_user_share" {
 - `password` (String, Sensitive) **Password** for the PAM User.
 - `private_pem_key` (String, Sensitive) **Private PEM key** associated with the PAM User.
 - `rotation_settings` (Attributes) **Rotation settings** for the PAM User record, if configured. (see [below for nested schema](#nestedatt--rotation_settings))
-- `share` (Attributes Map) Map of share permissions for this record. Each map **key** is a **user email**; each **value** is an object with `can_share` and `can_edit` booleans. The record **owner** is managed by Keeper and is not represented in this block. (see [below for nested schema](#nestedatt--share))
+- `share` (Attributes Map) Mapping of share permissions for this record. Each map **key** is a **user email**; each **value** is an object with `can_share` and `can_edit` booleans. (see [below for nested schema](#nestedatt--share))
 - `title` (String) **Title** of the PAM User record.
 
 <a id="nestedatt--rotation_settings"></a>

@@ -238,7 +238,7 @@ resource "commander_classic_pam_user" "mysql_app_account" {
 - `rotation_settings` (Attributes) Rotation settings for the PAM User record. Configures password rotation via `pam rotation edit`.
 
 **Schedule:** use `on_demand` **or** at most one of `schedule_config`, `schedule_cron`, and `schedule_json` (they are mutually exclusive; see attribute descriptions). (see [below for nested schema](#nestedatt--rotation_settings))
-- `share` (Attributes Map) Map of share permissions for this record. Each map **key** is a **user email**; each **value** is an object with `can_share` and `can_edit` booleans. The record **owner** is managed by Keeper and is not represented in this block. (see [below for nested schema](#nestedatt--share))
+- `share` (Attributes Map) Mapping of share permissions for this record. Each map **key** is a **user email**; each **value** is an object with `can_share` and `can_edit` booleans. (see [below for nested schema](#nestedatt--share))
 
 ### Read-Only
 

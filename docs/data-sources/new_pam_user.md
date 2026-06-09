@@ -141,7 +141,7 @@ output "pam_user_share" {
 - `rotation_settings` (Attributes) Rotation settings for the PAM User record. Configures password rotation via `pam rotation edit`.
 
 **Schedule:** use `on_demand` **or** at most one of `schedule_config`, `schedule_cron`, and `schedule_json` (they are mutually exclusive; see attribute descriptions). (see [below for nested schema](#nestedatt--rotation_settings))
-- `share` (Map of String) Map of share permissions for this folder/record. Each map **key** is a **user email**; each **value** is one of: `viewer`, `share-manager`, `content-manager`, `content-share-manager`, `full-manager`. The folder/record **owner** is managed by Keeper and is not represented in this block.
+- `share` (Map of String) Mapping of share permissions for this folder or record. For folders, keys can identify either users (**UID** or **email**) or teams (**UID** or **name**). For records, keys can identify users only (**UID** or **email**). Values specify the permission level: `viewer`, `share-manager`, `content-manager`, `content-share-manager`, or `full-manager`.
 - `title` (String) Title of the PAM User record.
 
 <a id="nestedatt--rotation_settings"></a>

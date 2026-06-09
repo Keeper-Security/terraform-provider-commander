@@ -92,7 +92,7 @@ output "full_folder_id" {
 ### Optional
 
 - `folder_location` (String) Parent folder path where the folder will be created. Leave empty for vault root.
-- `records` (Set of String) Set of record UIDs or titles to link into this folder.
+- `records` (Set of String) Set of record UIDs to link into this folder.
 
 ### Read-Only
 

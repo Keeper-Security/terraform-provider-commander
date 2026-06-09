@@ -68,7 +68,7 @@ output "rbi_share" {
 - `folder_location` (String) Folder **UID** or path to store PAM remote browser record in your Keeper vault. If not provided, the record will be stored in the root path of vault.
 - `id` (String) The PAM remote browser record **UID** assigned by Keeper after create.
 - `notes` (String) Optional **notes** for this PAM remote browser record.
-- `share` (Map of String) Map of share permissions for this folder/record. Each map **key** is a **user email**; each **value** is one of: `viewer`, `share-manager`, `content-manager`, `content-share-manager`, `full-manager`. The folder/record **owner** is managed by Keeper and is not represented in this block.
+- `share` (Map of String) Mapping of share permissions for this folder or record. For folders, keys can identify either users (**UID** or **email**) or teams (**UID** or **name**). For records, keys can identify users only (**UID** or **email**). Values specify the permission level: `viewer`, `share-manager`, `content-manager`, `content-share-manager`, or `full-manager`.
 - `title` (String) **Title** of the PAM remote browser record.
 - `url` (String) **Target URL** for the PAM remote browser session.
 

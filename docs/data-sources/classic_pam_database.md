@@ -89,7 +89,7 @@ output "pam_database_share" {
 - `pam_settings` (Attributes) **PAM settings** for the record, including connection, tunnel, and administrative options. (see [below for nested schema](#nestedatt--pam_settings))
 - `provider_group` (String) **Azure or AWS Provider Group**.
 - `provider_region` (String) **Azure or AWS Provider Region**.
-- `share` (Attributes Map) Map of share permissions for this record. Each map **key** is a **user email**; each **value** is an object with `can_share` and `can_edit` booleans. The record **owner** is managed by Keeper and is not represented in this block. (see [below for nested schema](#nestedatt--share))
+- `share` (Attributes Map) Mapping of share permissions for this record. Each map **key** is a **user email**; each **value** is an object with `can_share` and `can_edit` booleans. (see [below for nested schema](#nestedatt--share))
 - `title` (String) **Title** of the PAM database record.
 - `use_ssl` (Boolean) Whether to use **SSL** while connecting to the database resource.
 

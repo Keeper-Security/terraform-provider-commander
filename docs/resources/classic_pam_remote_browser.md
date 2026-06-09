@@ -87,7 +87,7 @@ resource "commander_classic_pam_remote_browser" "intranet_app" {
 - `folder_location` (String) Folder **UID** or path to store PAM remote browser record in your Keeper vault. If not provided, the record will be stored in the root path of vault.
 - `notes` (String) Optional **notes** for this PAM remote browser record.
 - `pam_remote_browser_settings` (Attributes) PAM **settings** for the PAM remote browser record. (see [below for nested schema](#nestedatt--pam_remote_browser_settings))
-- `share` (Attributes Map) Map of share permissions for this record. Each map **key** is a **user email**; each **value** is an object with `can_share` and `can_edit` booleans. The record **owner** is managed by Keeper and is not represented in this block. (see [below for nested schema](#nestedatt--share))
+- `share` (Attributes Map) Mapping of share permissions for this record. Each map **key** is a **user email**; each **value** is an object with `can_share` and `can_edit` booleans. (see [below for nested schema](#nestedatt--share))
 
 ### Read-Only
 

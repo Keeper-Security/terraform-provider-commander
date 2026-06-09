@@ -61,14 +61,8 @@ const (
 
 // Schema descriptions.
 const (
-	DescShare = "Map of share permissions for this record. " +
-		"Each map key is a user email; each value is an object with " +
-		"can_share and can_edit booleans. The record owner is managed by " +
-		"Keeper and is not represented in this block."
-	DescShareMD = "Map of share permissions for this record. " +
-		"Each map **key** is a **user email**; each **value** is an object " +
-		"with `can_share` and `can_edit` booleans. The record **owner** is " +
-		"managed by Keeper and is not represented in this block."
+	DescShare    = "Mapping of share permissions for this record. Each map key is a user email; each value is an object with can_share and can_edit booleans."
+	DescShareMD  = "Mapping of share permissions for this record. Each map **key** is a **user email**; each **value** is an object with `can_share` and `can_edit` booleans."
 	DescCanShare = "Allow the user to re-share this record with other users. " +
 		"Defaults to `false`."
 	DescCanEdit = "Allow the user to edit this record. Defaults to `false`."

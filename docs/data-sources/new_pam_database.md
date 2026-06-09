@@ -90,7 +90,7 @@ output "pam_database_share" {
 - `pam_settings` (Attributes) **PAM settings** for the record, including connection, tunnel, and administrative options. (see [below for nested schema](#nestedatt--pam_settings))
 - `provider_group` (String) **Azure or AWS Provider Group**.
 - `provider_region` (String) **Azure or AWS Provider Region**.
-- `share` (Map of String) Map of share permissions for this folder/record. Each map **key** is a **user email**; each **value** is one of: `viewer`, `share-manager`, `content-manager`, `content-share-manager`, `full-manager`. The folder/record **owner** is managed by Keeper and is not represented in this block.
+- `share` (Map of String) Mapping of share permissions for this folder or record. For folders, keys can identify either users (**UID** or **email**) or teams (**UID** or **name**). For records, keys can identify users only (**UID** or **email**). Values specify the permission level: `viewer`, `share-manager`, `content-manager`, `content-share-manager`, or `full-manager`.
 - `title` (String) **Title** of the PAM database record.
 - `use_ssl` (Boolean) Whether to use **SSL** while connecting to the database resource.
 

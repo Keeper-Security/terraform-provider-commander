@@ -84,13 +84,6 @@ const (
 
 // Schema descriptions.
 const (
-	DescShare = "Map of share permissions for this folder/record. " +
-		"Each map key is a user UID or email; each value is one of: viewer, " +
-		"share-manager, content-manager, content-share-manager, full-manager. " +
-		"The folder/record owner is managed by Keeper and is not represented in this block."
-	DescShareMD = "Map of share permissions for this folder/record. " +
-		"Each map **key** is a **user UID** or **email**; each **value** is one of: " +
-		"`viewer`, `share-manager`, `content-manager`, `content-share-manager`, " +
-		"`full-manager`. The folder/record **owner** is managed by Keeper and " +
-		"is not represented in this block."
+	DescShare   = "Mapping of share permissions for this folder or record. For folders, keys can identify either users (UID or email) or teams (UID or name). For records, keys can identify users only (UID or email). Values specify the permission level: viewer, share-manager, content-manager, content-share-manager, or full-manager."
+	DescShareMD = "Mapping of share permissions for this folder or record. For folders, keys can identify either users (**UID** or **email**) or teams (**UID** or **name**). For records, keys can identify users only (**UID** or **email**). Values specify the permission level: `viewer`, `share-manager`, `content-manager`, `content-share-manager`, or `full-manager`."
 )
