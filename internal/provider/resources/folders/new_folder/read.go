@@ -49,7 +49,7 @@ func (r *NewFolderResource) Read(ctx context.Context, req resource.ReadRequest, 
 		return
 	}
 
-	if err := commonnewfolder.MapResponseToModel(apiData, &state); err != nil {
+	if err := commonnewfolder.MapResponseToModel(ctx, apiData, &state); err != nil {
 		resp.Diagnostics.AddError(folderutils.ErrSummaryReadFailed, err.Error())
 		return
 	}

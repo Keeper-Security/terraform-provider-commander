@@ -13,9 +13,12 @@ const (
 )
 
 // AttrShareValidatorLabel is the human-readable display name passed to
-// MapKeysEmailValidator and MapValuesStringOneOfValidator.
+// MapKeysMinLengthValidator and MapValuesStringOneOfValidator. nsf share
+// commands accept either a Keeper user UID or an email address as the
+// principal, so the validator only enforces a non-empty trimmed key; format
+// validation is delegated to the Commander CLI.
 const (
-	AttrShareValidatorLabel = "Share User Email"
+	AttrShareValidatorLabel = "Share User UID or Email"
 	AttrShareValueLabel     = "Share Permission"
 )
 
@@ -82,11 +85,11 @@ const (
 // Schema descriptions.
 const (
 	DescShare = "Map of share permissions for this folder/record. " +
-		"Each map key is a user email; each value is one of: viewer, " +
+		"Each map key is a user UID or email; each value is one of: viewer, " +
 		"share-manager, content-manager, content-share-manager, full-manager. " +
 		"The folder/record owner is managed by Keeper and is not represented in this block."
 	DescShareMD = "Map of share permissions for this folder/record. " +
-		"Each map **key** is a **user email**; each **value** is one of: " +
+		"Each map **key** is a **user UID** or **email**; each **value** is one of: " +
 		"`viewer`, `share-manager`, `content-manager`, `content-share-manager`, " +
 		"`full-manager`. The folder/record **owner** is managed by Keeper and " +
 		"is not represented in this block."

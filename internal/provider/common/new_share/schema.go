@@ -12,10 +12,10 @@ import (
 )
 
 // ResourceShareAttribute returns the `share` map attribute for resource
-// schemas: Optional, validators applied to keys (email) and values (one of
-// AllowedRoles). The attribute is intentionally NOT Computed; if the user
-// omits the block, callers should also skip share reconciliation in Read so
-// the state stays null.
+// schemas: Optional, validators applied to keys (non-empty user UID or
+// email) and values (one of AllowedRoles). The attribute is intentionally
+// NOT Computed; if the user omits the block, callers should also skip share
+// reconciliation in Read so the state stays null.
 func ResourceShareAttribute() map[string]schema.Attribute {
 	return map[string]schema.Attribute{
 		AttrShare: schema.MapAttribute{
@@ -24,7 +24,7 @@ func ResourceShareAttribute() map[string]schema.Attribute {
 			Description:         DescShare,
 			MarkdownDescription: DescShareMD,
 			Validators: []validator.Map{
-				providerutils.MapKeysEmailValidator(AttrShareValidatorLabel),
+				providerutils.MapKeysMinLengthValidator(AttrShareValidatorLabel, 1),
 				providerutils.MapValuesStringOneOfValidator(AttrShareValueLabel, AllowedRoles),
 			},
 		},

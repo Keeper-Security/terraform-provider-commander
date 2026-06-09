@@ -112,9 +112,9 @@ func MapResponseToModel(permissions []UserPermissionEntry, m *ShareModel) error 
 	}
 	elements := make(map[string]attr.Value, len(permissions))
 	for _, p := range permissions {
-		if strings.EqualFold(p.Role, RoleOwner) {
-			continue
-		}
+		// if strings.EqualFold(p.Role, RoleOwner) {
+		// 	continue
+		// }
 		if strings.TrimSpace(p.Accessor) == "" || strings.TrimSpace(p.Role) == "" {
 			continue
 		}

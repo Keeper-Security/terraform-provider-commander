@@ -49,6 +49,12 @@ func (r *NewFolderResource) Create(ctx context.Context, req resource.CreateReque
 		return
 	}
 
+	// Link the records to the folder.
+	if err := folderutils.LinkRecords(ctx, r.ApiManager, CmdNsfLn, data.Id.ValueString(), data.Records); err != nil {
+		resp.Diagnostics.AddError(folderutils.ErrSummaryCreateFailed, err.Error())
+		return
+	}
+
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
 

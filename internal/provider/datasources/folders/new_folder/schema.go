@@ -11,6 +11,7 @@ import (
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/utils"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	dschema "github.com/hashicorp/terraform-plugin-framework/datasource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
 func (d *NewFolderDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
@@ -23,6 +24,12 @@ func (d *NewFolderDataSource) Schema(ctx context.Context, req datasource.SchemaR
 					Required:            true,
 					Description:         DescDataSourceNewFolder,
 					MarkdownDescription: DescDataSourceNewFolderMD,
+				},
+				"records": dschema.SetAttribute{
+					Computed:            true,
+					ElementType:         types.StringType,
+					Description:         DescDataSourceRecords,
+					MarkdownDescription: DescDataSourceRecords,
 				},
 			},
 			folderutils.DataSourceCommonFolderAttributes(),

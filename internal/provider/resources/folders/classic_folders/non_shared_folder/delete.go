@@ -33,7 +33,7 @@ func (r *NonSharedFolderResource) Delete(ctx context.Context, req resource.Delet
 		return
 	}
 
-	command := fmt.Sprintf("%s '%s' %s %s", folderutils.CmdRmdir, state.Id.ValueString(), FlagForce, FlagQuiet)
+	command := fmt.Sprintf("%s '%s' %s %s", folderutils.CmdRmdir, state.Id.ValueString(), utils.FlagForce, utils.FlagQuiet)
 	if _, err := r.ApiManager.ExecuteCommand(ctx, command, folderutils.ErrOpDelete); err != nil {
 		resp.Diagnostics.AddError(folderutils.ErrSummaryDeleteFailed, err.Error())
 		return

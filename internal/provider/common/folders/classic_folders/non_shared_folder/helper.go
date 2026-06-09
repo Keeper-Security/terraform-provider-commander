@@ -9,6 +9,7 @@ import (
 	"fmt"
 
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/api"
+	folderutils "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/folders/utils"
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/utils"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
@@ -60,9 +61,11 @@ func ParseFolderResponse(data any) (*NonSharedFolderResponse, error) {
 
 // MapResponseToModel maps a get FOLDER_UID --format json response into m.
 // Sets identity (Id, Name), folder_location (parent of path; null when at root),
-// and records (set of UIDs, or SetNull(StringType) when empty). Data sources that
-// prefer empty values over nulls should coerce them after this call.
-func MapResponseToModel(api *NonSharedFolderResponse, m *Model) error {
+// and records (set of UIDs, or SetNull(StringType) when empty). When the API
+// response omits the records key entirely (api.Records == nil) m.Records is
+// left untouched so data sources that prefer empty values over nulls can
+// coerce them after this call.
+func MapResponseToModel(ctx context.Context, api *NonSharedFolderResponse, m *Model) error {
 	if api == nil {
 		return fmt.Errorf("non-shared folder API response is nil")
 	}
@@ -71,23 +74,20 @@ func MapResponseToModel(api *NonSharedFolderResponse, m *Model) error {
 	m.Name = types.StringValue(api.Name)
 	m.FolderLocation = utils.ExtractFolderValue(&api.FolderLocation, m.FolderLocation)
 
-	if api.Records != nil {
-		uids := make([]string, 0, len(api.Records))
-		for _, r := range api.Records {
-			if r.RecordUID != "" {
-				uids = append(uids, r.RecordUID)
-			}
-		}
-		if len(uids) > 0 {
-			recordSet, diags := types.SetValueFrom(context.Background(), types.StringType, uids)
-			if diags.HasError() {
-				return fmt.Errorf("failed to build records set: %v", diags)
-			}
-			m.Records = recordSet
-		} else {
-			m.Records = types.SetNull(types.StringType)
+	// Link the records to the folder.
+	if api.Records == nil {
+		return nil
+	}
+	uids := make([]string, 0, len(api.Records))
+	for _, r := range api.Records {
+		if r.RecordUID != "" {
+			uids = append(uids, r.RecordUID)
 		}
 	}
-
+	set, err := folderutils.FolderRecordsToSet(ctx, uids)
+	if err != nil {
+		return err
+	}
+	m.Records = set
 	return nil
 }

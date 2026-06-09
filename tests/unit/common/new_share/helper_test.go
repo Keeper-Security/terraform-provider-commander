@@ -34,7 +34,7 @@ func TestBuildGrantCommand_EscapesEmailWithApostrophe(t *testing.T) {
 	}
 }
 
-func TestBuildRevokeCommand_FolderUsesRevoke(t *testing.T) {
+func TestBuildRevokeCommand_FolderUsesRemove(t *testing.T) {
 	got := new_share.BuildRevokeCommand(new_share.CmdNsfShareFolder, "FOLDER_UID_1", "user@example.com")
 	want := `nsf-share-folder "FOLDER_UID_1" --email='user@example.com' --action=remove`
 	if got != want {
@@ -42,7 +42,7 @@ func TestBuildRevokeCommand_FolderUsesRevoke(t *testing.T) {
 	}
 }
 
-func TestBuildRevokeCommand_RecordUsesRemove(t *testing.T) {
+func TestBuildRevokeCommand_RecordUsesRevoke(t *testing.T) {
 	got := new_share.BuildRevokeCommand(new_share.CmdNsfShareRecord, "REC_UID_1", "user@example.com")
 	want := `nsf-share-record "REC_UID_1" --email='user@example.com' --action=revoke`
 	if got != want {

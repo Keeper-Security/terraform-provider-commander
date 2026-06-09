@@ -24,9 +24,6 @@ func (d *NonSharedFolderDataSource) Schema(ctx context.Context, req datasource.S
 					Description:         DescDataSourceFolder,
 					MarkdownDescription: DescDataSourceFolderMD,
 				},
-			},
-			folderutils.DataSourceCommonFolderAttributes(),
-			map[string]dschema.Attribute{
 				"records": dschema.SetAttribute{
 					Computed:            true,
 					ElementType:         types.StringType,
@@ -34,6 +31,7 @@ func (d *NonSharedFolderDataSource) Schema(ctx context.Context, req datasource.S
 					MarkdownDescription: DescRecords,
 				},
 			},
+			folderutils.DataSourceCommonFolderAttributes(),
 		),
 	}
 }

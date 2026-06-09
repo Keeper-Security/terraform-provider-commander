@@ -11,6 +11,7 @@ import (
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/utils"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
 func (r *NewFolderResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
@@ -20,6 +21,14 @@ func (r *NewFolderResource) Schema(ctx context.Context, req resource.SchemaReque
 		Attributes: utils.MergeResourceAttributes(
 			folderutils.ResourceCommonFolderAttributes(),
 			new_share.ResourceShareAttribute(),
+			map[string]schema.Attribute{
+				"records": schema.SetAttribute{
+					Optional:            true,
+					ElementType:         types.StringType,
+					Description:         DescRecords,
+					MarkdownDescription: DescRecords,
+				},
+			},
 		),
 	}
 }

@@ -69,9 +69,12 @@ func (r *NonSharedFolderResource) Update(ctx context.Context, req resource.Updat
 		}
 	}
 
-	// Sync records: link added, unlink removed
+	// Link the records to the folder.
 	folderName := folderutils.BuildFolderPath(plan.Name.ValueString(), plan.FolderLocation.ValueString())
-	if err := SyncFolderRecords(ctx, r.ApiManager, folderUID, folderName, plan.Records, state.Records); err != nil {
+	unlinkFn := func(record string) error {
+		return folderutils.UnlinkRecord(ctx, r.ApiManager, CmdRm, folderName, record)
+	}
+	if err := folderutils.SyncFolderRecords(ctx, r.ApiManager, CmdLn, folderUID, plan.Records, state.Records, unlinkFn); err != nil {
 		resp.Diagnostics.AddError(folderutils.ErrSummaryUpdateFailed, err.Error())
 		return
 	}
@@ -86,7 +89,7 @@ func buildRndirCommand(folderUID string, plan *NonSharedFolderResourceModel) str
 		fmt.Sprintf("%s '%s'", CmdRndir, folderUID),
 		FlagName,
 		fmt.Sprintf(`"%s"`, newName),
-		FlagQuiet,
+		utils.FlagQuiet,
 	}
 	return strings.Join(parts, " ")
 }

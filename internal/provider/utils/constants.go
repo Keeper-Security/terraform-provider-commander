@@ -30,6 +30,7 @@ const (
 	FlagRecord     = "--record"
 	FlagIncludeDag = "--include-dag"
 	FlagVerbose    = "--verbose"
+	FlagOperation  = "--operation"
 )
 
 // PAM tunnel / connection CLI flags.

@@ -8,6 +8,8 @@ const (
 	CmdNsfMkdir = "nsf-mkdir"
 	CmdNsfRmdir = "nsf-rmdir"
 	CmdNsfRndir = "nsf-rndir"
+	CmdNsfLn    = "nsf-ln"
+	CmdNsfRm    = "nsf-rm"
 )
 
 // Schema descriptions for the new folder resource. Generic folder error
@@ -16,6 +18,7 @@ const (
 // and folderutils.ErrOp*).
 const (
 	DescResource = "Manages a Nested Shared Folder."
+	DescRecords  = "Set of record UIDs to link into this folder."
 )
 
 const (

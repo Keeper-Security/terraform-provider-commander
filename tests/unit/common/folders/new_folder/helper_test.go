@@ -4,6 +4,7 @@
 package new_folder_test
 
 import (
+	"context"
 	"testing"
 
 	commonnewfolder "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/folders/new_folder"
@@ -24,7 +25,7 @@ func TestMapResponseToModel(t *testing.T) {
 		FolderUID: "Cuuc9aK6VuATH49ewBf0zg",
 		Name:      "Engineering",
 	}
-	if err := commonnewfolder.MapResponseToModel(apiData, &m); err != nil {
+	if err := commonnewfolder.MapResponseToModel(context.Background(), apiData, &m); err != nil {
 		t.Fatalf("MapResponseToModel: %v", err)
 	}
 	if m.Id.ValueString() != apiData.FolderUID {
@@ -37,7 +38,7 @@ func TestMapResponseToModel(t *testing.T) {
 
 func TestMapResponseToModel_NilApi(t *testing.T) {
 	var m commonnewfolder.Model
-	if err := commonnewfolder.MapResponseToModel(nil, &m); err == nil {
+	if err := commonnewfolder.MapResponseToModel(context.Background(), nil, &m); err == nil {
 		t.Error("expected error for nil API response")
 	}
 }

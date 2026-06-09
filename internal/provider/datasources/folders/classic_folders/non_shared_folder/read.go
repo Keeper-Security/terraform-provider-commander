@@ -39,7 +39,7 @@ func (d *NonSharedFolderDataSource) Read(ctx context.Context, req datasource.Rea
 		return
 	}
 
-	if err := commonnonsharedfolder.MapResponseToModel(apiData, &data.Model); err != nil {
+	if err := commonnonsharedfolder.MapResponseToModel(ctx, apiData, &data.Model); err != nil {
 		resp.Diagnostics.AddError(folderutils.ErrSummaryReadFailed, err.Error())
 		return
 	}

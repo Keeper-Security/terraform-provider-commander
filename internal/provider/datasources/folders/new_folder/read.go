@@ -44,7 +44,7 @@ func (d *NewFolderDataSource) Read(ctx context.Context, req datasource.ReadReque
 		return
 	}
 
-	if err := commonnewfolder.MapResponseToModel(apiData, &data.Model); err != nil {
+	if err := commonnewfolder.MapResponseToModel(ctx, apiData, &data.Model); err != nil {
 		resp.Diagnostics.AddError(folderutils.ErrSummaryReadFailed, err.Error())
 		return
 	}

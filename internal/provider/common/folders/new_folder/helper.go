@@ -71,11 +71,12 @@ func ParseNewFolderGetResponse(data any) (*NewFolderGetResponse, error) {
 }
 
 // MapResponseToModel maps nsf-get API data into the Terraform model's identity
-// fields (Id, Name). folder_location is preserved from existing state since the
-// nsf-get response does not include a parent path. The share block is populated
+// fields (Id, Name, FolderLocation) and Records. The share block is populated
 // separately by callers via new_share.MapResponseToModel so the Optional-only
 // semantics of `share` can be honored (skip the update when state.Share is null).
-func MapResponseToModel(apiData *NewFolderGetResponse, m *Model) error {
+// When the response omits the records key entirely (apiData.Records == nil)
+// m.Records is left untouched.
+func MapResponseToModel(ctx context.Context, apiData *NewFolderGetResponse, m *Model) error {
 	if apiData == nil {
 		return fmt.Errorf("folder API response is nil")
 	}
@@ -84,5 +85,20 @@ func MapResponseToModel(apiData *NewFolderGetResponse, m *Model) error {
 	m.Name = types.StringValue(apiData.Name)
 	m.FolderLocation = utils.ExtractFolderValue(&apiData.FolderLocation, m.FolderLocation)
 
+	// Link the records to the folder.
+	if apiData.Records == nil {
+		return nil
+	}
+	uids := make([]string, 0, len(apiData.Records))
+	for _, r := range apiData.Records {
+		if r.RecordUID != "" {
+			uids = append(uids, r.RecordUID)
+		}
+	}
+	set, err := folderutils.FolderRecordsToSet(ctx, uids)
+	if err != nil {
+		return err
+	}
+	m.Records = set
 	return nil
 }

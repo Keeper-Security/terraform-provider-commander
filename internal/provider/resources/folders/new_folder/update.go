@@ -61,5 +61,15 @@ func (r *NewFolderResource) Update(ctx context.Context, req resource.UpdateReque
 		return
 	}
 
+	// Link the records to the folder.
+	folderUID := plan.Id.ValueString()
+	unlinkFn := func(record string) error {
+		return commonfolderutils.UnlinkRecordNsf(ctx, r.ApiManager, CmdNsfRm, folderUID, record)
+	}
+	if err := commonfolderutils.SyncFolderRecords(ctx, r.ApiManager, CmdNsfLn, folderUID, plan.Records, state.Records, unlinkFn); err != nil {
+		resp.Diagnostics.AddError(commonfolderutils.ErrSummaryUpdateFailed, err.Error())
+		return
+	}
+
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }

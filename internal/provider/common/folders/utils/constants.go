@@ -52,11 +52,13 @@ const (
 // AddError; short description for logs). Shared across all folder resources
 // and data sources.
 const (
-	ErrOpCreate = "Unable to create folder"
-	ErrOpRead   = "Unable to read folder"
-	ErrOpUpdate = "Unable to update folder"
-	ErrOpRename = "Unable to rename folder"
-	ErrOpMove   = "Unable to move folder"
-	ErrOpDelete = "Unable to delete folder"
-	ErrOpGet    = "Unable to get folder"
+	ErrOpCreate       = "Unable to create folder"
+	ErrOpRead         = "Unable to read folder"
+	ErrOpUpdate       = "Unable to update folder"
+	ErrOpRename       = "Unable to rename folder"
+	ErrOpMove         = "Unable to move folder"
+	ErrOpDelete       = "Unable to delete folder"
+	ErrOpGet          = "Unable to get folder"
+	ErrOpLinkRecord   = "Unable to link record to folder"
+	ErrOpUnlinkRecord = "Unable to remove record from folder"
 )

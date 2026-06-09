@@ -15,6 +15,12 @@ type NewFolderGetResponse struct {
 	FolderUID      string                       `json:"folder_uid"`
 	Name           string                       `json:"name"`
 	FolderLocation utils.FolderLocationResponse `json:"folder"`
+	Records        []NewFolderRecordResponse    `json:"records,omitempty"`
 	new_share.ShareResponseFragment
-	// Add records field here
+}
+
+// NewFolderRecordResponse represents a record entry in the folder get response.
+type NewFolderRecordResponse struct {
+	RecordUID  string `json:"record_uid"`
+	RecordName string `json:"record_name"`
 }
