@@ -12,10 +12,11 @@ import (
 )
 
 // ResourceShareAttribute returns the `share` map-of-object attribute for
-// resource schemas: Optional, MapKeysEmailValidator applied to keys. The
-// attribute is intentionally NOT Computed; if the user omits the block,
-// callers should also skip share reconciliation in Read so the state stays
-// null.
+// resource schemas: Optional, MapNonEmptyValidator (rejects {} in config so
+// MapResponseToModel can safely store null when the API filters to zero
+// entries), MapKeysEmailValidator applied to keys. The attribute is
+// intentionally NOT Computed; users express "no managed shares" by omitting
+// the block entirely so the round-trip null == null stays clean.
 func ResourceShareAttribute() map[string]schema.Attribute {
 	return map[string]schema.Attribute{
 		AttrShare: schema.MapNestedAttribute{
@@ -23,6 +24,7 @@ func ResourceShareAttribute() map[string]schema.Attribute {
 			Description:         DescShare,
 			MarkdownDescription: DescShareMD,
 			Validators: []validator.Map{
+				providerutils.MapNonEmptyValidator(AttrShareValidatorLabel),
 				providerutils.MapKeysEmailValidator(AttrShareValidatorLabel),
 			},
 			NestedObject: schema.NestedAttributeObject{

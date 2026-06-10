@@ -337,6 +337,61 @@ func TestStringMinLengthValidator_EnterpriseNodeParent_WhitespaceOnlyFails(t *te
 	}
 }
 
+func TestMapNonEmptyValidator_Description(t *testing.T) {
+	v := utils.MapNonEmptyValidator("Share User UID or Email")
+	ctx := context.Background()
+	want := "Share User UID or Email must have at least one entry; omit the block instead of setting it to an empty map."
+	if v.Description(ctx) != want {
+		t.Errorf("unexpected Description: %s", v.Description(ctx))
+	}
+	if v.MarkdownDescription(ctx) != v.Description(ctx) {
+		t.Error("expected MarkdownDescription to equal Description")
+	}
+}
+
+func TestMapNonEmptyValidator_NullOrUnknown(t *testing.T) {
+	v := utils.MapNonEmptyValidator("Share User UID or Email")
+	ctx := context.Background()
+	for _, m := range []types.Map{types.MapNull(types.StringType), types.MapUnknown(types.StringType)} {
+		req := validator.MapRequest{ConfigValue: m, Path: path.Root("share")}
+		var resp validator.MapResponse
+		v.ValidateMap(ctx, req, &resp)
+		if resp.Diagnostics.HasError() {
+			t.Errorf("expected no diagnostics for null/unknown, got: %v", resp.Diagnostics)
+		}
+	}
+}
+
+func TestMapNonEmptyValidator_EmptyMapRejected(t *testing.T) {
+	v := utils.MapNonEmptyValidator("Share User UID or Email")
+	ctx := context.Background()
+	m, diags := types.MapValueFrom(ctx, types.StringType, map[string]string{})
+	if diags.HasError() {
+		t.Fatal(diags)
+	}
+	req := validator.MapRequest{ConfigValue: m, Path: path.Root("share")}
+	var resp validator.MapResponse
+	v.ValidateMap(ctx, req, &resp)
+	if !resp.Diagnostics.HasError() {
+		t.Error("expected diagnostics for explicit empty map ({})")
+	}
+}
+
+func TestMapNonEmptyValidator_NonEmptyMapAccepted(t *testing.T) {
+	v := utils.MapNonEmptyValidator("Share User UID or Email")
+	ctx := context.Background()
+	m, diags := types.MapValueFrom(ctx, types.StringType, map[string]string{"alice@example.com": "viewer"})
+	if diags.HasError() {
+		t.Fatal(diags)
+	}
+	req := validator.MapRequest{ConfigValue: m, Path: path.Root("share")}
+	var resp validator.MapResponse
+	v.ValidateMap(ctx, req, &resp)
+	if resp.Diagnostics.HasError() {
+		t.Errorf("expected no diagnostics for non-empty map, got: %v", resp.Diagnostics)
+	}
+}
+
 func TestMapKeysMinLengthValidator_WhitespaceOnlyKey(t *testing.T) {
 	v := utils.MapKeysMinLengthValidator("managing node name", 1)
 	ctx := context.Background()

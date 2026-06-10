@@ -297,6 +297,41 @@ func (v jsonStringValidator) ValidateString(_ context.Context, req validator.Str
 	}
 }
 
+// ----- GENERIC: MAP NON-EMPTY --------------------------------
+// MapNonEmptyValidator rejects an explicitly empty map ({}) on an Optional
+// attribute. Null and unknown values are accepted (the user simply omitted
+// the block). Use this when an Optional map should be expressed by omitting
+// the block entirely rather than by writing `= {}`, so resource Reads can
+// safely treat null and an empty filtered API response identically.
+func MapNonEmptyValidator(displayName string) mapNonEmptyValidator {
+	return mapNonEmptyValidator{DisplayName: displayName}
+}
+
+type mapNonEmptyValidator struct {
+	DisplayName string
+}
+
+func (v mapNonEmptyValidator) Description(_ context.Context) string {
+	return v.DisplayName + " must have at least one entry; omit the block instead of setting it to an empty map."
+}
+
+func (v mapNonEmptyValidator) MarkdownDescription(ctx context.Context) string {
+	return v.Description(ctx)
+}
+
+func (v mapNonEmptyValidator) ValidateMap(_ context.Context, req validator.MapRequest, resp *validator.MapResponse) {
+	if req.ConfigValue.IsNull() || req.ConfigValue.IsUnknown() {
+		return
+	}
+	if len(req.ConfigValue.Elements()) == 0 {
+		resp.Diagnostics.AddAttributeError(
+			req.Path,
+			"Invalid "+v.DisplayName,
+			v.DisplayName+" must have at least one entry. Remove the block entirely if you do not want to manage it.",
+		)
+	}
+}
+
 // ----- GENERIC: MAP KEYS MIN LENGTH --------------------------------
 // MapKeysMinLengthValidator validates that all keys in a map have at least MinLen characters
 // after strings.TrimSpace (whitespace-only keys are rejected).

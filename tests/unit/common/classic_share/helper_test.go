@@ -110,16 +110,27 @@ func TestMapResponseToModel_DropsEmptyUsername(t *testing.T) {
 	}
 }
 
-func TestMapResponseToModel_EmptyResponseProducesEmptyMap(t *testing.T) {
+func TestMapResponseToModel_EmptyResponseProducesNullMap(t *testing.T) {
 	var m classic_share.ShareModel
 	if err := classic_share.MapResponseToModel(nil, &m); err != nil {
 		t.Fatalf("MapResponseToModel: %v", err)
 	}
-	if m.Share.IsNull() {
-		t.Error("expected non-null empty share map, got null")
+	if !m.Share.IsNull() {
+		t.Errorf("expected null share map (schema rejects {}), got %v", m.Share)
 	}
-	if len(m.Share.Elements()) != 0 {
-		t.Errorf("expected 0 elements, got %d", len(m.Share.Elements()))
+}
+
+func TestMapResponseToModel_AllUsernamesBlankProducesNullMap(t *testing.T) {
+	perms := []classic_share.UserPermissionEntry{
+		{Username: "", Shareable: true, Editable: true},
+		{Username: "   ", Shareable: false, Editable: false},
+	}
+	var m classic_share.ShareModel
+	if err := classic_share.MapResponseToModel(perms, &m); err != nil {
+		t.Fatalf("MapResponseToModel: %v", err)
+	}
+	if !m.Share.IsNull() {
+		t.Errorf("expected null share map when all entries filtered out, got %v", m.Share)
 	}
 }
 

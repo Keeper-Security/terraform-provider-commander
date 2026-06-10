@@ -104,9 +104,11 @@ func SyncSharePermissions(ctx context.Context, apiManager *api.ApiManager, recor
 // MapResponseToModel populates m.Share from the API's user_permissions array.
 // Entries with empty username are dropped silently.
 //
-// If permissions is empty (no managed shares from the API), m.Share is set
-// to an empty (non-null) map so plan comparisons against an empty
-// `share = {}` in config remain consistent.
+// When the filtered set is empty (no managed shares from the API), m.Share is
+// set to null rather than an empty map. The schema's MapNonEmptyValidator
+// rejects `share = {}` in config, so null is the only way "no managed shares"
+// can be expressed; producing null here keeps the config-vs-state diff clean
+// (null == null).
 func MapResponseToModel(permissions []UserPermissionEntry, m *ShareModel) error {
 	if m == nil {
 		return fmt.Errorf("share model is nil")
@@ -125,6 +127,10 @@ func MapResponseToModel(permissions []UserPermissionEntry, m *ShareModel) error 
 			return fmt.Errorf("unable to build share entry for %q: %s", p.Username, diags)
 		}
 		elements[p.Username] = obj
+	}
+	if len(elements) == 0 {
+		m.Share = types.MapNull(objectType)
+		return nil
 	}
 	mv, diags := types.MapValue(objectType, elements)
 	if diags.HasError() {

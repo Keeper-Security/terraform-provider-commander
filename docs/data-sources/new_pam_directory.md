@@ -118,7 +118,7 @@ output "corp_dc_configuration" {
 - `pam_settings` (Attributes) **PAM settings** for the record, including connection, tunnel, and administrative options. (see [below for nested schema](#nestedatt--pam_settings))
 - `provider_group` (String) **Provider Group** for directories hosted in Azure.
 - `provider_region` (String) **AWS region** of hosted directory.
-- `share` (Map of String) Mapping of share permissions for this folder or record. For folders, keys can identify either users (**UID** or **email**) or teams (**UID** or **name**). For records, keys can identify users only (**UID** or **email**). Values specify the permission level: `viewer`, `share-manager`, `content-manager`, `content-share-manager`, or `full-manager`.
+- `share` (Map of String) Mapping of share permissions for this folder or record. For folders, keys can identify either users (**UID** or **email**) or teams (**UID** or **name**). For records, keys can identify users only (**UID** or **email**). Values specify the permission level: `viewer`, `share-manager`, `content-manager`, `content-share-manager`, or `full-manager`. Owner is implicit and never appears in this map.
 - `title` (String) **Title** of the PAM directory record.
 - `use_ssl` (Boolean) Whether to use **SSL** while connecting to the directory resource.
 - `user_match` (String) **Match on OU** to filter found users during Discovery. Either match the right side of the DN or surround with slashes for a regular expression. Example: `OU=Users,DC=company,DC=com` or `/OU=Users/`

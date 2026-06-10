@@ -88,16 +88,26 @@ func TestMapResponseToModel_DropsOwnerAndEmpty(t *testing.T) {
 	}
 }
 
-func TestMapResponseToModel_EmptyResponseProducesEmptyMap(t *testing.T) {
+func TestMapResponseToModel_EmptyResponseProducesNullMap(t *testing.T) {
 	var m new_share.ShareModel
 	if err := new_share.MapResponseToModel(nil, &m); err != nil {
 		t.Fatalf("MapResponseToModel: %v", err)
 	}
-	if m.Share.IsNull() {
-		t.Error("expected non-null empty share map, got null")
+	if !m.Share.IsNull() {
+		t.Errorf("expected null share map (schema rejects {}), got %v", m.Share)
 	}
-	if len(m.Share.Elements()) != 0 {
-		t.Errorf("expected 0 elements, got %d", len(m.Share.Elements()))
+}
+
+func TestMapResponseToModel_OnlyOwnerProducesNullMap(t *testing.T) {
+	perms := []new_share.UserPermissionEntry{
+		{Accessor: "owner@example.com", Role: new_share.RoleOwner},
+	}
+	var m new_share.ShareModel
+	if err := new_share.MapResponseToModel(perms, &m); err != nil {
+		t.Fatalf("MapResponseToModel: %v", err)
+	}
+	if !m.Share.IsNull() {
+		t.Errorf("expected null share map when only the owner row is present, got %v", m.Share)
 	}
 }
 
