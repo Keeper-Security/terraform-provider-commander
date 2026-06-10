@@ -4,12 +4,12 @@
 // Package new_folder holds types and API helpers for Keeper Drive (new) folder resources.
 package new_folder
 
-// AccessorTypeApplication is the accessor_type value for Keeper-managed
+// AccessTypeApplication is the access_type value for Keeper-managed
 // application principals. These entries appear in nsf-get user_permissions /
 // team_permissions but are not user-controllable, so they are filtered out
 // of the Terraform share map. Matched strictly (case-sensitive) against the
 // API value.
-const AccessorTypeApplication = "AT_APPLICATION"
+const AccessTypeApplication = "AT_APPLICATION"
 
 // ExecuteCommand operation descriptions (logs / error context).
 const (

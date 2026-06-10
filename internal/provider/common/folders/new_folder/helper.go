@@ -106,7 +106,7 @@ func MapResponseToModel(ctx context.Context, apiData *NewFolderGetResponse, m *M
 
 // CollectFolderSharePermissions merges user_permissions and team_permissions
 // from an nsf-get response into a single slice for new_share.MapResponseToModel,
-// dropping any entry whose accessor_type is AccessorTypeApplication. Returns
+// dropping any entry whose access_type is AccessTypeApplication. Returns
 // nil when apiData is nil.
 func CollectFolderSharePermissions(apiData *NewFolderGetResponse) []new_share.UserPermissionEntry {
 	if apiData == nil {
@@ -119,10 +119,10 @@ func CollectFolderSharePermissions(apiData *NewFolderGetResponse) []new_share.Us
 }
 
 // appendNonApplicationEntries copies entries from src into dst, skipping any
-// whose accessor_type equals AccessorTypeApplication.
+// whose access_type equals AccessTypeApplication.
 func appendNonApplicationEntries(dst, src []new_share.UserPermissionEntry) []new_share.UserPermissionEntry {
 	for _, e := range src {
-		if e.AccessorType == AccessorTypeApplication {
+		if e.AccessType == AccessTypeApplication {
 			continue
 		}
 		dst = append(dst, e)

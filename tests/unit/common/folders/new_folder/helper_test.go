@@ -78,8 +78,8 @@ func TestCollectFolderSharePermissions_UsersOnly(t *testing.T) {
 	apiData := &commonnewfolder.NewFolderGetResponse{
 		ShareResponseFragment: new_share.ShareResponseFragment{
 			UserPermissions: []new_share.UserPermissionEntry{
-				{Accessor: "a@x.com", AccessorType: "AT_USER", Role: "viewer"},
-				{Accessor: "b@x.com", AccessorType: "AT_USER", Role: "full-manager"},
+				{Accessor: "a@x.com", AccessType: "AT_USER", Role: "viewer"},
+				{Accessor: "b@x.com", AccessType: "AT_USER", Role: "full-manager"},
 			},
 		},
 	}
@@ -96,7 +96,7 @@ func TestCollectFolderSharePermissions_TeamsOnly(t *testing.T) {
 	apiData := &commonnewfolder.NewFolderGetResponse{
 		ShareResponseFragment: new_share.ShareResponseFragment{
 			TeamPermissions: []new_share.UserPermissionEntry{
-				{Accessor: "Metron", AccessorType: "AT_TEAM", Role: "viewer"},
+				{Accessor: "Metron", AccessType: "AT_TEAM", Role: "viewer"},
 			},
 		},
 	}
@@ -110,13 +110,13 @@ func TestCollectFolderSharePermissions_MixedFiltersApplication(t *testing.T) {
 	apiData := &commonnewfolder.NewFolderGetResponse{
 		ShareResponseFragment: new_share.ShareResponseFragment{
 			UserPermissions: []new_share.UserPermissionEntry{
-				{Accessor: "a@x.com", AccessorType: "AT_USER", Role: "viewer"},
-				{Accessor: "app-1", AccessorType: commonnewfolder.AccessorTypeApplication, Role: "viewer"},
-				{Accessor: "b@x.com", AccessorType: "AT_USER", Role: "share-manager"},
+				{Accessor: "a@x.com", AccessType: "AT_USER", Role: "viewer"},
+				{Accessor: "app-1", AccessType: commonnewfolder.AccessTypeApplication, Role: "viewer"},
+				{Accessor: "b@x.com", AccessType: "AT_USER", Role: "share-manager"},
 			},
 			TeamPermissions: []new_share.UserPermissionEntry{
-				{Accessor: "Metron", AccessorType: "AT_TEAM", Role: "viewer"},
-				{Accessor: "app-team", AccessorType: commonnewfolder.AccessorTypeApplication, Role: "viewer"},
+				{Accessor: "Metron", AccessType: "AT_TEAM", Role: "viewer"},
+				{Accessor: "app-team", AccessType: commonnewfolder.AccessTypeApplication, Role: "viewer"},
 			},
 		},
 	}
@@ -127,7 +127,7 @@ func TestCollectFolderSharePermissions_MixedFiltersApplication(t *testing.T) {
 	accessors := map[string]bool{}
 	for _, e := range got {
 		accessors[e.Accessor] = true
-		if e.AccessorType == commonnewfolder.AccessorTypeApplication {
+		if e.AccessType == commonnewfolder.AccessTypeApplication {
 			t.Errorf("AT_APPLICATION entry %q leaked through filter", e.Accessor)
 		}
 	}
@@ -142,9 +142,9 @@ func TestCollectFolderSharePermissions_CaseSensitiveFilter(t *testing.T) {
 	apiData := &commonnewfolder.NewFolderGetResponse{
 		ShareResponseFragment: new_share.ShareResponseFragment{
 			UserPermissions: []new_share.UserPermissionEntry{
-				{Accessor: "lower", AccessorType: "at_application", Role: "viewer"},
-				{Accessor: "mixed", AccessorType: "At_Application", Role: "viewer"},
-				{Accessor: "exact", AccessorType: commonnewfolder.AccessorTypeApplication, Role: "viewer"},
+				{Accessor: "lower", AccessType: "at_application", Role: "viewer"},
+				{Accessor: "mixed", AccessType: "At_Application", Role: "viewer"},
+				{Accessor: "exact", AccessType: commonnewfolder.AccessTypeApplication, Role: "viewer"},
 			},
 		},
 	}
@@ -163,10 +163,10 @@ func TestCollectFolderSharePermissions_UsersBeforeTeams(t *testing.T) {
 	apiData := &commonnewfolder.NewFolderGetResponse{
 		ShareResponseFragment: new_share.ShareResponseFragment{
 			UserPermissions: []new_share.UserPermissionEntry{
-				{Accessor: "u1", AccessorType: "AT_USER", Role: "viewer"},
+				{Accessor: "u1", AccessType: "AT_USER", Role: "viewer"},
 			},
 			TeamPermissions: []new_share.UserPermissionEntry{
-				{Accessor: "t1", AccessorType: "AT_TEAM", Role: "viewer"},
+				{Accessor: "t1", AccessType: "AT_TEAM", Role: "viewer"},
 			},
 		},
 	}

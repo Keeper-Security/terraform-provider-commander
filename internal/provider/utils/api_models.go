@@ -305,7 +305,7 @@ type VaultRecordGetResponse struct {
 // UserPermissionEntry is used in classic records and new folder and record.
 //
 //	Classic Record user_permissions attribute: {username, shareable, editable}
-//	NSF Folder user_permissions/team_permissions attribute: accessor, accessor_type, role
+//	NSF Folder user_permissions/team_permissions attribute: accessor, access_type, role
 //	NSF Record user_permissions attribute: username, shareable, editable, role
 //
 // All fields use `omitempty` so each helper sees zero values for the
@@ -313,12 +313,12 @@ type VaultRecordGetResponse struct {
 // new_share.UserPermissionEntry and classic_share.UserPermissionEntry both
 // alias this type.
 type UserPermissionEntry struct {
-	Accessor     string `json:"accessor,omitempty"`
-	AccessorType string `json:"accessor_type,omitempty"`
-	Role         string `json:"role,omitempty"`
-	Username     string `json:"username,omitempty"`
-	Shareable    bool   `json:"shareable,omitempty"`
-	Editable     bool   `json:"editable,omitempty"`
+	Accessor   string `json:"accessor,omitempty"`
+	AccessType string `json:"access_type,omitempty"`
+	Role       string `json:"role,omitempty"`
+	Username   string `json:"username,omitempty"`
+	Shareable  bool   `json:"shareable,omitempty"`
+	Editable   bool   `json:"editable,omitempty"`
 }
 
 // ConfigurationAllowedSettingsResponse maps the configuration_allowed_settings object from the API response.
