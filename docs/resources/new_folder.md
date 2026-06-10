@@ -27,10 +27,9 @@ Manages a Nested Shared Folder.
 #                     Whitespace around "/" separators is ignored (e.g. "A / B" == "A/B").
 #                     Cannot be changed after creation; moving a Nested Shared
 #                     Folder to a new parent is not supported by this resource.
-#   share           — Map of email-or-user-UID => role granted on the folder.
+#   share           — Map of User Email/UID or Team Name/UID => role granted on the folder.
 #                     Allowed roles: viewer, share-manager, content-manager,
-#                     content-share-manager, full-manager. Owner is implicit and
-#                     never appears in this map. Omit the attribute or use
+#                     content-share-manager, full-manager. Omit the attribute or use
 #                     `lifecycle.ignore_changes = [share]` to leave existing
 #                     out-of-band shares untouched.
 

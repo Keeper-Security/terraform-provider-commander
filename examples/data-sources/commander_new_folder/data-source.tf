@@ -24,6 +24,6 @@ output "new_folder_name" {
 }
 
 output "new_folder_share" {
-  description = "Map of email => role (owner is filtered out)."
+  description = "Map of User Email/UID or Team Name/UID => role."
   value       = data.commander_new_folder.example.share
 }
