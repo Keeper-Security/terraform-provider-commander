@@ -10,6 +10,7 @@ import (
 
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/api"
 	folderutils "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/folders/utils"
+	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/new_share"
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/utils"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
@@ -101,4 +102,30 @@ func MapResponseToModel(ctx context.Context, apiData *NewFolderGetResponse, m *M
 	}
 	m.Records = set
 	return nil
+}
+
+// CollectFolderSharePermissions merges user_permissions and team_permissions
+// from an nsf-get response into a single slice for new_share.MapResponseToModel,
+// dropping any entry whose accessor_type is AccessorTypeApplication. Returns
+// nil when apiData is nil.
+func CollectFolderSharePermissions(apiData *NewFolderGetResponse) []new_share.UserPermissionEntry {
+	if apiData == nil {
+		return nil
+	}
+	out := make([]new_share.UserPermissionEntry, 0, len(apiData.UserPermissions)+len(apiData.TeamPermissions))
+	out = appendNonApplicationEntries(out, apiData.UserPermissions)
+	out = appendNonApplicationEntries(out, apiData.TeamPermissions)
+	return out
+}
+
+// appendNonApplicationEntries copies entries from src into dst, skipping any
+// whose accessor_type equals AccessorTypeApplication.
+func appendNonApplicationEntries(dst, src []new_share.UserPermissionEntry) []new_share.UserPermissionEntry {
+	for _, e := range src {
+		if e.AccessorType == AccessorTypeApplication {
+			continue
+		}
+		dst = append(dst, e)
+	}
+	return dst
 }

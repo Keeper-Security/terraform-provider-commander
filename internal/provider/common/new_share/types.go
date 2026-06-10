@@ -28,4 +28,5 @@ type UserPermissionEntry = utils.UserPermissionEntry
 // response type to inherit the share parsing.
 type ShareResponseFragment struct {
 	UserPermissions []UserPermissionEntry `json:"user_permissions"`
+	TeamPermissions []UserPermissionEntry `json:"team_permissions"`
 }

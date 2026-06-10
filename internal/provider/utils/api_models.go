@@ -298,25 +298,27 @@ type VaultRecordGetResponse struct {
 	UserPermissions              []UserPermissionEntry                 `json:"user_permissions,omitempty"`
 }
 
-// UserPermissionEntry is one element of the API response's user_permissions
-// array. The same JSON array key (`user_permissions`) is returned in two
+// UserPermissionEntry is one element of the API response's user_permissions +
+// team_permissions arrays. The same JSON array key (`user_permissions` / `team_permissions`) is returned in two
 // different shapes depending on the record style:
 //
-//   - NSF (nsf-get / nsf-share-*) entries carry {accessor, role}; consumed
-//     by new_share.MapResponseToModel.
-//   - Classic (get / share-record) entries carry {username, shareable,
-//     editable}; consumed by classic_share.MapResponseToModel.
+// UserPermissionEntry is used in classic records and new folder and record.
+//
+//	Classic Record user_permissions attribute: {username, shareable, editable}
+//	NSF Folder user_permissions/team_permissions attribute: accessor, accessor_type, role
+//	NSF Record user_permissions attribute: username, shareable, editable, role
 //
 // All fields use `omitempty` so each helper sees zero values for the
 // irrelevant shape and naturally filters them out.
 // new_share.UserPermissionEntry and classic_share.UserPermissionEntry both
 // alias this type.
 type UserPermissionEntry struct {
-	Accessor  string `json:"accessor,omitempty"`
-	Role      string `json:"role,omitempty"`
-	Username  string `json:"username,omitempty"`
-	Shareable bool   `json:"shareable,omitempty"`
-	Editable  bool   `json:"editable,omitempty"`
+	Accessor     string `json:"accessor,omitempty"`
+	AccessorType string `json:"accessor_type,omitempty"`
+	Role         string `json:"role,omitempty"`
+	Username     string `json:"username,omitempty"`
+	Shareable    bool   `json:"shareable,omitempty"`
+	Editable     bool   `json:"editable,omitempty"`
 }
 
 // ConfigurationAllowedSettingsResponse maps the configuration_allowed_settings object from the API response.

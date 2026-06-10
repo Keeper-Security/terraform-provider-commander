@@ -54,7 +54,7 @@ func (r *NewFolderResource) Read(ctx context.Context, req resource.ReadRequest, 
 		return
 	}
 
-	if err := new_share.MapResponseToModel(apiData.UserPermissions, &state.ShareModel); err != nil {
+	if err := new_share.MapResponseToModel(commonnewfolder.CollectFolderSharePermissions(apiData), &state.ShareModel); err != nil {
 		resp.Diagnostics.AddError(folderutils.ErrSummaryReadFailed, err.Error())
 		return
 	}
