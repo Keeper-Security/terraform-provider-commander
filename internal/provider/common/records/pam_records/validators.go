@@ -13,17 +13,24 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
-// AllowedConnectionProtocols lists every protocol value accepted by the
-// connection block's "protocol" attribute.
-var AllowedConnectionProtocols = []string{
+// MachineDirectoryProtocols lists the connection protocols allowed on PAM
+// Machine and PAM Directory records.
+var MachineDirectoryProtocols = []string{
 	ConnectionProtocolKubernetes,
-	ConnectionProtocolMysql,
-	ConnectionProtocolPostgreSql,
 	ConnectionProtocolRdp,
-	ConnectionProtocolSqlServer,
 	ConnectionProtocolSsh,
 	ConnectionProtocolTelnet,
 	ConnectionProtocolVnc,
+}
+
+// DatabaseProtocols lists the connection protocols allowed on PAM Database
+// records. mariadb and oracle are intentionally excluded until their
+// sub-block schemas and helper branches land; adding them here without that
+// support would let users pass schema validation and then fail at apply.
+var DatabaseProtocols = []string{
+	ConnectionProtocolMysql,
+	ConnectionProtocolPostgreSql,
+	ConnectionProtocolSqlServer,
 }
 
 // protocolToAttributeKey maps each protocol constant to the tfsdk attribute
@@ -148,14 +155,20 @@ func (v tunnelRequiredFieldsValidator) ValidateObject(_ context.Context, req val
 // Protocol string validator
 // ---------------------------------------------------------------------------
 
-type connectionProtocolValidator struct{}
+type connectionProtocolValidator struct {
+	Allowed []string
+}
 
-func ConnectionProtocolValidator() connectionProtocolValidator {
-	return connectionProtocolValidator{}
+// ConnectionProtocolValidator validates that connection.protocol is one of
+// the protocols allowed for the calling PAM record type. Pass
+// MachineDirectoryProtocols for pam_machine / pam_directory and
+// DatabaseProtocols for pam_database.
+func ConnectionProtocolValidator(allowed []string) connectionProtocolValidator {
+	return connectionProtocolValidator{Allowed: allowed}
 }
 
 func (v connectionProtocolValidator) Description(_ context.Context) string {
-	return "Protocol must be one of: " + strings.Join(AllowedConnectionProtocols, ", ") + "."
+	return "Protocol must be one of: " + strings.Join(v.Allowed, ", ") + "."
 }
 
 func (v connectionProtocolValidator) MarkdownDescription(ctx context.Context) string {
@@ -167,7 +180,7 @@ func (v connectionProtocolValidator) ValidateString(_ context.Context, req valid
 		return
 	}
 	val := req.ConfigValue.ValueString()
-	for _, allowed := range AllowedConnectionProtocols {
+	for _, allowed := range v.Allowed {
 		if val == allowed {
 			return
 		}
@@ -175,7 +188,7 @@ func (v connectionProtocolValidator) ValidateString(_ context.Context, req valid
 	resp.Diagnostics.AddAttributeError(
 		req.Path,
 		"Invalid Connection Protocol",
-		fmt.Sprintf("Protocol %q is not supported. Must be one of: %s.", val, strings.Join(AllowedConnectionProtocols, ", ")),
+		fmt.Sprintf("Protocol %q is not supported for this PAM record type. Must be one of: %s.", val, strings.Join(v.Allowed, ", ")),
 	)
 }
 

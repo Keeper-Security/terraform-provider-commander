@@ -224,6 +224,9 @@ const (
 	DescDomainAdmin   = "Credentials of a domain administrator or an account with equivalent privileges, required to perform full discovery and access all domain resources."
 	DescDomainAdminMD = "Credentials of a `domain administrator` or an account with equivalent privileges, required to perform full discovery and access all domain resources."
 
+	DescUserMatch   = "OU/DN filter (or regex) that limits which Active Directory or OpenLDAP users the Gateway discovers and imports during PAM Discovery."
+	DescUserMatchMD = "OU/DN filter (or regex) that limits which Active Directory or OpenLDAP users the Gateway discovers and imports during PAM Discovery."
+
 	// GCP.
 
 	DescGcpId   = "A unique id for the instance of Google Cloud. This is for the user's reference. Example: GCP-US-CENTRAL1"

@@ -66,20 +66,22 @@ resource "commander_new_pam_database" "full_fields" {
 # ------------------------------------------------------------------
 # Example 3 - Full PAM settings (tunnel + connection) + share
 # ------------------------------------------------------------------
+# Connection protocol on PAM Database records must be one of:
+#   mysql, postgresql, sql-server
 resource "commander_new_pam_database" "with_pam_settings" {
-  title = "PAM Database - mongo-k8s"
+  title = "PAM Database - mysql-prod"
 
   hostname_or_ip = {
-    hostname            = "mongo-k8s.internal.example.com"
-    administrative_port = 27017
+    hostname            = "mysql-prod.db.example.com"
+    administrative_port = 3306
   }
 
   use_ssl         = true
-  database_type   = "mongodb"
-  database_id     = "mongo-cluster-01"
+  database_type   = "mysql"
+  database_id     = "db-mysql-prod-01"
   provider_group  = "AWS"
   provider_region = "us-west-2"
-  notes           = "MongoDB cluster accessed via Kubernetes gateway."
+  notes           = "Production MySQL cluster with Commander-managed sessions."
   folder_location = "_REPLACE_WITH_NSF_FOLDER_UID_"
 
   pam_settings {
@@ -89,32 +91,29 @@ resource "commander_new_pam_database" "with_pam_settings" {
 
     tunnel {
       enable                   = true
-      remote_target_port       = 27017
+      remote_target_port       = 3306
       re_use_port              = true
       use_specified_local_port = true
-      local_port               = 37017
+      local_port               = 33306
     }
 
     connection {
       enable            = true
-      protocol          = "kubernetes"
-      connection_port   = 8443
+      protocol          = "mysql"
+      connection_port   = 3306
       launch_credential = "_REPLACE_WITH_LAUNCH_CREDENTIAL_UID_"
 
-      kubernetes {
+      mysql {
         session_recording      = true
         typescript_recording   = true
         recording_include_keys = true
         allow_supply_user      = false
-        use_ssl                = true
-        ignore_cert            = false
         read_only              = false
-        namespace              = "mongo-ns"
-        pod                    = "mongos-0"
-        container              = "mongos"
+        database               = "app_production"
+        disable_csv_export     = true
+        disable_csv_import     = true
         color_scheme           = "black-white"
         font_size              = 12
-        scrollback             = 2000
       }
     }
   }

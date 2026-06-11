@@ -25,7 +25,7 @@ func (r *PamDatabaseResource) Schema(ctx context.Context, req resource.SchemaReq
 			new_share.ResourceShareAttribute(),
 		),
 		Blocks: map[string]schema.Block{
-			"pam_settings": commonpamrecords.CommonPamSettingsBlock(),
+			"pam_settings": commonpamrecords.CommonPamSettingsBlock(commonpamrecords.DatabaseProtocols),
 		},
 	}
 }

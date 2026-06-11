@@ -27,7 +27,7 @@ func (r *PamMachineResource) Schema(ctx context.Context, req resource.SchemaRequ
 			classic_share.ResourceShareAttribute(),
 		),
 		Blocks: map[string]schema.Block{
-			"pam_settings": commonpamrecords.CommonPamSettingsBlock(),
+			"pam_settings": commonpamrecords.CommonPamSettingsBlock(commonpamrecords.MachineDirectoryProtocols),
 		},
 	}
 }

@@ -56,8 +56,10 @@ func CommonPamSettingsTunnelSchema() map[string]schema.Attribute {
 
 // connectionScalarAttributes returns only the scalar attributes for the
 // connection block (enable, protocol, connection_port, launch_credential).
+// allowedProtocols restricts which protocol values the calling PAM record
+// type accepts (MachineDirectoryProtocols vs DatabaseProtocols).
 // Protocol sub-blocks are defined separately in connectionProtocolBlocks().
-func connectionScalarAttributes() map[string]schema.Attribute {
+func connectionScalarAttributes(allowedProtocols []string) map[string]schema.Attribute {
 	return map[string]schema.Attribute{
 		"enable": schema.BoolAttribute{
 			Computed:            true,
@@ -71,7 +73,7 @@ func connectionScalarAttributes() map[string]schema.Attribute {
 			Description:         PamSettingsConnectionProtocolDescription,
 			MarkdownDescription: PamSettingsConnectionProtocolMarkdownDescription,
 			Validators: []validator.String{
-				ConnectionProtocolValidator(),
+				ConnectionProtocolValidator(allowedProtocols),
 			},
 		},
 		"connection_port": schema.Int32Attribute{
@@ -861,11 +863,13 @@ func ConnectionVncSchema() map[string]schema.Attribute {
 	)
 }
 
-// CommonPamSettingsBlock returns the reusable SingleNestedBlock for
-// the pam_settings block used across pamMachine, pamDatabase, pamDirectory, etc.
-// Uses blocks (not attributes) for nested structures so Terraform strictly
-// rejects unknown attribute names.
-func CommonPamSettingsBlock() schema.SingleNestedBlock {
+// CommonPamSettingsBlock returns the reusable SingleNestedBlock for the
+// pam_settings block used across pamMachine, pamDatabase, pamDirectory, etc.
+// allowedProtocols restricts which connection.protocol values the caller
+// accepts (MachineDirectoryProtocols vs DatabaseProtocols). Uses blocks
+// (not attributes) for nested structures so Terraform strictly rejects
+// unknown attribute names.
+func CommonPamSettingsBlock(allowedProtocols []string) schema.SingleNestedBlock {
 	return schema.SingleNestedBlock{
 		Description:         PamSettingsDescription,
 		MarkdownDescription: PamSettingsMarkdownDescription,
@@ -897,7 +901,7 @@ func CommonPamSettingsBlock() schema.SingleNestedBlock {
 			"connection": schema.SingleNestedBlock{
 				Description:         PamSettingsConnectionDescription,
 				MarkdownDescription: PamSettingsConnectionMarkdownDescription,
-				Attributes:          connectionScalarAttributes(),
+				Attributes:          connectionScalarAttributes(allowedProtocols),
 				Blocks:              connectionProtocolBlocks(),
 				Validators:          []validator.Object{ConnectionRequiredFieldsValidator(), ConnectionProtocolBlockValidator(), ConnectionFieldsRequireEnabledValidator()},
 			},

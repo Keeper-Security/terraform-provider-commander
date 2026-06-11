@@ -261,6 +261,7 @@ type PamConfigFieldsResponse struct {
 	PamDomainId []string `json:"pamDomainId,omitempty"`
 	UseSSL      []string `json:"useSSL,omitempty"`
 	ScanDCCIDR  []string `json:"scanDCCIDR,omitempty"`
+	UserMatch   []string `json:"userMatch,omitempty"`
 
 	// GCP
 	PamGcpId             []string `json:"pamGcpId,omitempty"`
