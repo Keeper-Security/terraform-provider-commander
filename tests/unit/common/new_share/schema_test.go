@@ -30,8 +30,8 @@ func TestResourceShareAttribute_Shape(t *testing.T) {
 	if mapAttr.Required {
 		t.Error("expected share to NOT be Required")
 	}
-	if len(mapAttr.Validators) != 2 {
-		t.Errorf("expected 2 validators on share, got %d", len(mapAttr.Validators))
+	if len(mapAttr.Validators) != 3 {
+		t.Errorf("expected 3 validators on share (non-empty, key min-length, value enum), got %d", len(mapAttr.Validators))
 	}
 }
 

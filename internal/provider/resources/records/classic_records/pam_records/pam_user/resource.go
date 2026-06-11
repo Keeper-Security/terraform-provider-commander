@@ -19,7 +19,7 @@ type PamUserResource struct {
 }
 
 func (r *PamUserResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_pam_user"
+	resp.TypeName = req.ProviderTypeName + "_classic_pam_user"
 }
 
 func (r *PamUserResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {

@@ -49,7 +49,7 @@ func (r *NonSharedFolderResource) Create(ctx context.Context, req resource.Creat
 	}
 	data.Id = types.StringValue(folderUID)
 
-	if err := LinkRecords(ctx, r.ApiManager, folderUID, data.Records); err != nil {
+	if err := folderutils.LinkRecords(ctx, r.ApiManager, CmdLn, folderUID, data.Records); err != nil {
 		resp.Diagnostics.AddError(folderutils.ErrSummaryCreateFailed, err.Error())
 		return
 	}

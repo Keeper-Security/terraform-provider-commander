@@ -34,12 +34,7 @@ func (r *NewFolderResource) Create(ctx context.Context, req resource.CreateReque
 	}
 
 	// Create new folder (Nested Share Folder)
-	command, err := buildCreateNewFolderCommand(&data)
-	if err != nil {
-		resp.Diagnostics.AddError(folderutils.ErrSummaryInvalidConfig, err.Error())
-		return
-	}
-
+	command := buildCreateNewFolderCommand(&data)
 	apiResp, err := r.ApiManager.ExecuteCommand(ctx, command, folderutils.ErrOpCreate)
 	if err != nil {
 		resp.Diagnostics.AddError(folderutils.ErrSummaryCreateFailed, err.Error())
@@ -54,11 +49,17 @@ func (r *NewFolderResource) Create(ctx context.Context, req resource.CreateReque
 		return
 	}
 
+	// Link the records to the folder.
+	if err := folderutils.LinkRecords(ctx, r.ApiManager, CmdNsfLn, data.Id.ValueString(), data.Records); err != nil {
+		resp.Diagnostics.AddError(folderutils.ErrSummaryCreateFailed, err.Error())
+		return
+	}
+
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
 
 // It creates the nsf directory command and the folder path used as NAME.
-func buildCreateNewFolderCommand(data *NewFolderResourceModel) (command string, err error) {
+func buildCreateNewFolderCommand(data *NewFolderResourceModel) (command string) {
 	name := data.Name.ValueString()
 
 	// Build the folder path: if folder_location is set, "folder_location/name", otherwise "name".
@@ -66,5 +67,5 @@ func buildCreateNewFolderCommand(data *NewFolderResourceModel) (command string, 
 	parts := []string{CmdNsfMkdir, fmt.Sprintf(`"%s"`, folderutils.EscapeDoubleQuotesForCLI(folderPath))}
 
 	command = strings.Join(parts, " ")
-	return command, nil
+	return command
 }

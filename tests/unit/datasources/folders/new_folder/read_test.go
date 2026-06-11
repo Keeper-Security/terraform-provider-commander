@@ -31,8 +31,8 @@ func TestNewFolderDataSource_Read_Success_PopulatesIdNameShare(t *testing.T) {
 	server := startMockServer(mock, func(cmd string, _ int) (string, interface{}) {
 		if strings.HasPrefix(cmd, "nsf-get") {
 			return "ok", map[string]interface{}{
-				"nested_share_folder_uid": "FID-DS-1",
-				"name":                    "Engineering",
+				"folder_uid": "FID-DS-1",
+				"name":       "Engineering",
 				"user_permissions": []interface{}{
 					map[string]interface{}{"accessor": "kapil@metronlabs.io", "role": "owner"},
 					map[string]interface{}{"accessor": "anant@metronlabs.com", "role": "content-manager"},
@@ -87,9 +87,9 @@ func TestNewFolderDataSource_Read_Success_EmptyUserPermissions_EmptyShare(t *tes
 	server := startMockServer(mock, func(cmd string, _ int) (string, interface{}) {
 		if strings.HasPrefix(cmd, "nsf-get") {
 			return "ok", map[string]interface{}{
-				"nested_share_folder_uid": "FID-DS-2",
-				"name":                    "EmptyFolder",
-				"user_permissions":        []interface{}{},
+				"folder_uid":       "FID-DS-2",
+				"name":             "EmptyFolder",
+				"user_permissions": []interface{}{},
 			}
 		}
 		return "ok", nil

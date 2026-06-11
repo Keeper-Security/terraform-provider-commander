@@ -38,18 +38,18 @@ func (d *NewFolderDataSource) Read(ctx context.Context, req datasource.ReadReque
 		return
 	}
 
-	apiData, err := commonnewfolder.FetchNewFolderByNameOrId(ctx, d.ApiManager, key)
+	apiData, err := commonnewfolder.FetchNsfFolderByNameOrId(ctx, d.ApiManager, key)
 	if err != nil {
 		resp.Diagnostics.AddError(folderutils.ErrSummaryReadFailed, err.Error())
 		return
 	}
 
-	if err := commonnewfolder.MapResponseToModel(apiData, &data.Model); err != nil {
+	if err := commonnewfolder.MapResponseToModel(ctx, apiData, &data.Model); err != nil {
 		resp.Diagnostics.AddError(folderutils.ErrSummaryReadFailed, err.Error())
 		return
 	}
 
-	if err := new_share.MapResponseToModel(apiData.UserPermissions, &data.ShareModel); err != nil {
+	if err := new_share.MapResponseToModel(commonnewfolder.CollectFolderSharePermissions(apiData), &data.ShareModel); err != nil {
 		resp.Diagnostics.AddError(folderutils.ErrSummaryReadFailed, err.Error())
 		return
 	}

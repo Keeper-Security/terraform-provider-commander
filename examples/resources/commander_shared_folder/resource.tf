@@ -13,11 +13,7 @@
 #   user_permissions      — default manage_users / manage_records (both default false)
 #   record_permissions    — default can_share / can_edit (both default false)
 #   records               — map of record_uid => per-record can_share / can_edit
-#   users                 — map of email or user UID => manage_*, expiration
-#
-# Expiration per user: "never" or absolute time as yyyy-MM-ddTHH:mm:ss.
-# manage_users must be false when expiration is a datetime (not "never").
-
+#   users                 — map of User Email/UID or Team Name/UID => manage_users, manage_records
 resource "commander_shared_folder" "example" {
   # Leaf name only.
   name            = "My Project Vault"
@@ -48,45 +44,14 @@ resource "commander_shared_folder" "example" {
     "alice@example.com" = {
       manage_users   = true
       manage_records = false
-      expiration     = "never"
     }
     "bob@example.com" = {
       manage_users   = false
       manage_records = true
-      expiration     = "never"
     }
     "contractor@example.com" = {
       manage_users   = false
       manage_records = false
-      expiration     = "2026-12-31T23:59:59"
     }
   }
-}
-
-# Minimal folder at vault root (defaults only; empty records/users maps).
-# resource "commander_shared_folder" "minimal" {
-#   name = "Team Read-only"
-# }
-
-# Move example: change folder_location to relocate the folder under a different parent.
-# resource "commander_shared_folder" "example" {
-#   name            = "My Project Vault"
-#   folder_location = "Archive/2026"
-# }
-
-output "shared_folder_id" {
-  description = "UID for lookups, import id, and Commander APIs."
-  value       = commander_shared_folder.example.id
-}
-
-output "shared_folder_name" {
-  value = commander_shared_folder.example.name
-}
-
-output "shared_folder_location" {
-  value = commander_shared_folder.example.folder_location
-}
-
-output "shared_folder_default_record_permissions" {
-  value = commander_shared_folder.example.record_permissions
 }

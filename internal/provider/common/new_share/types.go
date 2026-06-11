@@ -4,6 +4,7 @@
 package new_share
 
 import (
+	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/utils"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
@@ -13,17 +14,13 @@ import (
 // map (e.g. types.MapNull(new_share.ShareEntryAttrType)).
 var ShareEntryAttrType attr.Type = types.StringType
 
-// UserPermissionEntry is one element of the API response's user_permissions
-// array. Embed it as []UserPermissionEntry `json:"user_permissions"` on any
-// folder/record get response struct.
+// UserPermissionEntry aliases the canonical type in utils so all callers
+// share the same struct.
 //
 // Example JSON:
 //
 //	{ "accessor": "user@example.com", "role": "viewer" }
-type UserPermissionEntry struct {
-	Accessor string `json:"accessor"`
-	Role     string `json:"role"`
-}
+type UserPermissionEntry = utils.UserPermissionEntry
 
 // ShareResponseFragment is a tiny embeddable struct exposing only the
 // user_permissions field. Resources/data sources whose API response does not
@@ -31,4 +28,5 @@ type UserPermissionEntry struct {
 // response type to inherit the share parsing.
 type ShareResponseFragment struct {
 	UserPermissions []UserPermissionEntry `json:"user_permissions"`
+	TeamPermissions []UserPermissionEntry `json:"team_permissions"`
 }

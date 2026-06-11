@@ -7,6 +7,7 @@ import (
 	"context"
 
 	folderutils "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/folders/utils"
+	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/utils"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	dschema "github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -16,16 +17,13 @@ func (d *NonSharedFolderDataSource) Schema(ctx context.Context, req datasource.S
 	resp.Schema = dschema.Schema{
 		Description:         DescDataSource,
 		MarkdownDescription: DescDataSourceMD,
-		Attributes: folderutils.MergeDataSourceAttributes(
+		Attributes: utils.MergeDataSourceAttributes(
 			map[string]dschema.Attribute{
 				"folder": dschema.StringAttribute{
 					Required:            true,
 					Description:         DescDataSourceFolder,
 					MarkdownDescription: DescDataSourceFolderMD,
 				},
-			},
-			folderutils.DataSourceCommonFolderAttributes(),
-			map[string]dschema.Attribute{
 				"records": dschema.SetAttribute{
 					Computed:            true,
 					ElementType:         types.StringType,
@@ -33,6 +31,7 @@ func (d *NonSharedFolderDataSource) Schema(ctx context.Context, req datasource.S
 					MarkdownDescription: DescRecords,
 				},
 			},
+			folderutils.DataSourceCommonFolderAttributes(),
 		),
 	}
 }

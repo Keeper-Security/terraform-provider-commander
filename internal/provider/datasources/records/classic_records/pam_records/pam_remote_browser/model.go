@@ -4,11 +4,13 @@
 package pamremotebrowser
 
 import (
-	commonpamremotebrowser "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/classic_records/pam_records/pam_remote_browser"
+	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/classic_share"
+	commonpamremotebrowser "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/pam_records/pam_remote_browser"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
 type PamRemoteBrowserDataSourceModel struct {
 	RemoteBrowser types.String `tfsdk:"remote_browser"`
 	commonpamremotebrowser.PamRemoteBrowserResourceModel
+	classic_share.ShareModel
 }

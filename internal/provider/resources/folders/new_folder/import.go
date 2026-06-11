@@ -39,6 +39,7 @@ func (r *NewFolderResource) ImportState(ctx context.Context, req resource.Import
 		ShareModel: new_share.ShareModel{
 			Share: types.MapNull(new_share.ShareEntryAttrType),
 		},
+		Records: types.SetNull(types.StringType),
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)

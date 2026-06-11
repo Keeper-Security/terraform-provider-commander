@@ -103,9 +103,11 @@ func SyncSharePermissions(ctx context.Context, apiManager *api.ApiManager, comma
 // Keeper and is not tracked in Terraform state). Entries with empty accessor
 // or empty role are also dropped.
 //
-// If permissions is empty (no managed shares from the API), m.Share is set to
-// an empty (non-null) map so plan comparisons against an empty `share = {}`
-// in config remain consistent.
+// When the filtered set is empty (e.g. the API returned only the owner row),
+// m.Share is set to null rather than an empty map. The schema's
+// MapNonEmptyValidator rejects `share = {}` in config, so null is the only
+// way "no managed shares" can be expressed; producing null here keeps the
+// config-vs-state diff clean (null == null).
 func MapResponseToModel(permissions []UserPermissionEntry, m *ShareModel) error {
 	if m == nil {
 		return fmt.Errorf("share model is nil")
@@ -119,6 +121,10 @@ func MapResponseToModel(permissions []UserPermissionEntry, m *ShareModel) error 
 			continue
 		}
 		elements[p.Accessor] = types.StringValue(p.Role)
+	}
+	if len(elements) == 0 {
+		m.Share = types.MapNull(types.StringType)
+		return nil
 	}
 	mv, diags := types.MapValue(types.StringType, elements)
 	if diags.HasError() {

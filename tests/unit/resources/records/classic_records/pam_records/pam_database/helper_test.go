@@ -22,6 +22,13 @@ var hostnameOrIPAttrTypes = map[string]tftypes.Type{
 	"administrative_port": tftypes.Number,
 }
 
+var shareElementAttrTypes = map[string]tftypes.Type{
+	"can_share": tftypes.Bool,
+	"can_edit":  tftypes.Bool,
+}
+
+var shareMapType = tftypes.Map{ElementType: tftypes.Object{AttributeTypes: shareElementAttrTypes}}
+
 var pamDatabaseAttrTypes = map[string]tftypes.Type{
 	"id":    tftypes.String,
 	"title": tftypes.String,
@@ -36,6 +43,7 @@ var pamDatabaseAttrTypes = map[string]tftypes.Type{
 	"notes":           tftypes.String,
 	"folder":          tftypes.String,
 	"pam_settings":    tftypes.DynamicPseudoType,
+	"share":           shareMapType,
 }
 
 func pamDatabaseObjectType() tftypes.Object {
@@ -78,6 +86,7 @@ func newPlanStateValues(
 		"notes":           tftypes.NewValue(tftypes.String, notes),
 		"folder":          tftypes.NewValue(tftypes.String, folder),
 		"pam_settings":    tftypes.NewValue(tftypes.DynamicPseudoType, nil),
+		"share":           tftypes.NewValue(shareMapType, nil),
 	}
 }
 

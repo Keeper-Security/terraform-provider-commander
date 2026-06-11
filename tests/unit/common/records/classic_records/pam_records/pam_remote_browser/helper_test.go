@@ -8,7 +8,7 @@ import (
 	"encoding/json"
 	"testing"
 
-	commonpamremotebrowser "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/classic_records/pam_records/pam_remote_browser"
+	commonpamremotebrowser "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/pam_records/pam_remote_browser"
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/utils"
 )
 
@@ -69,7 +69,7 @@ func TestMapVaultRecordGetResponse_EmptyFields(t *testing.T) {
 	if !state.Notes.IsNull() {
 		t.Error("expected null notes for whitespace-only")
 	}
-	if !state.Folder.IsNull() {
+	if !state.FolderLocation.IsNull() {
 		t.Error("expected null folder for whitespace-only")
 	}
 	if !state.Url.IsNull() {
@@ -278,7 +278,7 @@ func TestMapVaultRecordGetResponse_WithFolder(t *testing.T) {
 	rec := &utils.VaultRecordGetResponse{
 		RecordUID: "uid-789",
 		Title:     "Folder Test",
-		Folder: &utils.RecordFolderResponse{
+		FolderLocation: &utils.FolderLocationResponse{
 			UID:  "my-folder",
 			Path: "Test/My Folder",
 		},
@@ -295,8 +295,8 @@ func TestMapVaultRecordGetResponse_WithFolder(t *testing.T) {
 	if diags.HasError() {
 		t.Fatalf("unexpected errors: %v", diags)
 	}
-	if state.Folder.ValueString() != "my-folder" {
-		t.Errorf("expected folder my-folder, got %s", state.Folder.ValueString())
+	if state.FolderLocation.ValueString() != "my-folder" {
+		t.Errorf("expected folder my-folder, got %s", state.FolderLocation.ValueString())
 	}
 }
 

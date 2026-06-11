@@ -36,6 +36,9 @@ func ResourceCommonFolderAttributes() map[string]schema.Attribute {
 			Optional:            true,
 			Description:         DescFolderLocation,
 			MarkdownDescription: DescFolderLocation,
+			PlanModifiers: []planmodifier.String{
+				FolderLocationSemanticEquality(),
+			},
 		},
 	}
 }
@@ -59,26 +62,4 @@ func DataSourceCommonFolderAttributes() map[string]dschema.Attribute {
 			MarkdownDescription: DescFolderLocation,
 		},
 	}
-}
-
-// MergeResourceAttributes combines resource attribute maps; later maps override earlier keys.
-func MergeResourceAttributes(maps ...map[string]schema.Attribute) map[string]schema.Attribute {
-	result := map[string]schema.Attribute{}
-	for _, m := range maps {
-		for k, v := range m {
-			result[k] = v
-		}
-	}
-	return result
-}
-
-// MergeDataSourceAttributes combines data source attribute maps; later maps override earlier keys.
-func MergeDataSourceAttributes(maps ...map[string]dschema.Attribute) map[string]dschema.Attribute {
-	result := map[string]dschema.Attribute{}
-	for _, m := range maps {
-		for k, v := range m {
-			result[k] = v
-		}
-	}
-	return result
 }

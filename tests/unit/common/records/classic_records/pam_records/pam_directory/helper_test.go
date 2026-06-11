@@ -7,8 +7,7 @@ import (
 	"encoding/json"
 	"testing"
 
-	commonpamrecords "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/classic_records/pam_records"
-	commonpamdirectory "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/classic_records/pam_records/pam_directory"
+	commonpamdirectory "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/pam_records/pam_directory"
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/utils"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
@@ -612,19 +611,19 @@ func TestMapVaultRecordGetResponse_FolderFromResponse_StateMatchesUID(t *testing
 	rec := &utils.VaultRecordGetResponse{
 		RecordUID: "uid-folder",
 		Title:     "Folder Test",
-		Folder: &utils.RecordFolderResponse{
+		FolderLocation: &utils.FolderLocationResponse{
 			UID:  "folder-uid-123",
 			Path: "Test/My Folder",
 		},
 	}
 	var state commonpamdirectory.PamDirectoryResourceModel
-	state.Folder = types.StringValue("folder-uid-123")
+	state.FolderLocation = types.StringValue("folder-uid-123")
 	diags := commonpamdirectory.MapVaultRecordGetResponseToPamDirectoryModel(rec, &state)
 	if diags.HasError() {
 		t.Fatalf("unexpected errors: %v", diags)
 	}
-	if state.Folder.ValueString() != "folder-uid-123" {
-		t.Errorf("expected folder folder-uid-123 (preserved), got %s", state.Folder.ValueString())
+	if state.FolderLocation.ValueString() != "folder-uid-123" {
+		t.Errorf("expected folder folder-uid-123 (preserved), got %s", state.FolderLocation.ValueString())
 	}
 }
 
@@ -632,19 +631,19 @@ func TestMapVaultRecordGetResponse_FolderFromResponse_StateMatchesPath(t *testin
 	rec := &utils.VaultRecordGetResponse{
 		RecordUID: "uid-folder2",
 		Title:     "Folder Path Test",
-		Folder: &utils.RecordFolderResponse{
+		FolderLocation: &utils.FolderLocationResponse{
 			UID:  "folder-uid-456",
 			Path: "Test/My Folder",
 		},
 	}
 	var state commonpamdirectory.PamDirectoryResourceModel
-	state.Folder = types.StringValue("Test/My Folder")
+	state.FolderLocation = types.StringValue("Test/My Folder")
 	diags := commonpamdirectory.MapVaultRecordGetResponseToPamDirectoryModel(rec, &state)
 	if diags.HasError() {
 		t.Fatalf("unexpected errors: %v", diags)
 	}
-	if state.Folder.ValueString() != "Test/My Folder" {
-		t.Errorf("expected folder Test/My Folder (preserved), got %s", state.Folder.ValueString())
+	if state.FolderLocation.ValueString() != "Test/My Folder" {
+		t.Errorf("expected folder Test/My Folder (preserved), got %s", state.FolderLocation.ValueString())
 	}
 }
 
@@ -654,18 +653,18 @@ func TestMapVaultRecordGetResponse_FolderNilInResponse(t *testing.T) {
 		Title:     "No Folder",
 	}
 	var state commonpamdirectory.PamDirectoryResourceModel
-	state.Folder = types.StringValue("some-folder")
+	state.FolderLocation = types.StringValue("some-folder")
 	diags := commonpamdirectory.MapVaultRecordGetResponseToPamDirectoryModel(rec, &state)
 	if diags.HasError() {
 		t.Fatalf("unexpected errors: %v", diags)
 	}
-	if !state.Folder.IsNull() {
+	if !state.FolderLocation.IsNull() {
 		t.Error("expected null folder when API response has no folder")
 	}
 }
 
 func TestExtractFolderValue_NilFolder(t *testing.T) {
-	result := commonpamrecords.ExtractFolderValue(nil, types.StringValue("any"))
+	result := utils.ExtractFolderValue(nil, types.StringValue("any"))
 	if !result.IsNull() {
 		t.Error("expected null for nil folder response")
 	}

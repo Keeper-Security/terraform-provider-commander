@@ -3,32 +3,18 @@
 
 package pamuser
 
-import "github.com/hashicorp/terraform-plugin-framework/types"
+import (
+	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/classic_share"
+	commonpamuser "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/pam_records/pam_user"
+)
 
+// PamUserResourceModel is the classic PAM User resource state model: the
+// shared PAM User fields plus the `share` attribute reconciled via the
+// classic_share package and the `share-record` Commander CLI.
 type PamUserResourceModel struct {
-	Id                types.String             `tfsdk:"id"`
-	Title             types.String             `tfsdk:"title"`
-	Login             types.String             `tfsdk:"login"`
-	Password          types.String             `tfsdk:"password"`
-	Folder            types.String             `tfsdk:"folder"`
-	Notes             types.String             `tfsdk:"notes"`
-	DistinguishedName types.String             `tfsdk:"distinguished_name"`
-	PrivatePEMKey     types.String             `tfsdk:"private_pem_key"`
-	ConnectDatabase   types.String             `tfsdk:"connect_database"`
-	Managed           types.Bool               `tfsdk:"managed"`
-	RotationSettings  *PamUserRotationSettings `tfsdk:"rotation_settings"`
+	commonpamuser.PamUserSharedModel
+	classic_share.ShareModel
 }
 
-type PamUserRotationSettings struct {
-	RotationProfile types.String `tfsdk:"rotation_profile"`
-	Configuration   types.String `tfsdk:"configuration"`
-	IamAadConfig    types.String `tfsdk:"iam_aad_config"`
-	Resource        types.String `tfsdk:"resource"`
-	AdminUser       types.String `tfsdk:"admin_user"`
-	Enabled         types.Bool   `tfsdk:"enabled"`
-	ScheduleCron    types.String `tfsdk:"schedule_cron"`
-	ScheduleJSON    types.String `tfsdk:"schedule_json"`
-	OnDemand        types.Bool   `tfsdk:"on_demand"`
-	ScheduleConfig  types.Bool   `tfsdk:"schedule_config"`
-	Complexity      types.String `tfsdk:"complexity"`
-}
+// PamUserRotationSettings is aliased to the shared rotation settings model.
+type PamUserRotationSettings = commonpamuser.PamUserRotationSettings

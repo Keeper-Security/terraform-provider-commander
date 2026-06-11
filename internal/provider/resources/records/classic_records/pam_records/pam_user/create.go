@@ -7,6 +7,8 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/classic_share"
+	commonpamuser "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/pam_records/pam_user"
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/utils"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -30,18 +32,17 @@ func (r *PamUserResource) Create(ctx context.Context, req resource.CreateRequest
 		return
 	}
 
-	// Phase 1: create the record.
-	command := buildRecordAddPamUserCommand(data)
-	apiResp, err := r.ApiManager.ExecuteCommand(ctx, command, ErrDetailCreateFailed)
+	command := commonpamuser.BuildAddCommand(utils.CmdRecordAdd, data.PamUserSharedModel)
+	apiResp, err := r.ApiManager.ExecuteCommand(ctx, command, commonpamuser.ErrDetailCreateFailed)
 	if err != nil {
-		resp.Diagnostics.AddError(ErrSummaryCreateFailed, err.Error())
+		resp.Diagnostics.AddError(commonpamuser.ErrSummaryCreateFailed, err.Error())
 		return
 	}
 
 	createdRecordUID, ok := apiResp.Data.(map[string]interface{})["record_uid"].(string)
 	if !ok {
 		resp.Diagnostics.AddError(
-			ErrSummaryCreateFailed,
+			commonpamuser.ErrSummaryCreateFailed,
 			fmt.Sprintf("Failed to extract record UID from response. API response: %v", apiResp.Data),
 		)
 		return
@@ -54,10 +55,9 @@ func (r *PamUserResource) Create(ctx context.Context, req resource.CreateRequest
 		data.Password = types.StringNull()
 	}
 
-	// Phase 2: apply rotation settings (`pam rotation edit`).
 	if data.RotationSettings != nil {
-		editCmd := buildPamRotationEditCommand(createdRecordUID, data.RotationSettings)
-		if _, err := r.ApiManager.ExecuteCommand(ctx, editCmd, ErrDetailRotationEditFailed); err != nil {
+		editCmd := commonpamuser.BuildPamRotationEditCommand(createdRecordUID, data.RotationSettings)
+		if _, err := r.ApiManager.ExecuteCommand(ctx, editCmd, commonpamuser.ErrDetailRotationEditFailed); err != nil {
 			delCmd := fmt.Sprintf("%s '%s' %s", utils.CmdRecordDelete, createdRecordUID, utils.FlagForce)
 			if _, delErr := r.ApiManager.ExecuteCommand(ctx, delCmd, utils.ErrDetailRecordDeleteFailed); delErr != nil {
 				resp.Diagnostics.AddWarning(
@@ -65,9 +65,14 @@ func (r *PamUserResource) Create(ctx context.Context, req resource.CreateRequest
 					fmt.Sprintf("Rotation configuration failed: %v. Removing the newly created record also failed: %v. The pamUser may still exist (uid %s).", err, delErr, createdRecordUID),
 				)
 			}
-			resp.Diagnostics.AddError(ErrSummaryRotationEditFailed, err.Error())
+			resp.Diagnostics.AddError(commonpamuser.ErrSummaryRotationEditFailed, err.Error())
 			return
 		}
+	}
+
+	if err := classic_share.SyncSharePermissions(ctx, r.ApiManager, createdRecordUID, data.Share, types.MapNull(classic_share.ShareEntryAttrType)); err != nil {
+		resp.Diagnostics.AddError(commonpamuser.ErrSummaryCreateFailed, err.Error())
+		return
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)

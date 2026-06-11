@@ -10,14 +10,15 @@ import (
 	"strings"
 
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/api"
-	commonpamrecords "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/classic_records/pam_records"
-	commonpamdirectory "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/classic_records/pam_records/pam_directory"
+	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/classic_share"
+	commonpamrecords "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/pam_records"
+	commonpamdirectory "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/pam_records/pam_directory"
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/utils"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 )
 
 func (r *PamDirectoryResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-	var state commonpamdirectory.PamDirectoryResourceModel
+	var state PamDirectoryResourceModel
 
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
@@ -69,8 +70,13 @@ func (r *PamDirectoryResource) Read(ctx context.Context, req resource.ReadReques
 		return
 	}
 
-	resp.Diagnostics.Append(commonpamdirectory.MapVaultRecordGetResponseToPamDirectoryModel(&rec, &state)...)
+	resp.Diagnostics.Append(commonpamdirectory.MapVaultRecordGetResponseToPamDirectoryModel(&rec, &state.PamDirectoryResourceModel)...)
 	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	if err := classic_share.MapResponseToModel(rec.UserPermissions, &state.ShareModel); err != nil {
+		resp.Diagnostics.AddError(ErrSummaryPamDirectoryReadFailed, err.Error())
 		return
 	}
 

@@ -22,8 +22,8 @@ func TestNewFolderResource_Read_Success_ShareDeclared(t *testing.T) {
 	server := startMockServer(mock, func(cmd string, _ int) (string, interface{}) {
 		if strings.HasPrefix(cmd, "nsf-get") {
 			return "ok", map[string]interface{}{
-				"nested_share_folder_uid": "FID-1",
-				"name":                    "Engineering",
+				"folder_uid": "FID-1",
+				"name":       "Engineering",
 				"user_permissions": []interface{}{
 					map[string]interface{}{"accessor": "kapil@metronlabs.io", "role": "owner"},
 					map[string]interface{}{"accessor": "anant@metronlabs.com", "role": "content-manager"},
@@ -82,8 +82,8 @@ func TestNewFolderResource_Read_Success_ShareNullInState_PopulatedFromApi(t *tes
 	server := startMockServer(mock, func(cmd string, _ int) (string, interface{}) {
 		if strings.HasPrefix(cmd, "nsf-get") {
 			return "ok", map[string]interface{}{
-				"nested_share_folder_uid": "FID-2",
-				"name":                    "ImportedFolder",
+				"folder_uid": "FID-2",
+				"name":       "ImportedFolder",
 				"user_permissions": []interface{}{
 					map[string]interface{}{"accessor": "owner@example.com", "role": "owner"},
 					map[string]interface{}{"accessor": "external@example.com", "role": "viewer"},

@@ -5,18 +5,18 @@ package pamdatabase
 
 import (
 	"context"
-	"fmt"
 	"strings"
 
-	commonpamrecords "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/classic_records/pam_records"
-	commonpamdatabase "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/classic_records/pam_records/pam_database"
+	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/classic_share"
+	commonpamrecords "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/pam_records"
+	commonpamdatabase "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/pam_records/pam_database"
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/utils"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 )
 
 func (r *PamDatabaseResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var plan commonpamdatabase.PamDatabaseResourceModel
-	var state commonpamdatabase.PamDatabaseResourceModel
+	var plan PamDatabaseResourceModel
+	var state PamDatabaseResourceModel
 
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 	if resp.Diagnostics.HasError() {
@@ -49,13 +49,13 @@ func (r *PamDatabaseResource) Update(ctx context.Context, req resource.UpdateReq
 		return
 	}
 
-	if err := commonpamrecords.MoveRecordFromSourceToDestination(ctx, r.ApiManager, state.Id.ValueString(), plan.Folder.ValueString(), state.Folder.ValueString()); err != nil {
+	if err := commonpamrecords.MoveRecordFromSourceToDestination(ctx, r.ApiManager, state.Id.ValueString(), plan.FolderLocation.ValueString(), state.FolderLocation.ValueString()); err != nil {
 		resp.Diagnostics.AddError(utils.ErrSummaryMoveRecordFailed, err.Error())
 		return
 	}
 
-	if recordUpdateHasMutations(plan, state) {
-		cmd := buildUpdatePamDatabaseRecordCommand(recordUID, plan, state)
+	if commonpamdatabase.RecordUpdateHasMutations(plan.PamDatabaseResourceModel, state.PamDatabaseResourceModel) {
+		cmd := commonpamdatabase.BuildUpdateCommand(utils.CmdRecordUpdate, recordUID, plan.PamDatabaseResourceModel, state.PamDatabaseResourceModel)
 		if _, err := r.ApiManager.ExecuteCommand(ctx, cmd, ErrDetailPamDatabaseRecordUpdateFailed); err != nil {
 			resp.Diagnostics.AddError(ErrSummaryPamDatabaseRecordUpdateFailed, err.Error())
 			return
@@ -69,40 +69,10 @@ func (r *PamDatabaseResource) Update(ctx context.Context, req resource.UpdateReq
 		}
 	}
 
+	if err := classic_share.SyncSharePermissions(ctx, r.ApiManager, recordUID, plan.Share, state.Share); err != nil {
+		resp.Diagnostics.AddError(ErrSummaryPamDatabaseRecordUpdateFailed, err.Error())
+		return
+	}
+
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
-}
-
-func buildUpdatePamDatabaseRecordCommand(recordUID string, plan, state commonpamdatabase.PamDatabaseResourceModel) string {
-	parts := []string{
-		utils.CmdRecordUpdate,
-		fmt.Sprintf("%s '%s'", utils.FlagRecord, recordUID),
-	}
-
-	if !plan.Title.Equal(state.Title) {
-		parts = append(parts, fmt.Sprintf("%s '%s'", utils.FlagTitle, plan.Title.ValueString()))
-	}
-
-	if !commonpamrecords.HostnameOrIPEqual(plan.HostnameOrIP, state.HostnameOrIP) {
-		commonpamrecords.AppendHostnameOrIPField(&parts, plan.HostnameOrIP)
-	}
-
-	commonpamrecords.AppendChangedCheckboxField(&parts, FlagUseSSL, plan.UseSSL, state.UseSSL)
-	commonpamrecords.AppendChangedTextField(&parts, FlagDatabaseId, plan.DatabaseId, state.DatabaseId)
-
-	if !plan.DatabaseType.Equal(state.DatabaseType) {
-		appendOptionalDatabaseTypeField(&parts, plan.DatabaseType)
-	}
-
-	commonpamrecords.AppendChangedTextField(&parts, FlagProviderGroup, plan.ProviderGroup, state.ProviderGroup)
-	commonpamrecords.AppendChangedTextField(&parts, FlagProviderRegion, plan.ProviderRegion, state.ProviderRegion)
-
-	if !plan.Notes.Equal(state.Notes) && !plan.Notes.IsUnknown() {
-		if plan.Notes.IsNull() {
-			parts = append(parts, fmt.Sprintf("%s ''", utils.FlagNotes))
-		} else {
-			parts = append(parts, fmt.Sprintf("%s '%s'", utils.FlagNotes, plan.Notes.ValueString()))
-		}
-	}
-
-	return strings.Join(parts, " ")
 }

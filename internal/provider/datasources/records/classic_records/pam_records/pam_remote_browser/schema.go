@@ -6,7 +6,9 @@ package pamremotebrowser
 import (
 	"context"
 
-	commonpamremotebrowser "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/classic_records/pam_records/pam_remote_browser"
+	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/classic_share"
+	commonpamremotebrowser "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/pam_records/pam_remote_browser"
+	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/utils"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	dschema "github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -14,9 +16,9 @@ import (
 
 func (d *PamRemoteBrowserDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = dschema.Schema{
-		Description:         "Use this data source to look up a PAM remote browser record by UID or name. You can use this data source to reference a PAM remote browser record from other resources.",
-		MarkdownDescription: "Use this data source to look up a PAM remote browser record by **UID** or **name**. You can use this data source to reference a PAM remote browser record from other resources.",
-		Attributes: map[string]dschema.Attribute{
+		Description:         "Use this data source to look up a classic PAM remote browser record by UID or name and read its per-user share permissions. You can use this data source to reference a PAM remote browser record from other resources.",
+		MarkdownDescription: "Use this data source to look up a **classic PAM remote browser** record by **UID** or **name** and read its **per-user share permissions**. You can use this data source to reference a PAM remote browser record from other resources.",
+		Attributes: utils.MergeDataSourceAttributes(map[string]dschema.Attribute{
 			"remote_browser": dschema.StringAttribute{
 				Required:            true,
 				Description:         "PAM remote browser record UID or name to read.",
@@ -42,7 +44,7 @@ func (d *PamRemoteBrowserDataSource) Schema(ctx context.Context, req datasource.
 				Description:         commonpamremotebrowser.NotesDescription,
 				MarkdownDescription: commonpamremotebrowser.NotesMarkdownDescription,
 			},
-			"folder": dschema.StringAttribute{
+			"folder_location": dschema.StringAttribute{
 				Computed:            true,
 				Description:         commonpamremotebrowser.FolderDescription,
 				MarkdownDescription: commonpamremotebrowser.FolderMarkdownDescription,
@@ -54,7 +56,7 @@ func (d *PamRemoteBrowserDataSource) Schema(ctx context.Context, req datasource.
 				MarkdownDescription: commonpamremotebrowser.PamRemoteBrowserSettingsMarkdownDescription,
 				Attributes:          pamRemoteBrowserRBISettingsDataSourceAttributes(),
 			},
-		},
+		}, classic_share.DataSourceShareAttribute()),
 	}
 }
 

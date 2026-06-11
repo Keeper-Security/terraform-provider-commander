@@ -114,7 +114,7 @@ func TestSyncSharePermissions_RevokesRemovedAndGrantsChanged(t *testing.T) {
 	}
 
 	sort.Strings(seen)
-	mustContain(t, seen, `nsf-share-record "REC1" --email='c@x.com' --action=remove`)
+	mustContain(t, seen, `nsf-share-record "REC1" --email='c@x.com' --action=revoke`)
 	mustContain(t, seen, `nsf-share-record "REC1" --email='b@x.com' --action=grant --role='full-manager'`)
 	mustContain(t, seen, `nsf-share-record "REC1" --email='d@x.com' --action=grant --role='content-manager'`)
 

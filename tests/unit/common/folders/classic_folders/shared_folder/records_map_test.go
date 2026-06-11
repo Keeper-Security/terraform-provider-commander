@@ -7,7 +7,6 @@ import (
 	"testing"
 
 	commonsharedfolder "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/folders/classic_folders/shared_folder"
-	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/utils"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
@@ -39,7 +38,7 @@ func nullPriorUsers() types.Map {
 	return types.MapNull(commonsharedfolder.UserEntryMapElemType)
 }
 
-func mapRecordsViaAPI(t *testing.T, api *utils.SharedFolderResponse, priorRecords types.Map) *commonsharedfolder.Model {
+func mapRecordsViaAPI(t *testing.T, api *commonsharedfolder.SharedFolderResponse, priorRecords types.Map) *commonsharedfolder.Model {
 	t.Helper()
 	state := &commonsharedfolder.Model{}
 	if err := commonsharedfolder.MapResponseToModel(api, state, nullPriorUsers(), priorRecords); err != nil {
@@ -53,9 +52,9 @@ func TestMapResponseToModel_Records_PrefersMatchingPriorUID(t *testing.T) {
 	prior := recordsMapWithKeys(t, map[string]struct{ share, edit bool }{
 		"uid-1": {true, false},
 	})
-	api := &utils.SharedFolderResponse{
-		SharedFolderUID: "sf-1", Path: "/f",
-		Records: []utils.SharedFolderRecordEntry{
+	api := &commonsharedfolder.SharedFolderResponse{
+		FolderUID: "sf-1", Path: "/f",
+		Records: []commonsharedfolder.SharedFolderRecordEntry{
 			{RecordUID: "uid-1", RecordName: "My Record", CanShare: false, CanEdit: false},
 		},
 	}
@@ -70,9 +69,9 @@ func TestMapResponseToModel_Records_PrefersMatchingPriorRecordName(t *testing.T)
 	prior := recordsMapWithKeys(t, map[string]struct{ share, edit bool }{
 		"Custom Title": {false, true},
 	})
-	api := &utils.SharedFolderResponse{
-		SharedFolderUID: "sf-1", Path: "/f",
-		Records: []utils.SharedFolderRecordEntry{
+	api := &commonsharedfolder.SharedFolderResponse{
+		FolderUID: "sf-1", Path: "/f",
+		Records: []commonsharedfolder.SharedFolderRecordEntry{
 			{RecordUID: "uid-99", RecordName: "Custom Title", CanShare: false, CanEdit: false},
 		},
 	}
@@ -85,9 +84,9 @@ func TestMapResponseToModel_Records_PrefersMatchingPriorRecordName(t *testing.T)
 func TestMapResponseToModel_Records_NoPriorMatchUsesRecordName(t *testing.T) {
 	t.Parallel()
 	prior := recordsMapWithKeys(t, map[string]struct{ share, edit bool }{"other": {}})
-	api := &utils.SharedFolderResponse{
-		SharedFolderUID: "sf-1", Path: "/f",
-		Records: []utils.SharedFolderRecordEntry{
+	api := &commonsharedfolder.SharedFolderResponse{
+		FolderUID: "sf-1", Path: "/f",
+		Records: []commonsharedfolder.SharedFolderRecordEntry{
 			{RecordUID: "uid-1", RecordName: "Title A", CanShare: false, CanEdit: false},
 		},
 	}
@@ -99,9 +98,9 @@ func TestMapResponseToModel_Records_NoPriorMatchUsesRecordName(t *testing.T) {
 
 func TestMapResponseToModel_Records_NullPriorUsesRecordName(t *testing.T) {
 	t.Parallel()
-	api := &utils.SharedFolderResponse{
-		SharedFolderUID: "sf-1", Path: "/f",
-		Records: []utils.SharedFolderRecordEntry{
+	api := &commonsharedfolder.SharedFolderResponse{
+		FolderUID: "sf-1", Path: "/f",
+		Records: []commonsharedfolder.SharedFolderRecordEntry{
 			{RecordUID: "uid-1", RecordName: "Title A", CanShare: false, CanEdit: false},
 		},
 	}
@@ -113,9 +112,9 @@ func TestMapResponseToModel_Records_NullPriorUsesRecordName(t *testing.T) {
 
 func TestMapResponseToModel_Records_NullPriorUsesUIDWhenNameEmpty(t *testing.T) {
 	t.Parallel()
-	api := &utils.SharedFolderResponse{
-		SharedFolderUID: "sf-1", Path: "/f",
-		Records: []utils.SharedFolderRecordEntry{
+	api := &commonsharedfolder.SharedFolderResponse{
+		FolderUID: "sf-1", Path: "/f",
+		Records: []commonsharedfolder.SharedFolderRecordEntry{
 			{RecordUID: "uid-only", RecordName: "", CanShare: false, CanEdit: false},
 		},
 	}
@@ -127,9 +126,9 @@ func TestMapResponseToModel_Records_NullPriorUsesUIDWhenNameEmpty(t *testing.T) 
 
 func TestMapResponseToModel_Records_NameOnlyEntryIncluded(t *testing.T) {
 	t.Parallel()
-	api := &utils.SharedFolderResponse{
-		SharedFolderUID: "sf-1", Path: "/f",
-		Records: []utils.SharedFolderRecordEntry{
+	api := &commonsharedfolder.SharedFolderResponse{
+		FolderUID: "sf-1", Path: "/f",
+		Records: []commonsharedfolder.SharedFolderRecordEntry{
 			{RecordUID: "", RecordName: "name-only", CanShare: true, CanEdit: false},
 		},
 	}
@@ -148,9 +147,9 @@ func TestMapResponseToModel_Records_ReusesPriorKeyByUID(t *testing.T) {
 	prior := recordsMapWithKeys(t, map[string]struct{ share, edit bool }{
 		"legacy-uid-key": {false, false},
 	})
-	api := &utils.SharedFolderResponse{
-		SharedFolderUID: "sf-1", Path: "/f",
-		Records: []utils.SharedFolderRecordEntry{
+	api := &commonsharedfolder.SharedFolderResponse{
+		FolderUID: "sf-1", Path: "/f",
+		Records: []commonsharedfolder.SharedFolderRecordEntry{
 			{RecordUID: "legacy-uid-key", RecordName: "New Title", CanShare: true, CanEdit: true},
 		},
 	}
@@ -162,14 +161,14 @@ func TestMapResponseToModel_Records_ReusesPriorKeyByUID(t *testing.T) {
 
 func TestMapResponseToModel_RecordsMerge(t *testing.T) {
 	t.Parallel()
-	api := &utils.SharedFolderResponse{
-		SharedFolderUID: "sf-1",
-		Path:            "/folder",
-		ManageUsers:     false,
-		ManageRecords:   false,
-		CanShare:        false,
-		CanEdit:         false,
-		Records: []utils.SharedFolderRecordEntry{
+	api := &commonsharedfolder.SharedFolderResponse{
+		FolderUID:     "sf-1",
+		Path:          "/folder",
+		ManageUsers:   false,
+		ManageRecords: false,
+		CanShare:      false,
+		CanEdit:       false,
+		Records: []commonsharedfolder.SharedFolderRecordEntry{
 			{RecordUID: "u1", RecordName: "n1", CanShare: true, CanEdit: false},
 		},
 		Users: nil,

@@ -13,4 +13,5 @@ const (
 	DescDataSourceMD          = "Look up an existing Keeper Drive folder by **UID** or **name**."
 	DescDataSourceNewFolder   = "Nested shared folder UID or name to look up."
 	DescDataSourceNewFolderMD = "Nested shared folder **UID** or **name** to look up."
+	DescDataSourceRecords     = "Set of record UIDs linked to this folder."
 )

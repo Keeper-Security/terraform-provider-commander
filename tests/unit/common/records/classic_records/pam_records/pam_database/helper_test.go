@@ -7,8 +7,7 @@ import (
 	"encoding/json"
 	"testing"
 
-	commonpamrecords "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/classic_records/pam_records"
-	commonpamdatabase "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/classic_records/pam_records/pam_database"
+	commonpamdatabase "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/pam_records/pam_database"
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/utils"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
@@ -428,30 +427,30 @@ func TestMapVaultRecordGetResponse_WithPamSettings(t *testing.T) {
 
 func TestMapVaultRecordGetResponse_FolderStateMatchesUID(t *testing.T) {
 	rec := &utils.VaultRecordGetResponse{
-		RecordUID: "uid-folder",
-		Title:     "Folder Test",
-		Folder:    &utils.RecordFolderResponse{UID: "folder-uid-123", Path: "Test/My Folder"},
+		RecordUID:      "uid-folder",
+		Title:          "Folder Test",
+		FolderLocation: &utils.FolderLocationResponse{UID: "folder-uid-123", Path: "Test/My Folder"},
 	}
 	var state commonpamdatabase.PamDatabaseResourceModel
-	state.Folder = types.StringValue("folder-uid-123")
+	state.FolderLocation = types.StringValue("folder-uid-123")
 	commonpamdatabase.MapVaultRecordGetResponseToPamDatabaseModel(rec, &state)
-	if state.Folder.ValueString() != "folder-uid-123" {
-		t.Errorf("expected folder folder-uid-123 (preserved), got %s", state.Folder.ValueString())
+	if state.FolderLocation.ValueString() != "folder-uid-123" {
+		t.Errorf("expected folder folder-uid-123 (preserved), got %s", state.FolderLocation.ValueString())
 	}
 }
 
 func TestMapVaultRecordGetResponse_FolderNilInResponse(t *testing.T) {
 	rec := &utils.VaultRecordGetResponse{RecordUID: "uid-nofolder", Title: "No Folder"}
 	var state commonpamdatabase.PamDatabaseResourceModel
-	state.Folder = types.StringValue("some-folder")
+	state.FolderLocation = types.StringValue("some-folder")
 	commonpamdatabase.MapVaultRecordGetResponseToPamDatabaseModel(rec, &state)
-	if !state.Folder.IsNull() {
+	if !state.FolderLocation.IsNull() {
 		t.Error("expected null folder when API response has no folder")
 	}
 }
 
 func TestExtractFolderValue_NilFolder(t *testing.T) {
-	result := commonpamrecords.ExtractFolderValue(nil, types.StringValue("any"))
+	result := utils.ExtractFolderValue(nil, types.StringValue("any"))
 	if !result.IsNull() {
 		t.Error("expected null for nil folder response")
 	}

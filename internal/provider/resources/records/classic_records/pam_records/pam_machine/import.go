@@ -7,8 +7,9 @@ import (
 	"context"
 	"strings"
 
-	commonpamrecords "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/classic_records/pam_records"
-	commonpammachine "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/classic_records/pam_records/pam_machine"
+	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/classic_share"
+	commonpammachine "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/pam_records/pam_machine"
+	commonrecordsutils "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/utils"
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/utils"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -24,20 +25,25 @@ func (r *PamMachineResource) ImportState(ctx context.Context, req resource.Impor
 		return
 	}
 
-	state := commonpammachine.PamMachineResourceModel{
-		CommonPamRecordsResourceModel: commonpamrecords.CommonPamRecordsResourceModel{
-			Id:     types.StringValue(importID),
-			Title:  types.StringNull(),
-			Notes:  types.StringNull(),
-			Folder: types.StringNull(),
+	state := PamMachineResourceModel{
+		PamMachineResourceModel: commonpammachine.PamMachineResourceModel{
+			BaseVaultRecordModel: commonrecordsutils.BaseVaultRecordModel{
+				Id:             types.StringValue(importID),
+				Title:          types.StringNull(),
+				Notes:          types.StringNull(),
+				FolderLocation: types.StringNull(),
+			},
+			HostnameOrIP:    nil,
+			OperatingSystem: types.StringNull(),
+			InstanceName:    types.StringNull(),
+			InstanceId:      types.StringNull(),
+			ProviderGroup:   types.StringNull(),
+			ProviderRegion:  types.StringNull(),
+			PamSettings:     nil,
 		},
-		HostnameOrIP:    nil,
-		OperatingSystem: types.StringNull(),
-		InstanceName:    types.StringNull(),
-		InstanceId:      types.StringNull(),
-		ProviderGroup:   types.StringNull(),
-		ProviderRegion:  types.StringNull(),
-		PamSettings:     nil,
+		ShareModel: classic_share.ShareModel{
+			Share: types.MapNull(classic_share.ShareEntryAttrType),
+		},
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)

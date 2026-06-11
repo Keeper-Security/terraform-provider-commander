@@ -7,8 +7,9 @@ import (
 	"context"
 	"strings"
 
-	commonpamrecords "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/classic_records/pam_records"
-	commonpamdirectory "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/classic_records/pam_records/pam_directory"
+	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/classic_share"
+	commonpamdirectory "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/pam_records/pam_directory"
+	commonrecordsutils "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/utils"
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/utils"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -24,23 +25,28 @@ func (r *PamDirectoryResource) ImportState(ctx context.Context, req resource.Imp
 		return
 	}
 
-	state := commonpamdirectory.PamDirectoryResourceModel{
-		CommonPamRecordsResourceModel: commonpamrecords.CommonPamRecordsResourceModel{
-			Id:     types.StringValue(importID),
-			Title:  types.StringNull(),
-			Notes:  types.StringNull(),
-			Folder: types.StringNull(),
+	state := PamDirectoryResourceModel{
+		PamDirectoryResourceModel: commonpamdirectory.PamDirectoryResourceModel{
+			BaseVaultRecordModel: commonrecordsutils.BaseVaultRecordModel{
+				Id:             types.StringValue(importID),
+				Title:          types.StringNull(),
+				Notes:          types.StringNull(),
+				FolderLocation: types.StringNull(),
+			},
+			HostnameOrIP:   nil,
+			UseSSL:         types.BoolNull(),
+			DomainName:     types.StringNull(),
+			AlternativeIPs: types.SetNull(types.StringType),
+			DirectoryId:    types.StringNull(),
+			DirectoryType:  types.StringNull(),
+			UserMatch:      types.StringNull(),
+			ProviderGroup:  types.StringNull(),
+			ProviderRegion: types.StringNull(),
+			PamSettings:    nil,
 		},
-		HostnameOrIP:   nil,
-		UseSSL:         types.BoolNull(),
-		DomainName:     types.StringNull(),
-		AlternativeIPs: types.SetNull(types.StringType),
-		DirectoryId:    types.StringNull(),
-		DirectoryType:  types.StringNull(),
-		UserMatch:      types.StringNull(),
-		ProviderGroup:  types.StringNull(),
-		ProviderRegion: types.StringNull(),
-		PamSettings:    nil,
+		ShareModel: classic_share.ShareModel{
+			Share: types.MapNull(classic_share.ShareEntryAttrType),
+		},
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)

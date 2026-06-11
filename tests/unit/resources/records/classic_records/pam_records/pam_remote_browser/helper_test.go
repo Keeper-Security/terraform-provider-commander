@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/api"
-	commonpamremotebrowser "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/classic_records/pam_records/pam_remote_browser"
+	commonpamremotebrowser "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/pam_records/pam_remote_browser"
 	pamremotebrowser "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/records/classic_records/pam_records/pam_remote_browser"
 	"github.com/Keeper-Security/terraform-provider-commander/tests/helpers"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -37,6 +37,13 @@ var pamRemoteBrowserSettingsAttrTypes = map[string]tftypes.Type{
 	"audio_sample_rate":        tftypes.Number,
 }
 
+var shareElementAttrTypes = map[string]tftypes.Type{
+	"can_share": tftypes.Bool,
+	"can_edit":  tftypes.Bool,
+}
+
+var shareMapType = tftypes.Map{ElementType: tftypes.Object{AttributeTypes: shareElementAttrTypes}}
+
 var pamRemoteBrowserAttrTypes = map[string]tftypes.Type{
 	"id":     tftypes.String,
 	"title":  tftypes.String,
@@ -46,6 +53,7 @@ var pamRemoteBrowserAttrTypes = map[string]tftypes.Type{
 	"pam_remote_browser_settings": tftypes.Object{
 		AttributeTypes: pamRemoteBrowserSettingsAttrTypes,
 	},
+	"share": shareMapType,
 }
 
 func pamRemoteBrowserObjectType() tftypes.Object {
@@ -110,6 +118,7 @@ func newPlanStateValues(
 		"notes":                       tftypes.NewValue(tftypes.String, notes),
 		"folder":                      tftypes.NewValue(tftypes.String, folder),
 		"pam_remote_browser_settings": settingsVal,
+		"share":                       tftypes.NewValue(shareMapType, nil),
 	}
 }
 
@@ -140,7 +149,7 @@ func startMockServer(mock *helpers.CommandServer, responseForCommand func(cmd st
 }
 
 func TestBuildPamRbiEditCommand_NilSettings(t *testing.T) {
-	cmd := pamremotebrowser.BuildPamRbiEditCommand("rec-uid-123", nil)
+	cmd := commonpamremotebrowser.BuildPamRbiEditCommand("rec-uid-123", nil)
 	if cmd != "pam rbi edit --record 'rec-uid-123'" {
 		t.Errorf("unexpected command: %s", cmd)
 	}
@@ -165,7 +174,7 @@ func TestBuildPamRbiEditCommand_WithSettings(t *testing.T) {
 		AudioBitDepth:          types.Int64Value(16),
 		AudioSampleRate:        types.Int64Value(44100),
 	}
-	cmd := pamremotebrowser.BuildPamRbiEditCommand("uid-1", settings)
+	cmd := commonpamremotebrowser.BuildPamRbiEditCommand("uid-1", settings)
 	if cmd == "" {
 		t.Fatal("expected non-empty command")
 	}
@@ -212,7 +221,7 @@ func TestBuildPamRbiEditCommand_UnknownSet_Omitted(t *testing.T) {
 		AudioBitDepth:          types.Int64Null(),
 		AudioSampleRate:        types.Int64Null(),
 	}
-	cmd := pamremotebrowser.BuildPamRbiEditCommand("uid-2", settings)
+	cmd := commonpamremotebrowser.BuildPamRbiEditCommand("uid-2", settings)
 	if contains(cmd, "--allowed-urls") {
 		t.Errorf("unknown --allowed-urls should be omitted: %s", cmd)
 	}
@@ -223,7 +232,7 @@ func TestBuildPamRbiEditCommand_UnknownSet_Omitted(t *testing.T) {
 
 func TestAppendPamRbiEditSettingsFlags_NilSettings(t *testing.T) {
 	var parts []string
-	pamremotebrowser.AppendPamRbiEditSettingsFlags(&parts, nil)
+	commonpamremotebrowser.AppendPamRbiEditSettingsFlags(&parts, nil)
 	if len(parts) != 0 {
 		t.Errorf("expected empty parts for nil settings, got %v", parts)
 	}
@@ -251,7 +260,7 @@ func TestAppendPamRbiEditSettingsFlags_WithNonNullSets(t *testing.T) {
 		AudioSampleRate:        types.Int64Value(48000),
 	}
 	var parts []string
-	pamremotebrowser.AppendPamRbiEditSettingsFlags(&parts, settings)
+	commonpamremotebrowser.AppendPamRbiEditSettingsFlags(&parts, settings)
 	if len(parts) == 0 {
 		t.Fatal("expected parts to have flags")
 	}

@@ -7,7 +7,9 @@ import (
 	"context"
 	"strings"
 
-	commonpamrecords "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/classic_records/pam_records"
+	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/classic_share"
+	commonpamrecords "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/pam_records"
+	commonpamuser "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/pam_records/pam_user"
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/utils"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 )
@@ -44,32 +46,34 @@ func (r *PamUserResource) Update(ctx context.Context, req resource.UpdateRequest
 	}
 	recordUID := strings.TrimSpace(plan.Id.ValueString())
 	if recordUID == "" {
-		resp.Diagnostics.AddError(ErrSummaryUpdateFailed, "PAM User record id is empty")
+		resp.Diagnostics.AddError(commonpamuser.ErrSummaryUpdateFailed, "PAM User record id is empty")
 		return
 	}
 
-	// Phase 0: move record when folder changes (path or UID), same as other PAM record resources.
-	if err := commonpamrecords.MoveRecordFromSourceToDestination(ctx, r.ApiManager, recordUID, plan.Folder.ValueString(), state.Folder.ValueString()); err != nil {
+	if err := commonpamrecords.MoveRecordFromSourceToDestination(ctx, r.ApiManager, recordUID, plan.FolderLocation.ValueString(), state.FolderLocation.ValueString()); err != nil {
 		resp.Diagnostics.AddError(utils.ErrSummaryMoveRecordFailed, err.Error())
 		return
 	}
 
-	// Phase 1: record fields (record-update).
-	if updateHasMutations(plan, state) {
-		cmd := buildRecordUpdatePamUserCommand(recordUID, plan, state)
-		if _, err := r.ApiManager.ExecuteCommand(ctx, cmd, ErrDetailUpdateFailed); err != nil {
-			resp.Diagnostics.AddError(ErrSummaryUpdateFailed, err.Error())
+	if commonpamuser.UpdateHasMutations(plan.PamUserSharedModel, state.PamUserSharedModel) {
+		cmd := commonpamuser.BuildUpdateCommand(utils.CmdRecordUpdate, recordUID, plan.PamUserSharedModel, state.PamUserSharedModel)
+		if _, err := r.ApiManager.ExecuteCommand(ctx, cmd, commonpamuser.ErrDetailUpdateFailed); err != nil {
+			resp.Diagnostics.AddError(commonpamuser.ErrSummaryUpdateFailed, err.Error())
 			return
 		}
 	}
 
-	// Phase 2: rotation settings (`pam rotation edit`) when the nested block changed.
-	if rotationSettingsNeedApply(plan.RotationSettings, state.RotationSettings) {
-		editCmd := buildPamRotationEditCommand(recordUID, plan.RotationSettings)
-		if _, err := r.ApiManager.ExecuteCommand(ctx, editCmd, ErrDetailRotationEditFailed); err != nil {
-			resp.Diagnostics.AddError(ErrSummaryRotationEditFailed, err.Error())
+	if commonpamuser.RotationSettingsNeedApply(plan.RotationSettings, state.RotationSettings) {
+		editCmd := commonpamuser.BuildPamRotationEditCommand(recordUID, plan.RotationSettings)
+		if _, err := r.ApiManager.ExecuteCommand(ctx, editCmd, commonpamuser.ErrDetailRotationEditFailed); err != nil {
+			resp.Diagnostics.AddError(commonpamuser.ErrSummaryRotationEditFailed, err.Error())
 			return
 		}
+	}
+
+	if err := classic_share.SyncSharePermissions(ctx, r.ApiManager, recordUID, plan.Share, state.Share); err != nil {
+		resp.Diagnostics.AddError(commonpamuser.ErrSummaryUpdateFailed, err.Error())
+		return
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)

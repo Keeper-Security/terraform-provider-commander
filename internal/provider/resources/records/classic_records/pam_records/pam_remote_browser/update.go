@@ -7,15 +7,16 @@ import (
 	"context"
 	"strings"
 
-	commonpamrecords "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/classic_records/pam_records"
-	commonpamremotebrowser "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/classic_records/pam_records/pam_remote_browser"
+	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/classic_share"
+	commonpamrecords "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/pam_records"
+	commonpamremotebrowser "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/pam_records/pam_remote_browser"
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/utils"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 )
 
 func (r *PamRemoteBrowserResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var plan commonpamremotebrowser.PamRemoteBrowserResourceModel
-	var state commonpamremotebrowser.PamRemoteBrowserResourceModel
+	var plan PamRemoteBrowserResourceModel
+	var state PamRemoteBrowserResourceModel
 
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 	if resp.Diagnostics.HasError() {
@@ -43,28 +44,30 @@ func (r *PamRemoteBrowserResource) Update(ctx context.Context, req resource.Upda
 		return
 	}
 
-	// Phase 0: Move record to destination folder if folder is changed.
-	if err := commonpamrecords.MoveRecordFromSourceToDestination(ctx, r.ApiManager, state.Id.ValueString(), plan.Folder.ValueString(), state.Folder.ValueString()); err != nil {
+	if err := commonpamrecords.MoveRecordFromSourceToDestination(ctx, r.ApiManager, state.Id.ValueString(), plan.FolderLocation.ValueString(), state.FolderLocation.ValueString()); err != nil {
 		resp.Diagnostics.AddError(utils.ErrSummaryMoveRecordFailed, err.Error())
 		return
 	}
 
-	// Phase 1: record fields (title, url, notes, folder).
-	if recordUpdateHasMutations(plan, state) {
-		cmd := buildUpdatePamRemoteBrowserRecordCommand(recordUID, plan, state)
+	if commonpamremotebrowser.RecordUpdateHasMutations(plan.PamRemoteBrowserResourceModel, state.PamRemoteBrowserResourceModel) {
+		cmd := commonpamremotebrowser.BuildUpdateCommand(utils.CmdRecordUpdate, recordUID, plan.PamRemoteBrowserResourceModel, state.PamRemoteBrowserResourceModel)
 		if _, err := r.ApiManager.ExecuteCommand(ctx, cmd, ErrDetailPamRemoteBrowserRecordUpdateFailed); err != nil {
 			resp.Diagnostics.AddError(ErrSummaryPamRemoteBrowserRecordUpdateFailed, err.Error())
 			return
 		}
 	}
 
-	// Phase 2: PAM remote browser settings (`pam rbi edit`) when the nested block changed.
-	if pamRemoteBrowserSettingsNeedApply(plan.PamRemoteBrowserSettings, state.PamRemoteBrowserSettings) {
-		editCmd := BuildPamRbiEditCommand(recordUID, plan.PamRemoteBrowserSettings)
+	if commonpamremotebrowser.PamRemoteBrowserSettingsNeedApply(plan.PamRemoteBrowserSettings, state.PamRemoteBrowserSettings) {
+		editCmd := commonpamremotebrowser.BuildPamRbiEditCommand(recordUID, plan.PamRemoteBrowserSettings)
 		if _, err := r.ApiManager.ExecuteCommand(ctx, editCmd, ErrDetailPamRbiEditFailed); err != nil {
 			resp.Diagnostics.AddError(ErrSummaryPamRbiEditFailed, err.Error())
 			return
 		}
+	}
+
+	if err := classic_share.SyncSharePermissions(ctx, r.ApiManager, recordUID, plan.Share, state.Share); err != nil {
+		resp.Diagnostics.AddError(ErrSummaryPamRemoteBrowserRecordUpdateFailed, err.Error())
+		return
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)

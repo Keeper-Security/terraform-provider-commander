@@ -9,8 +9,9 @@ import (
 	"fmt"
 	"strings"
 
-	commonpamrecords "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/classic_records/pam_records"
-	pamUserResource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/records/classic_records/pam_records/pam_user"
+	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/classic_share"
+	commonpamrecords "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/pam_records"
+	commonpamuser "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/pam_records/pam_user"
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/utils"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -41,8 +42,7 @@ func (d *PamUserDataSource) Read(ctx context.Context, req datasource.ReadRequest
 	}
 
 	// Phase 1: fetch the vault record via `get '<uid>' --format json`.
-	command := fmt.Sprintf("%s '%s' %s", utils.CmdGet, recordUID, utils.FlagFormatJSON)
-	apiResp, err := d.ApiManager.ExecuteCommand(ctx, command, ErrDetailReadFailed)
+	apiResp, err := commonpamrecords.FetchVaultRecord(ctx, d.ApiManager, recordUID)
 	if err != nil {
 		resp.Diagnostics.AddError(ErrSummaryReadFailed, err.Error())
 		return
@@ -69,8 +69,13 @@ func (d *PamUserDataSource) Read(ctx context.Context, req datasource.ReadRequest
 
 	mapVaultRecordToDataSource(&rec, &data)
 
+	if err := classic_share.MapResponseToModel(rec.UserPermissions, &data.ShareModel); err != nil {
+		resp.Diagnostics.AddError(ErrSummaryReadFailed, err.Error())
+		return
+	}
+
 	// Phase 2: fetch rotation info via `pam rotation info -r '<uid>'`.
-	rotCmd := fmt.Sprintf("%s -r '%s'", pamUserResource.CmdPamRotationInfo, recordUID)
+	rotCmd := fmt.Sprintf("%s -r '%s'", commonpamuser.CmdPamRotationInfo, recordUID)
 	rotResp, err2 := d.ApiManager.ExecuteCommand(ctx, rotCmd, ErrDetailRotationInfoFailed)
 	if err2 == nil && rotResp != nil {
 		messages := parseFlexibleMessageToLines(rotResp.Message.String())
@@ -90,7 +95,7 @@ func mapVaultRecordToDataSource(rec *utils.VaultRecordGetResponse, data *PamUser
 
 	data.Title = stringOrNull(rec.Title)
 	data.Notes = stringOrNull(rec.Notes)
-	data.Folder = commonpamrecords.ExtractFolderValue(rec.Folder, data.Folder)
+	data.Folder = utils.ExtractFolderValue(rec.FolderLocation, data.Folder)
 
 	for i := range rec.Fields {
 		f := &rec.Fields[i]

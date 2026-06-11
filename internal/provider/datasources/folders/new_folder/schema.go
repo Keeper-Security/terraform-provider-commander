@@ -8,20 +8,28 @@ import (
 
 	folderutils "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/folders/utils"
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/new_share"
+	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/utils"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	dschema "github.com/hashicorp/terraform-plugin-framework/datasource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
 func (d *NewFolderDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = dschema.Schema{
 		Description:         DescDataSource,
 		MarkdownDescription: DescDataSourceMD,
-		Attributes: folderutils.MergeDataSourceAttributes(
+		Attributes: utils.MergeDataSourceAttributes(
 			map[string]dschema.Attribute{
 				AttrNewFolder: dschema.StringAttribute{
 					Required:            true,
 					Description:         DescDataSourceNewFolder,
 					MarkdownDescription: DescDataSourceNewFolderMD,
+				},
+				"records": dschema.SetAttribute{
+					Computed:            true,
+					ElementType:         types.StringType,
+					Description:         DescDataSourceRecords,
+					MarkdownDescription: DescDataSourceRecords,
 				},
 			},
 			folderutils.DataSourceCommonFolderAttributes(),

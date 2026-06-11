@@ -6,8 +6,7 @@ package pamdatabase
 import (
 	"context"
 
-	commonpamrecords "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/classic_records/pam_records"
-	commonpamdatabase "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/classic_records/pam_records/pam_database"
+	commonpamrecords "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/pam_records"
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/utils"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 )
@@ -21,7 +20,7 @@ type PamDatabaseResource struct {
 }
 
 func (r *PamDatabaseResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_pam_database"
+	resp.TypeName = req.ProviderTypeName + "_classic_pam_database"
 }
 
 func (r *PamDatabaseResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
@@ -33,8 +32,8 @@ func (r *PamDatabaseResource) ModifyPlan(ctx context.Context, req resource.Modif
 		return
 	}
 
-	var plan commonpamdatabase.PamDatabaseResourceModel
-	var state commonpamdatabase.PamDatabaseResourceModel
+	var plan PamDatabaseResourceModel
+	var state PamDatabaseResourceModel
 
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 	if resp.Diagnostics.HasError() {

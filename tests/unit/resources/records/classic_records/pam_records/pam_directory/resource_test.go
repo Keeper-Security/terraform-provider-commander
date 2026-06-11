@@ -17,8 +17,8 @@ func TestPamDirectoryResource_Metadata(t *testing.T) {
 	req := resource.MetadataRequest{ProviderTypeName: "commander"}
 	var resp resource.MetadataResponse
 	r.Metadata(context.Background(), req, &resp)
-	if resp.TypeName != "commander_pam_directory" {
-		t.Errorf("expected TypeName commander_pam_directory, got %s", resp.TypeName)
+	if resp.TypeName != "commander_classic_pam_directory" {
+		t.Errorf("expected TypeName commander_classic_pam_directory, got %s", resp.TypeName)
 	}
 }
 

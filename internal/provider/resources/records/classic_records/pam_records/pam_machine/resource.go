@@ -6,8 +6,7 @@ package pammachine
 import (
 	"context"
 
-	commonpamrecords "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/classic_records/pam_records"
-	commonpammachine "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/classic_records/pam_records/pam_machine"
+	commonpamrecords "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/pam_records"
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/utils"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 )
@@ -21,7 +20,7 @@ type PamMachineResource struct {
 }
 
 func (r *PamMachineResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_pam_machine"
+	resp.TypeName = req.ProviderTypeName + "_classic_pam_machine"
 }
 
 func (r *PamMachineResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
@@ -33,8 +32,8 @@ func (r *PamMachineResource) ModifyPlan(ctx context.Context, req resource.Modify
 		return
 	}
 
-	var plan commonpammachine.PamMachineResourceModel
-	var state commonpammachine.PamMachineResourceModel
+	var plan PamMachineResourceModel
+	var state PamMachineResourceModel
 
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 	if resp.Diagnostics.HasError() {

@@ -8,8 +8,9 @@ import (
 	"fmt"
 	"strings"
 
-	commonpamrecords "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/classic_records/pam_records"
-	commonpamremotebrowser "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/classic_records/pam_records/pam_remote_browser"
+	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/classic_share"
+	commonpamrecords "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/pam_records"
+	commonpamremotebrowser "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/pam_records/pam_remote_browser"
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/utils"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -76,8 +77,13 @@ func (d *PamRemoteBrowserDataSource) Read(ctx context.Context, req datasource.Re
 	data.Title = mapped.Title
 	data.Url = mapped.Url
 	data.Notes = mapped.Notes
-	data.Folder = mapped.Folder
+	data.FolderLocation = mapped.FolderLocation
 	data.PamRemoteBrowserSettings = mapped.PamRemoteBrowserSettings
+
+	if err := classic_share.MapResponseToModel(rec.UserPermissions, &data.ShareModel); err != nil {
+		resp.Diagnostics.AddError(errSummaryReadPamRemoteBrowserDataSource, err.Error())
+		return
+	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }

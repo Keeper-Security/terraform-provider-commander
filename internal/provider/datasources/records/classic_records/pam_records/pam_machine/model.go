@@ -4,11 +4,13 @@
 package pammachine
 
 import (
-	commonpammachine "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/classic_records/pam_records/pam_machine"
+	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/classic_share"
+	commonpammachine "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/pam_records/pam_machine"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
 type PamMachineDataSourceModel struct {
 	PamMachine types.String `tfsdk:"pam_machine"`
 	commonpammachine.PamMachineResourceModel
+	classic_share.ShareModel
 }

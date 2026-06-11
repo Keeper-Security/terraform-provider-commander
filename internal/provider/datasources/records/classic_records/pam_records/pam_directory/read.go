@@ -8,8 +8,9 @@ import (
 	"fmt"
 	"strings"
 
-	commonpamrecords "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/classic_records/pam_records"
-	commonpamdirectory "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/classic_records/pam_records/pam_directory"
+	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/classic_share"
+	commonpamrecords "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/pam_records"
+	commonpamdirectory "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/pam_records/pam_directory"
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/utils"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -74,7 +75,7 @@ func (d *PamDirectoryDataSource) Read(ctx context.Context, req datasource.ReadRe
 	data.Id = state.Id
 	data.Title = state.Title
 	data.Notes = state.Notes
-	data.Folder = state.Folder
+	data.FolderLocation = state.FolderLocation
 	data.HostnameOrIP = state.HostnameOrIP
 	data.UseSSL = state.UseSSL
 	data.DomainName = state.DomainName
@@ -85,6 +86,11 @@ func (d *PamDirectoryDataSource) Read(ctx context.Context, req datasource.ReadRe
 	data.ProviderGroup = state.ProviderGroup
 	data.ProviderRegion = state.ProviderRegion
 	data.PamSettings = state.PamSettings
+
+	if err := classic_share.MapResponseToModel(rec.UserPermissions, &data.ShareModel); err != nil {
+		resp.Diagnostics.AddError(errSummaryReadPamDirectoryDataSource, err.Error())
+		return
+	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
