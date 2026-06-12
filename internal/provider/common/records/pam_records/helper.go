@@ -535,6 +535,7 @@ func extractRdpConnectionFromResponse(rdpConn *utils.RdpConnectionResponse, pamE
 	rdp.Timezone = setStringOrNull(rdpConn.Timezone)
 	rdp.ClientName = setStringOrNull(rdpConn.ClientName)
 	rdp.InitialProgram = setStringOrNull(rdpConn.InitialProgram)
+	rdp.DriveRedirectionMode = setStringOrNull(rdpConn.DriveRedirectionPath)
 
 	// resizeMethod is coupled to the UI's "Disable Dynamic Resizing" checkbox,
 	// which is not a real API field. When that checkbox is enabled in the UI,
@@ -1137,8 +1138,9 @@ func buildRdpConnectionMap(connection *CommonPamSettingsConnectionResourceModel)
 	setOptionalStringField(connMap, "initialProgram", rdp.InitialProgram)
 	setOptionalStringField(connMap, "resizeMethod", rdp.ResizeMethod)
 	setOptionalStringField(connMap, "serverLayout", rdp.ServerLayout)
-	setOptionalInt32Field(connMap, "colorDepth", rdp.ColorDepth)
+	setOptionalStringField(connMap, "driveRedirectionPath", rdp.DriveRedirectionMode)
 
+	setOptionalInt32Field(connMap, "colorDepth", rdp.ColorDepth)
 	setOptionalInt32Field(connMap, "dpi", rdp.Dpi)
 	setOptionalInt32Field(connMap, "height", rdp.Height)
 	setOptionalInt32Field(connMap, "width", rdp.Width)

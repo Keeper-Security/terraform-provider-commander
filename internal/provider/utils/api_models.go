@@ -476,6 +476,7 @@ type RdpConnectionResponse struct {
 	ServerLayout             string        `json:"serverLayout"`
 	DisableCopy              *bool         `json:"disableCopy"`
 	DisablePaste             *bool         `json:"disablePaste"`
+	DriveRedirectionPath     string        `json:"driveRedirectionPath"`
 }
 
 // SftpResponse is the shared SFTP nested block used by RDP and VNC.

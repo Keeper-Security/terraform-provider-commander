@@ -86,7 +86,7 @@ func (d *PamDatabaseDataSource) Schema(ctx context.Context, req datasource.Schem
 				Description:         commonpamdatabase.FolderDescription,
 				MarkdownDescription: commonpamdatabase.FolderMarkdownDescription,
 			},
-			"pam_settings": commonpamrecords.CommonPamSettingsDataSourceAttribute(),
+			"pam_settings": commonpamrecords.CommonPamSettingsDataSourceAttribute(commonpamrecords.DatabaseProtocols),
 		}, classic_share.DataSourceShareAttribute()),
 	}
 }

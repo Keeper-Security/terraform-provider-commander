@@ -89,66 +89,6 @@ resource "commander_classic_pam_machine" "example" {
       # }
 
       # -----------------------------------------------------------------------
-      # MySQL (postgresql and sql_server share the same attributes)
-      # -----------------------------------------------------------------------
-      # mysql {
-      #   session_recording      = true
-      #   typescript_recording   = true
-      #   recording_include_keys = true
-      #   allow_supply_user      = true
-      #   read_only              = false
-      #   database               = "production_db"
-      #   color_scheme           = "white-black"
-      #   font_name              = "monospace"
-      #   font_size              = 12
-      #   scrollback             = 500
-      #   disable_copy           = false
-      #   disable_paste          = false
-      #   disable_csv_export     = true
-      #   disable_csv_import     = true
-      # }
-
-      # -----------------------------------------------------------------------
-      # PostgreSQL
-      # -----------------------------------------------------------------------
-      # postgresql {
-      #   session_recording      = true
-      #   typescript_recording   = true
-      #   recording_include_keys = true
-      #   allow_supply_user      = true
-      #   read_only              = false
-      #   database               = "analytics"
-      #   color_scheme           = "black-white"
-      #   font_name              = "monospace"
-      #   font_size              = 12
-      #   scrollback             = 500
-      #   disable_copy           = false
-      #   disable_paste          = false
-      #   disable_csv_export     = false
-      #   disable_csv_import     = false
-      # }
-
-      # -----------------------------------------------------------------------
-      # SQL Server
-      # -----------------------------------------------------------------------
-      # sql_server {
-      #   session_recording      = true
-      #   typescript_recording   = true
-      #   recording_include_keys = true
-      #   allow_supply_user      = true
-      #   read_only              = true
-      #   database               = "finance_prod"
-      #   color_scheme           = "black-white"
-      #   font_name              = "monospace"
-      #   font_size              = 12
-      #   scrollback             = 500
-      #   disable_copy           = false
-      #   disable_paste          = false
-      #   disable_csv_export     = false
-      #   disable_csv_import     = false
-      # }
-
-      # -----------------------------------------------------------------------
       # RDP
       # -----------------------------------------------------------------------
       # rdp {
@@ -221,6 +161,9 @@ resource "commander_classic_pam_machine" "example" {
       #     sftp_directory             = "/uploads"
       #     sftp_server_alive_interval = 30
       #   }
+
+      #   # Drive redirection
+      #   drive_redirection_mode = "user"
       # }
 
       # -----------------------------------------------------------------------

@@ -122,11 +122,8 @@ Read-Only:
 - `enable` (Boolean)
 - `kubernetes` (Attributes) (see [below for nested schema](#nestedatt--pam_settings--connection--kubernetes))
 - `launch_credential` (String)
-- `mysql` (Attributes) (see [below for nested schema](#nestedatt--pam_settings--connection--mysql))
-- `postgresql` (Attributes) (see [below for nested schema](#nestedatt--pam_settings--connection--postgresql))
 - `protocol` (String)
 - `rdp` (Attributes) (see [below for nested schema](#nestedatt--pam_settings--connection--rdp))
-- `sql_server` (Attributes) (see [below for nested schema](#nestedatt--pam_settings--connection--sql_server))
 - `ssh` (Attributes) (see [below for nested schema](#nestedatt--pam_settings--connection--ssh))
 - `telnet` (Attributes) (see [below for nested schema](#nestedatt--pam_settings--connection--telnet))
 - `vnc` (Attributes) (see [below for nested schema](#nestedatt--pam_settings--connection--vnc))
@@ -158,48 +155,6 @@ Read-Only:
 - `use_ssl` (Boolean)
 
 
-<a id="nestedatt--pam_settings--connection--mysql"></a>
-### Nested Schema for `pam_settings.connection.mysql`
-
-Read-Only:
-
-- `allow_supply_user` (Boolean)
-- `color_scheme` (String)
-- `database` (String)
-- `disable_copy` (Boolean)
-- `disable_csv_export` (Boolean)
-- `disable_csv_import` (Boolean)
-- `disable_paste` (Boolean)
-- `font_name` (String)
-- `font_size` (Number)
-- `read_only` (Boolean)
-- `recording_include_keys` (Boolean)
-- `scrollback` (Number)
-- `session_recording` (Boolean)
-- `typescript_recording` (Boolean)
-
-
-<a id="nestedatt--pam_settings--connection--postgresql"></a>
-### Nested Schema for `pam_settings.connection.postgresql`
-
-Read-Only:
-
-- `allow_supply_user` (Boolean)
-- `color_scheme` (String)
-- `database` (String)
-- `disable_copy` (Boolean)
-- `disable_csv_export` (Boolean)
-- `disable_csv_import` (Boolean)
-- `disable_paste` (Boolean)
-- `font_name` (String)
-- `font_size` (Number)
-- `read_only` (Boolean)
-- `recording_include_keys` (Boolean)
-- `scrollback` (Number)
-- `session_recording` (Boolean)
-- `typescript_recording` (Boolean)
-
-
 <a id="nestedatt--pam_settings--connection--rdp"></a>
 ### Nested Schema for `pam_settings.connection.rdp`
 
@@ -218,6 +173,7 @@ Read-Only:
 - `disable_offscreen_caching` (Boolean)
 - `disable_paste` (Boolean)
 - `dpi` (Number)
+- `drive_redirection_mode` (String)
 - `enable_audio_input` (Boolean)
 - `enable_desktop_composition` (Boolean)
 - `enable_font_smoothing` (Boolean)
@@ -260,27 +216,6 @@ Read-Only:
 - `sftp_server_alive_interval` (Number)
 - `sftp_user_uid` (String)
 
-
-
-<a id="nestedatt--pam_settings--connection--sql_server"></a>
-### Nested Schema for `pam_settings.connection.sql_server`
-
-Read-Only:
-
-- `allow_supply_user` (Boolean)
-- `color_scheme` (String)
-- `database` (String)
-- `disable_copy` (Boolean)
-- `disable_csv_export` (Boolean)
-- `disable_csv_import` (Boolean)
-- `disable_paste` (Boolean)
-- `font_name` (String)
-- `font_size` (Number)
-- `read_only` (Boolean)
-- `recording_include_keys` (Boolean)
-- `scrollback` (Number)
-- `session_recording` (Boolean)
-- `typescript_recording` (Boolean)
 
 
 <a id="nestedatt--pam_settings--connection--ssh"></a>

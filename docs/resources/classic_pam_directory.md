@@ -246,11 +246,8 @@ Optional:
 - `enable` (Boolean) Whether the **connection** is enabled for this PAM record.
 - `kubernetes` (Block, Optional) **Kubernetes** protocol-specific connection attributes. (see [below for nested schema](#nestedblock--pam_settings--connection--kubernetes))
 - `launch_credential` (String) **Launch credential**. Only applicable when connection is enabled.
-- `mysql` (Block, Optional) **MySQL** protocol-specific connection attributes. (see [below for nested schema](#nestedblock--pam_settings--connection--mysql))
-- `postgresql` (Block, Optional) **PostgreSQL** protocol-specific connection attributes. (see [below for nested schema](#nestedblock--pam_settings--connection--postgresql))
-- `protocol` (String) **Connection protocol**. Must be one of: `kubernetes`, `mysql`, `postgresql`, `rdp`, `sql-server`, `ssh`, `telnet`, `vnc`.
+- `protocol` (String) **Connection protocol**. Must be one of: `kubernetes`, `rdp`, `ssh`, `telnet`, `vnc`.
 - `rdp` (Block, Optional) **RDP** protocol-specific connection attributes. (see [below for nested schema](#nestedblock--pam_settings--connection--rdp))
-- `sql_server` (Block, Optional) **SQL Server** protocol-specific connection attributes. (see [below for nested schema](#nestedblock--pam_settings--connection--sql_server))
 - `ssh` (Block, Optional) **SSH** protocol-specific connection attributes. (see [below for nested schema](#nestedblock--pam_settings--connection--ssh))
 - `telnet` (Block, Optional) **Telnet** protocol-specific connection attributes. (see [below for nested schema](#nestedblock--pam_settings--connection--telnet))
 - `vnc` (Block, Optional) **VNC** protocol-specific connection attributes. (see [below for nested schema](#nestedblock--pam_settings--connection--vnc))
@@ -282,48 +279,6 @@ Optional:
 - `use_ssl` (Boolean) Use **SSL/TLS** for the Kubernetes connection.
 
 
-<a id="nestedblock--pam_settings--connection--mysql"></a>
-### Nested Schema for `pam_settings.connection.mysql`
-
-Optional:
-
-- `allow_supply_user` (Boolean) Allow users to **select credentials** from their vault.
-- `color_scheme` (String) **Color scheme** for the connection terminal. Accepts named presets (`black-white`, `gray-black`, `green-black`, `white-black`) or a Guacamole terminal color scheme string.
-- `database` (String) **Database name** for the connection.
-- `disable_copy` (Boolean) Whether **copy** is disabled for the connection.
-- `disable_csv_export` (Boolean) Whether **CSV export** is disabled for the database connection.
-- `disable_csv_import` (Boolean) Whether **CSV import** is disabled for the database connection.
-- `disable_paste` (Boolean) Whether **paste** is disabled for the connection.
-- `font_name` (String) **Font name** for the connection terminal.
-- `font_size` (Number) **Font size** for the connection terminal.
-- `read_only` (Boolean) Whether the connection is **read-only**.
-- `recording_include_keys` (Boolean) Whether to include **keystrokes** in the recording.
-- `scrollback` (Number) **Maximum scrollable size** for the connection terminal.
-- `session_recording` (Boolean) Whether **session recording** is enabled.
-- `typescript_recording` (Boolean) Whether **typescript recording** is enabled.
-
-
-<a id="nestedblock--pam_settings--connection--postgresql"></a>
-### Nested Schema for `pam_settings.connection.postgresql`
-
-Optional:
-
-- `allow_supply_user` (Boolean) Allow users to **select credentials** from their vault.
-- `color_scheme` (String) **Color scheme** for the connection terminal. Accepts named presets (`black-white`, `gray-black`, `green-black`, `white-black`) or a Guacamole terminal color scheme string.
-- `database` (String) **Database name** for the connection.
-- `disable_copy` (Boolean) Whether **copy** is disabled for the connection.
-- `disable_csv_export` (Boolean) Whether **CSV export** is disabled for the database connection.
-- `disable_csv_import` (Boolean) Whether **CSV import** is disabled for the database connection.
-- `disable_paste` (Boolean) Whether **paste** is disabled for the connection.
-- `font_name` (String) **Font name** for the connection terminal.
-- `font_size` (Number) **Font size** for the connection terminal.
-- `read_only` (Boolean) Whether the connection is **read-only**.
-- `recording_include_keys` (Boolean) Whether to include **keystrokes** in the recording.
-- `scrollback` (Number) **Maximum scrollable size** for the connection terminal.
-- `session_recording` (Boolean) Whether **session recording** is enabled.
-- `typescript_recording` (Boolean) Whether **typescript recording** is enabled.
-
-
 <a id="nestedblock--pam_settings--connection--rdp"></a>
 ### Nested Schema for `pam_settings.connection.rdp`
 
@@ -342,6 +297,7 @@ Optional:
 - `disable_offscreen_caching` (Boolean) Disable **offscreen caching** for the RDP connection.
 - `disable_paste` (Boolean) Whether **paste** is disabled for the connection.
 - `dpi` (Number) **DPI** for the RDP connection display.
+- `drive_redirection_mode` (String) **Drive redirection mode** for the RDP connection (e.g. `none`, `user`, `resource`).
 - `enable_audio_input` (Boolean) Enable **audio input** for the RDP connection.
 - `enable_desktop_composition` (Boolean) Enable **desktop composition** during RDP sessions.
 - `enable_font_smoothing` (Boolean) Enable **font smoothing** during RDP sessions.
@@ -384,27 +340,6 @@ Optional:
 - `sftp_server_alive_interval` (Number) **SFTP server alive interval** in seconds.
 - `sftp_user_uid` (String) UID of the **SFTP user** record.
 
-
-
-<a id="nestedblock--pam_settings--connection--sql_server"></a>
-### Nested Schema for `pam_settings.connection.sql_server`
-
-Optional:
-
-- `allow_supply_user` (Boolean) Allow users to **select credentials** from their vault.
-- `color_scheme` (String) **Color scheme** for the connection terminal. Accepts named presets (`black-white`, `gray-black`, `green-black`, `white-black`) or a Guacamole terminal color scheme string.
-- `database` (String) **Database name** for the connection.
-- `disable_copy` (Boolean) Whether **copy** is disabled for the connection.
-- `disable_csv_export` (Boolean) Whether **CSV export** is disabled for the database connection.
-- `disable_csv_import` (Boolean) Whether **CSV import** is disabled for the database connection.
-- `disable_paste` (Boolean) Whether **paste** is disabled for the connection.
-- `font_name` (String) **Font name** for the connection terminal.
-- `font_size` (Number) **Font size** for the connection terminal.
-- `read_only` (Boolean) Whether the connection is **read-only**.
-- `recording_include_keys` (Boolean) Whether to include **keystrokes** in the recording.
-- `scrollback` (Number) **Maximum scrollable size** for the connection terminal.
-- `session_recording` (Boolean) Whether **session recording** is enabled.
-- `typescript_recording` (Boolean) Whether **typescript recording** is enabled.
 
 
 <a id="nestedblock--pam_settings--connection--ssh"></a>

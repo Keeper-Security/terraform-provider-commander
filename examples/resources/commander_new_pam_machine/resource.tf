@@ -62,7 +62,7 @@ resource "commander_new_pam_machine" "example" {
 
       # Only the block matching "protocol" should be set; see the
       # commander_classic_pam_machine example for connection variants
-      # (kubernetes, mysql, postgresql, sql_server, rdp, telnet, vnc).
+      # (kubernetes, rdp, ssh, telnet, vnc).
       ssh {
         session_recording      = true
         typescript_recording   = true

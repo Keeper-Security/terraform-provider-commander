@@ -9,23 +9,25 @@ import (
 
 // CommonPamSettingsDataSourceAttribute returns the reusable pam_settings
 // SingleNestedAttribute for data sources across pamMachine, pamDirectory, pamDatabase, etc.
-func CommonPamSettingsDataSourceAttribute() dschema.SingleNestedAttribute {
+// allowedProtocols restricts which connection protocol sub-attributes are exposed
+// (MachineDirectoryProtocols vs DatabaseProtocols).
+func CommonPamSettingsDataSourceAttribute(allowedProtocols []string) dschema.SingleNestedAttribute {
 	return dschema.SingleNestedAttribute{
 		Computed:            true,
 		Description:         PamSettingsDescription,
 		MarkdownDescription: PamSettingsMarkdownDescription,
-		Attributes:          PamSettingsDataSourceAttributes(),
+		Attributes:          PamSettingsDataSourceAttributes(allowedProtocols),
 	}
 }
 
-func PamSettingsDataSourceAttributes() map[string]dschema.Attribute {
+func PamSettingsDataSourceAttributes(allowedProtocols []string) map[string]dschema.Attribute {
 	return map[string]dschema.Attribute{
 		"allow_supply_host":          dschema.BoolAttribute{Computed: true},
 		"configuration":              dschema.StringAttribute{Computed: true},
 		"administrative_credentials": dschema.StringAttribute{Computed: true},
 		"connection": dschema.SingleNestedAttribute{
 			Computed:   true,
-			Attributes: ConnectionDataSourceAttributes(),
+			Attributes: ConnectionDataSourceAttributes(allowedProtocols),
 		},
 		"tunnel": dschema.SingleNestedAttribute{
 			Computed:   true,
@@ -44,12 +46,21 @@ func TunnelDataSourceAttributes() map[string]dschema.Attribute {
 	}
 }
 
-func ConnectionDataSourceAttributes() map[string]dschema.Attribute {
-	return map[string]dschema.Attribute{
+func ConnectionDataSourceAttributes(allowedProtocols []string) map[string]dschema.Attribute {
+	attrs := map[string]dschema.Attribute{
 		"enable":            dschema.BoolAttribute{Computed: true},
 		"protocol":          dschema.StringAttribute{Computed: true},
 		"connection_port":   dschema.Int32Attribute{Computed: true},
 		"launch_credential": dschema.StringAttribute{Computed: true},
+	}
+	for key, attr := range connectionProtocolDataSourceAttributes(allowedProtocols) {
+		attrs[key] = attr
+	}
+	return attrs
+}
+
+func allConnectionProtocolDataSourceAttributes() map[string]dschema.Attribute {
+	return map[string]dschema.Attribute{
 		"kubernetes": dschema.SingleNestedAttribute{
 			Computed:   true,
 			Attributes: KubernetesDataSourceAttributes(),
@@ -83,6 +94,21 @@ func ConnectionDataSourceAttributes() map[string]dschema.Attribute {
 			Attributes: VncDataSourceAttributes(),
 		},
 	}
+}
+
+func connectionProtocolDataSourceAttributes(allowedProtocols []string) map[string]dschema.Attribute {
+	all := allConnectionProtocolDataSourceAttributes()
+	filtered := make(map[string]dschema.Attribute, len(allowedProtocols))
+	for _, protocol := range allowedProtocols {
+		key, ok := protocolToAttributeKey[protocol]
+		if !ok {
+			continue
+		}
+		if attr, found := all[key]; found {
+			filtered[key] = attr
+		}
+	}
+	return filtered
 }
 
 func commonFieldsDataSourceAttributes() map[string]dschema.Attribute {
@@ -214,6 +240,7 @@ func RdpDataSourceAttributes() map[string]dschema.Attribute {
 			"resize_method":              dschema.StringAttribute{Computed: true},
 			"color_depth":                dschema.Int32Attribute{Computed: true},
 			"server_layout":              dschema.StringAttribute{Computed: true},
+			"drive_redirection_mode":     dschema.StringAttribute{Computed: true},
 			"sftp": dschema.SingleNestedAttribute{
 				Computed:   true,
 				Attributes: sftpDataSourceAttributes(),

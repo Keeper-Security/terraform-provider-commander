@@ -79,4 +79,19 @@ func TestPamMachineResource_SchemaPamSettingsBlock(t *testing.T) {
 			t.Errorf("expected pam_settings block %s", block)
 		}
 	}
+
+	connBlock, ok := snb.Blocks["connection"].(rschema.SingleNestedBlock)
+	if !ok {
+		t.Fatal("expected connection SingleNestedBlock")
+	}
+	for _, proto := range []string{"kubernetes", "rdp", "ssh", "telnet", "vnc"} {
+		if connBlock.Blocks[proto] == nil {
+			t.Errorf("expected connection protocol block %s", proto)
+		}
+	}
+	for _, proto := range []string{"mysql", "postgresql", "sql_server"} {
+		if connBlock.Blocks[proto] != nil {
+			t.Errorf("unexpected database connection protocol block %s on pam_machine", proto)
+		}
+	}
 }

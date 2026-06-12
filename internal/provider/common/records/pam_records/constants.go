@@ -33,9 +33,6 @@ const (
 	PamSettingsConnectionEnableDescription         = "Whether the connection is enabled for this PAM record."
 	PamSettingsConnectionEnableMarkdownDescription = "Whether the **connection** is enabled for this PAM record."
 
-	PamSettingsConnectionProtocolDescription         = "Connection protocol. Must be one of: kubernetes, mysql, postgresql, rdp, sql-server, ssh, telnet, vnc."
-	PamSettingsConnectionProtocolMarkdownDescription = "**Connection protocol**. Must be one of: `kubernetes`, `mysql`, `postgresql`, `rdp`, `sql-server`, `ssh`, `telnet`, `vnc`."
-
 	PamSettingsConnectionConnectionPortDescription         = "Connection port. Only applicable when connection is enabled."
 	PamSettingsConnectionConnectionPortMarkdownDescription = "**Connection port**. Only applicable when connection is enabled."
 
@@ -273,6 +270,9 @@ const (
 
 	RdpServerLayoutDescription         = "Keyboard layout for the RDP connection (e.g. en-us-qwerty, de-de-qwertz)."
 	RdpServerLayoutMarkdownDescription = "**Keyboard layout** for the RDP connection (e.g. `en-us-qwerty`, `de-de-qwertz`)."
+
+	RdpDriveRedirectionModeDescription         = "Drive redirection mode for the RDP connection (e.g. none, user, resource)."
+	RdpDriveRedirectionModeMarkdownDescription = "**Drive redirection mode** for the RDP connection (e.g. `none`, `user`, `resource`)."
 
 	// --- SSH-only Connection Attributes ---.
 	SshHostKeyDescription         = "Known host public key for the SSH connection."

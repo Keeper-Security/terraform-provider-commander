@@ -82,9 +82,14 @@ func TestPamDatabaseDataSource_SchemaPamSettingsNested(t *testing.T) {
 	if !ok {
 		t.Fatalf("expected SingleNestedAttribute for connection, got %T", connAttr)
 	}
-	for _, proto := range []string{"kubernetes", "mysql", "postgresql", "rdp", "sql_server", "ssh", "telnet", "vnc"} {
+	for _, proto := range []string{"mysql", "postgresql", "sql_server"} {
 		if connNested.Attributes[proto] == nil {
 			t.Errorf("expected connection attribute %s", proto)
+		}
+	}
+	for _, proto := range []string{"kubernetes", "rdp", "ssh", "telnet", "vnc"} {
+		if connNested.Attributes[proto] != nil {
+			t.Errorf("unexpected machine/directory connection attribute %s on pam_database", proto)
 		}
 	}
 

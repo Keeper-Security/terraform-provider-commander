@@ -121,6 +121,7 @@ type ConnectionRdpModel struct {
 	Height                   types.Int32          `tfsdk:"height"`
 	Width                    types.Int32          `tfsdk:"width"`
 	Sftp                     *ConnectionSftpModel `tfsdk:"sftp"`
+	DriveRedirectionMode     types.String         `tfsdk:"drive_redirection_mode"`
 }
 
 // ConnectionSftpModel is the shared SFTP nested block used by RDP and VNC.

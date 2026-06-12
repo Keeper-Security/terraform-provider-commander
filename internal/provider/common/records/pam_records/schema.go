@@ -4,6 +4,8 @@
 package pamrecords
 
 import (
+	"strings"
+
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/utils"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
@@ -54,6 +56,18 @@ func CommonPamSettingsTunnelSchema() map[string]schema.Attribute {
 	}
 }
 
+func connectionProtocolDescription(allowed []string) string {
+	return "Connection protocol. Must be one of: " + strings.Join(allowed, ", ") + "."
+}
+
+func connectionProtocolMarkdownDescription(allowed []string) string {
+	formatted := make([]string, len(allowed))
+	for i, p := range allowed {
+		formatted[i] = "`" + p + "`"
+	}
+	return "**Connection protocol**. Must be one of: " + strings.Join(formatted, ", ") + "."
+}
+
 // connectionScalarAttributes returns only the scalar attributes for the
 // connection block (enable, protocol, connection_port, launch_credential).
 // allowedProtocols restricts which protocol values the calling PAM record
@@ -70,8 +84,8 @@ func connectionScalarAttributes(allowedProtocols []string) map[string]schema.Att
 		},
 		"protocol": schema.StringAttribute{
 			Optional:            true,
-			Description:         PamSettingsConnectionProtocolDescription,
-			MarkdownDescription: PamSettingsConnectionProtocolMarkdownDescription,
+			Description:         connectionProtocolDescription(allowedProtocols),
+			MarkdownDescription: connectionProtocolMarkdownDescription(allowedProtocols),
 			Validators: []validator.String{
 				ConnectionProtocolValidator(allowedProtocols),
 			},
@@ -95,8 +109,8 @@ func connectionScalarAttributes(allowedProtocols []string) map[string]schema.Att
 	}
 }
 
-// connectionProtocolBlocks returns the per-protocol SingleNestedBlock entries.
-func connectionProtocolBlocks() map[string]schema.Block {
+// allConnectionProtocolBlocks returns every per-protocol SingleNestedBlock.
+func allConnectionProtocolBlocks() map[string]schema.Block {
 	return map[string]schema.Block{
 		"kubernetes": schema.SingleNestedBlock{
 			Description:         PamSettingsConnectionKubernetesDescription,
@@ -162,6 +176,23 @@ func connectionProtocolBlocks() map[string]schema.Block {
 			},
 		},
 	}
+}
+
+// connectionProtocolBlocks returns only the per-protocol blocks allowed for
+// the calling PAM record type.
+func connectionProtocolBlocks(allowedProtocols []string) map[string]schema.Block {
+	all := allConnectionProtocolBlocks()
+	filtered := make(map[string]schema.Block, len(allowedProtocols))
+	for _, protocol := range allowedProtocols {
+		key, ok := protocolToAttributeKey[protocol]
+		if !ok {
+			continue
+		}
+		if block, found := all[key]; found {
+			filtered[key] = block
+		}
+	}
+	return filtered
 }
 
 // mergeSchemaAttributes combines multiple attribute maps into one.
@@ -583,6 +614,16 @@ func ConnectionRdpSchema() map[string]schema.Attribute {
 					}, true),
 				},
 			},
+			"drive_redirection_mode": schema.StringAttribute{
+				Optional:            true,
+				Computed:            true,
+				Default:             stringdefault.StaticString("none"),
+				Description:         RdpDriveRedirectionModeDescription,
+				MarkdownDescription: RdpDriveRedirectionModeMarkdownDescription,
+				Validators: []validator.String{
+					utils.StringOneOfValidator("Drive Redirection Mode", []string{"none", "user", "resource"}, true),
+				},
+			},
 		},
 	)
 }
@@ -902,7 +943,7 @@ func CommonPamSettingsBlock(allowedProtocols []string) schema.SingleNestedBlock 
 				Description:         PamSettingsConnectionDescription,
 				MarkdownDescription: PamSettingsConnectionMarkdownDescription,
 				Attributes:          connectionScalarAttributes(allowedProtocols),
-				Blocks:              connectionProtocolBlocks(),
+				Blocks:              connectionProtocolBlocks(allowedProtocols),
 				Validators:          []validator.Object{ConnectionRequiredFieldsValidator(), ConnectionProtocolBlockValidator(), ConnectionFieldsRequireEnabledValidator()},
 			},
 			"tunnel": schema.SingleNestedBlock{
