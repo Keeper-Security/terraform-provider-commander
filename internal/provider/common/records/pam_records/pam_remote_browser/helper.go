@@ -332,6 +332,7 @@ func mapConnectionToPamRemoteBrowserSettingsModel(ctx context.Context, c *utils.
 		AllowCopy:              types.BoolValue(!c.DisableCopy),
 		AllowPaste:             types.BoolValue(!c.DisablePaste),
 		DisableAudio:           types.BoolValue(c.DisableAudio),
+		SessionPersistence:     types.StringValue(c.SessionPersistence),
 	}
 
 	if strings.TrimSpace(c.HttpCredentialsUID) == "" {

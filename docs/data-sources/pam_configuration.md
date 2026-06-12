@@ -184,6 +184,7 @@ Read-Only:
 - `domain_port` (String) Port for the domain controller.
 - `domain_scan_dc_cidr` (Boolean) Whether CIDRs from the domain controller are scanned.
 - `domain_use_ssl` (Boolean) Whether LDAPS is used.
+- `user_match` (String) OU/DN filter (or regex) that limits which Active Directory or OpenLDAP users the Gateway discovers and imports during PAM Discovery.
 
 
 <a id="nestedatt--gcp"></a>

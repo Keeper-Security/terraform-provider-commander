@@ -223,6 +223,7 @@ Optional:
 - `domain_port` (String) Port for the `domain controller`.
 - `domain_scan_dc_cidr` (Boolean) Scan the CIDRs from the domain controller. Default to `False`
 - `domain_use_ssl` (Boolean) Provide `true` if using `LDAPS` (default 636), Provide `false` if using `LDAP` (default 389).
+- `user_match` (String) OU/DN filter (or regex) that limits which Active Directory or OpenLDAP users the Gateway discovers and imports during PAM Discovery.
 
 
 <a id="nestedblock--gcp"></a>

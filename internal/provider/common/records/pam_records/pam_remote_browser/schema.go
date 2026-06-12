@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int32default"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64default"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -176,6 +177,16 @@ func SharedAttributes() map[string]schema.Attribute {
 					Description:         SettingsAudioSampleRateDescription,
 					MarkdownDescription: SettingsAudioSampleRateMarkdownDescription,
 					Default:             int64default.StaticInt64(44100),
+				},
+				"session_persistence": schema.StringAttribute{
+					Optional:            true,
+					Computed:            true,
+					Default:             stringdefault.StaticString("none"),
+					Description:         SettingsSessionPersistenceDescription,
+					MarkdownDescription: SettingsSessionPersistenceMarkdownDescription,
+					Validators: []validator.String{
+						utils.StringOneOfValidator("Session Persistence", []string{"none", "user", "resource"}, false),
+					},
 				},
 			},
 		},

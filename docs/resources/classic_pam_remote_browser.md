@@ -117,6 +117,7 @@ Optional:
 - `ignore_server_cert` (Boolean) **Ignore Server Certificate**.
 - `key_events` (Boolean) **Manage key events for session recording**.
 - `remote_browser_isolation` (Boolean) Enable **remote browser isolation**.
+- `session_persistence` (String) Session **persistence mode**. Must be one of: `none`, `user`, `resource`.
 
 
 <a id="nestedatt--share"></a>

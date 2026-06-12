@@ -610,6 +610,7 @@ type PamRemoteBrowserSettingsFieldConnectionResponse struct {
 	AudioChannels              int    `json:"audioChannels"`
 	AudioBps                   int    `json:"audioBps"`
 	AudioSampleRate            int    `json:"audioSampleRate"`
+	SessionPersistence         string `json:"sessionPersistence"`
 }
 
 // PamRemoteBrowserSettingsFieldResponse is one element of the pamRemoteBrowserSettings field value array.

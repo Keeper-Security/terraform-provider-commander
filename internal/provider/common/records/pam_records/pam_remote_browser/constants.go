@@ -70,6 +70,9 @@ const (
 
 	SettingsAudioSampleRateDescription         = "Audio sample rate in Hz (for example 48000)."
 	SettingsAudioSampleRateMarkdownDescription = "Audio **sample rate** in Hz (for example `48000`)."
+
+	SettingsSessionPersistenceDescription         = "Session persistence mode. Must be one of: `none`, `user`, `resource`."
+	SettingsSessionPersistenceMarkdownDescription = "Session **persistence mode**. Must be one of: `none`, `user`, `resource`."
 )
 
 // Commander CLI commands.

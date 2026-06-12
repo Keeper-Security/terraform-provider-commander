@@ -27,6 +27,7 @@ type PamRemoteBrowserSettingsModel struct {
 	AudioChannels          types.Int32  `tfsdk:"audio_channels"`
 	AudioBitDepth          types.Int64  `tfsdk:"audio_bit_depth"`
 	AudioSampleRate        types.Int64  `tfsdk:"audio_sample_rate"`
+	SessionPersistence     types.String `tfsdk:"session_persistence"`
 }
 
 // PamRemoteBrowserResourceModel is the Terraform state shared by
