@@ -52,6 +52,14 @@ func BuildAddCommand(cmd string, data PamUserSharedModel) string {
 		parts = append(parts, fmt.Sprintf("%s=%s", FieldPrivatePEMKey, quoteShellSingle(data.PrivatePEMKey.ValueString())))
 	}
 
+	if !data.PublicKey.IsNull() && !data.PublicKey.IsUnknown() {
+		parts = append(parts, fmt.Sprintf("%s=%s", FieldPublicKey, quoteShellSingle(data.PublicKey.ValueString())))
+	}
+
+	if !data.PrivateKeyPassphrase.IsNull() && !data.PrivateKeyPassphrase.IsUnknown() {
+		parts = append(parts, fmt.Sprintf("%s=%s", FieldPrivateKeyPassphrase, quoteShellSingle(data.PrivateKeyPassphrase.ValueString())))
+	}
+
 	if !data.ConnectDatabase.IsNull() && !data.ConnectDatabase.IsUnknown() {
 		parts = append(parts, fmt.Sprintf("%s=%s", FieldConnectDatabase, quoteShellSingle(data.ConnectDatabase.ValueString())))
 	}
@@ -79,6 +87,8 @@ func UpdateHasMutations(plan, state PamUserSharedModel) bool {
 		!plan.Password.Equal(state.Password) ||
 		!plan.DistinguishedName.Equal(state.DistinguishedName) ||
 		!plan.PrivatePEMKey.Equal(state.PrivatePEMKey) ||
+		!plan.PublicKey.Equal(state.PublicKey) ||
+		!plan.PrivateKeyPassphrase.Equal(state.PrivateKeyPassphrase) ||
 		!plan.ConnectDatabase.Equal(state.ConnectDatabase) ||
 		!plan.Managed.Equal(state.Managed) ||
 		(!plan.Notes.Equal(state.Notes) && !plan.Notes.IsNull() && !plan.Notes.IsUnknown())
@@ -121,6 +131,22 @@ func BuildUpdateCommand(cmd, recordUID string, plan, state PamUserSharedModel) s
 			parts = append(parts, fmt.Sprintf("%s=", FieldPrivatePEMKey))
 		} else {
 			parts = append(parts, fmt.Sprintf("%s=%s", FieldPrivatePEMKey, quoteShellSingle(plan.PrivatePEMKey.ValueString())))
+		}
+	}
+
+	if !plan.PublicKey.Equal(state.PublicKey) {
+		if plan.PublicKey.IsNull() || plan.PublicKey.IsUnknown() {
+			parts = append(parts, fmt.Sprintf("%s=", FieldPublicKey))
+		} else {
+			parts = append(parts, fmt.Sprintf("%s=%s", FieldPublicKey, quoteShellSingle(plan.PublicKey.ValueString())))
+		}
+	}
+
+	if !plan.PrivateKeyPassphrase.Equal(state.PrivateKeyPassphrase) {
+		if plan.PrivateKeyPassphrase.IsNull() || plan.PrivateKeyPassphrase.IsUnknown() {
+			parts = append(parts, fmt.Sprintf("%s=", FieldPrivateKeyPassphrase))
+		} else {
+			parts = append(parts, fmt.Sprintf("%s=%s", FieldPrivateKeyPassphrase, quoteShellSingle(plan.PrivateKeyPassphrase.ValueString())))
 		}
 	}
 
@@ -184,6 +210,12 @@ func MapVaultRecordToState(rec *utils.VaultRecordGetResponse, state *PamUserShar
 		case vaultFieldTypeSecret:
 			if f.Label == "privatePEMKey" {
 				state.PrivatePEMKey = firstStringValue(f.Value)
+			}
+			if f.Label == "publicKey" {
+				state.PublicKey = firstStringValue(f.Value)
+			}
+			if f.Label == "privateKeyPassphrase" {
+				state.PrivateKeyPassphrase = firstStringValue(f.Value)
 			}
 		case vaultFieldTypeCheckbox:
 			if f.Label == "managed" {
@@ -338,7 +370,7 @@ func ParseRotationInfoMessage(messages []string, existing *PamUserRotationSettin
 		if k, v, ok := strings.Cut(line, ": "); ok {
 			switch k {
 			case "PAM Config UID":
-				if existing.RotationProfile.ValueString() != "general" {
+				if rs.RotationProfile.ValueString() != "general" {
 					rs.Configuration = stringOrNull(v)
 				} else {
 					rs.Configuration = types.StringNull()

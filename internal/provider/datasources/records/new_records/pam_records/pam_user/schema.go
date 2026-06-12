@@ -65,6 +65,18 @@ func (d *PamUserDataSource) Schema(ctx context.Context, req datasource.SchemaReq
 				Description:         commonpamuser.PrivatePEMKeyDescription,
 				MarkdownDescription: commonpamuser.PrivatePEMKeyMarkdownDescription,
 			},
+			"public_key": dschema.StringAttribute{
+				Computed:            true,
+				Sensitive:           true,
+				Description:         commonpamuser.PublicKeyDescription,
+				MarkdownDescription: commonpamuser.PublicKeyMarkdownDescription,
+			},
+			"private_key_passphrase": dschema.StringAttribute{
+				Computed:            true,
+				Sensitive:           true,
+				Description:         commonpamuser.PrivateKeyPassphraseDescription,
+				MarkdownDescription: commonpamuser.PrivateKeyPassphraseMarkdownDescription,
+			},
 			"connect_database": dschema.StringAttribute{
 				Computed:            true,
 				Description:         commonpamuser.ConnectDatabaseDescription,

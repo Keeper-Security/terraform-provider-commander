@@ -14,13 +14,15 @@ import (
 type PamUserSharedModel struct {
 	commonrecordsutils.BaseVaultRecordModel
 
-	Login             types.String             `tfsdk:"login"`
-	Password          types.String             `tfsdk:"password"`
-	DistinguishedName types.String             `tfsdk:"distinguished_name"`
-	PrivatePEMKey     types.String             `tfsdk:"private_pem_key"`
-	ConnectDatabase   types.String             `tfsdk:"connect_database"`
-	Managed           types.Bool               `tfsdk:"managed"`
-	RotationSettings  *PamUserRotationSettings `tfsdk:"rotation_settings"`
+	Login                types.String             `tfsdk:"login"`
+	Password             types.String             `tfsdk:"password"`
+	DistinguishedName    types.String             `tfsdk:"distinguished_name"`
+	PrivatePEMKey        types.String             `tfsdk:"private_pem_key"`
+	PublicKey            types.String             `tfsdk:"public_key"`
+	PrivateKeyPassphrase types.String             `tfsdk:"private_key_passphrase"`
+	ConnectDatabase      types.String             `tfsdk:"connect_database"`
+	Managed              types.Bool               `tfsdk:"managed"`
+	RotationSettings     *PamUserRotationSettings `tfsdk:"rotation_settings"`
 }
 
 // PamUserRotationSettings models the nested `rotation_settings` block applied

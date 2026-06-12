@@ -30,15 +30,17 @@
 ###############################################################################
 
 resource "commander_new_pam_user" "mysql_app_account" {
-  title              = "MySQL - billing app service account"
-  login              = "svc_billing"
-  password           = "_REPLACE_WITH_STRONG_PASSWORD_"
-  folder_location    = "_REPLACE_WITH_NSF_FOLDER_UID_OR_PATH_"
-  notes              = "Service account used by the billing app to connect to MySQL prod."
-  distinguished_name = "CN=svc_billing,OU=Service Accounts,DC=corp,DC=local"
-  private_pem_key    = "_REPLACE_WITH_PEM_KEY_OR_USE_file()_"
-  connect_database   = "billing_prod"
-  managed            = true
+  title                  = "MySQL - billing app service account"
+  login                  = "svc_billing"
+  password               = "_REPLACE_WITH_STRONG_PASSWORD_"
+  folder_location        = "_REPLACE_WITH_NSF_FOLDER_UID_OR_PATH_"
+  notes                  = "Service account used by the billing app to connect to MySQL prod."
+  distinguished_name     = "CN=svc_billing,OU=Service Accounts,DC=corp,DC=local"
+  private_pem_key        = "_REPLACE_WITH_PEM_KEY_OR_USE_file()_"
+  public_key             = "_REPLACE_WITH_PUBLIC_KEY_OR_USE_file()_"
+  private_key_passphrase = "_REPLACE_WITH_PRIVATE_KEY_PASSPHRASE_OR_USE_file()_"
+  connect_database       = "billing_prod"
+  managed                = true
 
   # ----------------------------------------------------------------
   # Per-user share permissions (optional).

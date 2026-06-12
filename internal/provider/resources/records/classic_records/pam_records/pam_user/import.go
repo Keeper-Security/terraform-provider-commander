@@ -8,6 +8,8 @@ import (
 	"strings"
 
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/classic_share"
+	commonpamuser "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/pam_records/pam_user"
+	commonrecordsutils "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/utils"
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/utils"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -18,15 +20,32 @@ func (r *PamUserResource) ImportState(ctx context.Context, req resource.ImportSt
 	if importID == "" {
 		resp.Diagnostics.AddError(
 			utils.ERR_MSG_INVALID_IMPORT_ID,
-			"Import ID cannot be empty. Use the PAM User record UID.",
+			"Import ID cannot be empty. Use the PAM user record UID when defined.",
 		)
 		return
 	}
 
-	state := PamUserResourceModel{}
-	state.Id = types.StringValue(importID)
-	state.ShareModel = classic_share.ShareModel{
-		Share: types.MapNull(classic_share.ShareEntryAttrType),
+	state := PamUserResourceModel{
+		PamUserSharedModel: commonpamuser.PamUserSharedModel{
+			BaseVaultRecordModel: commonrecordsutils.BaseVaultRecordModel{
+				Id:             types.StringValue(importID),
+				Title:          types.StringNull(),
+				Notes:          types.StringNull(),
+				FolderLocation: types.StringNull(),
+			},
+			Login:                types.StringNull(),
+			Password:             types.StringNull(),
+			DistinguishedName:    types.StringNull(),
+			PrivatePEMKey:        types.StringNull(),
+			PublicKey:            types.StringNull(),
+			PrivateKeyPassphrase: types.StringNull(),
+			ConnectDatabase:      types.StringNull(),
+			Managed:              types.BoolNull(),
+			RotationSettings:     nil,
+		},
+		ShareModel: classic_share.ShareModel{
+			Share: types.MapNull(classic_share.ShareEntryAttrType),
+		},
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)

@@ -13,7 +13,6 @@ import (
 	commonpamuser "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/pam_records/pam_user"
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/utils"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
-	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
 func (d *PamUserDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
@@ -40,6 +39,7 @@ func (d *PamUserDataSource) Read(ctx context.Context, req datasource.ReadRequest
 		return
 	}
 
+	// Phase 1: fetch the vault record
 	apiResp, err := commonpamrecords.FetchVaultRecord(ctx, d.ApiManager, recordUID)
 	if err != nil {
 		resp.Diagnostics.AddError(errSummaryReadPamUserDataSource, err.Error())
@@ -67,6 +67,7 @@ func (d *PamUserDataSource) Read(ctx context.Context, req datasource.ReadRequest
 
 	commonpamuser.MapVaultRecordToState(&rec, &data.PamUserSharedModel)
 
+	// Phase 2: fetch rotation info
 	rotCmd := fmt.Sprintf("%s %s '%s'", commonpamuser.CmdPamRotationInfo, commonpamuser.FlagRecordShort, recordUID)
 	if rotResp, err := d.ApiManager.ExecuteCommand(ctx, rotCmd, commonpamuser.ErrDetailRotationInfoFailed); err == nil && rotResp != nil {
 		messages := commonpamuser.ParseFlexibleMessageToLines(rotResp.Message.String())
@@ -82,8 +83,6 @@ func (d *PamUserDataSource) Read(ctx context.Context, req datasource.ReadRequest
 		resp.Diagnostics.AddError(errSummaryReadPamUserDataSource, err.Error())
 		return
 	}
-
-	data.PamUser = types.StringValue(recordUID)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }

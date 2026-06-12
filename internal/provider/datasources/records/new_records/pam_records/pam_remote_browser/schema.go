@@ -145,5 +145,10 @@ func pamRemoteBrowserRBISettingsDataSourceAttributes() map[string]dschema.Attrib
 			Description:         commonpamremotebrowser.SettingsAudioSampleRateDescription,
 			MarkdownDescription: commonpamremotebrowser.SettingsAudioSampleRateMarkdownDescription,
 		},
+		"session_persistence": dschema.StringAttribute{
+			Computed:            true,
+			Description:         commonpamremotebrowser.SettingsSessionPersistenceDescription,
+			MarkdownDescription: commonpamremotebrowser.SettingsSessionPersistenceMarkdownDescription,
+		},
 	}
 }

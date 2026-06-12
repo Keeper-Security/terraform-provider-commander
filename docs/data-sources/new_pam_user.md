@@ -83,6 +83,16 @@ output "pam_user_private_pem_key" {
   sensitive = true
 }
 
+output "pam_user_public_key" {
+  value     = data.commander_new_pam_user.mysql_app_account.public_key
+  sensitive = true
+}
+
+output "pam_user_private_key_passphrase" {
+  value     = data.commander_new_pam_user.mysql_app_account.private_key_passphrase
+  sensitive = true
+}
+
 ###############################################################################
 # Outputs - rotation_settings (may be null if rotation isn't configured)
 ###############################################################################
@@ -137,7 +147,9 @@ output "pam_user_share" {
 - `managed` (Boolean) Whether this PAM User account is managed by Keeper.
 - `notes` (String) Optional notes for the PAM User record.
 - `password` (String, Sensitive) Password for the PAM User.
+- `private_key_passphrase` (String, Sensitive) Passphrase for the private key associated with the PAM User.
 - `private_pem_key` (String, Sensitive) Private PEM key associated with the PAM User.
+- `public_key` (String, Sensitive) Public key associated with the PAM User.
 - `rotation_settings` (Attributes) Rotation settings for the PAM User record. Configures password rotation via `pam rotation edit`.
 
 **Schedule:** use `on_demand` **or** at most one of `schedule_config`, `schedule_cron`, and `schedule_json` (they are mutually exclusive; see attribute descriptions). (see [below for nested schema](#nestedatt--rotation_settings))

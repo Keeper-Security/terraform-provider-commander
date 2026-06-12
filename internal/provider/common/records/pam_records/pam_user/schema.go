@@ -79,6 +79,27 @@ func SharedAttributes() map[string]schema.Attribute {
 			Sensitive:           true,
 			Description:         PrivatePEMKeyDescription,
 			MarkdownDescription: PrivatePEMKeyMarkdownDescription,
+			Validators: []validator.String{
+				utils.StringMinLengthValidator("Public Key", 1, true),
+			},
+		},
+		"public_key": schema.StringAttribute{
+			Optional:            true,
+			Sensitive:           true,
+			Description:         PublicKeyDescription,
+			MarkdownDescription: PublicKeyMarkdownDescription,
+			Validators: []validator.String{
+				utils.StringMinLengthValidator("Public Key", 1, true),
+			},
+		},
+		"private_key_passphrase": schema.StringAttribute{
+			Optional:            true,
+			Sensitive:           true,
+			Description:         PrivateKeyPassphraseDescription,
+			MarkdownDescription: PrivateKeyPassphraseMarkdownDescription,
+			Validators: []validator.String{
+				utils.StringMinLengthValidator("Private Key Passphrase", 1, true),
+			},
 		},
 		"connect_database": schema.StringAttribute{
 			Optional:            true,

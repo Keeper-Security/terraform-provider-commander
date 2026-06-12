@@ -17,10 +17,10 @@ func (d *PamUserDataSource) Schema(ctx context.Context, req datasource.SchemaReq
 		Description:         SchemaDescription,
 		MarkdownDescription: SchemaMarkdownDescription,
 		Attributes: utils.MergeDataSourceAttributes(map[string]dschema.Attribute{
-			"record_uid": dschema.StringAttribute{
+			"pam_user": dschema.StringAttribute{
 				Required:            true,
-				Description:         "Vault record UID of the pamUser record to read.",
-				MarkdownDescription: "Vault **record UID** of the `pamUser` record to read.",
+				Description:         "PAM user record UID or name to read.",
+				MarkdownDescription: "PAM user record **UID** or **name** to read.",
 			},
 			"id": dschema.StringAttribute{
 				Computed:            true,
@@ -63,6 +63,18 @@ func (d *PamUserDataSource) Schema(ctx context.Context, req datasource.SchemaReq
 				Sensitive:           true,
 				Description:         "Private PEM key associated with the PAM User.",
 				MarkdownDescription: "**Private PEM key** associated with the PAM User.",
+			},
+			"public_key": dschema.StringAttribute{
+				Computed:            true,
+				Sensitive:           true,
+				Description:         "Public key associated with the PAM User.",
+				MarkdownDescription: "**Public key** associated with the PAM User.",
+			},
+			"private_key_passphrase": dschema.StringAttribute{
+				Computed:            true,
+				Sensitive:           true,
+				Description:         "Passphrase for the private key associated with the PAM User.",
+				MarkdownDescription: "Passphrase for the private key associated with the PAM User.",
 			},
 			"connect_database": dschema.StringAttribute{
 				Computed:            true,
