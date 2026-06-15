@@ -99,4 +99,5 @@ const (
 	FlagAudioChannels          = "--audio-channels"
 	FlagAudioBitDepth          = "--audio-bit-depth"
 	FlagAudioSampleRate        = "--audio-sample-rate"
+	FlagSessionPersistence     = "--session-persistence"
 )

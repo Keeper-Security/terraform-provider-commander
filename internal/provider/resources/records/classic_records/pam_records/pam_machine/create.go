@@ -48,7 +48,7 @@ func (r *PamMachineResource) Create(ctx context.Context, req resource.CreateRequ
 	data.Id = types.StringValue(createdRecordUID)
 
 	if data.PamSettings != nil {
-		if err := commonpamrecords.ApplyPamSettings(ctx, r.ApiManager, createdRecordUID, data.PamSettings, nil); err != nil {
+		if err := commonpamrecords.ApplyMachineDirectoryPamSettings(ctx, r.ApiManager, createdRecordUID, data.PamSettings, nil); err != nil {
 			resp.Diagnostics.AddError(utils.ErrSummaryApplyPamTunnelSettingsFailed, err.Error())
 			return
 		}

@@ -59,15 +59,6 @@ func TestConnectionProtocolValidator_RejectsMachineDirectoryProtocolsForDatabase
 	}
 }
 
-func TestConnectionProtocolValidator_RejectsMariadbAndOracleForDatabase(t *testing.T) {
-	for _, p := range []string{"mariadb", "oracle"} {
-		resp := runProtocolValidator(t, commonpamrecords.DatabaseProtocols, types.StringValue(p))
-		if !resp.Diagnostics.HasError() {
-			t.Errorf("protocol %q must be rejected until its sub-block schema and helper branch are implemented", p)
-		}
-	}
-}
-
 func TestConnectionProtocolValidator_RejectsUnknownProtocol(t *testing.T) {
 	resp := runProtocolValidator(t, commonpamrecords.MachineDirectoryProtocols, types.StringValue("ftp"))
 	if !resp.Diagnostics.HasError() {

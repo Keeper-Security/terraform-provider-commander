@@ -25,5 +25,5 @@ type PamDirectoryResourceModel struct {
 	ProviderGroup  types.String                        `tfsdk:"provider_group"`
 	ProviderRegion types.String                        `tfsdk:"provider_region"`
 
-	PamSettings *commonpamrecords.CommonPamSettingsFieldResourceModel `tfsdk:"pam_settings"`
+	PamSettings *commonpamrecords.MachineDirectoryPamSettingsFieldResourceModel `tfsdk:"pam_settings"`
 }

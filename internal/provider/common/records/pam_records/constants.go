@@ -17,6 +17,8 @@ const (
 	ConnectionProtocolSsh        = "ssh"
 	ConnectionProtocolTelnet     = "telnet"
 	ConnectionProtocolVnc        = "vnc"
+	ConnectionProtocolMariaDb    = "mariadb"
+	ConnectionProtocolOracle     = "oracle"
 )
 
 const (
@@ -62,6 +64,12 @@ const (
 
 	PamSettingsConnectionVncDescription         = "VNC protocol-specific connection attributes."
 	PamSettingsConnectionVncMarkdownDescription = "**VNC** protocol-specific connection attributes."
+
+	PamSettingsConnectionMariaDbDescription         = "MariaDB protocol-specific connection attributes."
+	PamSettingsConnectionMariaDbMarkdownDescription = "**MariaDB** protocol-specific connection attributes."
+
+	PamSettingsConnectionOracleDescription         = "Oracle protocol-specific connection attributes."
+	PamSettingsConnectionOracleMarkdownDescription = "**Oracle** protocol-specific connection attributes."
 
 	// --- Shared Connection Attributes (ConnectionCommonFields) ---.
 	ConnectionSessionRecordingDescription         = "Whether session recording is enabled."

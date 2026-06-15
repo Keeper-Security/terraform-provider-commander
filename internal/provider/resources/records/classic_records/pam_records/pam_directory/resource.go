@@ -44,7 +44,7 @@ func (r *PamDirectoryResource) ModifyPlan(ctx context.Context, req resource.Modi
 		return
 	}
 
-	resp.Diagnostics.Append(commonpamrecords.ValidatePamSettingsFieldsNotRemoved(plan.PamSettings, state.PamSettings)...)
+	resp.Diagnostics.Append(commonpamrecords.ValidateMachineDirectoryPamSettingsFieldsNotRemoved(plan.PamSettings, state.PamSettings)...)
 }
 
 func NewPamDirectoryResource() resource.Resource {

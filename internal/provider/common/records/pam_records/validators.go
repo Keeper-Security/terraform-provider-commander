@@ -24,13 +24,13 @@ var MachineDirectoryProtocols = []string{
 }
 
 // DatabaseProtocols lists the connection protocols allowed on PAM Database
-// records. mariadb and oracle are intentionally excluded until their
-// sub-block schemas and helper branches land; adding them here without that
-// support would let users pass schema validation and then fail at apply.
+// records.
 var DatabaseProtocols = []string{
 	ConnectionProtocolMysql,
 	ConnectionProtocolPostgreSql,
 	ConnectionProtocolSqlServer,
+	ConnectionProtocolMariaDb,
+	ConnectionProtocolOracle,
 }
 
 // protocolToAttributeKey maps each protocol constant to the tfsdk attribute
@@ -44,6 +44,8 @@ var protocolToAttributeKey = map[string]string{
 	ConnectionProtocolSsh:        "ssh",
 	ConnectionProtocolTelnet:     "telnet",
 	ConnectionProtocolVnc:        "vnc",
+	ConnectionProtocolMariaDb:    "mariadb",
+	ConnectionProtocolOracle:     "oracle",
 }
 
 // ---------------------------------------------------------------------------

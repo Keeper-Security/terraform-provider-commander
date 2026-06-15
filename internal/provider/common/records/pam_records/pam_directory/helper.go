@@ -156,7 +156,7 @@ func MapVaultRecordGetResponseToPamDirectoryModel(rec *utils.VaultRecordGetRespo
 	state.ProviderGroup = setStringOrNull(commonpamrecords.ExtractFirstTextFieldValue(rec.Fields, "providerGroup"))
 	state.ProviderRegion = setStringOrNull(commonpamrecords.ExtractFirstTextFieldValue(rec.Fields, "providerRegion"))
 
-	state.PamSettings = commonpamrecords.ExtractPamSettingsFromResponse(rec, state.PamSettings)
+	state.PamSettings = commonpamrecords.ExtractMachineDirectoryPamSettingsFromResponse(rec, state.PamSettings)
 
 	return diags
 }

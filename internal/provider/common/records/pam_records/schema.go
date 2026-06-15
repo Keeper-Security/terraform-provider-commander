@@ -132,12 +132,7 @@ func allConnectionProtocolBlocks() map[string]schema.Block {
 			MarkdownDescription: PamSettingsConnectionRdpMarkdownDescription,
 			Attributes:          ConnectionRdpSchema(),
 			Blocks: map[string]schema.Block{
-				"sftp": schema.SingleNestedBlock{
-					Description:         RdpSftpDescription,
-					MarkdownDescription: RdpSftpMarkdownDescription,
-					Attributes:          ConnectionSftpSchema(),
-					Validators:          []validator.Object{SftpUserUidRequiredValidator()},
-				},
+				"sftp": sftpBlockWithUserUidValidator(RdpSftpDescription, RdpSftpMarkdownDescription),
 			},
 		},
 		"sql_server": schema.SingleNestedBlock{
@@ -167,13 +162,18 @@ func allConnectionProtocolBlocks() map[string]schema.Block {
 			MarkdownDescription: PamSettingsConnectionVncMarkdownDescription,
 			Attributes:          ConnectionVncSchema(),
 			Blocks: map[string]schema.Block{
-				"sftp": schema.SingleNestedBlock{
-					Description:         VncSftpDescription,
-					MarkdownDescription: VncSftpMarkdownDescription,
-					Attributes:          ConnectionSftpSchema(),
-					Validators:          []validator.Object{SftpUserUidRequiredValidator()},
-				},
+				"sftp": sftpBlockWithUserUidValidator(VncSftpDescription, VncSftpMarkdownDescription),
 			},
+		},
+		"mariadb": schema.SingleNestedBlock{
+			Description:         PamSettingsConnectionMariaDbDescription,
+			MarkdownDescription: PamSettingsConnectionMariaDbMarkdownDescription,
+			Attributes:          ConnectionMariaDbOracleDatabaseSchema(),
+		},
+		"oracle": schema.SingleNestedBlock{
+			Description:         PamSettingsConnectionOracleDescription,
+			MarkdownDescription: PamSettingsConnectionOracleMarkdownDescription,
+			Attributes:          ConnectionMariaDbOracleDatabaseSchema(),
 		},
 	}
 }
@@ -298,6 +298,103 @@ func ConnectionClipboardSchema() map[string]schema.Attribute {
 	}
 }
 
+// connectionRecordingNoTypescriptSchema returns the recording attributes
+// shared by RDP and VNC (no typescript_recording, plus read_only).
+func connectionRecordingNoTypescriptSchema() map[string]schema.Attribute {
+	return map[string]schema.Attribute{
+		"session_recording": schema.BoolAttribute{
+			Optional:            true,
+			Description:         ConnectionSessionRecordingDescription,
+			MarkdownDescription: ConnectionSessionRecordingMarkdownDescription,
+		},
+		"recording_include_keys": schema.BoolAttribute{
+			Optional:            true,
+			Description:         ConnectionRecordingIncludeKeysDescription,
+			MarkdownDescription: ConnectionRecordingIncludeKeysMarkdownDescription,
+		},
+		"allow_supply_user": schema.BoolAttribute{
+			Optional:            true,
+			Description:         ConnectionAllowSupplyUserDescription,
+			MarkdownDescription: ConnectionAllowSupplyUserMarkdownDescription,
+		},
+		"read_only": schema.BoolAttribute{
+			Optional:            true,
+			Description:         ConnectionReadOnlyDescription,
+			MarkdownDescription: ConnectionReadOnlyMarkdownDescription,
+		},
+	}
+}
+
+// databaseCsvAndNameSchema returns the disable_csv_export, disable_csv_import,
+// and database attributes shared by every database protocol.
+func databaseCsvAndNameSchema(csvDefault bool) map[string]schema.Attribute {
+	csvAttr := func(desc, mdesc string) schema.BoolAttribute {
+		attr := schema.BoolAttribute{
+			Optional:            true,
+			Description:         desc,
+			MarkdownDescription: mdesc,
+		}
+		if csvDefault {
+			attr.Computed = true
+			attr.Default = booldefault.StaticBool(false)
+		}
+		return attr
+	}
+	return map[string]schema.Attribute{
+		"disable_csv_export": csvAttr(DatabaseDisableCsvExportDescription, DatabaseDisableCsvExportMarkdownDescription),
+		"disable_csv_import": csvAttr(DatabaseDisableCsvImportDescription, DatabaseDisableCsvImportMarkdownDescription),
+		"database": schema.StringAttribute{
+			Optional:            true,
+			Description:         DatabaseDatabaseDescription,
+			MarkdownDescription: DatabaseDatabaseMarkdownDescription,
+		},
+	}
+}
+
+// backspaceAttribute returns the "127" / "8" backspace attribute shared by
+// Kubernetes, SSH, and Telnet protocols.
+func backspaceAttribute(desc, mdesc string) schema.Attribute {
+	return schema.StringAttribute{
+		Optional:            true,
+		Computed:            true,
+		Default:             stringdefault.StaticString("127"),
+		Description:         desc,
+		MarkdownDescription: mdesc,
+		Validators: []validator.String{
+			utils.StringOneOfValidator("Backspace", []string{"127", "8"}, true),
+		},
+	}
+}
+
+// colorDepthAttribute returns a color_depth Int32Attribute restricted to the
+// canonical {8, 16, 24, 32} set. defaultValue == 0 means no default.
+func colorDepthAttribute(desc, mdesc string, defaultValue int32) schema.Attribute {
+	attr := schema.Int32Attribute{
+		Optional:            true,
+		Description:         desc,
+		MarkdownDescription: mdesc,
+		Validators: []validator.Int32{
+			utils.Int32OneOfValidator("Color Depth", []int32{8, 16, 24, 32}, true),
+		},
+	}
+	if defaultValue != 0 {
+		attr.Computed = true
+		attr.Default = int32default.StaticInt32(defaultValue)
+	}
+	return attr
+}
+
+// sftpBlockWithUserUidValidator returns the SFTP nested block used by RDP
+// and VNC, including the shared SftpUserUidRequiredValidator.
+func sftpBlockWithUserUidValidator(desc, mdesc string) schema.Block {
+	return schema.SingleNestedBlock{
+		Description:         desc,
+		MarkdownDescription: mdesc,
+		Attributes:          ConnectionSftpSchema(),
+		Validators:          []validator.Object{SftpUserUidRequiredValidator()},
+	}
+}
+
 // ConnectionKubernetesSchema returns the schema attributes for
 // the kubernetes protocol-specific connection block.
 func ConnectionKubernetesSchema() map[string]schema.Attribute {
@@ -355,47 +452,19 @@ func ConnectionKubernetesSchema() map[string]schema.Attribute {
 				Description:         KubernetesCommandDescription,
 				MarkdownDescription: KubernetesCommandMarkdownDescription,
 			},
-			"backspace": schema.StringAttribute{
-				Optional:            true,
-				Computed:            true,
-				Default:             stringdefault.StaticString("127"),
-				Description:         KubernetesBackspaceDescription,
-				MarkdownDescription: KubernetesBackspaceMarkdownDescription,
-				Validators: []validator.String{
-					utils.StringOneOfValidator("Backspace", []string{"127", "8"}, true),
-				},
-			},
+			"backspace": backspaceAttribute(KubernetesBackspaceDescription, KubernetesBackspaceMarkdownDescription),
 		},
 	)
 }
 
 // ConnectionRdpSchema returns the schema attributes for the RDP protocol connection block.
-// RDP does not support typescript_recording, so we inline the base recording fields
-// instead of using ConnectionCommonSchema().
+// RDP does not support typescript_recording, so we use the no-typescript
+// recording mixin instead of ConnectionCommonSchema().
 func ConnectionRdpSchema() map[string]schema.Attribute {
 	return mergeSchemaAttributes(
 		ConnectionClipboardSchema(),
+		connectionRecordingNoTypescriptSchema(),
 		map[string]schema.Attribute{
-			"session_recording": schema.BoolAttribute{
-				Optional:            true,
-				Description:         ConnectionSessionRecordingDescription,
-				MarkdownDescription: ConnectionSessionRecordingMarkdownDescription,
-			},
-			"recording_include_keys": schema.BoolAttribute{
-				Optional:            true,
-				Description:         ConnectionRecordingIncludeKeysDescription,
-				MarkdownDescription: ConnectionRecordingIncludeKeysMarkdownDescription,
-			},
-			"allow_supply_user": schema.BoolAttribute{
-				Optional:            true,
-				Description:         ConnectionAllowSupplyUserDescription,
-				MarkdownDescription: ConnectionAllowSupplyUserMarkdownDescription,
-			},
-			"read_only": schema.BoolAttribute{
-				Optional:            true,
-				Description:         ConnectionReadOnlyDescription,
-				MarkdownDescription: ConnectionReadOnlyMarkdownDescription,
-			},
 			"ignore_cert": schema.BoolAttribute{
 				Optional:            true,
 				Description:         RdpIgnoreCertDescription,
@@ -590,16 +659,7 @@ func ConnectionRdpSchema() map[string]schema.Attribute {
 					utils.StringOneOfValidator("Resize Method", []string{"display-update", "reconnect"}, true),
 				},
 			},
-			"color_depth": schema.Int32Attribute{
-				Optional:            true,
-				Computed:            true,
-				Default:             int32default.StaticInt32(8),
-				Description:         RdpColorDepthDescription,
-				MarkdownDescription: RdpColorDepthMarkdownDescription,
-				Validators: []validator.Int32{
-					utils.Int32OneOfValidator("Color Depth", []int32{8, 16, 24, 32}, true),
-				},
-			},
+			"color_depth": colorDepthAttribute(RdpColorDepthDescription, RdpColorDepthMarkdownDescription, 8),
 			"server_layout": schema.StringAttribute{
 				Optional:            true,
 				Computed:            true,
@@ -669,27 +729,7 @@ func ConnectionDatabaseSchema() map[string]schema.Attribute {
 		ConnectionCommonSchema(),
 		ConnectionTerminalSchema(),
 		ConnectionClipboardSchema(),
-		map[string]schema.Attribute{
-			"disable_csv_export": schema.BoolAttribute{
-				Optional:            true,
-				Computed:            true,
-				Default:             booldefault.StaticBool(false),
-				Description:         DatabaseDisableCsvExportDescription,
-				MarkdownDescription: DatabaseDisableCsvExportMarkdownDescription,
-			},
-			"disable_csv_import": schema.BoolAttribute{
-				Optional:            true,
-				Computed:            true,
-				Default:             booldefault.StaticBool(false),
-				Description:         DatabaseDisableCsvImportDescription,
-				MarkdownDescription: DatabaseDisableCsvImportMarkdownDescription,
-			},
-			"database": schema.StringAttribute{
-				Optional:            true,
-				Description:         DatabaseDatabaseDescription,
-				MarkdownDescription: DatabaseDatabaseMarkdownDescription,
-			},
-		},
+		databaseCsvAndNameSchema(true),
 	)
 }
 
@@ -738,16 +778,7 @@ func ConnectionSshSchema() map[string]schema.Attribute {
 					utils.Int32NonNegativeValidator("Server Alive Interval", true),
 				},
 			},
-			"backspace": schema.StringAttribute{
-				Optional:            true,
-				Computed:            true,
-				Default:             stringdefault.StaticString("127"),
-				Description:         SshBackspaceDescription,
-				MarkdownDescription: SshBackspaceMarkdownDescription,
-				Validators: []validator.String{
-					utils.StringOneOfValidator("Backspace", []string{"127", "8"}, true),
-				},
-			},
+			"backspace": backspaceAttribute(SshBackspaceDescription, SshBackspaceMarkdownDescription),
 			"terminal_type": schema.StringAttribute{
 				Optional:            true,
 				Description:         SshTerminalTypeDescription,
@@ -795,16 +826,7 @@ func ConnectionTelnetSchema() map[string]schema.Attribute {
 				Description:         TelnetLoginFailureRegexDescription,
 				MarkdownDescription: TelnetLoginFailureRegexMarkdownDescription,
 			},
-			"backspace": schema.StringAttribute{
-				Optional:            true,
-				Computed:            true,
-				Default:             stringdefault.StaticString("127"),
-				Description:         TelnetBackspaceDescription,
-				MarkdownDescription: TelnetBackspaceMarkdownDescription,
-				Validators: []validator.String{
-					utils.StringOneOfValidator("Backspace", []string{"127", "8"}, true),
-				},
-			},
+			"backspace": backspaceAttribute(TelnetBackspaceDescription, TelnetBackspaceMarkdownDescription),
 			"terminal_type": schema.StringAttribute{
 				Optional:            true,
 				Description:         TelnetTerminalTypeDescription,
@@ -815,32 +837,13 @@ func ConnectionTelnetSchema() map[string]schema.Attribute {
 }
 
 // ConnectionVncSchema returns the schema attributes for the VNC protocol connection block.
-// VNC does not support typescript_recording, so we inline the applicable
-// fields instead of using ConnectionCommonSchema().
+// VNC does not support typescript_recording, so we use the no-typescript
+// recording mixin instead of ConnectionCommonSchema().
 func ConnectionVncSchema() map[string]schema.Attribute {
 	return mergeSchemaAttributes(
 		ConnectionClipboardSchema(),
+		connectionRecordingNoTypescriptSchema(),
 		map[string]schema.Attribute{
-			"session_recording": schema.BoolAttribute{
-				Optional:            true,
-				Description:         ConnectionSessionRecordingDescription,
-				MarkdownDescription: ConnectionSessionRecordingMarkdownDescription,
-			},
-			"allow_supply_user": schema.BoolAttribute{
-				Optional:            true,
-				Description:         ConnectionAllowSupplyUserDescription,
-				MarkdownDescription: ConnectionAllowSupplyUserMarkdownDescription,
-			},
-			"recording_include_keys": schema.BoolAttribute{
-				Optional:            true,
-				Description:         ConnectionRecordingIncludeKeysDescription,
-				MarkdownDescription: ConnectionRecordingIncludeKeysMarkdownDescription,
-			},
-			"read_only": schema.BoolAttribute{
-				Optional:            true,
-				Description:         ConnectionReadOnlyDescription,
-				MarkdownDescription: ConnectionReadOnlyMarkdownDescription,
-			},
 			"swap_red_blue": schema.BoolAttribute{
 				Optional:            true,
 				Description:         VncSwapRedBlueDescription,
@@ -892,15 +895,32 @@ func ConnectionVncSchema() map[string]schema.Attribute {
 					utils.StringOneOfValidator("Cursor", []string{"local", "remote"}, true),
 				},
 			},
-			"color_depth": schema.Int32Attribute{
+			"color_depth": colorDepthAttribute(VncColorDepthDescription, VncColorDepthMarkdownDescription, 0),
+		},
+	)
+}
+
+func ConnectionMariaDbOracleDatabaseSchema() map[string]schema.Attribute {
+	return mergeSchemaAttributes(
+		map[string]schema.Attribute{
+			"session_recording": schema.BoolAttribute{
 				Optional:            true,
-				Description:         VncColorDepthDescription,
-				MarkdownDescription: VncColorDepthMarkdownDescription,
-				Validators: []validator.Int32{
-					utils.Int32OneOfValidator("Color Depth", []int32{8, 16, 24, 32}, true),
-				},
+				Description:         ConnectionSessionRecordingDescription,
+				MarkdownDescription: ConnectionSessionRecordingMarkdownDescription,
+			},
+			"recording_include_keys": schema.BoolAttribute{
+				Optional:            true,
+				Description:         ConnectionRecordingIncludeKeysDescription,
+				MarkdownDescription: ConnectionRecordingIncludeKeysMarkdownDescription,
+			},
+			"allow_supply_user": schema.BoolAttribute{
+				Optional:            true,
+				Description:         ConnectionAllowSupplyUserDescription,
+				MarkdownDescription: ConnectionAllowSupplyUserMarkdownDescription,
 			},
 		},
+		ConnectionClipboardSchema(),
+		databaseCsvAndNameSchema(false),
 	)
 }
 

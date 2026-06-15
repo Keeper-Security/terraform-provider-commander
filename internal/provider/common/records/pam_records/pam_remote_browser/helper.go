@@ -101,6 +101,7 @@ func AppendPamRbiEditSettingsFlags(parts *[]string, settings *PamRemoteBrowserSe
 	appendPamRbiBoolOnOff(parts, FlagAllowURLNavigation, settings.AllowUrlNavigation)
 	appendPamRbiBoolOnOff(parts, FlagIgnoreServerCert, settings.IgnoreServerCert)
 
+	appendPamRbiStringFlag(parts, FlagSessionPersistence, settings.SessionPersistence)
 	appendPamRbiRepeatedStringFlags(parts, FlagAllowedURLs, settings.AllowedUrls)
 	appendPamRbiRepeatedStringFlags(parts, FlagAllowedResourceURLs, settings.AllowedResourceUrls)
 
@@ -232,7 +233,8 @@ func pamRemoteBrowserSettingsEqual(plan, state *PamRemoteBrowserSettingsModel) b
 		plan.DisableAudio.Equal(state.DisableAudio) &&
 		plan.AudioChannels.Equal(state.AudioChannels) &&
 		plan.AudioBitDepth.Equal(state.AudioBitDepth) &&
-		plan.AudioSampleRate.Equal(state.AudioSampleRate)
+		plan.AudioSampleRate.Equal(state.AudioSampleRate) &&
+		plan.SessionPersistence.Equal(state.SessionPersistence)
 }
 
 const (

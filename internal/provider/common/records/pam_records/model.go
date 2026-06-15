@@ -13,29 +13,46 @@ type HostnameOrIPModel struct {
 	AdministrativePort types.Int32  `tfsdk:"administrative_port"`
 }
 
-type CommonPamSettingsConnectionResourceModel struct {
+// ---------------------------------------------------------------------------
+// Shared mixins
+// ---------------------------------------------------------------------------
+
+// connectionScalarsModel is the set of scalar attributes every PAM connection
+// block carries. Embedded into each per-record-type connection model so the
+// 4 fields live in exactly one place.
+type connectionScalarsModel struct {
 	Enable           types.Bool   `tfsdk:"enable"`
 	Protocol         types.String `tfsdk:"protocol"`
 	ConnectionPort   types.Int32  `tfsdk:"connection_port"`
 	LaunchCredential types.String `tfsdk:"launch_credential"`
-
-	Kubernetes *ConnectionKubernetesModel `tfsdk:"kubernetes"`
-	Mysql      *ConnectionDatabaseModel   `tfsdk:"mysql"`
-	PostgreSql *ConnectionDatabaseModel   `tfsdk:"postgresql"`
-	Rdp        *ConnectionRdpModel        `tfsdk:"rdp"`
-	SqlServer  *ConnectionDatabaseModel   `tfsdk:"sql_server"`
-	Ssh        *ConnectionSshModel        `tfsdk:"ssh"`
-	Telnet     *ConnectionTelnetModel     `tfsdk:"telnet"`
-	Vnc        *ConnectionVncModel        `tfsdk:"vnc"`
 }
 
-// Shared field groups embedded by per-protocol models.
-// ConnectionCommonFields is used by K, D, SSH, Telnet (NOT RDP, VNC).
+// pamSettingsCommonModel is the set of pam_settings attributes that are
+// identical across record types (everything except the per-type connection
+// block). Embedded into each per-record-type pam_settings field model.
+type pamSettingsCommonModel struct {
+	AllowSupplyHost           types.Bool                            `tfsdk:"allow_supply_host"`
+	Tunnel                    *CommonPamSettingsTunnelResourceModel `tfsdk:"tunnel"`
+	Configuration             types.String                          `tfsdk:"configuration"`
+	AdministrativeCredentials types.String                          `tfsdk:"administrative_credentials"`
+}
+
+// ConnectionCommonFields is used by K8s, Database, SSH, Telnet (NOT RDP, VNC).
 type ConnectionCommonFields struct {
 	SessionRecording     types.Bool `tfsdk:"session_recording"`
 	RecordingIncludeKeys types.Bool `tfsdk:"recording_include_keys"`
 	AllowSupplyUser      types.Bool `tfsdk:"allow_supply_user"`
 	TypescriptRecording  types.Bool `tfsdk:"typescript_recording"`
+}
+
+// ConnectionRecordingNoTypescriptFields is used by RDP and VNC, which do not
+// support typescript_recording but otherwise share the same recording toggles
+// plus a read_only flag.
+type ConnectionRecordingNoTypescriptFields struct {
+	SessionRecording     types.Bool `tfsdk:"session_recording"`
+	RecordingIncludeKeys types.Bool `tfsdk:"recording_include_keys"`
+	AllowSupplyUser      types.Bool `tfsdk:"allow_supply_user"`
+	ReadOnly             types.Bool `tfsdk:"read_only"`
 }
 
 type ConnectionTerminalFields struct {
@@ -51,7 +68,10 @@ type ConnectionClipboardFields struct {
 	DisablePaste types.Bool `tfsdk:"disable_paste"`
 }
 
-// Per-protocol attribute models.
+// ---------------------------------------------------------------------------
+// Per-protocol attribute models
+// ---------------------------------------------------------------------------
+
 type ConnectionKubernetesModel struct {
 	ConnectionCommonFields
 	ConnectionTerminalFields
@@ -68,7 +88,7 @@ type ConnectionKubernetesModel struct {
 	Backspace           types.String `tfsdk:"backspace"`
 }
 
-// ConnectionDatabaseModel is shared by mysql, postgresql, and sql_server protocols.
+// ConnectionDatabaseModel is shared by mysql, postgresql, and sql_server.
 type ConnectionDatabaseModel struct {
 	ConnectionCommonFields
 	ConnectionTerminalFields
@@ -78,11 +98,21 @@ type ConnectionDatabaseModel struct {
 	Database         types.String `tfsdk:"database"`
 }
 
-type ConnectionRdpModel struct {
+// ConnectionMariaDbOracleDatabaseModel is the lighter database connection model
+// shared by mariadb and oracle. They do not support typescript_recording or
+// the terminal fields exposed by ConnectionDatabaseModel.
+type ConnectionMariaDbOracleDatabaseModel struct {
 	SessionRecording     types.Bool `tfsdk:"session_recording"`
 	RecordingIncludeKeys types.Bool `tfsdk:"recording_include_keys"`
 	AllowSupplyUser      types.Bool `tfsdk:"allow_supply_user"`
-	ReadOnly             types.Bool `tfsdk:"read_only"`
+	ConnectionClipboardFields
+	DisableCsvExport types.Bool   `tfsdk:"disable_csv_export"`
+	DisableCsvImport types.Bool   `tfsdk:"disable_csv_import"`
+	Database         types.String `tfsdk:"database"`
+}
+
+type ConnectionRdpModel struct {
+	ConnectionRecordingNoTypescriptFields
 	ConnectionClipboardFields
 	IgnoreCert               types.Bool           `tfsdk:"ignore_cert"`
 	EnableFullWindowDrag     types.Bool           `tfsdk:"enable_full_window_drag"`
@@ -132,6 +162,7 @@ type ConnectionSftpModel struct {
 	SftpDirectory           types.String `tfsdk:"sftp_directory"`
 	SftpServerAliveInterval types.Int32  `tfsdk:"sftp_server_alive_interval"`
 }
+
 type ConnectionSshModel struct {
 	ConnectionCommonFields
 	ConnectionTerminalFields
@@ -163,10 +194,7 @@ type ConnectionTelnetModel struct {
 }
 
 type ConnectionVncModel struct {
-	SessionRecording     types.Bool `tfsdk:"session_recording"`
-	AllowSupplyUser      types.Bool `tfsdk:"allow_supply_user"`
-	RecordingIncludeKeys types.Bool `tfsdk:"recording_include_keys"`
-	ReadOnly             types.Bool `tfsdk:"read_only"`
+	ConnectionRecordingNoTypescriptFields
 	ConnectionClipboardFields
 	SwapRedBlue       types.Bool           `tfsdk:"swap_red_blue"`
 	ForceLossless     types.Bool           `tfsdk:"force_lossless"`
@@ -180,7 +208,8 @@ type ConnectionVncModel struct {
 	Sftp              *ConnectionSftpModel `tfsdk:"sftp"`
 }
 
-// This is structure of "portForward" that we get from the API.
+// CommonPamSettingsTunnelResourceModel is the structure of the "portForward"
+// object returned by the API.
 type CommonPamSettingsTunnelResourceModel struct {
 	Enable                types.Bool  `tfsdk:"enable"`             // use  --enable-tunneling /  --disable-tunneling to enable / disable tunneling
 	RemoteTargetPort      types.Int32 `tfsdk:"remote_target_port"` // this is remote target port, --tunneling-override-port / --remove-tunneling-override-port to override / remove the override
@@ -188,10 +217,76 @@ type CommonPamSettingsTunnelResourceModel struct {
 	UseSpecifiedLocalPort types.Bool  `tfsdk:"use_specified_local_port"`
 	LocalPort             types.Int32 `tfsdk:"local_port"`
 }
+
+// ---------------------------------------------------------------------------
+// Connection models (one per record-type schema variant)
+// ---------------------------------------------------------------------------
+
+// CommonPamSettingsConnectionResourceModel is the union connection model used
+// internally by the shared helpers. It exposes every protocol pointer so the
+// helpers can address them by name.
+type CommonPamSettingsConnectionResourceModel struct {
+	connectionScalarsModel
+
+	Kubernetes *ConnectionKubernetesModel            `tfsdk:"kubernetes"`
+	Mysql      *ConnectionDatabaseModel              `tfsdk:"mysql"`
+	PostgreSql *ConnectionDatabaseModel              `tfsdk:"postgresql"`
+	Rdp        *ConnectionRdpModel                   `tfsdk:"rdp"`
+	SqlServer  *ConnectionDatabaseModel              `tfsdk:"sql_server"`
+	Ssh        *ConnectionSshModel                   `tfsdk:"ssh"`
+	Telnet     *ConnectionTelnetModel                `tfsdk:"telnet"`
+	Vnc        *ConnectionVncModel                   `tfsdk:"vnc"`
+	MariaDb    *ConnectionMariaDbOracleDatabaseModel `tfsdk:"mariadb"`
+	Oracle     *ConnectionMariaDbOracleDatabaseModel `tfsdk:"oracle"`
+}
+
+// DatabaseConnectionResourceModel mirrors the connection block exposed on PAM
+// Database records. It must match the filtered schema produced by
+// CommonPamSettingsBlock(DatabaseProtocols).
+type DatabaseConnectionResourceModel struct {
+	connectionScalarsModel
+
+	Mysql      *ConnectionDatabaseModel              `tfsdk:"mysql"`
+	PostgreSql *ConnectionDatabaseModel              `tfsdk:"postgresql"`
+	SqlServer  *ConnectionDatabaseModel              `tfsdk:"sql_server"`
+	MariaDb    *ConnectionMariaDbOracleDatabaseModel `tfsdk:"mariadb"`
+	Oracle     *ConnectionMariaDbOracleDatabaseModel `tfsdk:"oracle"`
+}
+
+// MachineDirectoryConnectionResourceModel mirrors the connection block exposed
+// on PAM Machine and PAM Directory records. It must match the filtered schema
+// produced by CommonPamSettingsBlock(MachineDirectoryProtocols).
+type MachineDirectoryConnectionResourceModel struct {
+	connectionScalarsModel
+
+	Kubernetes *ConnectionKubernetesModel `tfsdk:"kubernetes"`
+	Rdp        *ConnectionRdpModel        `tfsdk:"rdp"`
+	Ssh        *ConnectionSshModel        `tfsdk:"ssh"`
+	Telnet     *ConnectionTelnetModel     `tfsdk:"telnet"`
+	Vnc        *ConnectionVncModel        `tfsdk:"vnc"`
+}
+
+// ---------------------------------------------------------------------------
+// pam_settings field models (one per record-type schema variant)
+// ---------------------------------------------------------------------------
+
+// CommonPamSettingsFieldResourceModel is the union pam_settings model used by
+// the shared helpers.
 type CommonPamSettingsFieldResourceModel struct {
-	AllowSupplyHost           types.Bool                                `tfsdk:"allow_supply_host"`
-	Connection                *CommonPamSettingsConnectionResourceModel `tfsdk:"connection"`
-	Tunnel                    *CommonPamSettingsTunnelResourceModel     `tfsdk:"tunnel"`
-	Configuration             types.String                              `tfsdk:"configuration"`
-	AdministrativeCredentials types.String                              `tfsdk:"administrative_credentials"`
+	pamSettingsCommonModel
+	Connection *CommonPamSettingsConnectionResourceModel `tfsdk:"connection"`
+}
+
+// DatabasePamSettingsFieldResourceModel is the pam_settings block model used
+// by PAM Database resources and data sources.
+type DatabasePamSettingsFieldResourceModel struct {
+	pamSettingsCommonModel
+	Connection *DatabaseConnectionResourceModel `tfsdk:"connection"`
+}
+
+// MachineDirectoryPamSettingsFieldResourceModel is the pam_settings block
+// model used by PAM Machine and PAM Directory resources and data sources.
+type MachineDirectoryPamSettingsFieldResourceModel struct {
+	pamSettingsCommonModel
+	Connection *MachineDirectoryConnectionResourceModel `tfsdk:"connection"`
 }

@@ -253,7 +253,7 @@ func unmarshalConnectionByProtocol(raw json.RawMessage) (string, *utils.PamSetti
 			return base.Protocol, &base, nil
 		}
 		return base.Protocol, &base, &k8s
-	case ConnectionProtocolMysql, ConnectionProtocolPostgreSql, ConnectionProtocolSqlServer:
+	case ConnectionProtocolMysql, ConnectionProtocolPostgreSql, ConnectionProtocolSqlServer, ConnectionProtocolMariaDb, ConnectionProtocolOracle:
 		var db utils.DatabaseConnectionResponse
 		if err := json.Unmarshal(normalized, &db); err != nil {
 			return base.Protocol, &base, nil
@@ -376,6 +376,14 @@ func extractConnectionFromResponse(
 				}
 				conn.Vnc = extractVncConnectionFromResponse(vnc, pamEnabled, existingVnc)
 			}
+		case ConnectionProtocolMariaDb:
+			if db, ok := typed.(*utils.DatabaseConnectionResponse); ok {
+				conn.MariaDb = extractMariaDbOracleDatabaseConnectionFromResponse(db, pamEnabled)
+			}
+		case ConnectionProtocolOracle:
+			if db, ok := typed.(*utils.DatabaseConnectionResponse); ok {
+				conn.Oracle = extractMariaDbOracleDatabaseConnectionFromResponse(db, pamEnabled)
+			}
 		}
 	}
 
@@ -457,6 +465,33 @@ func extractDatabaseConnectionFromResponse(dbConn *utils.DatabaseConnectionRespo
 	db.FontName = setStringOrNull(dbConn.FontName)
 	db.FontSize = parseStringToInt32(dbConn.FontSize)
 	db.Scrollback = types.Int32Value(int32(dbConn.Scrollback))
+
+	return db
+}
+
+// extractMariaDbOracleDatabaseConnectionFromResponse builds a
+// ConnectionMariaDbOracleDatabaseModel from the API response. Shared by mariadb and
+// oracle protocols, which have an identical wire shape.
+func extractMariaDbOracleDatabaseConnectionFromResponse(dbConn *utils.DatabaseConnectionResponse, pamEnabled *utils.PamSettingsEnabledResponse) *ConnectionMariaDbOracleDatabaseModel {
+	db := &ConnectionMariaDbOracleDatabaseModel{}
+
+	if pamEnabled != nil {
+		db.SessionRecording = optionalBoolValue(pamEnabled.SessionRecording)
+	} else {
+		db.SessionRecording = types.BoolNull()
+	}
+
+	if dbConn == nil {
+		return db
+	}
+
+	db.AllowSupplyUser = optionalBoolValue(dbConn.AllowSupplyUser)
+	db.RecordingIncludeKeys = optionalBoolValue(dbConn.RecordingIncludeKeys)
+	db.DisableCopy = optionalBoolValueWithDefault(dbConn.DisableCopy)
+	db.DisablePaste = optionalBoolValueWithDefault(dbConn.DisablePaste)
+	db.DisableCsvExport = optionalBoolValueWithDefault(dbConn.DisableCsvExport)
+	db.DisableCsvImport = optionalBoolValueWithDefault(dbConn.DisableCsvImport)
+	db.Database = setStringOrNull(dbConn.Database)
 
 	return db
 }
@@ -881,6 +916,13 @@ func runPamConnectionEditCommand(ctx context.Context, apiManager *api.ApiManager
 	case connection.Vnc != nil:
 		parts = append(parts, fmt.Sprintf("%s=%s", utils.FlagConnectionsRecording, boolToOnOff(connection.Vnc.SessionRecording)))
 		parts = append(parts, fmt.Sprintf("%s=%s", utils.FlagKeyEvents, boolToOnOff(connection.Vnc.RecordingIncludeKeys)))
+	case connection.MariaDb != nil, connection.Oracle != nil:
+		simpleDb := connection.MariaDb
+		if simpleDb == nil {
+			simpleDb = connection.Oracle
+		}
+		parts = append(parts, fmt.Sprintf("%s=%s", utils.FlagConnectionsRecording, boolToOnOff(simpleDb.SessionRecording)))
+		parts = append(parts, fmt.Sprintf("%s=%s", utils.FlagKeyEvents, boolToOnOff(simpleDb.RecordingIncludeKeys)))
 	}
 
 	if !connection.LaunchCredential.IsNull() && !connection.LaunchCredential.IsUnknown() {
@@ -989,6 +1031,10 @@ func buildConnectionMap(connection *CommonPamSettingsConnectionResourceModel) ma
 		return buildTelnetConnectionMap(connection)
 	case ConnectionProtocolVnc:
 		return buildVncConnectionMap(connection)
+	case ConnectionProtocolMariaDb:
+		return buildMariaDbOracleDatabaseConnectionMap(connection, connection.MariaDb)
+	case ConnectionProtocolOracle:
+		return buildMariaDbOracleDatabaseConnectionMap(connection, connection.Oracle)
 	default:
 		return map[string]interface{}{
 			"protocol": protocol,
@@ -1078,6 +1124,37 @@ func buildDatabaseConnectionMap(connection *CommonPamSettingsConnectionResourceM
 	if !db.Scrollback.IsNull() && !db.Scrollback.IsUnknown() {
 		connMap["scrollback"] = db.Scrollback.ValueInt32()
 	}
+
+	return connMap
+}
+
+// buildMariaDbOracleDatabaseConnectionMap is the shared payload builder for mariadb
+// and oracle protocols. "allowSupplyUser" maps to the
+// "Allow users to select credentials from their vault" toggle in the vault UI.
+func buildMariaDbOracleDatabaseConnectionMap(connection *CommonPamSettingsConnectionResourceModel, db *ConnectionMariaDbOracleDatabaseModel) map[string]interface{} {
+	connMap := map[string]interface{}{
+		"protocol": connection.Protocol.ValueString(),
+	}
+
+	if !connection.ConnectionPort.IsNull() && !connection.ConnectionPort.IsUnknown() {
+		connMap["port"] = fmt.Sprintf("%d", connection.ConnectionPort.ValueInt32())
+	}
+
+	if !connection.LaunchCredential.IsNull() && !connection.LaunchCredential.IsUnknown() {
+		connMap["userRecords"] = []string{connection.LaunchCredential.ValueString()}
+	}
+
+	if db == nil {
+		return connMap
+	}
+
+	setOptionalBoolField(connMap, "allowSupplyUser", db.AllowSupplyUser)
+	setOptionalBoolField(connMap, "recordingIncludeKeys", db.RecordingIncludeKeys)
+	setOptionalBoolField(connMap, "disableCopy", db.DisableCopy)
+	setOptionalBoolField(connMap, "disablePaste", db.DisablePaste)
+	setOptionalBoolField(connMap, "disableCsvExport", db.DisableCsvExport)
+	setOptionalBoolField(connMap, "disableCsvImport", db.DisableCsvImport)
+	setOptionalStringField(connMap, "database", db.Database)
 
 	return connMap
 }

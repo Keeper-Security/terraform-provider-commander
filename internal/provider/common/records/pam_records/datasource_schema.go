@@ -93,6 +93,14 @@ func allConnectionProtocolDataSourceAttributes() map[string]dschema.Attribute {
 			Computed:   true,
 			Attributes: VncDataSourceAttributes(),
 		},
+		"mariadb": dschema.SingleNestedAttribute{
+			Computed:   true,
+			Attributes: MariaDbOracleDatabaseDataSourceAttributes(),
+		},
+		"oracle": dschema.SingleNestedAttribute{
+			Computed:   true,
+			Attributes: MariaDbOracleDatabaseDataSourceAttributes(),
+		},
 	}
 }
 
@@ -183,16 +191,40 @@ func KubernetesDataSourceAttributes() map[string]dschema.Attribute {
 	)
 }
 
+// databaseCsvAndNameDataSourceAttributes returns the disable_csv_export,
+// disable_csv_import and database attributes shared by every database protocol
+// data source attribute set.
+func databaseCsvAndNameDataSourceAttributes() map[string]dschema.Attribute {
+	return map[string]dschema.Attribute{
+		"disable_csv_export": dschema.BoolAttribute{Computed: true},
+		"disable_csv_import": dschema.BoolAttribute{Computed: true},
+		"database":           dschema.StringAttribute{Computed: true},
+	}
+}
+
+// DatabaseDataSourceAttributes is the data source attribute set for the
+// mysql, postgresql, and sql_server protocols. Mirrors ConnectionDatabaseSchema().
 func DatabaseDataSourceAttributes() map[string]dschema.Attribute {
 	return mergeDataSourceAttributes(
 		commonFieldsDataSourceAttributes(),
 		terminalFieldsDataSourceAttributes(),
 		clipboardFieldsDataSourceAttributes(),
+		databaseCsvAndNameDataSourceAttributes(),
+	)
+}
+
+// MariaDbOracleDatabaseDataSourceAttributes is the data source attribute set for the
+// mariadb and oracle protocols. Mirrors ConnectionMariaDbOracleDatabaseSchema():
+// no typescript_recording, no terminal fields, no read_only.
+func MariaDbOracleDatabaseDataSourceAttributes() map[string]dschema.Attribute {
+	return mergeDataSourceAttributes(
 		map[string]dschema.Attribute{
-			"disable_csv_export": dschema.BoolAttribute{Computed: true},
-			"disable_csv_import": dschema.BoolAttribute{Computed: true},
-			"database":           dschema.StringAttribute{Computed: true},
+			"session_recording":      dschema.BoolAttribute{Computed: true},
+			"recording_include_keys": dschema.BoolAttribute{Computed: true},
+			"allow_supply_user":      dschema.BoolAttribute{Computed: true},
 		},
+		clipboardFieldsDataSourceAttributes(),
+		databaseCsvAndNameDataSourceAttributes(),
 	)
 }
 

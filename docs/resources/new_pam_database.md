@@ -180,10 +180,27 @@ Optional:
 - `connection_port` (Number) **Connection port**. Only applicable when connection is enabled.
 - `enable` (Boolean) Whether the **connection** is enabled for this PAM record.
 - `launch_credential` (String) **Launch credential**. Only applicable when connection is enabled.
+- `mariadb` (Block, Optional) **MariaDB** protocol-specific connection attributes. (see [below for nested schema](#nestedblock--pam_settings--connection--mariadb))
 - `mysql` (Block, Optional) **MySQL** protocol-specific connection attributes. (see [below for nested schema](#nestedblock--pam_settings--connection--mysql))
+- `oracle` (Block, Optional) **Oracle** protocol-specific connection attributes. (see [below for nested schema](#nestedblock--pam_settings--connection--oracle))
 - `postgresql` (Block, Optional) **PostgreSQL** protocol-specific connection attributes. (see [below for nested schema](#nestedblock--pam_settings--connection--postgresql))
-- `protocol` (String) **Connection protocol**. Must be one of: `mysql`, `postgresql`, `sql-server`.
+- `protocol` (String) **Connection protocol**. Must be one of: `mysql`, `postgresql`, `sql-server`, `mariadb`, `oracle`.
 - `sql_server` (Block, Optional) **SQL Server** protocol-specific connection attributes. (see [below for nested schema](#nestedblock--pam_settings--connection--sql_server))
+
+<a id="nestedblock--pam_settings--connection--mariadb"></a>
+### Nested Schema for `pam_settings.connection.mariadb`
+
+Optional:
+
+- `allow_supply_user` (Boolean) Allow users to **select credentials** from their vault.
+- `database` (String) **Database name** for the connection.
+- `disable_copy` (Boolean) Whether **copy** is disabled for the connection.
+- `disable_csv_export` (Boolean) Whether **CSV export** is disabled for the database connection.
+- `disable_csv_import` (Boolean) Whether **CSV import** is disabled for the database connection.
+- `disable_paste` (Boolean) Whether **paste** is disabled for the connection.
+- `recording_include_keys` (Boolean) Whether to include **keystrokes** in the recording.
+- `session_recording` (Boolean) Whether **session recording** is enabled.
+
 
 <a id="nestedblock--pam_settings--connection--mysql"></a>
 ### Nested Schema for `pam_settings.connection.mysql`
@@ -204,6 +221,21 @@ Optional:
 - `scrollback` (Number) **Maximum scrollable size** for the connection terminal.
 - `session_recording` (Boolean) Whether **session recording** is enabled.
 - `typescript_recording` (Boolean) Whether **typescript recording** is enabled.
+
+
+<a id="nestedblock--pam_settings--connection--oracle"></a>
+### Nested Schema for `pam_settings.connection.oracle`
+
+Optional:
+
+- `allow_supply_user` (Boolean) Allow users to **select credentials** from their vault.
+- `database` (String) **Database name** for the connection.
+- `disable_copy` (Boolean) Whether **copy** is disabled for the connection.
+- `disable_csv_export` (Boolean) Whether **CSV export** is disabled for the database connection.
+- `disable_csv_import` (Boolean) Whether **CSV import** is disabled for the database connection.
+- `disable_paste` (Boolean) Whether **paste** is disabled for the connection.
+- `recording_include_keys` (Boolean) Whether to include **keystrokes** in the recording.
+- `session_recording` (Boolean) Whether **session recording** is enabled.
 
 
 <a id="nestedblock--pam_settings--connection--postgresql"></a>

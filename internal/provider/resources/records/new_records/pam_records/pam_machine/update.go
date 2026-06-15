@@ -37,7 +37,7 @@ func (r *PamMachineResource) Update(ctx context.Context, req resource.UpdateRequ
 		return
 	}
 
-	resp.Diagnostics.Append(commonpamrecords.ValidatePamSettingsFieldsNotRemoved(plan.PamSettings, state.PamSettings)...)
+	resp.Diagnostics.Append(commonpamrecords.ValidateMachineDirectoryPamSettingsFieldsNotRemoved(plan.PamSettings, state.PamSettings)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -63,7 +63,7 @@ func (r *PamMachineResource) Update(ctx context.Context, req resource.UpdateRequ
 	}
 
 	if plan.PamSettings != nil {
-		if err := commonpamrecords.ApplyPamSettings(ctx, r.ApiManager, recordUID, plan.PamSettings, state.PamSettings); err != nil {
+		if err := commonpamrecords.ApplyMachineDirectoryPamSettings(ctx, r.ApiManager, recordUID, plan.PamSettings, state.PamSettings); err != nil {
 			resp.Diagnostics.AddError(utils.ErrSummaryApplyPamSettingsFailed, err.Error())
 			return
 		}

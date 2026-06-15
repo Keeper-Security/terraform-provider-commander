@@ -185,7 +185,7 @@ func SharedAttributes() map[string]schema.Attribute {
 					Description:         SettingsSessionPersistenceDescription,
 					MarkdownDescription: SettingsSessionPersistenceMarkdownDescription,
 					Validators: []validator.String{
-						utils.StringOneOfValidator("Session Persistence", []string{"none", "user", "resource"}, false),
+						utils.StringOneOfValidator("Session Persistence", []string{"none", "user", "resource"}, true),
 					},
 				},
 			},

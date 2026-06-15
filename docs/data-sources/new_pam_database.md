@@ -122,13 +122,57 @@ Read-Only:
 - `connection_port` (Number)
 - `enable` (Boolean)
 - `launch_credential` (String)
+- `mariadb` (Attributes) (see [below for nested schema](#nestedatt--pam_settings--connection--mariadb))
 - `mysql` (Attributes) (see [below for nested schema](#nestedatt--pam_settings--connection--mysql))
+- `oracle` (Attributes) (see [below for nested schema](#nestedatt--pam_settings--connection--oracle))
 - `postgresql` (Attributes) (see [below for nested schema](#nestedatt--pam_settings--connection--postgresql))
 - `protocol` (String)
 - `sql_server` (Attributes) (see [below for nested schema](#nestedatt--pam_settings--connection--sql_server))
 
+<a id="nestedatt--pam_settings--connection--mariadb"></a>
+### Nested Schema for `pam_settings.connection.mariadb`
+
+Read-Only:
+
+- `allow_supply_user` (Boolean)
+- `color_scheme` (String)
+- `database` (String)
+- `disable_copy` (Boolean)
+- `disable_csv_export` (Boolean)
+- `disable_csv_import` (Boolean)
+- `disable_paste` (Boolean)
+- `font_name` (String)
+- `font_size` (Number)
+- `read_only` (Boolean)
+- `recording_include_keys` (Boolean)
+- `scrollback` (Number)
+- `session_recording` (Boolean)
+- `typescript_recording` (Boolean)
+
+
 <a id="nestedatt--pam_settings--connection--mysql"></a>
 ### Nested Schema for `pam_settings.connection.mysql`
+
+Read-Only:
+
+- `allow_supply_user` (Boolean)
+- `color_scheme` (String)
+- `database` (String)
+- `disable_copy` (Boolean)
+- `disable_csv_export` (Boolean)
+- `disable_csv_import` (Boolean)
+- `disable_paste` (Boolean)
+- `font_name` (String)
+- `font_size` (Number)
+- `read_only` (Boolean)
+- `recording_include_keys` (Boolean)
+- `scrollback` (Number)
+- `session_recording` (Boolean)
+- `typescript_recording` (Boolean)
+
+
+<a id="nestedatt--pam_settings--connection--oracle"></a>
+### Nested Schema for `pam_settings.connection.oracle`
 
 Read-Only:
 

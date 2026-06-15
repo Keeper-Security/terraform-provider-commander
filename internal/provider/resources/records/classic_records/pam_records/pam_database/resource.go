@@ -44,7 +44,7 @@ func (r *PamDatabaseResource) ModifyPlan(ctx context.Context, req resource.Modif
 		return
 	}
 
-	resp.Diagnostics.Append(commonpamrecords.ValidatePamSettingsFieldsNotRemoved(plan.PamSettings, state.PamSettings)...)
+	resp.Diagnostics.Append(commonpamrecords.ValidateDatabasePamSettingsFieldsNotRemoved(plan.PamSettings, state.PamSettings)...)
 }
 
 func NewPamDatabaseResource() resource.Resource {
