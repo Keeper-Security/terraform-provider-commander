@@ -22,7 +22,7 @@ func TestPamDatabaseResource_Schema(t *testing.T) {
 		"id", "title", "hostname_or_ip",
 		"use_ssl", "database_id", "database_type",
 		"provider_group", "provider_region",
-		"notes", "folder",
+		"notes", "folder_location",
 	}
 	for _, attr := range expectedAttrs {
 		if resp.Schema.Attributes[attr] == nil {

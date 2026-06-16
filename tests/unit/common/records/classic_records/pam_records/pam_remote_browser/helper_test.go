@@ -295,8 +295,8 @@ func TestMapVaultRecordGetResponse_WithFolder(t *testing.T) {
 	if diags.HasError() {
 		t.Fatalf("unexpected errors: %v", diags)
 	}
-	if state.FolderLocation.ValueString() != "my-folder" {
-		t.Errorf("expected folder my-folder, got %s", state.FolderLocation.ValueString())
+	if state.FolderLocation.ValueString() != "Test/My Folder" {
+		t.Errorf("expected folder Test/My Folder, got %s", state.FolderLocation.ValueString())
 	}
 }
 

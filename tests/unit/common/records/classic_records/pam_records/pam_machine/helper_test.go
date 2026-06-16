@@ -394,8 +394,8 @@ func TestMapVaultRecordGetResponse_FolderFromResponse_StateDoesNotMatch(t *testi
 	if diags.HasError() {
 		t.Fatalf("unexpected errors: %v", diags)
 	}
-	if state.FolderLocation.ValueString() != "folder-uid-789" {
-		t.Errorf("expected folder folder-uid-789 (from response UID), got %s", state.FolderLocation.ValueString())
+	if state.FolderLocation.ValueString() != "Test/Other Folder" {
+		t.Errorf("expected folder Test/Other Folder (from response path), got %s", state.FolderLocation.ValueString())
 	}
 }
 
@@ -425,8 +425,8 @@ func TestExtractFolderValue_NilFolder(t *testing.T) {
 func TestExtractFolderValue_EmptyUIDAndPath(t *testing.T) {
 	folder := &utils.FolderLocationResponse{UID: "", Path: "  "}
 	result := utils.ExtractFolderValue(folder, types.StringValue("any"))
-	if !result.IsNull() {
-		t.Error("expected null for empty UID and whitespace path")
+	if result.ValueString() != "  " {
+		t.Errorf("expected raw path '  ' (preserved), got %q", result.ValueString())
 	}
 }
 
@@ -452,24 +452,24 @@ func TestExtractFolderValue_StateDoesNotMatch(t *testing.T) {
 	folder := &utils.FolderLocationResponse{UID: "abc-123", Path: "Prod/Servers"}
 	state := types.StringValue("old-uid")
 	result := utils.ExtractFolderValue(folder, state)
-	if result.ValueString() != "abc-123" {
-		t.Errorf("expected abc-123 (UID fallback), got %s", result.ValueString())
+	if result.ValueString() != "Prod/Servers" {
+		t.Errorf("expected Prod/Servers (path fallback), got %s", result.ValueString())
 	}
 }
 
 func TestExtractFolderValue_NullState(t *testing.T) {
 	folder := &utils.FolderLocationResponse{UID: "abc-123", Path: "Prod/Servers"}
 	result := utils.ExtractFolderValue(folder, types.StringNull())
-	if result.ValueString() != "abc-123" {
-		t.Errorf("expected abc-123 (UID, null state), got %s", result.ValueString())
+	if result.ValueString() != "Prod/Servers" {
+		t.Errorf("expected Prod/Servers (path, null state), got %s", result.ValueString())
 	}
 }
 
 func TestExtractFolderValue_UnknownState(t *testing.T) {
 	folder := &utils.FolderLocationResponse{UID: "abc-123", Path: "Prod/Servers"}
 	result := utils.ExtractFolderValue(folder, types.StringUnknown())
-	if result.ValueString() != "abc-123" {
-		t.Errorf("expected abc-123 (UID, unknown state), got %s", result.ValueString())
+	if result.ValueString() != "Prod/Servers" {
+		t.Errorf("expected Prod/Servers (path, unknown state), got %s", result.ValueString())
 	}
 }
 

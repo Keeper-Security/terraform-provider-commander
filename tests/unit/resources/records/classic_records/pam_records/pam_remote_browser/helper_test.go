@@ -35,6 +35,7 @@ var pamRemoteBrowserSettingsAttrTypes = map[string]tftypes.Type{
 	"audio_channels":           tftypes.Number,
 	"audio_bit_depth":          tftypes.Number,
 	"audio_sample_rate":        tftypes.Number,
+	"session_persistence":      tftypes.String,
 }
 
 var shareElementAttrTypes = map[string]tftypes.Type{
@@ -45,11 +46,11 @@ var shareElementAttrTypes = map[string]tftypes.Type{
 var shareMapType = tftypes.Map{ElementType: tftypes.Object{AttributeTypes: shareElementAttrTypes}}
 
 var pamRemoteBrowserAttrTypes = map[string]tftypes.Type{
-	"id":     tftypes.String,
-	"title":  tftypes.String,
-	"url":    tftypes.String,
-	"notes":  tftypes.String,
-	"folder": tftypes.String,
+	"id":              tftypes.String,
+	"title":           tftypes.String,
+	"url":             tftypes.String,
+	"notes":           tftypes.String,
+	"folder_location": tftypes.String,
 	"pam_remote_browser_settings": tftypes.Object{
 		AttributeTypes: pamRemoteBrowserSettingsAttrTypes,
 	},
@@ -97,6 +98,7 @@ func newSettingsValues(
 		"audio_channels":           tftypes.NewValue(tftypes.Number, audioChannels),
 		"audio_bit_depth":          tftypes.NewValue(tftypes.Number, audioBitDepth),
 		"audio_sample_rate":        tftypes.NewValue(tftypes.Number, audioSampleRate),
+		"session_persistence":      tftypes.NewValue(tftypes.String, nil),
 	}
 }
 
@@ -116,7 +118,7 @@ func newPlanStateValues(
 		"title":                       tftypes.NewValue(tftypes.String, title),
 		"url":                         tftypes.NewValue(tftypes.String, url),
 		"notes":                       tftypes.NewValue(tftypes.String, notes),
-		"folder":                      tftypes.NewValue(tftypes.String, folder),
+		"folder_location":             tftypes.NewValue(tftypes.String, folder),
 		"pam_remote_browser_settings": settingsVal,
 		"share":                       tftypes.NewValue(shareMapType, nil),
 	}

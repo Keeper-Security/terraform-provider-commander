@@ -20,10 +20,12 @@ import (
 // dsState mirrors the data source attributes so tests can decode the final
 // state via State.Get.
 type dsState struct {
-	NewFolder string            `tfsdk:"new_folder"`
-	Id        string            `tfsdk:"id"`
-	Name      string            `tfsdk:"name"`
-	Share     map[string]string `tfsdk:"share"`
+	NewFolder      string            `tfsdk:"new_folder"`
+	Id             string            `tfsdk:"id"`
+	Name           string            `tfsdk:"name"`
+	FolderLocation *string           `tfsdk:"folder_location"`
+	Records        []string          `tfsdk:"records"`
+	Share          map[string]string `tfsdk:"share"`
 }
 
 func TestNewFolderDataSource_Read_Success_PopulatesIdNameShare(t *testing.T) {
@@ -111,11 +113,8 @@ func TestNewFolderDataSource_Read_Success_EmptyUserPermissions_EmptyShare(t *tes
 	if diags := resp.State.Get(context.Background(), &got); diags.HasError() {
 		t.Fatalf("State.Get: %v", diags)
 	}
-	if got.Share == nil {
-		t.Error("share should be an empty (non-null) map, not nil")
-	}
 	if len(got.Share) != 0 {
-		t.Errorf("expected empty share, got %v", got.Share)
+		t.Errorf("expected empty share when user_permissions is empty, got %v", got.Share)
 	}
 }
 

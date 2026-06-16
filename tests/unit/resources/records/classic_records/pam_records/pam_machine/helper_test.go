@@ -40,7 +40,7 @@ var pamMachineAttrTypes = map[string]tftypes.Type{
 	"provider_group":   tftypes.String,
 	"provider_region":  tftypes.String,
 	"notes":            tftypes.String,
-	"folder":           tftypes.String,
+	"folder_location":  tftypes.String,
 	"pam_settings":     tftypes.DynamicPseudoType,
 	"share":            shareMapType,
 }
@@ -80,7 +80,7 @@ func newPlanStateValues(
 		"provider_group":   tftypes.NewValue(tftypes.String, providerGroup),
 		"provider_region":  tftypes.NewValue(tftypes.String, providerRegion),
 		"notes":            tftypes.NewValue(tftypes.String, notes),
-		"folder":           tftypes.NewValue(tftypes.String, folder),
+		"folder_location":  tftypes.NewValue(tftypes.String, folder),
 		"pam_settings":     tftypes.NewValue(tftypes.DynamicPseudoType, nil),
 		"share":            tftypes.NewValue(shareMapType, nil),
 	}

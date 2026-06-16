@@ -22,7 +22,7 @@ func TestPamDatabaseDataSource_Schema(t *testing.T) {
 		"pam_database", "id", "title", "hostname_or_ip",
 		"use_ssl", "database_id", "database_type",
 		"provider_group", "provider_region",
-		"notes", "folder", "pam_settings",
+		"notes", "folder_location", "pam_settings",
 	}
 	for _, attr := range expectedAttrs {
 		if resp.Schema.Attributes[attr] == nil {

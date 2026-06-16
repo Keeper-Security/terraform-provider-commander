@@ -17,8 +17,8 @@ func TestPamRemoteBrowserDataSource_Metadata(t *testing.T) {
 	req := datasource.MetadataRequest{ProviderTypeName: "commander"}
 	var resp datasource.MetadataResponse
 	d.Metadata(context.Background(), req, &resp)
-	if resp.TypeName != "commander_pam_remote_browser" {
-		t.Errorf("expected TypeName commander_pam_remote_browser, got %s", resp.TypeName)
+	if resp.TypeName != "commander_classic_pam_remote_browser" {
+		t.Errorf("expected TypeName commander_classic_pam_remote_browser, got %s", resp.TypeName)
 	}
 }
 

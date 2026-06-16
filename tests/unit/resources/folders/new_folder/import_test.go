@@ -19,9 +19,11 @@ import (
 // importedState mirrors the resource attributes so tests can decode the
 // post-import state via State.Get.
 type importedState struct {
-	Id    string            `tfsdk:"id"`
-	Name  *string           `tfsdk:"name"`
-	Share map[string]string `tfsdk:"share"`
+	Id             string            `tfsdk:"id"`
+	Name           *string           `tfsdk:"name"`
+	FolderLocation *string           `tfsdk:"folder_location"`
+	Records        []string          `tfsdk:"records"`
+	Share          map[string]string `tfsdk:"share"`
 }
 
 func TestNewFolderResource_ImportState_EmptyID(t *testing.T) {

@@ -22,7 +22,7 @@ func TestPamMachineDataSource_Schema(t *testing.T) {
 		"pam_machine", "id", "title", "hostname_or_ip",
 		"operating_system", "instance_name", "instance_id",
 		"provider_group", "provider_region",
-		"notes", "folder", "pam_settings",
+		"notes", "folder_location", "pam_settings",
 	}
 	for _, attr := range expectedAttrs {
 		if resp.Schema.Attributes[attr] == nil {

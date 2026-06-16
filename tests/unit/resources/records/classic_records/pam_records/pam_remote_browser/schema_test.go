@@ -18,7 +18,7 @@ func TestPamRemoteBrowserResource_Schema(t *testing.T) {
 	var resp resource.SchemaResponse
 	r.Schema(context.Background(), req, &resp)
 
-	for _, attr := range []string{"id", "title", "url", "notes", "folder", "pam_remote_browser_settings"} {
+	for _, attr := range []string{"id", "title", "url", "notes", "folder_location", "pam_remote_browser_settings"} {
 		if resp.Schema.Attributes[attr] == nil {
 			t.Errorf("expected %s attribute", attr)
 		}

@@ -23,8 +23,8 @@ func TestSharedFolderResource_Schema(t *testing.T) {
 	if resp.Schema.Attributes["name"] == nil {
 		t.Error("expected name attribute")
 	}
-	if resp.Schema.Attributes["folder_location"] != nil {
-		t.Error("did not expect folder_location attribute")
+	if resp.Schema.Attributes["folder_location"] == nil {
+		t.Error("expected folder_location attribute")
 	}
 
 	up, ok := resp.Schema.Attributes["user_permissions"].(schema.SingleNestedAttribute)

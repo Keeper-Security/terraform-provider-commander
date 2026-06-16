@@ -44,15 +44,16 @@ var dsSettingsAttrTypes = map[string]tftypes.Type{
 	"audio_channels":           tftypes.Number,
 	"audio_bit_depth":          tftypes.Number,
 	"audio_sample_rate":        tftypes.Number,
+	"session_persistence":      tftypes.String,
 }
 
 var dsAttrTypes = map[string]tftypes.Type{
-	"remote_browser": tftypes.String,
-	"id":             tftypes.String,
-	"title":          tftypes.String,
-	"url":            tftypes.String,
-	"notes":          tftypes.String,
-	"folder":         tftypes.String,
+	"remote_browser":  tftypes.String,
+	"id":              tftypes.String,
+	"title":           tftypes.String,
+	"url":             tftypes.String,
+	"notes":           tftypes.String,
+	"folder_location": tftypes.String,
 	"pam_remote_browser_settings": tftypes.Object{
 		AttributeTypes: dsSettingsAttrTypes,
 	},
@@ -71,7 +72,7 @@ func newDSConfigValues(remoteBrowser interface{}) map[string]tftypes.Value {
 		"title":                       tftypes.NewValue(tftypes.String, nil),
 		"url":                         tftypes.NewValue(tftypes.String, nil),
 		"notes":                       tftypes.NewValue(tftypes.String, nil),
-		"folder":                      tftypes.NewValue(tftypes.String, nil),
+		"folder_location":             tftypes.NewValue(tftypes.String, nil),
 		"pam_remote_browser_settings": tftypes.NewValue(settingsObjType, nil),
 		"share":                       tftypes.NewValue(dsShareMapType, nil),
 	}

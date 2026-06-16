@@ -19,10 +19,12 @@ import (
 // newFolderDSAttrTypes mirrors the data source schema attribute types for
 // tftypes-based config construction in tests.
 var newFolderDSAttrTypes = map[string]tftypes.Type{
-	"new_folder": tftypes.String,
-	"id":         tftypes.String,
-	"name":       tftypes.String,
-	"share":      tftypes.Map{ElementType: tftypes.String},
+	"new_folder":      tftypes.String,
+	"id":              tftypes.String,
+	"name":            tftypes.String,
+	"folder_location": tftypes.String,
+	"records":         tftypes.Set{ElementType: tftypes.String},
+	"share":           tftypes.Map{ElementType: tftypes.String},
 }
 
 func newFolderDSObjectType() tftypes.Object {
@@ -30,14 +32,17 @@ func newFolderDSObjectType() tftypes.Object {
 }
 
 // newConfigValues builds a tftypes value bag for the data source config. The
-// only attribute the user actually supplies is `new_folder`; id, name, and
-// share are Computed and therefore null in the config phase.
+// only attribute the user actually supplies is `new_folder`; id, name,
+// folder_location, records, and share are Computed and therefore null in the
+// config phase.
 func newConfigValues(lookup interface{}) map[string]tftypes.Value {
 	return map[string]tftypes.Value{
-		"new_folder": tftypes.NewValue(tftypes.String, lookup),
-		"id":         tftypes.NewValue(tftypes.String, nil),
-		"name":       tftypes.NewValue(tftypes.String, nil),
-		"share":      tftypes.NewValue(tftypes.Map{ElementType: tftypes.String}, nil),
+		"new_folder":      tftypes.NewValue(tftypes.String, lookup),
+		"id":              tftypes.NewValue(tftypes.String, nil),
+		"name":            tftypes.NewValue(tftypes.String, nil),
+		"folder_location": tftypes.NewValue(tftypes.String, nil),
+		"records":         tftypes.NewValue(tftypes.Set{ElementType: tftypes.String}, nil),
+		"share":           tftypes.NewValue(tftypes.Map{ElementType: tftypes.String}, nil),
 	}
 }
 

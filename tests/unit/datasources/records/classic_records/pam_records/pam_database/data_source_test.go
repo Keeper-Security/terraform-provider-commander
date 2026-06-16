@@ -17,8 +17,8 @@ func TestPamDatabaseDataSource_Metadata(t *testing.T) {
 	req := datasource.MetadataRequest{ProviderTypeName: "commander"}
 	var resp datasource.MetadataResponse
 	d.Metadata(context.Background(), req, &resp)
-	if resp.TypeName != "commander_pam_database" {
-		t.Errorf("expected TypeName commander_pam_database, got %s", resp.TypeName)
+	if resp.TypeName != "commander_classic_pam_database" {
+		t.Errorf("expected TypeName commander_classic_pam_database, got %s", resp.TypeName)
 	}
 }
 

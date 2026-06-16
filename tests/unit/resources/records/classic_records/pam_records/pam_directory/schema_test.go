@@ -23,7 +23,7 @@ func TestPamDirectoryResource_Schema(t *testing.T) {
 		"use_ssl", "domain_name", "alternative_ips",
 		"directory_id", "directory_type", "user_match",
 		"provider_group", "provider_region",
-		"notes", "folder",
+		"notes", "folder_location",
 	}
 	for _, attr := range expectedAttrs {
 		if resp.Schema.Attributes[attr] == nil {
