@@ -43,16 +43,18 @@ type ConnectionCommonFields struct {
 	RecordingIncludeKeys types.Bool `tfsdk:"recording_include_keys"`
 	AllowSupplyUser      types.Bool `tfsdk:"allow_supply_user"`
 	TypescriptRecording  types.Bool `tfsdk:"typescript_recording"`
+	RotateOnTermination  types.Bool `tfsdk:"rotate_on_termination"`
 }
 
-// ConnectionRecordingNoTypescriptFields is used by RDP and VNC, which do not
+// ConnectionCommonFieldsWithoutTypescriptRecording is used by RDP and VNC, which do not
 // support typescript_recording but otherwise share the same recording toggles
 // plus a read_only flag.
-type ConnectionRecordingNoTypescriptFields struct {
+type ConnectionCommonFieldsWithoutTypescriptRecording struct {
 	SessionRecording     types.Bool `tfsdk:"session_recording"`
 	RecordingIncludeKeys types.Bool `tfsdk:"recording_include_keys"`
 	AllowSupplyUser      types.Bool `tfsdk:"allow_supply_user"`
 	ReadOnly             types.Bool `tfsdk:"read_only"`
+	RotateOnTermination  types.Bool `tfsdk:"rotate_on_termination"`
 }
 
 type ConnectionTerminalFields struct {
@@ -68,6 +70,20 @@ type ConnectionClipboardFields struct {
 	DisablePaste types.Bool `tfsdk:"disable_paste"`
 }
 
+// ConnectionSftpModel is the shared SFTP nested block used by RDP and VNC.
+type ConnectionSftpModel struct {
+	EnableSftp              types.Bool   `tfsdk:"enable_sftp"`
+	SftpResourceUid         types.String `tfsdk:"sftp_resource_uid"`
+	SftpUserUid             types.String `tfsdk:"sftp_user_uid"`
+	SftpDirectory           types.String `tfsdk:"sftp_directory"`
+	SftpServerAliveInterval types.Int32  `tfsdk:"sftp_server_alive_interval"`
+}
+
+// ConnectionSshSftpModel is the shared SFTP nested block used by SSH.
+type ConnectionSshSftpModel struct {
+	EnableSftp types.Bool `tfsdk:"enable_sftp"`
+}
+
 // ---------------------------------------------------------------------------
 // Per-protocol attribute models
 // ---------------------------------------------------------------------------
@@ -75,44 +91,20 @@ type ConnectionClipboardFields struct {
 type ConnectionKubernetesModel struct {
 	ConnectionCommonFields
 	ConnectionTerminalFields
-	RotateOnTermination types.Bool   `tfsdk:"rotate_on_termination"`
-	UseSSL              types.Bool   `tfsdk:"use_ssl"`
-	IgnoreCert          types.Bool   `tfsdk:"ignore_cert"`
-	CaCert              types.String `tfsdk:"ca_cert"`
-	ClientCert          types.String `tfsdk:"client_cert"`
-	ClientKey           types.String `tfsdk:"client_key"`
-	Namespace           types.String `tfsdk:"namespace"`
-	Pod                 types.String `tfsdk:"pod"`
-	Container           types.String `tfsdk:"container"`
-	Command             types.String `tfsdk:"command"`
-	Backspace           types.String `tfsdk:"backspace"`
-}
 
-// ConnectionDatabaseModel is shared by mysql, postgresql, and sql_server.
-type ConnectionDatabaseModel struct {
-	ConnectionCommonFields
-	ConnectionTerminalFields
-	ConnectionClipboardFields
-	DisableCsvExport types.Bool   `tfsdk:"disable_csv_export"`
-	DisableCsvImport types.Bool   `tfsdk:"disable_csv_import"`
-	Database         types.String `tfsdk:"database"`
+	UseSSL     types.Bool   `tfsdk:"use_ssl"`
+	IgnoreCert types.Bool   `tfsdk:"ignore_cert"`
+	CaCert     types.String `tfsdk:"ca_cert"`
+	ClientCert types.String `tfsdk:"client_cert"`
+	ClientKey  types.String `tfsdk:"client_key"`
+	Namespace  types.String `tfsdk:"namespace"`
+	Pod        types.String `tfsdk:"pod"`
+	Container  types.String `tfsdk:"container"`
+	Command    types.String `tfsdk:"command"`
+	Backspace  types.String `tfsdk:"backspace"`
 }
-
-// ConnectionMariaDbOracleDatabaseModel is the lighter database connection model
-// shared by mariadb and oracle. They do not support typescript_recording or
-// the terminal fields exposed by ConnectionDatabaseModel.
-type ConnectionMariaDbOracleDatabaseModel struct {
-	SessionRecording     types.Bool `tfsdk:"session_recording"`
-	RecordingIncludeKeys types.Bool `tfsdk:"recording_include_keys"`
-	AllowSupplyUser      types.Bool `tfsdk:"allow_supply_user"`
-	ConnectionClipboardFields
-	DisableCsvExport types.Bool   `tfsdk:"disable_csv_export"`
-	DisableCsvImport types.Bool   `tfsdk:"disable_csv_import"`
-	Database         types.String `tfsdk:"database"`
-}
-
 type ConnectionRdpModel struct {
-	ConnectionRecordingNoTypescriptFields
+	ConnectionCommonFieldsWithoutTypescriptRecording
 	ConnectionClipboardFields
 	IgnoreCert               types.Bool           `tfsdk:"ignore_cert"`
 	EnableFullWindowDrag     types.Bool           `tfsdk:"enable_full_window_drag"`
@@ -154,15 +146,6 @@ type ConnectionRdpModel struct {
 	DriveRedirectionMode     types.String         `tfsdk:"drive_redirection_mode"`
 }
 
-// ConnectionSftpModel is the shared SFTP nested block used by RDP and VNC.
-type ConnectionSftpModel struct {
-	EnableSftp              types.Bool   `tfsdk:"enable_sftp"`
-	SftpResourceUid         types.String `tfsdk:"sftp_resource_uid"`
-	SftpUserUid             types.String `tfsdk:"sftp_user_uid"`
-	SftpDirectory           types.String `tfsdk:"sftp_directory"`
-	SftpServerAliveInterval types.Int32  `tfsdk:"sftp_server_alive_interval"`
-}
-
 type ConnectionSshModel struct {
 	ConnectionCommonFields
 	ConnectionTerminalFields
@@ -175,10 +158,6 @@ type ConnectionSshModel struct {
 	Backspace           types.String            `tfsdk:"backspace"`
 	TerminalType        types.String            `tfsdk:"terminal_type"`
 	Sftp                *ConnectionSshSftpModel `tfsdk:"sftp"`
-}
-
-type ConnectionSshSftpModel struct {
-	EnableSftp types.Bool `tfsdk:"enable_sftp"`
 }
 
 type ConnectionTelnetModel struct {
@@ -194,7 +173,7 @@ type ConnectionTelnetModel struct {
 }
 
 type ConnectionVncModel struct {
-	ConnectionRecordingNoTypescriptFields
+	ConnectionCommonFieldsWithoutTypescriptRecording
 	ConnectionClipboardFields
 	SwapRedBlue       types.Bool           `tfsdk:"swap_red_blue"`
 	ForceLossless     types.Bool           `tfsdk:"force_lossless"`
@@ -207,6 +186,32 @@ type ConnectionVncModel struct {
 	ColorDepth        types.Int32          `tfsdk:"color_depth"`
 	Sftp              *ConnectionSftpModel `tfsdk:"sftp"`
 }
+
+// ConnectionDatabaseModel is shared by mysql, postgresql, and sql_server.
+type ConnectionDatabaseModel struct {
+	ConnectionCommonFields
+	ConnectionTerminalFields
+	ConnectionClipboardFields
+	DisableCsvExport types.Bool   `tfsdk:"disable_csv_export"`
+	DisableCsvImport types.Bool   `tfsdk:"disable_csv_import"`
+	Database         types.String `tfsdk:"database"`
+}
+
+// ConnectionMariaDbOracleDatabaseModel is the lighter database connection model
+// shared by mariadb and oracle. They do not support typescript_recording or
+// the terminal fields exposed by ConnectionDatabaseModel.
+type ConnectionMariaDbOracleDatabaseModel struct {
+	SessionRecording     types.Bool `tfsdk:"session_recording"`
+	RecordingIncludeKeys types.Bool `tfsdk:"recording_include_keys"`
+	AllowSupplyUser      types.Bool `tfsdk:"allow_supply_user"`
+	RotateOnTermination  types.Bool `tfsdk:"rotate_on_termination"`
+	ConnectionClipboardFields
+	DisableCsvExport types.Bool   `tfsdk:"disable_csv_export"`
+	DisableCsvImport types.Bool   `tfsdk:"disable_csv_import"`
+	Database         types.String `tfsdk:"database"`
+}
+
+// ---------------------------------------------------------------------------
 
 // CommonPamSettingsTunnelResourceModel is the structure of the "portForward"
 // object returned by the API.

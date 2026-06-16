@@ -322,6 +322,7 @@ Optional:
 - `remote_app_args` (String) **Arguments** for the remote application.
 - `remote_app_dir` (String) **Working directory** for the remote application.
 - `resize_method` (String) **Resize method** for the RDP connection (e.g. `display-update`, `reconnect`).
+- `rotate_on_termination` (Boolean) **Rotate** launch credentials upon session termination.
 - `security` (String) **Security mode** for the RDP connection (e.g. `any`, `nla`, `tls`, `rdp`).
 - `server_layout` (String) **Keyboard layout** for the RDP connection (e.g. `en-us-qwerty`, `de-de-qwertz`).
 - `session_recording` (Boolean) Whether **session recording** is enabled.
@@ -359,6 +360,7 @@ Optional:
 - `locale` (String) **Locale** for the SSH session. Use `$LANG` (default) to inherit client locale, or any valid POSIX locale string (e.g. `en_US.UTF-8`, `fr_FR.UTF-8`).
 - `read_only` (Boolean) Whether the connection is **read-only**.
 - `recording_include_keys` (Boolean) Whether to include **keystrokes** in the recording.
+- `rotate_on_termination` (Boolean) **Rotate** launch credentials upon session termination.
 - `scrollback` (Number) **Maximum scrollable size** for the connection terminal.
 - `server_alive_interval` (Number) Interval in seconds between **keep-alive messages** sent to the SSH server.
 - `session_recording` (Boolean) Whether **session recording** is enabled.
@@ -393,6 +395,7 @@ Optional:
 - `password_regex` (String) Regular expression to detect the **password prompt** during Telnet login.
 - `read_only` (Boolean) Whether the connection is **read-only**.
 - `recording_include_keys` (Boolean) Whether to include **keystrokes** in the recording.
+- `rotate_on_termination` (Boolean) **Rotate** launch credentials upon session termination.
 - `scrollback` (Number) **Maximum scrollable size** for the connection terminal.
 - `session_recording` (Boolean) Whether **session recording** is enabled.
 - `terminal_type` (String) **Terminal emulator type** string for the Telnet session (e.g. `xterm`, `vt100`).
@@ -418,6 +421,7 @@ Optional:
 - `force_lossless` (Boolean) Force **lossless compression** for the VNC connection.
 - `read_only` (Boolean) Whether the connection is **read-only**.
 - `recording_include_keys` (Boolean) Whether to include **keystrokes** in the recording.
+- `rotate_on_termination` (Boolean) **Rotate** launch credentials upon session termination.
 - `session_recording` (Boolean) Whether **session recording** is enabled.
 - `sftp` (Block, Optional) **SFTP** settings for the VNC connection. (see [below for nested schema](#nestedblock--pam_settings--connection--vnc--sftp))
 - `swap_red_blue` (Boolean) **Swap red and blue** color components in the VNC display.

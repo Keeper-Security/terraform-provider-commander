@@ -231,6 +231,11 @@ func ConnectionCommonSchema() map[string]schema.Attribute {
 			Description:         ConnectionTypescriptRecordingDescription,
 			MarkdownDescription: ConnectionTypescriptRecordingMarkdownDescription,
 		},
+		"rotate_on_termination": schema.BoolAttribute{
+			Optional:            true,
+			Description:         ConnectionRotateOnTerminationDescription,
+			MarkdownDescription: ConnectionRotateOnTerminationMarkdownDescription,
+		},
 	}
 }
 
@@ -298,9 +303,9 @@ func ConnectionClipboardSchema() map[string]schema.Attribute {
 	}
 }
 
-// connectionRecordingNoTypescriptSchema returns the recording attributes
+// connectionCommonWithoutTypescriptRecordingSchema returns the recording attributes
 // shared by RDP and VNC (no typescript_recording, plus read_only).
-func connectionRecordingNoTypescriptSchema() map[string]schema.Attribute {
+func connectionCommonWithoutTypescriptRecordingSchema() map[string]schema.Attribute {
 	return map[string]schema.Attribute{
 		"session_recording": schema.BoolAttribute{
 			Optional:            true,
@@ -321,6 +326,11 @@ func connectionRecordingNoTypescriptSchema() map[string]schema.Attribute {
 			Optional:            true,
 			Description:         ConnectionReadOnlyDescription,
 			MarkdownDescription: ConnectionReadOnlyMarkdownDescription,
+		},
+		"rotate_on_termination": schema.BoolAttribute{
+			Optional:            true,
+			Description:         ConnectionRotateOnTerminationDescription,
+			MarkdownDescription: ConnectionRotateOnTerminationMarkdownDescription,
 		},
 	}
 }
@@ -402,11 +412,6 @@ func ConnectionKubernetesSchema() map[string]schema.Attribute {
 		ConnectionCommonSchema(),
 		ConnectionTerminalSchema(),
 		map[string]schema.Attribute{
-			"rotate_on_termination": schema.BoolAttribute{
-				Optional:            true,
-				Description:         KubernetesRotateOnTerminationDescription,
-				MarkdownDescription: KubernetesRotateOnTerminationMarkdownDescription,
-			},
 			"use_ssl": schema.BoolAttribute{
 				Optional:            true,
 				Description:         KubernetesUseSSLDescription,
@@ -463,7 +468,8 @@ func ConnectionKubernetesSchema() map[string]schema.Attribute {
 func ConnectionRdpSchema() map[string]schema.Attribute {
 	return mergeSchemaAttributes(
 		ConnectionClipboardSchema(),
-		connectionRecordingNoTypescriptSchema(),
+		connectionCommonWithoutTypescriptRecordingSchema(),
+
 		map[string]schema.Attribute{
 			"ignore_cert": schema.BoolAttribute{
 				Optional:            true,
@@ -729,6 +735,7 @@ func ConnectionDatabaseSchema() map[string]schema.Attribute {
 		ConnectionCommonSchema(),
 		ConnectionTerminalSchema(),
 		ConnectionClipboardSchema(),
+
 		databaseCsvAndNameSchema(true),
 	)
 }
@@ -739,6 +746,7 @@ func ConnectionSshSchema() map[string]schema.Attribute {
 		ConnectionCommonSchema(),
 		ConnectionTerminalSchema(),
 		ConnectionClipboardSchema(),
+
 		map[string]schema.Attribute{
 			"host_key": schema.StringAttribute{
 				Optional:            true,
@@ -805,6 +813,7 @@ func ConnectionTelnetSchema() map[string]schema.Attribute {
 		ConnectionCommonSchema(),
 		ConnectionTerminalSchema(),
 		ConnectionClipboardSchema(),
+
 		map[string]schema.Attribute{
 			"username_regex": schema.StringAttribute{
 				Optional:            true,
@@ -842,7 +851,8 @@ func ConnectionTelnetSchema() map[string]schema.Attribute {
 func ConnectionVncSchema() map[string]schema.Attribute {
 	return mergeSchemaAttributes(
 		ConnectionClipboardSchema(),
-		connectionRecordingNoTypescriptSchema(),
+		connectionCommonWithoutTypescriptRecordingSchema(),
+
 		map[string]schema.Attribute{
 			"swap_red_blue": schema.BoolAttribute{
 				Optional:            true,
@@ -918,8 +928,14 @@ func ConnectionMariaDbOracleDatabaseSchema() map[string]schema.Attribute {
 				Description:         ConnectionAllowSupplyUserDescription,
 				MarkdownDescription: ConnectionAllowSupplyUserMarkdownDescription,
 			},
+			"rotate_on_termination": schema.BoolAttribute{
+				Optional:            true,
+				Description:         ConnectionRotateOnTerminationDescription,
+				MarkdownDescription: ConnectionRotateOnTerminationMarkdownDescription,
+			},
 		},
 		ConnectionClipboardSchema(),
+
 		databaseCsvAndNameSchema(false),
 	)
 }

@@ -342,15 +342,15 @@ func extractConnectionFromResponse(
 			}
 		case ConnectionProtocolMysql:
 			if db, ok := typed.(*utils.DatabaseConnectionResponse); ok {
-				conn.Mysql = extractDatabaseConnectionFromResponse(db, pamEnabled)
+				conn.Mysql = extractDatabaseConnectionFromResponse(db, pamEnabled, dagDebug)
 			}
 		case ConnectionProtocolPostgreSql:
 			if db, ok := typed.(*utils.DatabaseConnectionResponse); ok {
-				conn.PostgreSql = extractDatabaseConnectionFromResponse(db, pamEnabled)
+				conn.PostgreSql = extractDatabaseConnectionFromResponse(db, pamEnabled, dagDebug)
 			}
 		case ConnectionProtocolSqlServer:
 			if db, ok := typed.(*utils.DatabaseConnectionResponse); ok {
-				conn.SqlServer = extractDatabaseConnectionFromResponse(db, pamEnabled)
+				conn.SqlServer = extractDatabaseConnectionFromResponse(db, pamEnabled, dagDebug)
 			}
 		case ConnectionProtocolRdp:
 			if rdp, ok := typed.(*utils.RdpConnectionResponse); ok {
@@ -358,15 +358,15 @@ func extractConnectionFromResponse(
 				if existingState != nil && existingState.Connection != nil {
 					existingRdp = existingState.Connection.Rdp
 				}
-				conn.Rdp = extractRdpConnectionFromResponse(rdp, pamEnabled, existingRdp)
+				conn.Rdp = extractRdpConnectionFromResponse(rdp, pamEnabled, existingRdp, dagDebug)
 			}
 		case ConnectionProtocolSsh:
 			if ssh, ok := typed.(*utils.SshConnectionResponse); ok {
-				conn.Ssh = extractSshConnectionFromResponse(ssh, pamEnabled)
+				conn.Ssh = extractSshConnectionFromResponse(ssh, pamEnabled, dagDebug)
 			}
 		case ConnectionProtocolTelnet:
 			if telnet, ok := typed.(*utils.TelnetConnectionResponse); ok {
-				conn.Telnet = extractTelnetConnectionFromResponse(telnet, pamEnabled)
+				conn.Telnet = extractTelnetConnectionFromResponse(telnet, pamEnabled, dagDebug)
 			}
 		case ConnectionProtocolVnc:
 			if vnc, ok := typed.(*utils.VncConnectionResponse); ok {
@@ -374,15 +374,15 @@ func extractConnectionFromResponse(
 				if existingState != nil && existingState.Connection != nil {
 					existingVnc = existingState.Connection.Vnc
 				}
-				conn.Vnc = extractVncConnectionFromResponse(vnc, pamEnabled, existingVnc)
+				conn.Vnc = extractVncConnectionFromResponse(vnc, pamEnabled, existingVnc, dagDebug)
 			}
 		case ConnectionProtocolMariaDb:
 			if db, ok := typed.(*utils.DatabaseConnectionResponse); ok {
-				conn.MariaDb = extractMariaDbOracleDatabaseConnectionFromResponse(db, pamEnabled)
+				conn.MariaDb = extractMariaDbOracleDatabaseConnectionFromResponse(db, pamEnabled, dagDebug)
 			}
 		case ConnectionProtocolOracle:
 			if db, ok := typed.(*utils.DatabaseConnectionResponse); ok {
-				conn.Oracle = extractMariaDbOracleDatabaseConnectionFromResponse(db, pamEnabled)
+				conn.Oracle = extractMariaDbOracleDatabaseConnectionFromResponse(db, pamEnabled, dagDebug)
 			}
 		}
 	}
@@ -438,7 +438,7 @@ func extractKubernetesFromResponse(
 
 // extractDatabaseConnectionFromResponse builds a ConnectionDatabaseModel from
 // the DatabaseConnectionResponse API struct. Used for mysql, postgresql, sql-server.
-func extractDatabaseConnectionFromResponse(dbConn *utils.DatabaseConnectionResponse, pamEnabled *utils.PamSettingsEnabledResponse) *ConnectionDatabaseModel {
+func extractDatabaseConnectionFromResponse(dbConn *utils.DatabaseConnectionResponse, pamEnabled *utils.PamSettingsEnabledResponse, dagDebug *utils.DagDebugResponse) *ConnectionDatabaseModel {
 	db := &ConnectionDatabaseModel{}
 
 	if pamEnabled != nil {
@@ -447,6 +447,12 @@ func extractDatabaseConnectionFromResponse(dbConn *utils.DatabaseConnectionRespo
 	} else {
 		db.SessionRecording = types.BoolNull()
 		db.TypescriptRecording = types.BoolNull()
+	}
+
+	if dagDebug != nil && dagDebug.VertexContent != nil {
+		db.RotateOnTermination = types.BoolValue(dagDebug.VertexContent.RotateOnTermination)
+	} else {
+		db.RotateOnTermination = types.BoolNull()
 	}
 
 	if dbConn == nil {
@@ -472,13 +478,19 @@ func extractDatabaseConnectionFromResponse(dbConn *utils.DatabaseConnectionRespo
 // extractMariaDbOracleDatabaseConnectionFromResponse builds a
 // ConnectionMariaDbOracleDatabaseModel from the API response. Shared by mariadb and
 // oracle protocols, which have an identical wire shape.
-func extractMariaDbOracleDatabaseConnectionFromResponse(dbConn *utils.DatabaseConnectionResponse, pamEnabled *utils.PamSettingsEnabledResponse) *ConnectionMariaDbOracleDatabaseModel {
+func extractMariaDbOracleDatabaseConnectionFromResponse(dbConn *utils.DatabaseConnectionResponse, pamEnabled *utils.PamSettingsEnabledResponse, dagDebug *utils.DagDebugResponse) *ConnectionMariaDbOracleDatabaseModel {
 	db := &ConnectionMariaDbOracleDatabaseModel{}
 
 	if pamEnabled != nil {
 		db.SessionRecording = optionalBoolValue(pamEnabled.SessionRecording)
 	} else {
 		db.SessionRecording = types.BoolNull()
+	}
+
+	if dagDebug != nil && dagDebug.VertexContent != nil {
+		db.RotateOnTermination = types.BoolValue(dagDebug.VertexContent.RotateOnTermination)
+	} else {
+		db.RotateOnTermination = types.BoolNull()
 	}
 
 	if dbConn == nil {
@@ -497,7 +509,7 @@ func extractMariaDbOracleDatabaseConnectionFromResponse(dbConn *utils.DatabaseCo
 }
 
 // extractRdpConnectionFromResponse builds a ConnectionRdpModel from the API response.
-func extractRdpConnectionFromResponse(rdpConn *utils.RdpConnectionResponse, pamEnabled *utils.PamSettingsEnabledResponse, existingRdp *ConnectionRdpModel) *ConnectionRdpModel {
+func extractRdpConnectionFromResponse(rdpConn *utils.RdpConnectionResponse, pamEnabled *utils.PamSettingsEnabledResponse, existingRdp *ConnectionRdpModel, dagDebug *utils.DagDebugResponse) *ConnectionRdpModel {
 	rdp := &ConnectionRdpModel{}
 
 	if pamEnabled != nil {
@@ -516,6 +528,12 @@ func extractRdpConnectionFromResponse(rdpConn *utils.RdpConnectionResponse, pamE
 			rdp.ResizeMethod = existingRdp.ResizeMethod
 		}
 		return rdp
+	}
+
+	if dagDebug != nil && dagDebug.VertexContent != nil {
+		rdp.RotateOnTermination = types.BoolValue(dagDebug.VertexContent.RotateOnTermination)
+	} else {
+		rdp.RotateOnTermination = types.BoolNull()
 	}
 
 	if rdpConn.ColorDepth > 0 {
@@ -890,39 +908,48 @@ func runPamConnectionEditCommand(ctx context.Context, apiManager *api.ApiManager
 		parts = append(parts, fmt.Sprintf("%s=%s", utils.FlagConnectionsRecording, boolToOnOff(connection.Kubernetes.SessionRecording)))
 		parts = append(parts, fmt.Sprintf("%s=%s", utils.FlagTypescriptRecording, boolToOnOff(connection.Kubernetes.TypescriptRecording)))
 		parts = append(parts, fmt.Sprintf("%s=%s", utils.FlagKeyEvents, boolToOnOff(connection.Kubernetes.RecordingIncludeKeys)))
+		parts = append(parts, fmt.Sprintf("%s=%s", utils.FlagRotateOnTermination, boolToOnOff(connection.Kubernetes.RotateOnTermination)))
 	case connection.Mysql != nil:
 		parts = append(parts, fmt.Sprintf("%s=%s", utils.FlagConnectionsRecording, boolToOnOff(connection.Mysql.SessionRecording)))
 		parts = append(parts, fmt.Sprintf("%s=%s", utils.FlagTypescriptRecording, boolToOnOff(connection.Mysql.TypescriptRecording)))
 		parts = append(parts, fmt.Sprintf("%s=%s", utils.FlagKeyEvents, boolToOnOff(connection.Mysql.RecordingIncludeKeys)))
+		parts = append(parts, fmt.Sprintf("%s=%s", utils.FlagRotateOnTermination, boolToOnOff(connection.Mysql.RotateOnTermination)))
 	case connection.PostgreSql != nil:
 		parts = append(parts, fmt.Sprintf("%s=%s", utils.FlagConnectionsRecording, boolToOnOff(connection.PostgreSql.SessionRecording)))
 		parts = append(parts, fmt.Sprintf("%s=%s", utils.FlagTypescriptRecording, boolToOnOff(connection.PostgreSql.TypescriptRecording)))
 		parts = append(parts, fmt.Sprintf("%s=%s", utils.FlagKeyEvents, boolToOnOff(connection.PostgreSql.RecordingIncludeKeys)))
+		parts = append(parts, fmt.Sprintf("%s=%s", utils.FlagRotateOnTermination, boolToOnOff(connection.PostgreSql.RotateOnTermination)))
 	case connection.SqlServer != nil:
 		parts = append(parts, fmt.Sprintf("%s=%s", utils.FlagConnectionsRecording, boolToOnOff(connection.SqlServer.SessionRecording)))
 		parts = append(parts, fmt.Sprintf("%s=%s", utils.FlagTypescriptRecording, boolToOnOff(connection.SqlServer.TypescriptRecording)))
 		parts = append(parts, fmt.Sprintf("%s=%s", utils.FlagKeyEvents, boolToOnOff(connection.SqlServer.RecordingIncludeKeys)))
+		parts = append(parts, fmt.Sprintf("%s=%s", utils.FlagRotateOnTermination, boolToOnOff(connection.SqlServer.RotateOnTermination)))
 	case connection.Rdp != nil:
 		parts = append(parts, fmt.Sprintf("%s=%s", utils.FlagConnectionsRecording, boolToOnOff(connection.Rdp.SessionRecording)))
 		parts = append(parts, fmt.Sprintf("%s=%s", utils.FlagKeyEvents, boolToOnOff(connection.Rdp.RecordingIncludeKeys)))
+		parts = append(parts, fmt.Sprintf("%s=%s", utils.FlagRotateOnTermination, boolToOnOff(connection.Rdp.RotateOnTermination)))
 	case connection.Ssh != nil:
 		parts = append(parts, fmt.Sprintf("%s=%s", utils.FlagConnectionsRecording, boolToOnOff(connection.Ssh.SessionRecording)))
 		parts = append(parts, fmt.Sprintf("%s=%s", utils.FlagTypescriptRecording, boolToOnOff(connection.Ssh.TypescriptRecording)))
 		parts = append(parts, fmt.Sprintf("%s=%s", utils.FlagKeyEvents, boolToOnOff(connection.Ssh.RecordingIncludeKeys)))
+		parts = append(parts, fmt.Sprintf("%s=%s", utils.FlagRotateOnTermination, boolToOnOff(connection.Ssh.RotateOnTermination)))
 	case connection.Telnet != nil:
 		parts = append(parts, fmt.Sprintf("%s=%s", utils.FlagConnectionsRecording, boolToOnOff(connection.Telnet.SessionRecording)))
 		parts = append(parts, fmt.Sprintf("%s=%s", utils.FlagTypescriptRecording, boolToOnOff(connection.Telnet.TypescriptRecording)))
 		parts = append(parts, fmt.Sprintf("%s=%s", utils.FlagKeyEvents, boolToOnOff(connection.Telnet.RecordingIncludeKeys)))
+		parts = append(parts, fmt.Sprintf("%s=%s", utils.FlagRotateOnTermination, boolToOnOff(connection.Telnet.RotateOnTermination)))
 	case connection.Vnc != nil:
 		parts = append(parts, fmt.Sprintf("%s=%s", utils.FlagConnectionsRecording, boolToOnOff(connection.Vnc.SessionRecording)))
 		parts = append(parts, fmt.Sprintf("%s=%s", utils.FlagKeyEvents, boolToOnOff(connection.Vnc.RecordingIncludeKeys)))
+		parts = append(parts, fmt.Sprintf("%s=%s", utils.FlagRotateOnTermination, boolToOnOff(connection.Vnc.RotateOnTermination)))
 	case connection.MariaDb != nil, connection.Oracle != nil:
-		simpleDb := connection.MariaDb
-		if simpleDb == nil {
-			simpleDb = connection.Oracle
+		db := connection.MariaDb
+		if db == nil {
+			db = connection.Oracle
 		}
-		parts = append(parts, fmt.Sprintf("%s=%s", utils.FlagConnectionsRecording, boolToOnOff(simpleDb.SessionRecording)))
-		parts = append(parts, fmt.Sprintf("%s=%s", utils.FlagKeyEvents, boolToOnOff(simpleDb.RecordingIncludeKeys)))
+		parts = append(parts, fmt.Sprintf("%s=%s", utils.FlagConnectionsRecording, boolToOnOff(db.SessionRecording)))
+		parts = append(parts, fmt.Sprintf("%s=%s", utils.FlagKeyEvents, boolToOnOff(db.RecordingIncludeKeys)))
+		parts = append(parts, fmt.Sprintf("%s=%s", utils.FlagRotateOnTermination, boolToOnOff(db.RotateOnTermination)))
 	}
 
 	if !connection.LaunchCredential.IsNull() && !connection.LaunchCredential.IsUnknown() {
@@ -1287,7 +1314,7 @@ func buildSshConnectionMap(connection *CommonPamSettingsConnectionResourceModel)
 }
 
 // extractSshConnectionFromResponse builds a ConnectionSshModel from the API response.
-func extractSshConnectionFromResponse(sshConn *utils.SshConnectionResponse, pamEnabled *utils.PamSettingsEnabledResponse) *ConnectionSshModel {
+func extractSshConnectionFromResponse(sshConn *utils.SshConnectionResponse, pamEnabled *utils.PamSettingsEnabledResponse, dagDebug *utils.DagDebugResponse) *ConnectionSshModel {
 	ssh := &ConnectionSshModel{}
 
 	if pamEnabled != nil {
@@ -1296,6 +1323,12 @@ func extractSshConnectionFromResponse(sshConn *utils.SshConnectionResponse, pamE
 	} else {
 		ssh.SessionRecording = types.BoolNull()
 		ssh.TypescriptRecording = types.BoolNull()
+	}
+
+	if dagDebug != nil && dagDebug.VertexContent != nil {
+		ssh.RotateOnTermination = types.BoolValue(dagDebug.VertexContent.RotateOnTermination)
+	} else {
+		ssh.RotateOnTermination = types.BoolNull()
 	}
 
 	if sshConn == nil {
@@ -1380,7 +1413,7 @@ func buildTelnetConnectionMap(connection *CommonPamSettingsConnectionResourceMod
 }
 
 // extractTelnetConnectionFromResponse builds a ConnectionTelnetModel from the API response.
-func extractTelnetConnectionFromResponse(telnetConn *utils.TelnetConnectionResponse, pamEnabled *utils.PamSettingsEnabledResponse) *ConnectionTelnetModel {
+func extractTelnetConnectionFromResponse(telnetConn *utils.TelnetConnectionResponse, pamEnabled *utils.PamSettingsEnabledResponse, dagDebug *utils.DagDebugResponse) *ConnectionTelnetModel {
 	telnet := &ConnectionTelnetModel{}
 
 	if pamEnabled != nil {
@@ -1389,6 +1422,12 @@ func extractTelnetConnectionFromResponse(telnetConn *utils.TelnetConnectionRespo
 	} else {
 		telnet.SessionRecording = types.BoolNull()
 		telnet.TypescriptRecording = types.BoolNull()
+	}
+
+	if dagDebug != nil && dagDebug.VertexContent != nil {
+		telnet.RotateOnTermination = types.BoolValue(dagDebug.VertexContent.RotateOnTermination)
+	} else {
+		telnet.RotateOnTermination = types.BoolNull()
 	}
 
 	if telnetConn == nil {
@@ -1469,13 +1508,19 @@ func buildVncConnectionMap(connection *CommonPamSettingsConnectionResourceModel)
 }
 
 // extractVncConnectionFromResponse builds a ConnectionVncModel from the API response.
-func extractVncConnectionFromResponse(vncConn *utils.VncConnectionResponse, pamEnabled *utils.PamSettingsEnabledResponse, existingVnc *ConnectionVncModel) *ConnectionVncModel {
+func extractVncConnectionFromResponse(vncConn *utils.VncConnectionResponse, pamEnabled *utils.PamSettingsEnabledResponse, existingVnc *ConnectionVncModel, dagDebug *utils.DagDebugResponse) *ConnectionVncModel {
 	vnc := &ConnectionVncModel{}
 
 	if pamEnabled != nil {
 		vnc.SessionRecording = optionalBoolValue(pamEnabled.SessionRecording)
 	} else {
 		vnc.SessionRecording = types.BoolNull()
+	}
+
+	if dagDebug != nil && dagDebug.VertexContent != nil {
+		vnc.RotateOnTermination = types.BoolValue(dagDebug.VertexContent.RotateOnTermination)
+	} else {
+		vnc.RotateOnTermination = types.BoolNull()
 	}
 
 	if vncConn == nil {

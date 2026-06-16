@@ -107,10 +107,11 @@ const (
 	ConnectionDisablePasteDescription         = "Whether paste is disabled for the connection."
 	ConnectionDisablePasteMarkdownDescription = "Whether **paste** is disabled for the connection."
 
-	// --- Kubernetes-only Connection Attributes ---.
-	KubernetesRotateOnTerminationDescription         = "Rotate launch credentials upon session termination."
-	KubernetesRotateOnTerminationMarkdownDescription = "**Rotate** launch credentials upon session termination."
+	// --- Shared Rotate Attribute (ConnectionRotateFields) ---.
+	ConnectionRotateOnTerminationDescription         = "Rotate launch credentials upon session termination."
+	ConnectionRotateOnTerminationMarkdownDescription = "**Rotate** launch credentials upon session termination."
 
+	// --- Kubernetes-only Connection Attributes ---.
 	KubernetesUseSSLDescription         = "Use SSL/TLS for the Kubernetes connection."
 	KubernetesUseSSLMarkdownDescription = "Use **SSL/TLS** for the Kubernetes connection."
 

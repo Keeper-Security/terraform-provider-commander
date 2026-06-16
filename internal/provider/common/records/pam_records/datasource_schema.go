@@ -125,6 +125,7 @@ func commonFieldsDataSourceAttributes() map[string]dschema.Attribute {
 		"recording_include_keys": dschema.BoolAttribute{Computed: true},
 		"allow_supply_user":      dschema.BoolAttribute{Computed: true},
 		"typescript_recording":   dschema.BoolAttribute{Computed: true},
+		"rotate_on_termination":  dschema.BoolAttribute{Computed: true},
 	}
 }
 
@@ -175,18 +176,18 @@ func KubernetesDataSourceAttributes() map[string]dschema.Attribute {
 	return mergeDataSourceAttributes(
 		commonFieldsDataSourceAttributes(),
 		terminalFieldsDataSourceAttributes(),
+
 		map[string]dschema.Attribute{
-			"rotate_on_termination": dschema.BoolAttribute{Computed: true},
-			"use_ssl":               dschema.BoolAttribute{Computed: true},
-			"ignore_cert":           dschema.BoolAttribute{Computed: true},
-			"ca_cert":               dschema.StringAttribute{Computed: true},
-			"client_cert":           dschema.StringAttribute{Computed: true},
-			"client_key":            dschema.StringAttribute{Computed: true},
-			"namespace":             dschema.StringAttribute{Computed: true},
-			"pod":                   dschema.StringAttribute{Computed: true},
-			"container":             dschema.StringAttribute{Computed: true},
-			"command":               dschema.StringAttribute{Computed: true},
-			"backspace":             dschema.StringAttribute{Computed: true},
+			"use_ssl":     dschema.BoolAttribute{Computed: true},
+			"ignore_cert": dschema.BoolAttribute{Computed: true},
+			"ca_cert":     dschema.StringAttribute{Computed: true},
+			"client_cert": dschema.StringAttribute{Computed: true},
+			"client_key":  dschema.StringAttribute{Computed: true},
+			"namespace":   dschema.StringAttribute{Computed: true},
+			"pod":         dschema.StringAttribute{Computed: true},
+			"container":   dschema.StringAttribute{Computed: true},
+			"command":     dschema.StringAttribute{Computed: true},
+			"backspace":   dschema.StringAttribute{Computed: true},
 		},
 	)
 }
@@ -222,8 +223,10 @@ func MariaDbOracleDatabaseDataSourceAttributes() map[string]dschema.Attribute {
 			"session_recording":      dschema.BoolAttribute{Computed: true},
 			"recording_include_keys": dschema.BoolAttribute{Computed: true},
 			"allow_supply_user":      dschema.BoolAttribute{Computed: true},
+			"rotate_on_termination":  dschema.BoolAttribute{Computed: true},
 		},
 		clipboardFieldsDataSourceAttributes(),
+
 		databaseCsvAndNameDataSourceAttributes(),
 	)
 }
@@ -231,6 +234,7 @@ func MariaDbOracleDatabaseDataSourceAttributes() map[string]dschema.Attribute {
 func RdpDataSourceAttributes() map[string]dschema.Attribute {
 	return mergeDataSourceAttributes(
 		clipboardFieldsDataSourceAttributes(),
+
 		map[string]dschema.Attribute{
 			"session_recording":          dschema.BoolAttribute{Computed: true},
 			"recording_include_keys":     dschema.BoolAttribute{Computed: true},
@@ -277,6 +281,7 @@ func RdpDataSourceAttributes() map[string]dschema.Attribute {
 				Computed:   true,
 				Attributes: sftpDataSourceAttributes(),
 			},
+			"rotate_on_termination": dschema.BoolAttribute{Computed: true},
 		},
 	)
 }
@@ -286,6 +291,7 @@ func SshDataSourceAttributes() map[string]dschema.Attribute {
 		commonFieldsDataSourceAttributes(),
 		terminalFieldsDataSourceAttributes(),
 		clipboardFieldsDataSourceAttributes(),
+
 		map[string]dschema.Attribute{
 			"host_key":              dschema.StringAttribute{Computed: true},
 			"command":               dschema.StringAttribute{Computed: true},
@@ -307,6 +313,7 @@ func TelnetDataSourceAttributes() map[string]dschema.Attribute {
 		commonFieldsDataSourceAttributes(),
 		terminalFieldsDataSourceAttributes(),
 		clipboardFieldsDataSourceAttributes(),
+
 		map[string]dschema.Attribute{
 			"username_regex":      dschema.StringAttribute{Computed: true},
 			"password_regex":      dschema.StringAttribute{Computed: true},
@@ -321,6 +328,7 @@ func TelnetDataSourceAttributes() map[string]dschema.Attribute {
 func VncDataSourceAttributes() map[string]dschema.Attribute {
 	return mergeDataSourceAttributes(
 		clipboardFieldsDataSourceAttributes(),
+
 		map[string]dschema.Attribute{
 			"session_recording":      dschema.BoolAttribute{Computed: true},
 			"allow_supply_user":      dschema.BoolAttribute{Computed: true},
@@ -339,6 +347,7 @@ func VncDataSourceAttributes() map[string]dschema.Attribute {
 				Computed:   true,
 				Attributes: sftpDataSourceAttributes(),
 			},
+			"rotate_on_termination": dschema.BoolAttribute{Computed: true},
 		},
 	)
 }

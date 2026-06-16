@@ -134,19 +134,14 @@ Read-Only:
 Read-Only:
 
 - `allow_supply_user` (Boolean)
-- `color_scheme` (String)
 - `database` (String)
 - `disable_copy` (Boolean)
 - `disable_csv_export` (Boolean)
 - `disable_csv_import` (Boolean)
 - `disable_paste` (Boolean)
-- `font_name` (String)
-- `font_size` (Number)
-- `read_only` (Boolean)
 - `recording_include_keys` (Boolean)
-- `scrollback` (Number)
+- `rotate_on_termination` (Boolean)
 - `session_recording` (Boolean)
-- `typescript_recording` (Boolean)
 
 
 <a id="nestedatt--pam_settings--connection--mysql"></a>
@@ -165,6 +160,7 @@ Read-Only:
 - `font_size` (Number)
 - `read_only` (Boolean)
 - `recording_include_keys` (Boolean)
+- `rotate_on_termination` (Boolean)
 - `scrollback` (Number)
 - `session_recording` (Boolean)
 - `typescript_recording` (Boolean)
@@ -176,19 +172,14 @@ Read-Only:
 Read-Only:
 
 - `allow_supply_user` (Boolean)
-- `color_scheme` (String)
 - `database` (String)
 - `disable_copy` (Boolean)
 - `disable_csv_export` (Boolean)
 - `disable_csv_import` (Boolean)
 - `disable_paste` (Boolean)
-- `font_name` (String)
-- `font_size` (Number)
-- `read_only` (Boolean)
 - `recording_include_keys` (Boolean)
-- `scrollback` (Number)
+- `rotate_on_termination` (Boolean)
 - `session_recording` (Boolean)
-- `typescript_recording` (Boolean)
 
 
 <a id="nestedatt--pam_settings--connection--postgresql"></a>
@@ -207,6 +198,7 @@ Read-Only:
 - `font_size` (Number)
 - `read_only` (Boolean)
 - `recording_include_keys` (Boolean)
+- `rotate_on_termination` (Boolean)
 - `scrollback` (Number)
 - `session_recording` (Boolean)
 - `typescript_recording` (Boolean)
@@ -228,6 +220,7 @@ Read-Only:
 - `font_size` (Number)
 - `read_only` (Boolean)
 - `recording_include_keys` (Boolean)
+- `rotate_on_termination` (Boolean)
 - `scrollback` (Number)
 - `session_recording` (Boolean)
 - `typescript_recording` (Boolean)

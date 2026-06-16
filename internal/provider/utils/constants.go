@@ -47,6 +47,7 @@ const (
 	FlagTypescriptRecording         = "--typescript-recording"
 	FlagKeyEvents                   = "--key-events"
 	FlagProtocol                    = "--protocol"
+	FlagRotateOnTermination         = "--rotate-on-termination"
 	FlagPamSettings                 = "pamSettings"
 )
 

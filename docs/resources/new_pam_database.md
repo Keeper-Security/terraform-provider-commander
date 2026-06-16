@@ -199,6 +199,7 @@ Optional:
 - `disable_csv_import` (Boolean) Whether **CSV import** is disabled for the database connection.
 - `disable_paste` (Boolean) Whether **paste** is disabled for the connection.
 - `recording_include_keys` (Boolean) Whether to include **keystrokes** in the recording.
+- `rotate_on_termination` (Boolean) **Rotate** launch credentials upon session termination.
 - `session_recording` (Boolean) Whether **session recording** is enabled.
 
 
@@ -218,6 +219,7 @@ Optional:
 - `font_size` (Number) **Font size** for the connection terminal.
 - `read_only` (Boolean) Whether the connection is **read-only**.
 - `recording_include_keys` (Boolean) Whether to include **keystrokes** in the recording.
+- `rotate_on_termination` (Boolean) **Rotate** launch credentials upon session termination.
 - `scrollback` (Number) **Maximum scrollable size** for the connection terminal.
 - `session_recording` (Boolean) Whether **session recording** is enabled.
 - `typescript_recording` (Boolean) Whether **typescript recording** is enabled.
@@ -235,6 +237,7 @@ Optional:
 - `disable_csv_import` (Boolean) Whether **CSV import** is disabled for the database connection.
 - `disable_paste` (Boolean) Whether **paste** is disabled for the connection.
 - `recording_include_keys` (Boolean) Whether to include **keystrokes** in the recording.
+- `rotate_on_termination` (Boolean) **Rotate** launch credentials upon session termination.
 - `session_recording` (Boolean) Whether **session recording** is enabled.
 
 
@@ -254,6 +257,7 @@ Optional:
 - `font_size` (Number) **Font size** for the connection terminal.
 - `read_only` (Boolean) Whether the connection is **read-only**.
 - `recording_include_keys` (Boolean) Whether to include **keystrokes** in the recording.
+- `rotate_on_termination` (Boolean) **Rotate** launch credentials upon session termination.
 - `scrollback` (Number) **Maximum scrollable size** for the connection terminal.
 - `session_recording` (Boolean) Whether **session recording** is enabled.
 - `typescript_recording` (Boolean) Whether **typescript recording** is enabled.
@@ -275,6 +279,7 @@ Optional:
 - `font_size` (Number) **Font size** for the connection terminal.
 - `read_only` (Boolean) Whether the connection is **read-only**.
 - `recording_include_keys` (Boolean) Whether to include **keystrokes** in the recording.
+- `rotate_on_termination` (Boolean) **Rotate** launch credentials upon session termination.
 - `scrollback` (Number) **Maximum scrollable size** for the connection terminal.
 - `session_recording` (Boolean) Whether **session recording** is enabled.
 - `typescript_recording` (Boolean) Whether **typescript recording** is enabled.
