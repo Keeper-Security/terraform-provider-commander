@@ -313,7 +313,7 @@ Optional:
 - `ignore_cert` (Boolean) **Ignore server certificate** for the RDP connection.
 - `initial_program` (String) **Initial program** to run on RDP connect.
 - `load_balance_info` (String) **Load balance info** for the RDP connection.
-- `normalize_clipboard` (String) **Clipboard normalization** mode for the RDP connection (e.g. `preserve`).
+- `normalize_clipboard` (String) **Clipboard normalization** mode for the RDP connection (e.g. `preserve`, `unix`, `windows`).
 - `preconnection_blob` (String) **Pre-connection blob** for the RDP connection.
 - `preconnection_id` (String) **Pre-connection ID** for the RDP connection.
 - `read_only` (Boolean) Whether the connection is **read-only**.

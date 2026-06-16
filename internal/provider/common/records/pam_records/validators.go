@@ -228,7 +228,10 @@ func (v connectionProtocolBlockValidator) ValidateObject(_ context.Context, req 
 		return
 	}
 
-	selectedKey := protocolToAttributeKey[protocolVal.ValueString()]
+	selectedKey, known := protocolToAttributeKey[protocolVal.ValueString()]
+	if !known {
+		return
+	}
 
 	for _, attrKey := range protocolToAttributeKey {
 		attr, exists := attrs[attrKey]

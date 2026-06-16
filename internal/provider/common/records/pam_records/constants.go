@@ -183,8 +183,8 @@ const (
 	RdpDisableGlyphCachingDescription         = "Disable glyph caching for the RDP connection."
 	RdpDisableGlyphCachingMarkdownDescription = "Disable **glyph caching** for the RDP connection."
 
-	RdpNormalizeClipboardDescription         = "Clipboard normalization mode for the RDP connection (e.g. preserve)."
-	RdpNormalizeClipboardMarkdownDescription = "**Clipboard normalization** mode for the RDP connection (e.g. `preserve`)."
+	RdpNormalizeClipboardDescription         = "Clipboard normalization mode for the RDP connection (e.g. preserve, unix, windows)."
+	RdpNormalizeClipboardMarkdownDescription = "**Clipboard normalization** mode for the RDP connection (e.g. `preserve`, `unix`, `windows`)."
 
 	RdpSecurityDescription         = "Security mode for the RDP connection (e.g. any, nla, tls, rdp)."
 	RdpSecurityMarkdownDescription = "**Security mode** for the RDP connection (e.g. `any`, `nla`, `tls`, `rdp`)."
