@@ -3,12 +3,12 @@
 page_title: "commander_classic_pam_database Data Source - commander"
 subcategory: ""
 description: |-
-  Use this data source to look up a classic PAM database record by UID or name and read its per-user share permissions.
+  Use this data source to look up a classic PAM database record by UID.
 ---
 
 # commander_classic_pam_database (Data Source)
 
-Use this data source to look up a **classic PAM database** record by **UID** or **name** and read its **per-user share permissions**.
+Use this data source to look up a **classic PAM database** record by **UID**.
 
 ## Example Usage
 
@@ -76,7 +76,7 @@ output "pam_database_share" {
 
 ### Required
 
-- `pam_database` (String) PAM database record **UID** or **name** to read.
+- `pam_database` (String) PAM database record **UID** to read.
 
 ### Read-Only
 

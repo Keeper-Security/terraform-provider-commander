@@ -3,12 +3,12 @@
 page_title: "commander_classic_pam_machine Data Source - commander"
 subcategory: ""
 description: |-
-  Use this data source to look up a classic PAM machine record by UID or name and read its per-user share permissions.
+  Use this data source to look up a classic PAM machine record by UID.
 ---
 
 # commander_classic_pam_machine (Data Source)
 
-Use this data source to look up a **classic PAM machine** record by **UID** or **name** and read its **per-user share permissions**.
+Use this data source to look up a **classic PAM machine** record by **UID**.
 
 ## Example Usage
 
@@ -76,7 +76,7 @@ output "pam_machine_share" {
 
 ### Required
 
-- `pam_machine` (String) PAM machine record **UID** or **name** to read.
+- `pam_machine` (String) PAM machine record **UID** to read.
 
 ### Read-Only
 

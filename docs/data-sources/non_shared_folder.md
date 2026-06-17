@@ -3,12 +3,12 @@
 page_title: "commander_non_shared_folder Data Source - commander"
 subcategory: ""
 description: |-
-  Look up an existing vault folder by UID or path.
+  Look up an existing classic non-shared folder by UID.
 ---
 
 # commander_non_shared_folder (Data Source)
 
-Look up an existing vault folder by **UID** or **path**.
+Look up an existing classic non-shared folder by **UID**.
 
 ## Example Usage
 
@@ -62,7 +62,7 @@ output "folder_records" {
 
 ### Required
 
-- `folder` (String) Folder **UID** or **vault path** to look up.
+- `folder` (String) Folder **UID** to look up.
 
 ### Read-Only
 

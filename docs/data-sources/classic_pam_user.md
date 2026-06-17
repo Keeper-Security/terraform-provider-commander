@@ -3,15 +3,12 @@
 page_title: "commander_classic_pam_user Data Source - commander"
 subcategory: ""
 description: |-
-  Retrieves a Keeper PAM User record (pamUser) from the vault.
-  A PAM User record stores privileged credentials (login/password) that can be associated with PAM Machines for rotation, connections, and tunneling.
+  Use this data source to look up a classic PAM user record by UID.
 ---
 
 # commander_classic_pam_user (Data Source)
 
-Retrieves a Keeper **PAM User** record (`pamUser`) from the vault.
-
-A PAM User record stores privileged credentials (login/password) that can be associated with PAM Machines for rotation, connections, and tunneling.
+Use this data source to look up a **classic PAM user** record by **UID**.
 
 ## Example Usage
 
@@ -131,7 +128,7 @@ output "pam_user_share" {
 
 ### Required
 
-- `pam_user` (String) PAM user record **UID** or **name** to read.
+- `pam_user` (String) PAM user record **UID** to read.
 
 ### Read-Only
 

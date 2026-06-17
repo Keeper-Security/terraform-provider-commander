@@ -3,12 +3,12 @@
 page_title: "commander_new_pam_directory Data Source - commander"
 subcategory: ""
 description: |-
-  Use this data source to look up a new (nested-shared) PAM directory record by UID or name and read its per-user share permissions.
+  Use this data source to look up a new (NSF) PAM directory record by UID.
 ---
 
 # commander_new_pam_directory (Data Source)
 
-Use this data source to look up a **new (nested-shared) PAM directory** record by **UID** or **name** and read its **per-user share permissions**.
+Use this data source to look up a **new (NSF) PAM directory** record by **UID**.
 
 ## Example Usage
 
@@ -103,7 +103,7 @@ output "corp_dc_configuration" {
 
 ### Required
 
-- `pam_directory` (String) PAM directory record **UID** or **name** to read.
+- `pam_directory` (String) PAM directory record **UID** to read.
 
 ### Read-Only
 

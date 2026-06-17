@@ -16,13 +16,13 @@ import (
 
 func (d *PamDatabaseDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = dschema.Schema{
-		Description:         "Use this data source to look up a new (nested-shared) PAM database record by UID or name and read its per-user share permissions.",
-		MarkdownDescription: "Use this data source to look up a **new (nested-shared) PAM database** record by **UID** or **name** and read its **per-user share permissions**.",
+		Description:         "Use this data source to look up a new (NSF) PAM database record by UID.",
+		MarkdownDescription: "Use this data source to look up a **new (NSF) PAM database** record by **UID**.",
 		Attributes: utils.MergeDataSourceAttributes(map[string]dschema.Attribute{
 			"pam_database": dschema.StringAttribute{
 				Required:            true,
-				Description:         "PAM database record UID or name to read.",
-				MarkdownDescription: "PAM database record **UID** or **name** to read.",
+				Description:         "PAM database record UID to read.",
+				MarkdownDescription: "PAM database record **UID** to read.",
 			},
 			"id": dschema.StringAttribute{
 				Computed:            true,

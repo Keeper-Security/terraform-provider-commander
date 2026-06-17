@@ -3,12 +3,12 @@
 page_title: "commander_shared_folder Data Source - commander"
 subcategory: ""
 description: |-
-  Look up an existing classic shared folder by UID or name.
+  Look up an existing classic shared folder by UID.
 ---
 
 # commander_shared_folder (Data Source)
 
-Look up an existing classic shared folder by **UID** or **name**.
+Look up an existing classic shared folder by **UID**.
 
 ## Example Usage
 
@@ -77,7 +77,7 @@ output "folder_user_overrides" {
 
 ### Required
 
-- `shared_folder` (String) Shared folder **UID** or **name** to look up.
+- `shared_folder` (String) Shared folder **UID** to look up.
 
 ### Read-Only
 

@@ -17,13 +17,13 @@ import (
 
 func (d *PamDirectoryDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = dschema.Schema{
-		Description:         "Use this data source to look up a classic PAM directory record by UID or name and read its per-user share permissions.",
-		MarkdownDescription: "Use this data source to look up a **classic PAM directory** record by **UID** or **name** and read its **per-user share permissions**.",
+		Description:         "Use this data source to look up a classic PAM directory record by UID.",
+		MarkdownDescription: "Use this data source to look up a **classic PAM directory** record by **UID**.",
 		Attributes: utils.MergeDataSourceAttributes(map[string]dschema.Attribute{
 			"pam_directory": dschema.StringAttribute{
 				Required:            true,
-				Description:         "PAM directory record UID or name to read.",
-				MarkdownDescription: "PAM directory record **UID** or **name** to read.",
+				Description:         "PAM directory record UID to read.",
+				MarkdownDescription: "PAM directory record **UID** to read.",
 			},
 			"id": dschema.StringAttribute{
 				Computed:            true,

@@ -3,12 +3,12 @@
 page_title: "commander_new_pam_user Data Source - commander"
 subcategory: ""
 description: |-
-  Use this data source to look up a new (nested-shared) PAM user record by UID or name and read its per-user share permissions.
+  Use this data source to look up a new (NSF) PAM user record by UID.
 ---
 
 # commander_new_pam_user (Data Source)
 
-Use this data source to look up a **new (nested-shared) PAM user** record by **UID** or **name** and read its **per-user share permissions**.
+Use this data source to look up a **new (NSF) PAM user** record by **UID**.
 
 ## Example Usage
 
@@ -135,7 +135,7 @@ output "pam_user_share" {
 
 ### Required
 
-- `pam_user` (String) PAM user record **UID** or **name** to read.
+- `pam_user` (String) PAM user record **UID** to read.
 
 ### Read-Only
 

@@ -3,12 +3,12 @@
 page_title: "commander_classic_pam_remote_browser Data Source - commander"
 subcategory: ""
 description: |-
-  Use this data source to look up a classic PAM remote browser record by UID or name and read its per-user share permissions. You can use this data source to reference a PAM remote browser record from other resources.
+  Use this data source to look up a classic PAM remote browser record by UID.
 ---
 
 # commander_classic_pam_remote_browser (Data Source)
 
-Use this data source to look up a **classic PAM remote browser** record by **UID** or **name** and read its **per-user share permissions**. You can use this data source to reference a PAM remote browser record from other resources.
+Use this data source to look up a **classic PAM remote browser** record by **UID**.
 
 ## Example Usage
 
@@ -56,7 +56,7 @@ output "rbi_share" {
 
 ### Required
 
-- `remote_browser` (String) PAM remote browser record **UID** or **name** to read.
+- `remote_browser` (String) PAM remote browser record **UID** to read.
 
 ### Optional
 

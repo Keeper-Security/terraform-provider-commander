@@ -19,8 +19,8 @@ func (d *PamUserDataSource) Schema(ctx context.Context, req datasource.SchemaReq
 		Attributes: utils.MergeDataSourceAttributes(map[string]dschema.Attribute{
 			"pam_user": dschema.StringAttribute{
 				Required:            true,
-				Description:         "PAM user record UID or name to read.",
-				MarkdownDescription: "PAM user record **UID** or **name** to read.",
+				Description:         "PAM user record UID to read.",
+				MarkdownDescription: "PAM user record **UID** to read.",
 			},
 			"id": dschema.StringAttribute{
 				Computed:            true,

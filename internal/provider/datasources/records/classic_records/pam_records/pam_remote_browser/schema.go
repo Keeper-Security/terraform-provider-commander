@@ -16,13 +16,13 @@ import (
 
 func (d *PamRemoteBrowserDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = dschema.Schema{
-		Description:         "Use this data source to look up a classic PAM remote browser record by UID or name and read its per-user share permissions. You can use this data source to reference a PAM remote browser record from other resources.",
-		MarkdownDescription: "Use this data source to look up a **classic PAM remote browser** record by **UID** or **name** and read its **per-user share permissions**. You can use this data source to reference a PAM remote browser record from other resources.",
+		Description:         "Use this data source to look up a classic PAM remote browser record by UID.",
+		MarkdownDescription: "Use this data source to look up a **classic PAM remote browser** record by **UID**.",
 		Attributes: utils.MergeDataSourceAttributes(map[string]dschema.Attribute{
 			"remote_browser": dschema.StringAttribute{
 				Required:            true,
-				Description:         "PAM remote browser record UID or name to read.",
-				MarkdownDescription: "PAM remote browser record **UID** or **name** to read.",
+				Description:         "PAM remote browser record UID to read.",
+				MarkdownDescription: "PAM remote browser record **UID** to read.",
 			},
 			"id": dschema.StringAttribute{
 				Computed:            true,

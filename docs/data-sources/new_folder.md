@@ -3,12 +3,12 @@
 page_title: "commander_new_folder Data Source - commander"
 subcategory: ""
 description: |-
-  Look up an existing Keeper Drive folder by UID or name.
+  Look up an existing nested shared folder by UID.
 ---
 
 # commander_new_folder (Data Source)
 
-Look up an existing Keeper Drive folder by **UID** or **name**.
+Look up an existing nested shared folder by **UID**.
 
 ## Example Usage
 
@@ -49,7 +49,7 @@ output "new_folder_share" {
 
 ### Required
 
-- `new_folder` (String) Nested shared folder **UID** or **name** to look up.
+- `new_folder` (String) Nested shared folder **UID** to look up.
 
 ### Read-Only
 
