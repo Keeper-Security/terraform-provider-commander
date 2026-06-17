@@ -73,6 +73,12 @@ const (
 
 	SettingsSessionPersistenceDescription         = "Session persistence mode. Must be one of: `none`, `user`, `resource`."
 	SettingsSessionPersistenceMarkdownDescription = "Session **persistence mode**. Must be one of: `none`, `user`, `resource`."
+
+	SettingsAllowFileUploadsDescription         = "Allow file uploads."
+	SettingsAllowFileUploadsMarkdownDescription = "Allow **file uploads**."
+
+	SettingsAllowFileDownloadsDescription         = "Allow file downloads."
+	SettingsAllowFileDownloadsMarkdownDescription = "Allow **file downloads**."
 )
 
 // Commander CLI commands.
@@ -89,6 +95,8 @@ const (
 	FlagKeyEvents              = "--key-events"
 	FlagAllowURLNavigation     = "--allow-url-navigation"
 	FlagIgnoreServerCert       = "--ignore-server-cert"
+	FlagAllowFileUploads       = "--allow-file-uploads"
+	FlagAllowFileDownloads     = "--allow-file-downloads"
 	FlagAllowedURLs            = "--allowed-urls"
 	FlagAllowedResourceURLs    = "--allowed-resource-urls"
 	FlagAutofillCredentials    = "--autofill-credentials"

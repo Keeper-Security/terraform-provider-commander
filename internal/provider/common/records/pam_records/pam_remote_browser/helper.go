@@ -100,6 +100,8 @@ func AppendPamRbiEditSettingsFlags(parts *[]string, settings *PamRemoteBrowserSe
 	appendPamRbiBoolOnOff(parts, FlagKeyEvents, settings.KeyEvents)
 	appendPamRbiBoolOnOff(parts, FlagAllowURLNavigation, settings.AllowUrlNavigation)
 	appendPamRbiBoolOnOff(parts, FlagIgnoreServerCert, settings.IgnoreServerCert)
+	appendPamRbiBoolOnOff(parts, FlagAllowFileUploads, settings.AllowFileUploads)
+	appendPamRbiBoolOnOff(parts, FlagAllowFileDownloads, settings.AllowFileDownloads)
 
 	appendPamRbiStringFlag(parts, FlagSessionPersistence, settings.SessionPersistence)
 	appendPamRbiRepeatedStringFlags(parts, FlagAllowedURLs, settings.AllowedUrls)
@@ -234,7 +236,9 @@ func pamRemoteBrowserSettingsEqual(plan, state *PamRemoteBrowserSettingsModel) b
 		plan.AudioChannels.Equal(state.AudioChannels) &&
 		plan.AudioBitDepth.Equal(state.AudioBitDepth) &&
 		plan.AudioSampleRate.Equal(state.AudioSampleRate) &&
-		plan.SessionPersistence.Equal(state.SessionPersistence)
+		plan.SessionPersistence.Equal(state.SessionPersistence) &&
+		plan.AllowFileUploads.Equal(state.AllowFileUploads) &&
+		plan.AllowFileDownloads.Equal(state.AllowFileDownloads)
 }
 
 const (
@@ -328,13 +332,17 @@ func mapConnectionToPamRemoteBrowserSettingsModel(ctx context.Context, c *utils.
 		Configuration:          configUID,
 		RemoteBrowserIsolation: remoteBrowserIsolation,
 		ConnectionsRecording:   connectionsRecording,
-		KeyEvents:              types.BoolValue(c.RecordingIncludeKeys),
-		AllowUrlNavigation:     types.BoolValue(c.AllowUrlManipulation),
-		IgnoreServerCert:       types.BoolValue(c.IgnoreInitialSslCert),
-		AllowCopy:              types.BoolValue(!c.DisableCopy),
-		AllowPaste:             types.BoolValue(!c.DisablePaste),
-		DisableAudio:           types.BoolValue(c.DisableAudio),
-		SessionPersistence:     types.StringValue(c.SessionPersistence),
+
+		KeyEvents:          types.BoolValue(c.RecordingIncludeKeys),
+		AllowUrlNavigation: types.BoolValue(c.AllowUrlManipulation),
+		IgnoreServerCert:   types.BoolValue(c.IgnoreInitialSslCert),
+		AllowCopy:          types.BoolValue(!c.DisableCopy),
+		AllowPaste:         types.BoolValue(!c.DisablePaste),
+		DisableAudio:       types.BoolValue(c.DisableAudio),
+		AllowFileUploads:   types.BoolValue(c.AllowFileUploads),
+		AllowFileDownloads: types.BoolValue(c.AllowFileDownloads),
+
+		SessionPersistence: types.StringValue(c.SessionPersistence),
 	}
 
 	if strings.TrimSpace(c.HttpCredentialsUID) == "" {

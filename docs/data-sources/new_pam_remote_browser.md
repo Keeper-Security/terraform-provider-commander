@@ -78,6 +78,8 @@ output "rbi_share" {
 Read-Only:
 
 - `allow_copy` (Boolean) Can **copy** to clipboard.
+- `allow_file_downloads` (Boolean) Allow **file downloads**.
+- `allow_file_uploads` (Boolean) Allow **file uploads**.
 - `allow_paste` (Boolean) Can **paste** from clipboard.
 - `allow_url_navigation` (Boolean) Allow **navigation** via direct URL manipulation.
 - `allowed_resource_urls` (Set of String) **Allowed resource URL patterns.**

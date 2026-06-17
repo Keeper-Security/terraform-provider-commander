@@ -188,6 +188,16 @@ func SharedAttributes() map[string]schema.Attribute {
 						utils.StringOneOfValidator("Session Persistence", []string{"none", "user", "resource"}, true),
 					},
 				},
+				"allow_file_uploads": schema.BoolAttribute{
+					Optional:            true,
+					Description:         SettingsAllowFileUploadsDescription,
+					MarkdownDescription: SettingsAllowFileUploadsMarkdownDescription,
+				},
+				"allow_file_downloads": schema.BoolAttribute{
+					Optional:            true,
+					Description:         SettingsAllowFileDownloadsDescription,
+					MarkdownDescription: SettingsAllowFileDownloadsMarkdownDescription,
+				},
 			},
 		},
 	}

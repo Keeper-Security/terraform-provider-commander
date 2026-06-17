@@ -150,5 +150,15 @@ func pamRemoteBrowserRBISettingsDataSourceAttributes() map[string]dschema.Attrib
 			Description:         commonpamremotebrowser.SettingsSessionPersistenceDescription,
 			MarkdownDescription: commonpamremotebrowser.SettingsSessionPersistenceMarkdownDescription,
 		},
+		"allow_file_uploads": dschema.BoolAttribute{
+			Computed:            true,
+			Description:         commonpamremotebrowser.SettingsAllowFileUploadsDescription,
+			MarkdownDescription: commonpamremotebrowser.SettingsAllowFileUploadsMarkdownDescription,
+		},
+		"allow_file_downloads": dschema.BoolAttribute{
+			Computed:            true,
+			Description:         commonpamremotebrowser.SettingsAllowFileDownloadsDescription,
+			MarkdownDescription: commonpamremotebrowser.SettingsAllowFileDownloadsMarkdownDescription,
+		},
 	}
 }

@@ -58,6 +58,11 @@ resource "commander_new_pam_remote_browser" "intranet_app" {
     audio_channels    = 2
     audio_bit_depth   = 16
     audio_sample_rate = 48000
+
+    allow_file_uploads   = true
+    allow_file_downloads = true
+
+    session_persistence = "user"
   }
 
   # ----------------------------------------------------------------
@@ -102,6 +107,8 @@ Required:
 Optional:
 
 - `allow_copy` (Boolean) Can **copy** to clipboard.
+- `allow_file_downloads` (Boolean) Allow **file downloads**.
+- `allow_file_uploads` (Boolean) Allow **file uploads**.
 - `allow_paste` (Boolean) Can **paste** from clipboard.
 - `allow_url_navigation` (Boolean) Allow **navigation** via direct URL manipulation.
 - `allowed_resource_urls` (Set of String) **Allowed resource URL patterns.**
