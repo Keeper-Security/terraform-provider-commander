@@ -217,7 +217,7 @@ Optional:
 
 Optional:
 
-- `domain_admin` (String, Sensitive) Credentials of a `domain administrator` or an account with equivalent privileges, required to perform full discovery and access all domain resources.
+- `domain_admin` (String, Sensitive) Domain Administrative Credentials.
 - `domain_hostname` (String) Hostname for the `domain controller`.
 - `domain_id` (String) The `FQDN` domain used by the Domain Controller. For example, `EXAMPLE.COM` and not `EXAMPLE`.
 - `domain_network_cidr` (String) `Scan additional CIDRs` from the field.

@@ -189,7 +189,7 @@ func (d *PamConfigurationDataSource) Schema(ctx context.Context, req datasource.
 					"domain_admin": dschema.StringAttribute{
 						Computed:    true,
 						Sensitive:   true,
-						Description: "Domain administrator credentials.",
+						Description: "Domain Administrative Credentials.",
 					},
 					"user_match": dschema.StringAttribute{
 						Computed:    true,

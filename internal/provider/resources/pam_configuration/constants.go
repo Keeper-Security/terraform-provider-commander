@@ -221,8 +221,8 @@ const (
 	DescDomainNetworkCidr   = "Scan additional CIDRs from the field."
 	DescDomainNetworkCidrMD = "`Scan additional CIDRs` from the field."
 
-	DescDomainAdmin   = "Credentials of a domain administrator or an account with equivalent privileges, required to perform full discovery and access all domain resources."
-	DescDomainAdminMD = "Credentials of a `domain administrator` or an account with equivalent privileges, required to perform full discovery and access all domain resources."
+	DescDomainAdmin   = "Domain Administrative Credentials."
+	DescDomainAdminMD = "Domain Administrative Credentials."
 
 	DescUserMatch   = "OU/DN filter (or regex) that limits which Active Directory or OpenLDAP users the Gateway discovers and imports during PAM Discovery."
 	DescUserMatchMD = "OU/DN filter (or regex) that limits which Active Directory or OpenLDAP users the Gateway discovers and imports during PAM Discovery."

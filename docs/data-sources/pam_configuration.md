@@ -177,7 +177,7 @@ Read-Only:
 
 Read-Only:
 
-- `domain_admin` (String, Sensitive) Domain administrator credentials.
+- `domain_admin` (String, Sensitive) Domain Administrative Credentials.
 - `domain_hostname` (String) Hostname for the domain controller.
 - `domain_id` (String) The FQDN domain used by the Domain Controller.
 - `domain_network_cidr` (String) Additional CIDRs to scan.
