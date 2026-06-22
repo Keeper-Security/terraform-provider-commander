@@ -352,8 +352,15 @@ type PamSettingsEnabledResponse struct {
 }
 
 type DagDebugResponse struct {
-	VertexContent *DagDebugVertexContentResponse `json:"vertex_content,omitempty"`
-	AllEdges      []DagDebugEdgeResponse         `json:"all_edges,omitempty"`
+	VertexContent   *DagDebugVertexContentResponse   `json:"vertex_content,omitempty"`
+	AllEdges        []DagDebugEdgeResponse           `json:"all_edges,omitempty"`
+	RotationProfile *DagDebugRotationProfileResponse `json:"rotation_profile,omitempty"`
+}
+
+type DagDebugRotationProfileResponse struct {
+	Type             string `json:"type"`
+	ResourceUID      string `json:"resourceUid"`
+	ConfigurationUID string `json:"configUid"`
 }
 
 type DagDebugEdgeResponse struct {

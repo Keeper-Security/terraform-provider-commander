@@ -68,15 +68,14 @@ func (d *PamUserDataSource) Read(ctx context.Context, req datasource.ReadRequest
 	commonpamuser.MapVaultRecordToState(&rec, &data.PamUserSharedModel)
 
 	// Phase 2: fetch rotation info
-	rotCmd := fmt.Sprintf("%s %s '%s'", commonpamuser.CmdPamRotationInfo, commonpamuser.FlagRecordShort, recordUID)
+	rotCmd := fmt.Sprintf("%s %s '%s' %s", commonpamuser.CmdPamRotationInfo, commonpamuser.FlagRecordShort, recordUID, utils.FlagFormatJSON)
 	if rotResp, err := d.ApiManager.ExecuteCommand(ctx, rotCmd, commonpamuser.ErrDetailRotationInfoFailed); err == nil && rotResp != nil {
-		messages := commonpamuser.ParseFlexibleMessageToLines(rotResp.Message.String())
-		if commonpamuser.HasRotationData(messages) {
-			if data.RotationSettings == nil {
-				data.RotationSettings = &commonpamuser.PamUserRotationSettings{}
-			}
-			commonpamuser.ParseRotationInfoMessage(messages, data.RotationSettings, &data.PamUserSharedModel)
+		var rotInfo commonpamuser.PamRotationInfoResponse
+		if err := utils.UnmarshalApiResponse(rotResp.Data, &rotInfo); err != nil {
+			resp.Diagnostics.AddError(commonpamuser.ErrDetailRotationInfoFailed, err.Error())
+			return
 		}
+		commonpamuser.MapRotationSettingsToState(&rotInfo, commonpamuser.RotationProfileFromVaultRecord(&rec), data.RotationSettings, &data.PamUserSharedModel)
 	}
 
 	if err := classic_share.MapResponseToModel(rec.UserPermissions, &data.ShareModel); err != nil {

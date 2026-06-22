@@ -72,13 +72,15 @@ func (r *PamUserResource) Read(ctx context.Context, req resource.ReadRequest, re
 
 	commonpamuser.MapVaultRecordToState(&rec, &state.PamUserSharedModel)
 
-	rotCmd := fmt.Sprintf("%s %s '%s'", commonpamuser.CmdPamRotationInfo, commonpamuser.FlagRecordShort, id)
+	rotCmd := fmt.Sprintf("%s %s '%s' %s", commonpamuser.CmdPamRotationInfo, commonpamuser.FlagRecordShort, id, utils.FlagFormatJSON)
 	rotResp, err2 := r.ApiManager.ExecuteCommand(ctx, rotCmd, commonpamuser.ErrDetailRotationInfoFailed)
-	if err2 == nil && rotResp != nil {
-		messages := commonpamuser.ParseFlexibleMessageToLines(rotResp.Message.String())
-		if commonpamuser.HasRotationData(messages) {
-			commonpamuser.ParseRotationInfoMessage(messages, state.RotationSettings, &state.PamUserSharedModel)
+	if err2 == nil && rotResp.Data != nil {
+		var rotInfo commonpamuser.PamRotationInfoResponse
+		if err := utils.UnmarshalApiResponse(rotResp.Data, &rotInfo); err != nil {
+			resp.Diagnostics.AddError(commonpamuser.ErrDetailRotationInfoFailed, err.Error())
+			return
 		}
+		commonpamuser.MapRotationSettingsToState(&rotInfo, commonpamuser.RotationProfileFromVaultRecord(&rec), state.RotationSettings, &state.PamUserSharedModel)
 	}
 
 	if err := new_share.MapResponseToModel(rec.UserPermissions, &state.ShareModel); err != nil {

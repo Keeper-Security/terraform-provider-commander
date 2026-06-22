@@ -156,14 +156,6 @@ func SharedAttributes() map[string]schema.Attribute {
 						utils.StringMinLengthValidator("Resource UID", 1, true),
 					},
 				},
-				"admin_user": schema.StringAttribute{
-					Optional:            true,
-					Description:         RotAdminUserDescription,
-					MarkdownDescription: RotAdminUserMarkdownDescription,
-					Validators: []validator.String{
-						utils.StringMinLengthValidator("Admin User UID", 1, true),
-					},
-				},
 				"enabled": schema.BoolAttribute{
 					Optional:            true,
 					Description:         RotEnabledDescription,

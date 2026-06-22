@@ -39,6 +39,8 @@ const (
 	RotProfileIAMUser     = "iam_user"
 	RotProfileScriptsOnly = "scripts_only"
 
+	RotProfileScheduleTypeManual = "manual"
+
 	RotProfileDescription                = "Rotation profile type: general (resource-based), iam_user (IAM/Azure user), or scripts_only (run PAM scripts only). Required when rotation_settings is set."
 	RotProfileMarkdownDescription        = "Rotation profile type: `general` (resource-based), `iam_user` (IAM/Azure user), or `scripts_only` (run PAM scripts only). **Required** when `rotation_settings` is set."
 	RotConfigDescription                 = "PAM Configuration UID to use for rotation. Required when rotation_profile is iam_user or scripts_only."

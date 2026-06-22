@@ -6,7 +6,6 @@ package pamuser
 import (
 	"encoding/json"
 	"fmt"
-	"strconv"
 	"strings"
 
 	commonpamrecords "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/pam_records"
@@ -223,10 +222,6 @@ func BuildPamRotationEditCommand(recordUID string, rs *PamUserRotationSettings) 
 		parts = append(parts, fmt.Sprintf("%s %s", FlagResource, quoteShellSingle(rs.Resource.ValueString())))
 	}
 
-	if !rs.AdminUser.IsNull() && !rs.AdminUser.IsUnknown() {
-		parts = append(parts, fmt.Sprintf("%s %s", FlagAdminUser, quoteShellSingle(rs.AdminUser.ValueString())))
-	}
-
 	if !rs.Enabled.IsNull() && !rs.Enabled.IsUnknown() {
 		if rs.Enabled.ValueBool() {
 			parts = append(parts, FlagEnable)
@@ -267,7 +262,6 @@ func RotationSettingsNeedApply(plan, state *PamUserRotationSettings) bool {
 		!plan.Configuration.Equal(state.Configuration) ||
 		!plan.IamAadConfig.Equal(state.IamAadConfig) ||
 		!plan.Resource.Equal(state.Resource) ||
-		!plan.AdminUser.Equal(state.AdminUser) ||
 		!plan.Enabled.Equal(state.Enabled) ||
 		!plan.ScheduleCron.Equal(state.ScheduleCron) ||
 		!plan.ScheduleJSON.Equal(state.ScheduleJSON) ||
@@ -276,22 +270,11 @@ func RotationSettingsNeedApply(plan, state *PamUserRotationSettings) bool {
 		!plan.Complexity.Equal(state.Complexity)
 }
 
-// HasRotationData returns true when the message lines contain a PAM Config
-// UID, indicating the record has rotation configured in the vault.
-func HasRotationData(messages []string) bool {
-	for _, line := range messages {
-		if strings.HasPrefix(strings.TrimSpace(line), "PAM Config UID:") {
-			return true
-		}
-	}
-	return false
-}
-
 // ParseRotationInfoMessage parses the message lines from
 // `pam rotation info -r <uid>` and populates the rotation settings on the
 // state model. Fields not present in the response are preserved from the
 // existing state (config-as-source-of-truth).
-func ParseRotationInfoMessage(messages []string, existing *PamUserRotationSettings, state *PamUserSharedModel) {
+func MapRotationSettingsToState(rotInfo *PamRotationInfoResponse, rotationProfile *utils.DagDebugRotationProfileResponse, existing *PamUserRotationSettings, state *PamUserSharedModel) {
 	var rs *PamUserRotationSettings
 	if existing != nil {
 		rs = &PamUserRotationSettings{
@@ -299,7 +282,6 @@ func ParseRotationInfoMessage(messages []string, existing *PamUserRotationSettin
 			Configuration:   existing.Configuration,
 			IamAadConfig:    existing.IamAadConfig,
 			Resource:        existing.Resource,
-			AdminUser:       existing.AdminUser,
 			Enabled:         existing.Enabled,
 			ScheduleCron:    existing.ScheduleCron,
 			ScheduleJSON:    existing.ScheduleJSON,
@@ -311,98 +293,89 @@ func ParseRotationInfoMessage(messages []string, existing *PamUserRotationSettin
 		rs = &PamUserRotationSettings{}
 	}
 
-	for _, line := range messages {
-		line = strings.TrimSpace(line)
-		if k, v, ok := strings.Cut(line, ": "); ok {
-			switch k {
-			case "PAM Config UID":
-				if rs.RotationProfile.ValueString() != "general" {
-					rs.Configuration = stringOrNull(v)
-				} else {
-					rs.Configuration = types.StringNull()
-				}
-			case "Admin Resource Uid":
-				rs.AdminUser = stringOrNull(v)
-			case "Is Rotation Disabled":
-				rs.Enabled = types.BoolValue(strings.EqualFold(strings.TrimSpace(v), "False"))
-			case "Schedule Type":
-				if strings.Contains(strings.ToLower(v), "manual") {
-					rs.OnDemand = types.BoolValue(true)
-				}
-			case "Schedule":
-				parseScheduleValue(strings.TrimSpace(v), rs)
-			case "Password Complexity Data":
-				rs.Complexity = ParsePasswordComplexityData(v)
-			}
+	if rotationProfile != nil {
+		rs.RotationProfile = types.StringValue(rotationProfile.Type)
+
+		if rotationProfile.Type == RotProfileGeneral {
+			rs.Resource = types.StringValue(rotationProfile.ResourceUID)
+			rs.Configuration = types.StringNull()
+		} else {
+			rs.Resource = types.StringNull()
+			rs.Configuration = types.StringValue(rotationProfile.ConfigurationUID)
 		}
 	}
+
+	if rotInfo == nil {
+		state.RotationSettings = rs
+		return
+	}
+
+	if rotationProfile == nil && rotInfo.PamConfigUID != "" {
+		rs.Configuration = types.StringValue(rotInfo.PamConfigUID)
+	}
+
+	if rotInfo.Disable {
+		rs.Enabled = types.BoolValue(false)
+		rs.ScheduleCron = types.StringNull()
+		rs.ScheduleJSON = types.StringNull()
+		rs.OnDemand = types.BoolNull()
+	} else {
+		rs.Enabled = types.BoolValue(true)
+
+		if rotInfo.ScheduleType == RotProfileScheduleTypeManual {
+			rs.OnDemand = types.BoolValue(true)
+		} else {
+			rs.OnDemand = types.BoolValue(false)
+		}
+	}
+
+	parseScheduleValue(rotInfo.ScheduleData, rs)
+
+	rs.Complexity = MapPasswordComplexityResponseToState(rotInfo.PasswordComplexityDetails)
+
+	// for _, line := range messages {
+	// 	line = strings.TrimSpace(line)
+	// 	if k, v, ok := strings.Cut(line, ": "); ok {
+	// 		switch k {
+	// 		case "PAM Config UID":
+	// 			if rs.RotationProfile.ValueString() != "general" {
+	// 				rs.Configuration = stringOrNull(v)
+	// 			} else {
+	// 				rs.Configuration = types.StringNull()
+	// 			}
+	// 		case "Admin Resource Uid":
+	// 			rs.AdminUser = stringOrNull(v)
+	// 		case "Is Rotation Disabled":
+	// 			rs.Enabled = types.BoolValue(strings.EqualFold(strings.TrimSpace(v), "False"))
+	// 		case "Schedule Type":
+	// 			if strings.Contains(strings.ToLower(v), "manual") {
+	// 				rs.OnDemand = types.BoolValue(true)
+	// 			}
+	// 		case "Schedule":
+	// 			parseScheduleValue(strings.TrimSpace(v), rs)
+	// 		case "Password Complexity Data":
+	// 			rs.Complexity = ParsePasswordComplexityData(v)
+	// 		}
+	// 	}
+	// }
 
 	state.RotationSettings = rs
 }
 
-// ParsePasswordComplexityData converts Commander rotation info complexity text
-// (e.g. "Length: 32; Lowercase: 1; Uppercase: 5; Digits: 1; Symbols: 2; Symbols Chars: ...")
-// into the Terraform schema format: length,upper,lower,digits,symbols.
-func ParsePasswordComplexityData(raw string) types.String {
-	raw = strings.TrimSpace(raw)
-	if raw == "" {
-		return types.StringNull()
+// RotationProfileFromVaultRecord returns the rotation profile from a vault record, if present.
+func RotationProfileFromVaultRecord(rec *utils.VaultRecordGetResponse) *utils.DagDebugRotationProfileResponse {
+	if rec == nil || rec.DagDebug == nil {
+		return nil
 	}
-
-	length, upper, lower, digits, symbols, ok := parsePasswordComplexityFields(raw)
-	if !ok {
-		return types.StringNull()
-	}
-
-	return types.StringValue(fmt.Sprintf("%d,%d,%d,%d,%d", length, upper, lower, digits, symbols))
+	return rec.DagDebug.RotationProfile
 }
 
-func complexityDataWithoutSymbolsChars(raw string) string {
-	lower := strings.ToLower(raw)
-	marker := "; symbols chars:"
-	if idx := strings.Index(lower, marker); idx >= 0 {
-		return strings.TrimSpace(raw[:idx])
+// MapPasswordComplexityResponseToState maps the password complexity response from the API to the state model.
+func MapPasswordComplexityResponseToState(response *PamRotationInfoPasswordComplexityDetailsDataResponse) types.String {
+	if response == nil {
+		return types.StringNull()
 	}
-	if strings.HasPrefix(lower, "symbols chars:") {
-		return ""
-	}
-	return raw
-}
-
-func parsePasswordComplexityFields(raw string) (length, upper, lower, digits, symbols int, ok bool) {
-	const missing = -1
-	length, upper, lower, digits, symbols = missing, missing, missing, missing, missing
-
-	for _, segment := range strings.Split(complexityDataWithoutSymbolsChars(raw), ";") {
-		segment = strings.TrimSpace(segment)
-		if segment == "" {
-			continue
-		}
-		key, value, found := strings.Cut(segment, ":")
-		if !found {
-			continue
-		}
-		n, err := strconv.Atoi(strings.TrimSpace(value))
-		if err != nil {
-			continue
-		}
-
-		switch strings.ToLower(strings.TrimSpace(key)) {
-		case "length":
-			length = n
-		case "uppercase":
-			upper = n
-		case "lowercase":
-			lower = n
-		case "digits":
-			digits = n
-		case "symbols":
-			symbols = n
-		}
-	}
-
-	ok = length != missing && upper != missing && lower != missing && digits != missing && symbols != missing
-	return length, upper, lower, digits, symbols, ok
+	return types.StringValue(fmt.Sprintf("%d,%d,%d,%d,%d", response.Length, response.Capital, response.Lowercase, response.Digits, response.Special))
 }
 
 // parseScheduleValue parses the JSON schedule from `pam rotation info`
@@ -434,20 +407,4 @@ func parseScheduleValue(raw string, rs *PamUserRotationSettings) {
 		rs.OnDemand = types.BoolNull()
 		rs.ScheduleCron = types.StringNull()
 	}
-}
-
-// ParseFlexibleMessageToLines converts the FlexibleMessage string (may be a
-// JSON array or plain text) into individual lines for parsing.
-func ParseFlexibleMessageToLines(raw string) []string {
-	raw = strings.TrimSpace(raw)
-	if raw == "" {
-		return nil
-	}
-
-	var arr []string
-	if err := json.Unmarshal([]byte(raw), &arr); err == nil {
-		return arr
-	}
-
-	return strings.Split(raw, "\n")
 }

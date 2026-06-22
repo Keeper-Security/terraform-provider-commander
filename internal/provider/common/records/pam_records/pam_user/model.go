@@ -32,7 +32,6 @@ type PamUserRotationSettings struct {
 	Configuration   types.String `tfsdk:"configuration"`
 	IamAadConfig    types.String `tfsdk:"iam_aad_config"`
 	Resource        types.String `tfsdk:"resource"`
-	AdminUser       types.String `tfsdk:"admin_user"`
 	Enabled         types.Bool   `tfsdk:"enabled"`
 	ScheduleCron    types.String `tfsdk:"schedule_cron"`
 	ScheduleJSON    types.String `tfsdk:"schedule_json"`

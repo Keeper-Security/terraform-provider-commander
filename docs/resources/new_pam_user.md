@@ -192,7 +192,6 @@ resource "commander_new_pam_user" "mysql_app_account" {
 
 Optional:
 
-- `admin_user` (String) UID of the PAM User record to use as admin credential when rotating.
 - `complexity` (String) Password complexity for rotation: `length,upper,lower,digits,symbols` as **five integers**. Password **length** must be **1–99**; upper, lower, digits, and symbols minimums must each be **0–99** (Keeper UI limits). Invalid values fail at plan time.
 - `configuration` (String) PAM Configuration UID to use for rotation. **Required** when `rotation_profile` is `iam_user` or `scripts_only`.
 - `enabled` (Boolean) Whether rotation is enabled for this PAM User.
