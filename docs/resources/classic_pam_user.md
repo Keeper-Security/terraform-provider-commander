@@ -223,6 +223,7 @@ resource "commander_classic_pam_user" "mysql_app_account" {
 
 ### Required
 
+- `login` (String) Login (username) for the PAM User.
 - `title` (String) Title of the PAM User record.
 
 ### Optional
@@ -230,7 +231,6 @@ resource "commander_classic_pam_user" "mysql_app_account" {
 - `connect_database` (String) Database name the PAM User connects to.
 - `distinguished_name` (String) LDAP distinguished name of the PAM User (e.g. `CN=svc_myapp,OU=Service Accounts,DC=corp,DC=local`).
 - `folder_location` (String) Folder path or UID where the record will be stored.
-- `login` (String) Login (username) for the PAM User.
 - `managed` (Boolean) Whether this PAM User account is managed by Keeper.
 - `notes` (String) Optional notes for the PAM User record.
 - `password` (String, Sensitive) Password for the PAM User.
@@ -239,7 +239,9 @@ resource "commander_classic_pam_user" "mysql_app_account" {
 - `public_key` (String, Sensitive) Public key associated with the PAM User.
 - `rotation_settings` (Attributes) Rotation settings for the PAM User record. Configures password rotation via `pam rotation edit`.
 
-**Schedule:** use `on_demand` **or** at most one of `schedule_config`, `schedule_cron`, and `schedule_json` (they are mutually exclusive; see attribute descriptions). (see [below for nested schema](#nestedatt--rotation_settings))
+**Required:** `rotation_profile`. **Profile-specific:** `resource` when `rotation_profile` is `general`; `configuration` when `rotation_profile` is `iam_user` or `scripts_only`. `configuration` and `resource` are **mutually exclusive**.
+
+**Schedule:** set **only one** of `on_demand`, `schedule_config`, `schedule_cron`, or `schedule_json` (mutually exclusive). (see [below for nested schema](#nestedatt--rotation_settings))
 - `share` (Attributes Map) Mapping of share permissions for this record. Each map **key** is a **user email**; each **value** is an object with `can_share` and `can_edit` booleans. (see [below for nested schema](#nestedatt--share))
 
 ### Read-Only
@@ -253,14 +255,14 @@ Optional:
 
 - `admin_user` (String) UID of the PAM User record to use as admin credential when rotating.
 - `complexity` (String) Password complexity for rotation: `length,upper,lower,digits,symbols` as **five integers**. Password **length** must be **1–99**; upper, lower, digits, and symbols minimums must each be **0–99** (Keeper UI limits). Invalid values fail at plan time.
-- `configuration` (String) PAM Configuration UID to use for rotation.
+- `configuration` (String) PAM Configuration UID to use for rotation. **Required** when `rotation_profile` is `iam_user` or `scripts_only`.
 - `enabled` (Boolean) Whether rotation is enabled for this PAM User.
 - `iam_aad_config` (String) PAM Configuration UID for IAM or Azure AD users. Used instead of `resource` when `rotation_profile` is `iam_user`.
 - `on_demand` (Boolean) If `true`, rotation is on-demand (manual) only.
 - `resource` (String) UID of the PAM resource record (machine or database) this user rotates on. Required when `rotation_profile` is `general`.
-- `rotation_profile` (String) Rotation profile type: `general` (resource-based), `iam_user` (IAM/Azure user), or `scripts_only` (run PAM scripts only).
+- `rotation_profile` (String) Rotation profile type: `general` (resource-based), `iam_user` (IAM/Azure user), or `scripts_only` (run PAM scripts only). **Required** when `rotation_settings` is set.
 - `schedule_config` (Boolean) If `true`, uses the schedule from the PAM Configuration instead of a per-record schedule.
-- `schedule_cron` (String) Cron schedule for rotation. Commander expects **5-field** (minutes first, e.g. `56 17 * * *`) or **6-field Quartz** (seconds first, e.g. `0 0 3 1 * ?`). Presets such as `@daily` are accepted when the parser supports them. Invalid expressions fail at **plan** time so the vault record is not created first.
+- `schedule_cron` (String) Cron schedule for rotation using the [Keeper Quartz cron spec](https://docs.keeper.io/keeperpam/privileged-access-manager/references/cron-spec) (**6 or 7 fields**, seconds first, e.g. `0 28 17 ? * *`). Schedules must have at least a **1-hour interval** between executions. Invalid expressions fail at **plan** time so the vault record is not created first.
 - `schedule_json` (String) JSON schedule for rotation.
 
 

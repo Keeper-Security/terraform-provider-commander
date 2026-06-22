@@ -318,8 +318,9 @@ type UserPermissionEntry struct {
 	AccessType string `json:"access_type,omitempty"`
 	Role       string `json:"role,omitempty"`
 	Username   string `json:"username,omitempty"`
-	Shareable  bool   `json:"shareable,omitempty"`
-	Editable   bool   `json:"editable,omitempty"`
+	Shareable  bool   `json:"shareable,omitempty"` // This is for classic records only
+	Editable   bool   `json:"editable,omitempty"`  // This is for classic records only
+	Owner      bool   `json:"owner,omitempty"`     // This is for classic records only
 }
 
 // ConfigurationAllowedSettingsResponse maps the configuration_allowed_settings object from the API response.
@@ -612,6 +613,8 @@ type PamRemoteBrowserSettingsFieldConnectionResponse struct {
 	AudioBps                   int    `json:"audioBps"`
 	AudioSampleRate            int    `json:"audioSampleRate"`
 	SessionPersistence         string `json:"sessionPersistence"`
+	AllowFileUploads           bool   `json:"allowFileUploads"`
+	AllowFileDownloads         bool   `json:"allowFileDownloads"`
 }
 
 // PamRemoteBrowserSettingsFieldResponse is one element of the pamRemoteBrowserSettings field value array.

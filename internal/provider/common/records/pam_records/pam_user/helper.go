@@ -6,8 +6,10 @@ package pamuser
 import (
 	"encoding/json"
 	"fmt"
+	"strconv"
 	"strings"
 
+	commonpamrecords "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/pam_records"
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/utils"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
@@ -40,37 +42,13 @@ func BuildAddCommand(cmd string, data PamUserSharedModel) string {
 		parts = append(parts, fmt.Sprintf("%s=%s", FieldLogin, quoteShellSingle(data.Login.ValueString())))
 	}
 
-	if !data.Password.IsNull() && !data.Password.IsUnknown() {
-		parts = append(parts, fmt.Sprintf("%s=%s", FieldPassword, quoteShellSingle(data.Password.ValueString())))
-	}
-
-	if !data.DistinguishedName.IsNull() && !data.DistinguishedName.IsUnknown() {
-		parts = append(parts, fmt.Sprintf("%s=%s", FieldDistinguishedName, quoteShellSingle(data.DistinguishedName.ValueString())))
-	}
-
-	if !data.PrivatePEMKey.IsNull() && !data.PrivatePEMKey.IsUnknown() {
-		parts = append(parts, fmt.Sprintf("%s=%s", FieldPrivatePEMKey, quoteShellSingle(data.PrivatePEMKey.ValueString())))
-	}
-
-	if !data.PublicKey.IsNull() && !data.PublicKey.IsUnknown() {
-		parts = append(parts, fmt.Sprintf("%s=%s", FieldPublicKey, quoteShellSingle(data.PublicKey.ValueString())))
-	}
-
-	if !data.PrivateKeyPassphrase.IsNull() && !data.PrivateKeyPassphrase.IsUnknown() {
-		parts = append(parts, fmt.Sprintf("%s=%s", FieldPrivateKeyPassphrase, quoteShellSingle(data.PrivateKeyPassphrase.ValueString())))
-	}
-
-	if !data.ConnectDatabase.IsNull() && !data.ConnectDatabase.IsUnknown() {
-		parts = append(parts, fmt.Sprintf("%s=%s", FieldConnectDatabase, quoteShellSingle(data.ConnectDatabase.ValueString())))
-	}
-
-	if !data.Managed.IsNull() && !data.Managed.IsUnknown() {
-		val := "false"
-		if data.Managed.ValueBool() {
-			val = "true"
-		}
-		parts = append(parts, fmt.Sprintf("%s=%s", FieldManaged, val))
-	}
+	commonpamrecords.AppendOptionalTextField(&parts, FieldPassword, data.Password)
+	commonpamrecords.AppendOptionalTextField(&parts, FieldDistinguishedName, data.DistinguishedName)
+	commonpamrecords.AppendOptionalTextField(&parts, FieldPrivatePEMKey, data.PrivatePEMKey)
+	commonpamrecords.AppendOptionalTextField(&parts, FieldPublicKey, data.PublicKey)
+	commonpamrecords.AppendOptionalTextField(&parts, FieldPrivateKeyPassphrase, data.PrivateKeyPassphrase)
+	commonpamrecords.AppendOptionalTextField(&parts, FieldConnectDatabase, data.ConnectDatabase)
+	commonpamrecords.AppendOptionalCheckboxField(&parts, FieldManaged, data.Managed)
 
 	if !data.Notes.IsNull() && !data.Notes.IsUnknown() {
 		parts = append(parts, fmt.Sprintf("%s %s", utils.FlagNotes, quoteShellSingle(data.Notes.ValueString())))
@@ -115,59 +93,27 @@ func BuildUpdateCommand(cmd, recordUID string, plan, state PamUserSharedModel) s
 	}
 
 	if !plan.Password.Equal(state.Password) {
-		parts = append(parts, fmt.Sprintf("%s=%s", FieldPassword, quoteShellSingle(plan.Password.ValueString())))
-	}
-
-	if !plan.DistinguishedName.Equal(state.DistinguishedName) {
-		if plan.DistinguishedName.IsNull() || plan.DistinguishedName.IsUnknown() {
-			parts = append(parts, fmt.Sprintf("%s=", FieldDistinguishedName))
+		// if the password is null or unknown, we need to add the flag with an empty value
+		if plan.Password.IsNull() || plan.Password.IsUnknown() {
+			parts = append(parts, fmt.Sprintf("'%s='", FieldPassword))
 		} else {
-			parts = append(parts, fmt.Sprintf("%s=%s", FieldDistinguishedName, quoteShellSingle(plan.DistinguishedName.ValueString())))
+			parts = append(parts, fmt.Sprintf("'%s=%s'", FieldPassword, quoteShellSingle(plan.Password.ValueString())))
 		}
 	}
 
-	if !plan.PrivatePEMKey.Equal(state.PrivatePEMKey) {
-		if plan.PrivatePEMKey.IsNull() || plan.PrivatePEMKey.IsUnknown() {
-			parts = append(parts, fmt.Sprintf("%s=", FieldPrivatePEMKey))
+	commonpamrecords.AppendChangedTextField(&parts, FieldDistinguishedName, plan.DistinguishedName, state.DistinguishedName)
+	commonpamrecords.AppendChangedTextField(&parts, FieldPrivatePEMKey, plan.PrivatePEMKey, state.PrivatePEMKey)
+	commonpamrecords.AppendChangedTextField(&parts, FieldPublicKey, plan.PublicKey, state.PublicKey)
+	commonpamrecords.AppendChangedTextField(&parts, FieldPrivateKeyPassphrase, plan.PrivateKeyPassphrase, state.PrivateKeyPassphrase)
+	commonpamrecords.AppendChangedTextField(&parts, FieldConnectDatabase, plan.ConnectDatabase, state.ConnectDatabase)
+	commonpamrecords.AppendChangedCheckboxField(&parts, FieldManaged, plan.Managed, state.Managed)
+
+	if !plan.Notes.Equal(state.Notes) && !plan.Notes.IsUnknown() {
+		if plan.Notes.IsNull() {
+			parts = append(parts, fmt.Sprintf("%s ''", utils.FlagNotes))
 		} else {
-			parts = append(parts, fmt.Sprintf("%s=%s", FieldPrivatePEMKey, quoteShellSingle(plan.PrivatePEMKey.ValueString())))
+			parts = append(parts, fmt.Sprintf("%s '%s'", utils.FlagNotes, plan.Notes.ValueString()))
 		}
-	}
-
-	if !plan.PublicKey.Equal(state.PublicKey) {
-		if plan.PublicKey.IsNull() || plan.PublicKey.IsUnknown() {
-			parts = append(parts, fmt.Sprintf("%s=", FieldPublicKey))
-		} else {
-			parts = append(parts, fmt.Sprintf("%s=%s", FieldPublicKey, quoteShellSingle(plan.PublicKey.ValueString())))
-		}
-	}
-
-	if !plan.PrivateKeyPassphrase.Equal(state.PrivateKeyPassphrase) {
-		if plan.PrivateKeyPassphrase.IsNull() || plan.PrivateKeyPassphrase.IsUnknown() {
-			parts = append(parts, fmt.Sprintf("%s=", FieldPrivateKeyPassphrase))
-		} else {
-			parts = append(parts, fmt.Sprintf("%s=%s", FieldPrivateKeyPassphrase, quoteShellSingle(plan.PrivateKeyPassphrase.ValueString())))
-		}
-	}
-
-	if !plan.ConnectDatabase.Equal(state.ConnectDatabase) {
-		if plan.ConnectDatabase.IsNull() || plan.ConnectDatabase.IsUnknown() {
-			parts = append(parts, fmt.Sprintf("%s=", FieldConnectDatabase))
-		} else {
-			parts = append(parts, fmt.Sprintf("%s=%s", FieldConnectDatabase, quoteShellSingle(plan.ConnectDatabase.ValueString())))
-		}
-	}
-
-	if !plan.Managed.Equal(state.Managed) {
-		val := "false"
-		if !plan.Managed.IsNull() && !plan.Managed.IsUnknown() && plan.Managed.ValueBool() {
-			val = "true"
-		}
-		parts = append(parts, fmt.Sprintf("%s=%s", FieldManaged, val))
-	}
-
-	if !plan.Notes.Equal(state.Notes) && !plan.Notes.IsNull() && !plan.Notes.IsUnknown() {
-		parts = append(parts, fmt.Sprintf("%s %s", utils.FlagNotes, quoteShellSingle(plan.Notes.ValueString())))
 	}
 
 	return strings.Join(parts, " ")
@@ -386,12 +332,77 @@ func ParseRotationInfoMessage(messages []string, existing *PamUserRotationSettin
 			case "Schedule":
 				parseScheduleValue(strings.TrimSpace(v), rs)
 			case "Password Complexity Data":
-				rs.Complexity = stringOrNull(v)
+				rs.Complexity = ParsePasswordComplexityData(v)
 			}
 		}
 	}
 
 	state.RotationSettings = rs
+}
+
+// ParsePasswordComplexityData converts Commander rotation info complexity text
+// (e.g. "Length: 32; Lowercase: 1; Uppercase: 5; Digits: 1; Symbols: 2; Symbols Chars: ...")
+// into the Terraform schema format: length,upper,lower,digits,symbols.
+func ParsePasswordComplexityData(raw string) types.String {
+	raw = strings.TrimSpace(raw)
+	if raw == "" {
+		return types.StringNull()
+	}
+
+	length, upper, lower, digits, symbols, ok := parsePasswordComplexityFields(raw)
+	if !ok {
+		return types.StringNull()
+	}
+
+	return types.StringValue(fmt.Sprintf("%d,%d,%d,%d,%d", length, upper, lower, digits, symbols))
+}
+
+func complexityDataWithoutSymbolsChars(raw string) string {
+	lower := strings.ToLower(raw)
+	marker := "; symbols chars:"
+	if idx := strings.Index(lower, marker); idx >= 0 {
+		return strings.TrimSpace(raw[:idx])
+	}
+	if strings.HasPrefix(lower, "symbols chars:") {
+		return ""
+	}
+	return raw
+}
+
+func parsePasswordComplexityFields(raw string) (length, upper, lower, digits, symbols int, ok bool) {
+	const missing = -1
+	length, upper, lower, digits, symbols = missing, missing, missing, missing, missing
+
+	for _, segment := range strings.Split(complexityDataWithoutSymbolsChars(raw), ";") {
+		segment = strings.TrimSpace(segment)
+		if segment == "" {
+			continue
+		}
+		key, value, found := strings.Cut(segment, ":")
+		if !found {
+			continue
+		}
+		n, err := strconv.Atoi(strings.TrimSpace(value))
+		if err != nil {
+			continue
+		}
+
+		switch strings.ToLower(strings.TrimSpace(key)) {
+		case "length":
+			length = n
+		case "uppercase":
+			upper = n
+		case "lowercase":
+			lower = n
+		case "digits":
+			digits = n
+		case "symbols":
+			symbols = n
+		}
+	}
+
+	ok = length != missing && upper != missing && lower != missing && digits != missing && symbols != missing
+	return length, upper, lower, digits, symbols, ok
 }
 
 // parseScheduleValue parses the JSON schedule from `pam rotation info`

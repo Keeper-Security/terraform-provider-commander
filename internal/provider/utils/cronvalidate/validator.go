@@ -21,11 +21,11 @@ type RotationCronString struct {
 func (v RotationCronString) diagLabel() string { return AttributeLabel(v.Name) }
 
 func (RotationCronString) Description(_ context.Context) string {
-	return "must be a valid cron expression (5-field or 6-field Quartz-style, or a supported preset such as @daily)"
+	return "must be a valid Keeper Quartz cron expression (6 or 7 fields) with at least a 1-hour interval between executions"
 }
 
 func (RotationCronString) MarkdownDescription(_ context.Context) string {
-	return "Must be a valid cron expression (5-field or 6-field Quartz-style, or a supported preset such as `@daily`)."
+	return "Must be a valid **Keeper Quartz cron expression** (6 or 7 fields per the [Keeper cron spec](https://docs.keeper.io/keeperpam/privileged-access-manager/references/cron-spec)). Rotation schedules require at least a **1-hour interval** between executions."
 }
 
 func (v RotationCronString) ValidateString(_ context.Context, req validator.StringRequest, resp *validator.StringResponse) {

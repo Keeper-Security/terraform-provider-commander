@@ -10,6 +10,7 @@ import (
 	"strings"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
@@ -17,13 +18,77 @@ import (
 const (
 	rotationPasswordComplexityParts     = 5
 	rotationPasswordComplexityMaxPart   = 99
-	rotationPasswordComplexityMinLength = 1
+	rotationPasswordComplexityMinLength = 20
 )
 
-// RotationScheduleCombinationValidator ensures rotation schedule attributes match
-// Commander precedence: on_demand excludes schedule_config, schedule_cron, and
-// schedule_json; otherwise at most one of schedule_config, schedule_cron, or
-// schedule_json may be set.
+// RotationProfileRequirementsValidator ensures rotation_profile is set when
+// rotation_settings is present and enforces profile-specific required fields.
+type rotationProfileRequirementsValidator struct{}
+
+func RotationProfileRequirementsValidator() rotationProfileRequirementsValidator {
+	return rotationProfileRequirementsValidator{}
+}
+
+func (rotationProfileRequirementsValidator) Description(_ context.Context) string {
+	return "rotation_profile is required; configuration and resource are mutually exclusive; resource is required for general; configuration is required for iam_user and scripts_only"
+}
+
+func (rotationProfileRequirementsValidator) MarkdownDescription(_ context.Context) string {
+	return "`rotation_profile` is **required** when `rotation_settings` is set. `configuration` and `resource` are **mutually exclusive**. `resource` is **required** when `rotation_profile` is `general`. `configuration` is **required** when `rotation_profile` is `iam_user` or `scripts_only`."
+}
+
+func (rotationProfileRequirementsValidator) ValidateObject(_ context.Context, req validator.ObjectRequest, resp *validator.ObjectResponse) {
+	if req.ConfigValue.IsNull() || req.ConfigValue.IsUnknown() {
+		return
+	}
+	ValidateRotationProfileRequirements(req.Path, req.ConfigValue.Attributes(), resp)
+}
+
+// ValidateRotationProfileRequirements checks rotation_profile and dependent fields.
+func ValidateRotationProfileRequirements(basePath path.Path, attrs map[string]attr.Value, resp *validator.ObjectResponse) {
+	hasConfiguration := stringAttrNonEmpty(attrs, "configuration")
+	hasResource := stringAttrNonEmpty(attrs, "resource")
+	if hasConfiguration && hasResource {
+		resp.Diagnostics.AddAttributeError(
+			basePath,
+			"Invalid rotation_settings",
+			"configuration and resource are mutually exclusive; set only the field required for the chosen rotation_profile.",
+		)
+	}
+
+	profile, ok := stringAttrValue(attrs, "rotation_profile")
+	if !ok {
+		resp.Diagnostics.AddAttributeError(
+			basePath.AtName("rotation_profile"),
+			"Missing rotation_profile",
+			"rotation_profile is required when rotation_settings is set.",
+		)
+		return
+	}
+
+	switch profile {
+	case RotProfileGeneral:
+		if !hasResource {
+			resp.Diagnostics.AddAttributeError(
+				basePath.AtName("resource"),
+				"Missing resource",
+				"resource is required when rotation_profile is \"general\".",
+			)
+		}
+	case RotProfileIAMUser, RotProfileScriptsOnly:
+		if !hasConfiguration {
+			resp.Diagnostics.AddAttributeError(
+				basePath.AtName("configuration"),
+				"Missing configuration",
+				fmt.Sprintf("configuration is required when rotation_profile is %q.", profile),
+			)
+		}
+	}
+}
+
+// RotationScheduleCombinationValidator ensures only one rotation schedule option
+// is set within rotation_settings: on_demand, schedule_config, schedule_cron, or
+// schedule_json (same mutual exclusivity as Commander pam rotation edit).
 type rotationScheduleCombinationValidator struct{}
 
 func RotationScheduleCombinationValidator() rotationScheduleCombinationValidator {
@@ -31,48 +96,43 @@ func RotationScheduleCombinationValidator() rotationScheduleCombinationValidator
 }
 
 func (rotationScheduleCombinationValidator) Description(_ context.Context) string {
-	return "on_demand cannot be combined with schedule_config, schedule_cron, or schedule_json; otherwise at most one of those three may be set."
+	return "only one of on_demand, schedule_config, schedule_cron, or schedule_json may be set"
 }
 
 func (rotationScheduleCombinationValidator) MarkdownDescription(_ context.Context) string {
-	return "`on_demand` cannot be combined with `schedule_config`, `schedule_cron`, or `schedule_json`. When `on_demand` is not used, set **at most one** of `schedule_config`, `schedule_cron`, or `schedule_json` (same rules as Commander `pam rotation edit`)."
+	return "Set **only one** of `on_demand`, `schedule_config`, `schedule_cron`, or `schedule_json`."
 }
 
 func (rotationScheduleCombinationValidator) ValidateObject(_ context.Context, req validator.ObjectRequest, resp *validator.ObjectResponse) {
 	if req.ConfigValue.IsNull() || req.ConfigValue.IsUnknown() {
 		return
 	}
-	attrs := req.ConfigValue.Attributes()
-
-	onDemand := boolAttrExplicitTrue(attrs, "on_demand")
-	scheduleFromConfig := boolAttrExplicitTrue(attrs, "schedule_config")
-	cronSet := stringAttrNonEmpty(attrs, "schedule_cron")
-	jsonSet := stringAttrNonEmpty(attrs, "schedule_json")
-
-	if onDemand {
-		if scheduleFromConfig || cronSet || jsonSet {
-			resp.Diagnostics.AddAttributeError(req.Path,
-				"Invalid rotation_settings combination",
-				"When on_demand is true, omit schedule_config, schedule_cron, and schedule_json. Commander only sends --on-demand in that case; other schedule flags are ignored.")
-		}
-		return
-	}
-
-	n := 0
-	if scheduleFromConfig {
-		n++
-	}
-	if cronSet {
-		n++
-	}
-	if jsonSet {
-		n++
-	}
-	if n > 1 {
+	if active := activeRotationScheduleOptions(req.ConfigValue.Attributes()); len(active) > 1 {
 		resp.Diagnostics.AddAttributeError(req.Path,
 			"Invalid rotation_settings schedule",
-			"Set at most one of schedule_config (true), schedule_cron, or schedule_json. Multiple values map to conflicting Commander flags (--schedule-config, --schedulecron, --schedulejson).")
+			fmt.Sprintf(
+				"Set only one schedule option in rotation_settings; %s are mutually exclusive.",
+				strings.Join(active, ", "),
+			),
+		)
 	}
+}
+
+func activeRotationScheduleOptions(attrs map[string]attr.Value) []string {
+	var active []string
+	if boolAttrExplicitTrue(attrs, "on_demand") {
+		active = append(active, "on_demand")
+	}
+	if boolAttrExplicitTrue(attrs, "schedule_config") {
+		active = append(active, "schedule_config")
+	}
+	if stringAttrNonEmpty(attrs, "schedule_cron") {
+		active = append(active, "schedule_cron")
+	}
+	if stringAttrNonEmpty(attrs, "schedule_json") {
+		active = append(active, "schedule_json")
+	}
+	return active
 }
 
 func boolAttrExplicitTrue(attrs map[string]attr.Value, key string) bool {
@@ -89,6 +149,18 @@ func stringAttrNonEmpty(attrs map[string]attr.Value, key string) bool {
 		return false
 	}
 	return strings.TrimSpace(v.ValueString()) != ""
+}
+
+func stringAttrValue(attrs map[string]attr.Value, key string) (string, bool) {
+	v, ok := attrs[key].(types.String)
+	if !ok || v.IsNull() || v.IsUnknown() {
+		return "", false
+	}
+	s := strings.TrimSpace(v.ValueString())
+	if s == "" {
+		return "", false
+	}
+	return s, true
 }
 
 // RotationPasswordComplexityValidator validates rotation_settings.complexity:

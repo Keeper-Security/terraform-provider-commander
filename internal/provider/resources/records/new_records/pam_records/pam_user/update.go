@@ -38,12 +38,7 @@ func (r *PamUserResource) Update(ctx context.Context, req resource.UpdateRequest
 	}
 
 	plan.Id = state.Id
-	if plan.Login.IsUnknown() || plan.Login.IsNull() {
-		plan.Login = state.Login
-	}
-	if plan.Password.IsUnknown() || plan.Password.IsNull() {
-		plan.Password = state.Password
-	}
+
 	recordUID := strings.TrimSpace(plan.Id.ValueString())
 	if recordUID == "" {
 		resp.Diagnostics.AddError(commonpamuser.ErrSummaryUpdateFailed, "new PAM User record id is empty")

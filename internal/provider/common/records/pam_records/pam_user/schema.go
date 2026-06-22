@@ -4,8 +4,8 @@
 package pamuser
 
 import (
-	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/cronvalidate"
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/utils"
+	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/utils/cronvalidate"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
@@ -35,20 +35,21 @@ func SharedAttributes() map[string]schema.Attribute {
 			},
 		},
 		"login": schema.StringAttribute{
-			Optional:            true,
-			Computed:            true,
+			Required:            true,
 			Description:         LoginDescription,
 			MarkdownDescription: LoginMarkdownDescription,
 			Validators: []validator.String{
-				utils.StringMinLengthValidator("Login", 1, true),
+				utils.StringMinLengthValidator("Login", 1, false),
 			},
 		},
 		"password": schema.StringAttribute{
 			Optional:            true,
-			Computed:            true,
 			Sensitive:           true,
 			Description:         PasswordDescription,
 			MarkdownDescription: PasswordMarkdownDescription,
+			Validators: []validator.String{
+				utils.StringMinLengthValidator("Password", 1, true),
+			},
 		},
 		"folder_location": schema.StringAttribute{
 			Optional:            true,
@@ -119,6 +120,7 @@ func SharedAttributes() map[string]schema.Attribute {
 			Description:         RotationSettingsDescription,
 			MarkdownDescription: RotationSettingsMarkdownDescription,
 			Validators: []validator.Object{
+				RotationProfileRequirementsValidator(),
 				RotationScheduleCombinationValidator(),
 			},
 			Attributes: map[string]schema.Attribute{
@@ -126,6 +128,9 @@ func SharedAttributes() map[string]schema.Attribute {
 					Optional:            true,
 					Description:         RotProfileDescription,
 					MarkdownDescription: RotProfileMarkdownDescription,
+					Validators: []validator.String{
+						utils.StringOneOfValidator("Rotation Profile", []string{RotProfileGeneral, RotProfileIAMUser, RotProfileScriptsOnly}, true),
+					},
 				},
 				"configuration": schema.StringAttribute{
 					Optional:            true,
@@ -176,6 +181,9 @@ func SharedAttributes() map[string]schema.Attribute {
 					Optional:            true,
 					Description:         RotScheduleJSONDescription,
 					MarkdownDescription: RotScheduleJSONMarkdownDescription,
+					Validators: []validator.String{
+						utils.JSONStringValidator("Schedule JSON"),
+					},
 				},
 				"on_demand": schema.BoolAttribute{
 					Optional:            true,
