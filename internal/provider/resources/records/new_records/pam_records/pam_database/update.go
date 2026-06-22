@@ -10,6 +10,7 @@ import (
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/new_share"
 	commonpamrecords "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/pam_records"
 	commonpamdatabase "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/pam_records/pam_database"
+	commonrecordutils "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/utils"
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/utils"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 )
@@ -29,6 +30,12 @@ func (r *PamDatabaseResource) Update(ctx context.Context, req resource.UpdateReq
 
 	if err := r.EnsureApiManager(); err != nil {
 		resp.Diagnostics.AddError(utils.ERR_MSG_PROVIDER_CONFIGURATION_ERROR, err.Error())
+		return
+	}
+
+	// Throw error if user tries to change the folder location as it is not supported
+	if !plan.FolderLocation.Equal(state.FolderLocation) {
+		resp.Diagnostics.AddError(commonrecordutils.ErrSummaryInvalidConfig, commonrecordutils.ErrSummaryMoveNotSupported)
 		return
 	}
 
