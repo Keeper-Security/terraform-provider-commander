@@ -195,7 +195,7 @@ Optional:
 
 - `access_key_id` (String) From an IAM user account, the `Access key ID` from the desired Access key.
 - `access_secret_key` (String, Sensitive) The `secret key` for the access key.
-- `aws_id` (String) A `Unique ID` for the instance of AWS.
+- `aws_id` (String) A `Unique ID` for the instance of AWS. **Required**
 - `region_names` (Set of String) AWS region names used for discovery. Separate newline per region. Ex: `us-east-2`
 
 
@@ -204,12 +204,12 @@ Optional:
 
 Optional:
 
-- `azure_id` (String) A `Unique ID` for your instance of Azure.
-- `client_id` (String) The `application/client id` (UUID) of the Azure application
-- `client_secret` (String, Sensitive) The `client credentials secret` for the Azure application
+- `azure_id` (String) A `Entra ID` for your instance of Azure. **Required**
+- `client_id` (String) The `application/client id` (UUID) of the Azure application. **Required**
+- `client_secret` (String, Sensitive) The `client credentials secret` for the Azure application. **Required**
 - `resource_groups` (Set of String) A list of `resource groups` to be checked. If left blank, all resource groups will be checked.
-- `subscription_id` (String) The `UUID` of the subscription (i.e. Pay-As-You-GO).
-- `tenant_id` (String) The `UUID` of the Azure Active Directory
+- `subscription_id` (String) The `UUID` of the subscription (i.e. Pay-As-You-GO). **Required**
+- `tenant_id` (String) The `UUID` of the Azure Active Directory. **Required**
 
 
 <a id="nestedblock--domain"></a>
@@ -217,8 +217,8 @@ Optional:
 
 Optional:
 
-- `domain_admin` (String, Sensitive) Domain Administrative Credentials.
-- `domain_hostname` (String) Hostname for the `domain controller`.
+- `domain_admin` (String, Sensitive) Domain Administrative Credentials. **Required**
+- `domain_hostname` (String) Hostname for the `domain controller`. **Required**
 - `domain_id` (String) The `FQDN` domain used by the Domain Controller. For example, `EXAMPLE.COM` and not `EXAMPLE`.
 - `domain_network_cidr` (String) `Scan additional CIDRs` from the field.
 - `domain_port` (String) Port for the `domain controller`.
