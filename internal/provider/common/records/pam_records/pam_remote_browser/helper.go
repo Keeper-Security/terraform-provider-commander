@@ -93,6 +93,8 @@ func AppendPamRbiEditSettingsFlags(parts *[]string, settings *PamRemoteBrowserSe
 		return
 	}
 
+	// TODO: Add allow supply user flag once its available in "pam rbi edit" command
+
 	appendPamRbiStringFlag(parts, FlagConfiguration, settings.Configuration)
 
 	appendPamRbiBoolOnOff(parts, FlagRemoteBrowserIsolation, settings.RemoteBrowserIsolation)
@@ -341,6 +343,7 @@ func mapConnectionToPamRemoteBrowserSettingsModel(ctx context.Context, c *utils.
 		DisableAudio:       types.BoolValue(c.DisableAudio),
 		AllowFileUploads:   types.BoolValue(c.AllowFileUploads),
 		AllowFileDownloads: types.BoolValue(c.AllowFileDownloads),
+		AllowSupplyUser:    types.BoolValue(c.AllowSupplyUser),
 
 		SessionPersistence: types.StringValue(c.SessionPersistence),
 	}

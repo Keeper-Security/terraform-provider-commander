@@ -622,6 +622,7 @@ type PamRemoteBrowserSettingsFieldConnectionResponse struct {
 	SessionPersistence         string `json:"sessionPersistence"`
 	AllowFileUploads           bool   `json:"allowFileUploads"`
 	AllowFileDownloads         bool   `json:"allowFileDownloads"`
+	AllowSupplyUser            bool   `json:"allowSupplyUser"`
 }
 
 // PamRemoteBrowserSettingsFieldResponse is one element of the pamRemoteBrowserSettings field value array.

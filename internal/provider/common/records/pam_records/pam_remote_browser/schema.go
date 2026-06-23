@@ -4,6 +4,7 @@
 package pamremotebrowser
 
 import (
+	pamrecords "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/pam_records"
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/utils"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int32default"
@@ -197,6 +198,11 @@ func SharedAttributes() map[string]schema.Attribute {
 					Optional:            true,
 					Description:         SettingsAllowFileDownloadsDescription,
 					MarkdownDescription: SettingsAllowFileDownloadsMarkdownDescription,
+				},
+				"allow_supply_user": schema.BoolAttribute{
+					Optional:            true,
+					Description:         pamrecords.ConnectionAllowSupplyUserDescription,
+					MarkdownDescription: pamrecords.ConnectionAllowSupplyUserMarkdownDescription,
 				},
 			},
 		},

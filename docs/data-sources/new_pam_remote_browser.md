@@ -81,6 +81,7 @@ Read-Only:
 - `allow_file_downloads` (Boolean) Allow **file downloads**.
 - `allow_file_uploads` (Boolean) Allow **file uploads**.
 - `allow_paste` (Boolean) Can **paste** from clipboard.
+- `allow_supply_user` (Boolean) Allow users to **select credentials** from their vault.
 - `allow_url_navigation` (Boolean) Allow **navigation** via direct URL manipulation.
 - `allowed_resource_urls` (Set of String) **Allowed resource URL patterns.**
 - `allowed_urls` (Set of String) **Allowed URL patterns.**

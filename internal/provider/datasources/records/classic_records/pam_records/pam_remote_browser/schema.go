@@ -7,6 +7,7 @@ import (
 	"context"
 
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/classic_share"
+	pamrecords "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/pam_records"
 	commonpamremotebrowser "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/pam_records/pam_remote_browser"
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/utils"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
@@ -159,6 +160,11 @@ func pamRemoteBrowserRBISettingsDataSourceAttributes() map[string]dschema.Attrib
 			Computed:            true,
 			Description:         commonpamremotebrowser.SettingsAllowFileDownloadsDescription,
 			MarkdownDescription: commonpamremotebrowser.SettingsAllowFileDownloadsMarkdownDescription,
+		},
+		"allow_supply_user": dschema.BoolAttribute{
+			Computed:            true,
+			Description:         pamrecords.ConnectionAllowSupplyUserDescription,
+			MarkdownDescription: pamrecords.ConnectionAllowSupplyUserMarkdownDescription,
 		},
 	}
 }

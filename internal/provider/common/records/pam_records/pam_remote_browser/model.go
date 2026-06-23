@@ -30,6 +30,7 @@ type PamRemoteBrowserSettingsModel struct {
 	SessionPersistence     types.String `tfsdk:"session_persistence"`
 	AllowFileUploads       types.Bool   `tfsdk:"allow_file_uploads"`
 	AllowFileDownloads     types.Bool   `tfsdk:"allow_file_downloads"`
+	AllowSupplyUser        types.Bool   `tfsdk:"allow_supply_user"`
 }
 
 // PamRemoteBrowserResourceModel is the Terraform state shared by
