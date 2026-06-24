@@ -111,6 +111,11 @@ func (d *PamUserDataSource) Schema(ctx context.Context, req datasource.SchemaReq
 						Description:         "PAM resource record UID (machine or database).",
 						MarkdownDescription: "**PAM resource** record UID (machine or database).",
 					},
+					"saas_config": dschema.StringAttribute{
+						Computed:            true,
+						Description:         "SaaS Configuration UID.",
+						MarkdownDescription: "**SaaS Configuration UID**.",
+					},
 					"admin_user": dschema.StringAttribute{
 						Computed:            true,
 						Description:         "Admin PAM User UID used for rotation.",

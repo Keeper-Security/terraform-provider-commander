@@ -355,6 +355,22 @@ type DagDebugResponse struct {
 	VertexContent   *DagDebugVertexContentResponse   `json:"vertex_content,omitempty"`
 	AllEdges        []DagDebugEdgeResponse           `json:"all_edges,omitempty"`
 	RotationProfile *DagDebugRotationProfileResponse `json:"rotation_profile,omitempty"`
+	ParentAclEdge   *DagDebugParentAclEdgeResponse   `json:"parentAclEdge,omitempty"`
+}
+
+type DagDebugParentAclEdgeResponse struct {
+	ParentUID  string                                `json:"parent_uid,omitempty"`
+	ParentType string                                `json:"parent_type,omitempty"`
+	Content    *DagDebugParentAclEdgeContentResponse `json:"content,omitempty"`
+}
+
+type DagDebugParentAclEdgeContentResponse struct {
+	RotationSettings *DagDebugParentAclEdgeContentRotationSettingsResponse `json:"rotation_settings,omitempty"`
+}
+
+type DagDebugParentAclEdgeContentRotationSettingsResponse struct {
+	Noop              bool     `json:"noop,omitempty"`
+	SaaSRecordUIDList []string `json:"saas_record_uid_list,omitempty"`
 }
 
 type DagDebugRotationProfileResponse struct {

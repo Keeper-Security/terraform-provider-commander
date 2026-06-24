@@ -129,7 +129,7 @@ func SharedAttributes() map[string]schema.Attribute {
 					Description:         RotProfileDescription,
 					MarkdownDescription: RotProfileMarkdownDescription,
 					Validators: []validator.String{
-						utils.StringOneOfValidator("Rotation Profile", []string{RotProfileGeneral, RotProfileIAMUser, RotProfileScriptsOnly}, true),
+						utils.StringOneOfValidator("Rotation Profile", []string{RotProfileGeneral, RotProfileIAMUser, RotProfileScriptsOnly, RotProfileSaaS}, true),
 					},
 				},
 				"configuration": schema.StringAttribute{
@@ -146,6 +146,14 @@ func SharedAttributes() map[string]schema.Attribute {
 					MarkdownDescription: RotIamAadConfigMarkdownDescription,
 					Validators: []validator.String{
 						utils.StringMinLengthValidator("IAM/AAD Config UID", 1, true),
+					},
+				},
+				"saas_config": schema.StringAttribute{
+					Optional:            true,
+					Description:         RotSaaSConfigDescription,
+					MarkdownDescription: RotSaaSConfigMarkdownDescription,
+					Validators: []validator.String{
+						utils.StringMinLengthValidator("SaaS Config UID", 1, true),
 					},
 				},
 				"resource": schema.StringAttribute{

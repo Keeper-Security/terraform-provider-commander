@@ -30,11 +30,11 @@ func RotationProfileRequirementsValidator() rotationProfileRequirementsValidator
 }
 
 func (rotationProfileRequirementsValidator) Description(_ context.Context) string {
-	return "rotation_profile is required; configuration and resource are mutually exclusive; resource is required for general; configuration is required for iam_user and scripts_only"
+	return "rotation_profile is required; profile-specific fields must be set or omitted as required for general, iam_user, scripts_only, and saas"
 }
 
 func (rotationProfileRequirementsValidator) MarkdownDescription(_ context.Context) string {
-	return "`rotation_profile` is **required** when `rotation_settings` is set. `configuration` and `resource` are **mutually exclusive**. `resource` is **required** when `rotation_profile` is `general`. `configuration` is **required** when `rotation_profile` is `iam_user` or `scripts_only`."
+	return "`rotation_profile` is **required** when `rotation_settings` is set. Profile-specific fields: `general` requires `resource` (not `configuration` or `saas_config`); `iam_user` and `scripts_only` require `configuration` (not `resource` or `saas_config`); `saas` requires `configuration` and `saas_config` (not `resource`)."
 }
 
 func (rotationProfileRequirementsValidator) ValidateObject(_ context.Context, req validator.ObjectRequest, resp *validator.ObjectResponse) {
@@ -47,14 +47,9 @@ func (rotationProfileRequirementsValidator) ValidateObject(_ context.Context, re
 // ValidateRotationProfileRequirements checks rotation_profile and dependent fields.
 func ValidateRotationProfileRequirements(basePath path.Path, attrs map[string]attr.Value, resp *validator.ObjectResponse) {
 	hasConfiguration := stringAttrNonEmpty(attrs, "configuration")
+	hasSaaSConfig := stringAttrNonEmpty(attrs, "saas_config")
 	hasResource := stringAttrNonEmpty(attrs, "resource")
-	if hasConfiguration && hasResource {
-		resp.Diagnostics.AddAttributeError(
-			basePath,
-			"Invalid rotation_settings",
-			"configuration and resource are mutually exclusive; set only the field required for the chosen rotation_profile.",
-		)
-	}
+	hasIamAadConfig := stringAttrNonEmpty(attrs, "iam_aad_config")
 
 	profile, ok := stringAttrValue(attrs, "rotation_profile")
 	if !ok {
@@ -68,22 +63,90 @@ func ValidateRotationProfileRequirements(basePath path.Path, attrs map[string]at
 
 	switch profile {
 	case RotProfileGeneral:
-		if !hasResource {
-			resp.Diagnostics.AddAttributeError(
-				basePath.AtName("resource"),
-				"Missing resource",
-				"resource is required when rotation_profile is \"general\".",
-			)
+		// Validation for fields that are forbidden for the profile
+		if hasSaaSConfig {
+			addForbiddenRotationFieldError(basePath, resp, "saas_config", profile)
 		}
-	case RotProfileIAMUser, RotProfileScriptsOnly:
+		if hasIamAadConfig {
+			addForbiddenRotationFieldError(basePath, resp, "iam_aad_config", profile)
+		}
+
+		// Validation for fields that are required for the profile
 		if !hasConfiguration {
-			resp.Diagnostics.AddAttributeError(
-				basePath.AtName("configuration"),
-				"Missing configuration",
-				fmt.Sprintf("configuration is required when rotation_profile is %q.", profile),
-			)
+			addRequiredRotationFieldError(basePath, resp, "configuration", profile)
+		}
+		if !hasResource {
+			addRequiredRotationFieldError(basePath, resp, "resource", profile)
+		}
+	case RotProfileIAMUser:
+		// Validation for fields that are forbidden for the profile
+		if hasConfiguration {
+			addForbiddenRotationFieldError(basePath, resp, "configuration", profile)
+		}
+		if hasResource {
+			addForbiddenRotationFieldError(basePath, resp, "resource", profile)
+		}
+		if hasSaaSConfig {
+			addForbiddenRotationFieldError(basePath, resp, "saas_config", profile)
+		}
+
+		// Validation for fields that are required for the profile
+		if !hasIamAadConfig {
+			addRequiredRotationFieldError(basePath, resp, "iam_aad_config", profile)
+		}
+
+	case RotProfileScriptsOnly:
+		// Validation for fields that are forbidden for the profile
+		if hasIamAadConfig {
+			addForbiddenRotationFieldError(basePath, resp, "iam_aad_config", profile)
+		}
+		if hasResource {
+			addForbiddenRotationFieldError(basePath, resp, "resource", profile)
+		}
+		if hasSaaSConfig {
+			addForbiddenRotationFieldError(basePath, resp, "saas_config", profile)
+		}
+
+		// Validation for fields that are required for the profile
+		if !hasConfiguration {
+			addRequiredRotationFieldError(basePath, resp, "configuration", profile)
+		}
+
+	case RotProfileSaaS:
+		// Validation for fields that are forbidden for the profile
+		if hasResource {
+			addForbiddenRotationFieldError(basePath, resp, "resource", profile)
+		}
+		if hasIamAadConfig {
+			addForbiddenRotationFieldError(basePath, resp, "iam_aad_config", profile)
+		}
+
+		// Validation for fields that are required for the profile
+		if !hasConfiguration {
+			addRequiredRotationFieldError(basePath, resp, "configuration", profile)
+		}
+		if !hasSaaSConfig {
+			addRequiredRotationFieldError(basePath, resp, "saas_config", profile)
 		}
 	}
+}
+
+// addForbiddenRotationFieldError adds an error to the response when a field is set for a profile that is not allowed.
+func addForbiddenRotationFieldError(basePath path.Path, resp *validator.ObjectResponse, field, profile string) {
+	resp.Diagnostics.AddAttributeError(
+		basePath.AtName(field),
+		fmt.Sprintf("Invalid %s", field),
+		fmt.Sprintf("%s must not be set when rotation_profile is %q.", field, profile),
+	)
+}
+
+// addRequiredRotationFieldError adds an error to the response when a field is required for a profile but is not set.
+func addRequiredRotationFieldError(basePath path.Path, resp *validator.ObjectResponse, field, profile string) {
+	resp.Diagnostics.AddAttributeError(
+		basePath.AtName(field),
+		fmt.Sprintf("Missing %s", field),
+		fmt.Sprintf("%s is required when rotation_profile is %q.", field, profile),
+	)
 }
 
 // RotationScheduleCombinationValidator ensures only one rotation schedule option

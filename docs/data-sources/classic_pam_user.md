@@ -160,6 +160,7 @@ Read-Only:
 - `on_demand` (Boolean) Whether rotation is **on-demand** (manual).
 - `resource` (String) **PAM resource** record UID (machine or database).
 - `rotation_profile` (String) Rotation profile type: `general`, `iam_user`, or `scripts_only`.
+- `saas_config` (String) **SaaS Configuration UID**.
 - `schedule_config` (Boolean) Whether schedule is inherited from **PAM Configuration**.
 - `schedule_cron` (String) **Cron schedule** for rotation.
 - `schedule_json` (String) **JSON schedule** for rotation.

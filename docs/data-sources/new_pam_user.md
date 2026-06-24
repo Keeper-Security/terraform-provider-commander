@@ -165,12 +165,13 @@ Read-Only:
 
 - `admin_user` (String) UID of the PAM User record to use as admin credential when rotating.
 - `complexity` (String) Password complexity for rotation: `length,upper,lower,digits,symbols` as **five integers**. Password **length** must be **1–99**; upper, lower, digits, and symbols minimums must each be **0–99** (Keeper UI limits). Invalid values fail at plan time.
-- `configuration` (String) PAM Configuration UID to use for rotation. **Required** when `rotation_profile` is `iam_user` or `scripts_only`.
+- `configuration` (String) PAM Configuration UID to use for rotation. **Required** when `rotation_profile` is `iam_user`, `saas` or `scripts_only`.
 - `enabled` (Boolean) Whether rotation is enabled for this PAM User.
 - `iam_aad_config` (String) PAM Configuration UID for IAM or Azure AD users. Used instead of `resource` when `rotation_profile` is `iam_user`.
 - `on_demand` (Boolean) If `true`, rotation is on-demand (manual) only.
 - `resource` (String) UID of the PAM resource record (machine or database) this user rotates on. Required when `rotation_profile` is `general`.
-- `rotation_profile` (String) Rotation profile type: `general` (resource-based), `iam_user` (IAM/Azure user), or `scripts_only` (run PAM scripts only). **Required** when `rotation_settings` is set.
+- `rotation_profile` (String) Rotation profile type: `general` (resource-based), `iam_user` (IAM/Azure user), `scripts_only` (run PAM scripts only), or `saas` (SaaS Account). **Required** when `rotation_settings` is set.
+- `saas_config` (String) SaaS Configuration UID which is associted with that PAM Configuration to use for rotation. **Required** when `rotation_profile` is `saas`.
 - `schedule_config` (Boolean) If `true`, uses the schedule from the PAM Configuration instead of a per-record schedule.
 - `schedule_cron` (String) Cron schedule for rotation using the [Keeper Quartz cron spec](https://docs.keeper.io/keeperpam/privileged-access-manager/references/cron-spec) (**6 or 7 fields**, seconds first, e.g. `0 28 17 ? * *`). Schedules must have at least a **1-hour interval** between executions. Invalid expressions fail at **plan** time so the vault record is not created first.
 - `schedule_json` (String) JSON schedule for rotation.

@@ -23,23 +23,24 @@ A PAM User record stores privileged credentials (login/password) that can be ass
 # be associated with PAM Machines or Databases for rotation, connections, and
 # tunneling.
 #
-# Required fields ............ title
-# Optional fields ............ login, password, folder, notes,
-#                              distinguished_name, private_pem_key,
-#                              connect_database, managed, rotation_settings
+# Required fields ............ title, login
+# Optional fields ............ password, folder_location, notes,
+#                              distinguished_name, private_pem_key, public_key,
+#                              private_key_passphrase, connect_database,
+#                              managed, rotation_settings, share
 # Read-only fields ........... id (record UID assigned by Keeper after create)
 #
 # -----------------------------------------------------------------------------
-# Which UID does each rotation_profile need?
+# Which fields does each rotation_profile need?
 # -----------------------------------------------------------------------------
-#   rotation_profile = "general"        => set `resource`        (PAM Machine
-#                                                                 or PAM Database UID)
-#                                          and usually `admin_user`
-#                                          (UID of the rotating account)
-#   rotation_profile = "iam_user"       => set `configuration`   (PAM Configuration UID
-#                                                                 for IAM / Azure AD)
-#   rotation_profile = "scripts_only"   => set `configuration`   (PAM Configuration UID
-#                                                                 that runs the script)
+#   rotation_profile = "general"      => `configuration` + `resource`
+#   rotation_profile = "iam_user"       => `iam_aad_config`  (not `configuration`)
+#   rotation_profile = "scripts_only"   => `configuration`
+#   rotation_profile = "saas"           => `configuration` + `saas_config`
+#
+# Schedule: set only ONE of on_demand, schedule_config, schedule_cron, schedule_json.
+# Cron uses Keeper Quartz format (6 or 7 fields, seconds first), e.g. "0 0 4 * * ?".
+# Complexity: five integers length,upper,lower,digits,symbols (length min 20).
 # -----------------------------------------------------------------------------
 
 ###############################################################################
@@ -50,15 +51,17 @@ A PAM User record stores privileged credentials (login/password) that can be ass
 ###############################################################################
 
 resource "commander_classic_pam_user" "mysql_app_account" {
-  title              = "MySQL - billing app service account"
-  login              = "svc_billing"
-  password           = "_REPLACE_WITH_STRONG_PASSWORD_"
-  folder_location    = "Shared Folders/PAM/Database Users"
-  notes              = "Service account used by the billing app to connect to MySQL prod."
-  distinguished_name = "CN=svc_billing,OU=Service Accounts,DC=corp,DC=local"
-  private_pem_key    = "_REPLACE_WITH_PEM_KEY_OR_USE_file()_"
-  connect_database   = "billing_prod"
-  managed            = true
+  title                  = "MySQL - billing app service account"
+  login                  = "svc_billing"
+  password               = "_REPLACE_WITH_STRONG_PASSWORD_"
+  folder_location        = "Shared Folders/PAM/Database Users"
+  notes                  = "Service account used by the billing app to connect to MySQL prod."
+  distinguished_name     = "CN=svc_billing,OU=Service Accounts,DC=corp,DC=local"
+  private_pem_key        = "_REPLACE_WITH_PEM_KEY_OR_USE_file()_"
+  public_key             = "_REPLACE_WITH_PUBLIC_KEY_OR_USE_file()_"
+  private_key_passphrase = "_REPLACE_WITH_PRIVATE_KEY_PASSPHRASE_OR_USE_file()_"
+  connect_database       = "billing_prod"
+  managed                = true
 
   # ----------------------------------------------------------------
   # Per-user share permissions (optional).
@@ -85,11 +88,12 @@ resource "commander_classic_pam_user" "mysql_app_account" {
 # `Shared Folders/PAM/Service Accounts`) or a folder UID.
 #
 # If you add or change `folder_location` later, the next `terraform apply` moves the
-# existing record (Commander `mv`), same as other PAM record resources.
+# existing record (Commander `mv`), same as other classic PAM record resources.
 ###############################################################################
 
 # resource "commander_classic_pam_user" "folder_after_root" {
 #   title = "PAM User - start in root, move later"
+#   login = "svc_example"
 #   # Omit `folder_location` on first apply, then add the line below and apply again:
 #   # folder_location = "Shared Folders/PAM/Service Accounts"
 # }
@@ -99,13 +103,10 @@ resource "commander_classic_pam_user" "mysql_app_account" {
 # Usage 2.1 - Rotation profile: "general"  (rotates ON a PAM resource)
 #
 # For type "general" you MUST pass:
-#   - resource    : UID of the PAM Machine / PAM Database record where the
-#                   credential lives and where Keeper will perform the rotation.
-#   - admin_user  : UID of the PAM User Keeper uses to log in and rotate the
-#                   target account (usually a privileged admin account).
+#   - configuration : PAM Configuration UID for the rotation gateway / policy
+#   - resource      : UID of the PAM Machine or PAM Database where rotation runs
 #
-# Use this for Linux SSH users, Windows local accounts, MySQL / Postgres / SQL
-# Server users that live on a specific machine or database.
+# Do NOT set iam_aad_config or saas_config for this profile.
 ###############################################################################
 
 # resource "commander_classic_pam_user" "mysql_rotation_user" {
@@ -117,9 +118,9 @@ resource "commander_classic_pam_user" "mysql_app_account" {
 #
 #   rotation_settings = {
 #     rotation_profile = "general"
-#     resource         = "_REPLACE_WITH_PAM_MACHINE_OR_DATABASE_UID_" # <-- required for "general"
-#     admin_user       = "_REPLACE_WITH_ADMIN_PAM_USER_UID_"          # <-- privileged rotator UID
-#     complexity       = "32,5,5,5,5"                                 # length, upper, lower, digits, symbols
+#     configuration    = "_REPLACE_WITH_PAM_CONFIGURATION_UID_"
+#     resource         = "_REPLACE_WITH_PAM_MACHINE_OR_DATABASE_UID_"
+#     complexity       = "32,5,1,1,2" # length, upper, lower, digits, symbols
 #     enabled          = true
 #     on_demand        = true
 #   }
@@ -129,11 +130,9 @@ resource "commander_classic_pam_user" "mysql_app_account" {
 # Usage 2.2 - Rotation profile: "iam_user"  (cloud IAM / Azure AD)
 #
 # For type "iam_user" you MUST pass:
-#   - configuration : PAM Configuration UID that talks to your cloud IAM provider
-#                     (AWS IAM, Azure AD, GCP IAM, etc.). Do NOT set `resource`
-#                     for this profile.
+#   - iam_aad_config : PAM Configuration UID for IAM / Azure AD rotation
 #
-# Use this for cloud IAM accounts that don't live on a single machine.
+# Do NOT set configuration, resource, or saas_config for this profile.
 ###############################################################################
 
 # resource "commander_classic_pam_user" "aws_iam_deploy_user" {
@@ -144,8 +143,8 @@ resource "commander_classic_pam_user" "mysql_app_account" {
 #
 #   rotation_settings = {
 #     rotation_profile = "iam_user"
-#     configuration    = "_REPLACE_WITH_PAM_CONFIGURATION_UID_FOR_IAM_" # <-- required for "iam_user"
-#     complexity       = "32,5,5,5,5"
+#     iam_aad_config   = "_REPLACE_WITH_PAM_CONFIGURATION_UID_FOR_IAM_"
+#     complexity       = "32,5,1,1,2"
 #     enabled          = true
 #     on_demand        = true
 #   }
@@ -155,65 +154,92 @@ resource "commander_classic_pam_user" "mysql_app_account" {
 # Usage 2.3 - Rotation profile: "scripts_only"  (custom rotation via script)
 #
 # For type "scripts_only" you MUST pass:
-#   - configuration : PAM Configuration UID that hosts the rotation script.
-#                     `login` / `password` are optional - omit them if the
-#                     script doesn't need a starting credential.
+#   - configuration : PAM Configuration UID that hosts the rotation script
 #
-# Use this for custom rotation logic or non-standard targets.
+# `login` / `password` are optional if the script does not need a starting credential.
+# Do NOT set resource, iam_aad_config, or saas_config for this profile.
 ###############################################################################
 
 # resource "commander_classic_pam_user" "custom_script_runner" {
 #   title              = "PAM - custom rotation runner"
+#   login              = "svc_custom"
 #   distinguished_name = "svc_custom"
 #   connect_database   = "internal_app_db"
-#   # login            = "svc_custom"                    # optional for scripts_only
 #   # password         = "_REPLACE_WITH_STRONG_PASSWORD_" # optional for scripts_only
 #
 #   rotation_settings = {
 #     rotation_profile = "scripts_only"
-#     configuration    = "_REPLACE_WITH_PAM_CONFIGURATION_UID_" # <-- required for "scripts_only"
-#     complexity       = "20,1,1,1,1"
+#     configuration    = "_REPLACE_WITH_PAM_CONFIGURATION_UID_"
+#     complexity       = "32,1,1,1,1"
 #     enabled          = true
 #   }
 # }
 
 ###############################################################################
-# Usage 2.4 - Rotation schedule (cron / json / inherit-from-config)
+# Usage 2.4 - Rotation profile: "saas"  (SaaS account rotation)
 #
-# Pick exactly ONE of: schedule_cron, schedule_json, schedule_config.
-# `schedule_config = true` inherits the schedule from the PAM Configuration
-# (the easiest option when you manage many records uniformly).
+# For type "saas" you MUST pass:
+#   - configuration : PAM Configuration UID
+#   - saas_config   : SaaS Configuration record UID linked to that PAM Configuration
+#
+# Do NOT set resource or iam_aad_config for this profile.
+###############################################################################
+
+# resource "commander_classic_pam_user" "saas_app_user" {
+#   title    = "SaaS - app service account"
+#   login    = "svc_saas_app"
+#   password = "_REPLACE_WITH_STRONG_PASSWORD_"
+#
+#   rotation_settings = {
+#     rotation_profile = "saas"
+#     configuration    = "_REPLACE_WITH_PAM_CONFIGURATION_UID_"
+#     saas_config      = "_REPLACE_WITH_SAAS_CONFIGURATION_UID_"
+#     complexity       = "32,5,1,1,2"
+#     enabled          = true
+#     schedule_cron    = "0 0 4 * * ?" # Daily at 4 AM (Keeper Quartz, 6 fields)
+#   }
+# }
+
+###############################################################################
+# Usage 2.5 - Rotation schedule (cron / json / inherit-from-config)
+#
+# Pick exactly ONE of: on_demand, schedule_cron, schedule_json, schedule_config.
+# `schedule_config = true` inherits the schedule from the PAM Configuration.
 ###############################################################################
 
 # resource "commander_classic_pam_user" "scheduled_postgres_user" {
 #   title              = "Postgres - scheduled rotation user"
+#   login              = "svc_scheduled"
 #   distinguished_name = "svc_scheduled"
 #   connect_database   = "analytics_prod"
 #
 #   rotation_settings = {
 #     rotation_profile = "scripts_only"
 #     configuration    = "_REPLACE_WITH_PAM_CONFIGURATION_UID_"
-#     complexity       = "20,1,1,1,1"
+#     complexity       = "32,1,1,1,1"
 #     enabled          = true
 #
 #     # ----- pick ONE of the schedule options below -----
 #     schedule_cron = "0 0 3 1 * ?" # First of every month at 3 AM UTC
-#     # schedule_cron   = "0 0 2 1 1,4,7,10 ?"                                                                            # First of every quarter (Jan, Apr, Jul, Oct) at 2 AM UTC
+#     # schedule_cron   = "0 0 2 1 1,4,7,10 ?"                                                                            # First of every quarter at 2 AM UTC
 #     # schedule_json   = "{\"type\": \"DAILY\", \"utcTime\": \"17:56\", \"intervalCount\": 1}"                            # Daily at 5:56 PM UTC
 #     # schedule_json   = "{\"type\": \"WEEKLY\", \"utcTime\": \"00:00\", \"weekday\": \"SATURDAY\", \"intervalCount\": 1}" # Weekly on Saturday at 12:00 AM UTC
 #     # schedule_config = true                                                                                            # Inherit schedule from the PAM Configuration
+#     # on_demand       = true                                                                                            # Manual rotation only
 #   }
 # }
 
 ###############################################################################
 # Usage 3 - Import an existing PAM User into Terraform
 #
-# Define an empty (or near-empty) resource block and run the `terraform import`
-# command in import.sh. After import, run `terraform plan` and align this block
-# with the remote state.
+# Define an empty (or near-empty) resource block and run `terraform import`.
+# After import, run `terraform plan` and align this block with the remote state.
+# SaaS profiles are detected from vault dagDebug parentAclEdge rotation settings.
 ###############################################################################
 
 # resource "commander_classic_pam_user" "imported_pam_user" {
+#   title = "Imported PAM User"
+#   login = "imported_user"
 #   rotation_settings = {}
 # }
 ```
@@ -254,12 +280,13 @@ resource "commander_classic_pam_user" "mysql_app_account" {
 Optional:
 
 - `complexity` (String) Password complexity for rotation: `length,upper,lower,digits,symbols` as **five integers**. Password **length** must be **1–99**; upper, lower, digits, and symbols minimums must each be **0–99** (Keeper UI limits). Invalid values fail at plan time.
-- `configuration` (String) PAM Configuration UID to use for rotation. **Required** when `rotation_profile` is `iam_user` or `scripts_only`.
+- `configuration` (String) PAM Configuration UID to use for rotation. **Required** when `rotation_profile` is `iam_user`, `saas` or `scripts_only`.
 - `enabled` (Boolean) Whether rotation is enabled for this PAM User.
 - `iam_aad_config` (String) PAM Configuration UID for IAM or Azure AD users. Used instead of `resource` when `rotation_profile` is `iam_user`.
 - `on_demand` (Boolean) If `true`, rotation is on-demand (manual) only.
 - `resource` (String) UID of the PAM resource record (machine or database) this user rotates on. Required when `rotation_profile` is `general`.
-- `rotation_profile` (String) Rotation profile type: `general` (resource-based), `iam_user` (IAM/Azure user), or `scripts_only` (run PAM scripts only). **Required** when `rotation_settings` is set.
+- `rotation_profile` (String) Rotation profile type: `general` (resource-based), `iam_user` (IAM/Azure user), `scripts_only` (run PAM scripts only), or `saas` (SaaS Account). **Required** when `rotation_settings` is set.
+- `saas_config` (String) SaaS Configuration UID which is associted with that PAM Configuration to use for rotation. **Required** when `rotation_profile` is `saas`.
 - `schedule_config` (Boolean) If `true`, uses the schedule from the PAM Configuration instead of a per-record schedule.
 - `schedule_cron` (String) Cron schedule for rotation using the [Keeper Quartz cron spec](https://docs.keeper.io/keeperpam/privileged-access-manager/references/cron-spec) (**6 or 7 fields**, seconds first, e.g. `0 28 17 ? * *`). Schedules must have at least a **1-hour interval** between executions. Invalid expressions fail at **plan** time so the vault record is not created first.
 - `schedule_json` (String) JSON schedule for rotation.

@@ -222,6 +222,10 @@ func BuildPamRotationEditCommand(recordUID string, rs *PamUserRotationSettings) 
 		parts = append(parts, fmt.Sprintf("%s %s", FlagResource, quoteShellSingle(rs.Resource.ValueString())))
 	}
 
+	if !rs.SaaSConfig.IsNull() && !rs.SaaSConfig.IsUnknown() {
+		parts = append(parts, fmt.Sprintf("%s %s", FlagSaaSConfig, quoteShellSingle(rs.SaaSConfig.ValueString())))
+	}
+
 	if !rs.Enabled.IsNull() && !rs.Enabled.IsUnknown() {
 		if rs.Enabled.ValueBool() {
 			parts = append(parts, FlagEnable)
@@ -262,6 +266,7 @@ func RotationSettingsNeedApply(plan, state *PamUserRotationSettings) bool {
 		!plan.Configuration.Equal(state.Configuration) ||
 		!plan.IamAadConfig.Equal(state.IamAadConfig) ||
 		!plan.Resource.Equal(state.Resource) ||
+		!plan.SaaSConfig.Equal(state.SaaSConfig) ||
 		!plan.Enabled.Equal(state.Enabled) ||
 		!plan.ScheduleCron.Equal(state.ScheduleCron) ||
 		!plan.ScheduleJSON.Equal(state.ScheduleJSON) ||
@@ -274,7 +279,7 @@ func RotationSettingsNeedApply(plan, state *PamUserRotationSettings) bool {
 // `pam rotation info -r <uid>` and populates the rotation settings on the
 // state model. Fields not present in the response are preserved from the
 // existing state (config-as-source-of-truth).
-func MapRotationSettingsToState(rotInfo *PamRotationInfoResponse, rotationProfile *utils.DagDebugRotationProfileResponse, existing *PamUserRotationSettings, state *PamUserSharedModel) {
+func MapRotationSettingsToState(rotInfo *PamRotationInfoResponse, rec *utils.VaultRecordGetResponse, existing *PamUserRotationSettings, state *PamUserSharedModel) {
 	var rs *PamUserRotationSettings
 	if existing != nil {
 		rs = &PamUserRotationSettings{
@@ -288,21 +293,10 @@ func MapRotationSettingsToState(rotInfo *PamRotationInfoResponse, rotationProfil
 			OnDemand:        existing.OnDemand,
 			ScheduleConfig:  existing.ScheduleConfig,
 			Complexity:      existing.Complexity,
+			SaaSConfig:      existing.SaaSConfig,
 		}
 	} else {
 		rs = &PamUserRotationSettings{}
-	}
-
-	if rotationProfile != nil {
-		rs.RotationProfile = types.StringValue(rotationProfile.Type)
-
-		if rotationProfile.Type == RotProfileGeneral {
-			rs.Resource = types.StringValue(rotationProfile.ResourceUID)
-			rs.Configuration = types.StringNull()
-		} else {
-			rs.Resource = types.StringNull()
-			rs.Configuration = types.StringValue(rotationProfile.ConfigurationUID)
-		}
 	}
 
 	if rotInfo == nil {
@@ -310,8 +304,8 @@ func MapRotationSettingsToState(rotInfo *PamRotationInfoResponse, rotationProfil
 		return
 	}
 
-	if rotationProfile == nil && rotInfo.PamConfigUID != "" {
-		rs.Configuration = types.StringValue(rotInfo.PamConfigUID)
+	if uid := configurationFromRotInfoOrRecord(rotInfo, rec); uid != "" {
+		rs.Configuration = types.StringValue(uid)
 	}
 
 	if rotInfo.Disable {
@@ -329,45 +323,108 @@ func MapRotationSettingsToState(rotInfo *PamRotationInfoResponse, rotationProfil
 		}
 	}
 
+	dagDebug := DagDebugResponseFromVaultRecord(rec)
+
+	if !mapSaaSRotationFromDagDebug(dagDebug, rs) {
+		mapRotationProfileFromDagDebug(dagDebug, rs)
+	}
+
 	parseScheduleValue(rotInfo.ScheduleData, rs)
 
 	rs.Complexity = MapPasswordComplexityResponseToState(rotInfo.PasswordComplexityDetails)
-
-	// for _, line := range messages {
-	// 	line = strings.TrimSpace(line)
-	// 	if k, v, ok := strings.Cut(line, ": "); ok {
-	// 		switch k {
-	// 		case "PAM Config UID":
-	// 			if rs.RotationProfile.ValueString() != "general" {
-	// 				rs.Configuration = stringOrNull(v)
-	// 			} else {
-	// 				rs.Configuration = types.StringNull()
-	// 			}
-	// 		case "Admin Resource Uid":
-	// 			rs.AdminUser = stringOrNull(v)
-	// 		case "Is Rotation Disabled":
-	// 			rs.Enabled = types.BoolValue(strings.EqualFold(strings.TrimSpace(v), "False"))
-	// 		case "Schedule Type":
-	// 			if strings.Contains(strings.ToLower(v), "manual") {
-	// 				rs.OnDemand = types.BoolValue(true)
-	// 			}
-	// 		case "Schedule":
-	// 			parseScheduleValue(strings.TrimSpace(v), rs)
-	// 		case "Password Complexity Data":
-	// 			rs.Complexity = ParsePasswordComplexityData(v)
-	// 		}
-	// 	}
-	// }
-
 	state.RotationSettings = rs
 }
 
-// RotationProfileFromVaultRecord returns the rotation profile from a vault record, if present.
-func RotationProfileFromVaultRecord(rec *utils.VaultRecordGetResponse) *utils.DagDebugRotationProfileResponse {
+// mapSaaSRotationFromDagDebug infers SaaS rotation from parent_acl_edge noop + saas_record_uid_list.
+// dagDebug.rotation_profile.type never returns "saas".
+func mapSaaSRotationFromDagDebug(dagDebug *utils.DagDebugResponse, rs *PamUserRotationSettings) bool {
+	rotSettings := parentAclEdgeRotationSettings(dagDebug)
+	if rotSettings == nil {
+		return false
+	}
+
+	saasUIDs := rotSettings.SaaSRecordUIDList
+	if !rotSettings.Noop || len(saasUIDs) == 0 {
+		return false
+	}
+
+	rs.RotationProfile = types.StringValue(RotProfileSaaS)
+	if dagDebug.RotationProfile != nil {
+		setConfigurationIfEmpty(rs, dagDebug.RotationProfile.ConfigurationUID)
+	}
+	if uid := strings.TrimSpace(saasUIDs[0]); uid != "" {
+		rs.SaaSConfig = types.StringValue(uid)
+	}
+	rs.Resource = types.StringNull()
+	rs.IamAadConfig = types.StringNull()
+	return true
+}
+
+func mapRotationProfileFromDagDebug(dagDebug *utils.DagDebugResponse, rs *PamUserRotationSettings) {
+	if dagDebug == nil || dagDebug.RotationProfile == nil {
+		return
+	}
+
+	rs.RotationProfile = types.StringValue(dagDebug.RotationProfile.Type)
+
+	switch dagDebug.RotationProfile.Type {
+	case RotProfileGeneral:
+		rs.Resource = types.StringValue(dagDebug.RotationProfile.ResourceUID)
+		rs.Configuration = types.StringValue(dagDebug.RotationProfile.ConfigurationUID)
+		rs.SaaSConfig = types.StringNull()
+		rs.IamAadConfig = types.StringNull()
+	case RotProfileIAMUser:
+		rs.IamAadConfig = types.StringValue(dagDebug.RotationProfile.ConfigurationUID)
+		rs.Resource = types.StringNull()
+		rs.Configuration = types.StringNull()
+		rs.SaaSConfig = types.StringNull()
+	case RotProfileScriptsOnly:
+		rs.Configuration = types.StringValue(dagDebug.RotationProfile.ConfigurationUID)
+		rs.Resource = types.StringNull()
+		rs.IamAadConfig = types.StringNull()
+		rs.SaaSConfig = types.StringNull()
+	}
+}
+
+func parentAclEdgeRotationSettings(dagDebug *utils.DagDebugResponse) *utils.DagDebugParentAclEdgeContentRotationSettingsResponse {
+	if dagDebug == nil {
+		return nil
+	}
+	parentEdge := dagDebug.ParentAclEdge
+	if parentEdge == nil || parentEdge.Content == nil {
+		return nil
+	}
+	return parentEdge.Content.RotationSettings
+}
+
+func configurationFromRotInfoOrRecord(rotInfo *PamRotationInfoResponse, rec *utils.VaultRecordGetResponse) string {
+	if rotInfo != nil {
+		if uid := strings.TrimSpace(rotInfo.PamConfigUID); uid != "" {
+			return uid
+		}
+	}
+	if rec != nil {
+		return strings.TrimSpace(rec.PamConfigurationUID)
+	}
+	return ""
+}
+
+func setConfigurationIfEmpty(rs *PamUserRotationSettings, uid string) {
+	uid = strings.TrimSpace(uid)
+	if uid == "" {
+		return
+	}
+	if rs.Configuration.IsNull() || rs.Configuration.IsUnknown() || strings.TrimSpace(rs.Configuration.ValueString()) == "" {
+		rs.Configuration = types.StringValue(uid)
+	}
+}
+
+// DagDebugResponseFromVaultRecord returns dagDebug from a vault record, if present.
+func DagDebugResponseFromVaultRecord(rec *utils.VaultRecordGetResponse) *utils.DagDebugResponse {
 	if rec == nil || rec.DagDebug == nil {
 		return nil
 	}
-	return rec.DagDebug.RotationProfile
+	return rec.DagDebug
 }
 
 // MapPasswordComplexityResponseToState maps the password complexity response from the API to the state model.

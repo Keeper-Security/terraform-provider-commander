@@ -17,6 +17,8 @@ import (
 var rotationSettingsAttrTypes = map[string]attr.Type{
 	"rotation_profile": types.StringType,
 	"configuration":    types.StringType,
+	"iam_aad_config":   types.StringType,
+	"saas_config":      types.StringType,
 	"resource":         types.StringType,
 	"on_demand":        types.BoolType,
 	"schedule_config":  types.BoolType,
@@ -28,6 +30,8 @@ func rotationSettingsAttrs(overrides map[string]attr.Value) map[string]attr.Valu
 	attrs := map[string]attr.Value{
 		"rotation_profile": types.StringNull(),
 		"configuration":    types.StringNull(),
+		"iam_aad_config":   types.StringNull(),
+		"saas_config":      types.StringNull(),
 		"resource":         types.StringNull(),
 		"on_demand":        types.BoolNull(),
 		"schedule_config":  types.BoolNull(),
@@ -76,19 +80,6 @@ func validateRotationSettings(t *testing.T, attrs map[string]attr.Value, validat
 	return resp
 }
 
-func TestRotationProfileRequirementsValidator_ConfigurationAndResourceMutuallyExclusive(t *testing.T) {
-	t.Parallel()
-
-	resp := validateRotationSettings(t, rotationSettingsAttrs(map[string]attr.Value{
-		"rotation_profile": types.StringValue(commonpamuser.RotProfileGeneral),
-		"resource":         types.StringValue("pam-resource-uid"),
-		"configuration":    types.StringValue("pam-config-uid"),
-	}), commonpamuser.RotationProfileRequirementsValidator())
-	if !resp.Diagnostics.HasError() {
-		t.Fatal("expected error when both configuration and resource are set")
-	}
-}
-
 func TestRotationProfileRequirementsValidator_MissingProfile(t *testing.T) {
 	t.Parallel()
 
@@ -111,14 +102,104 @@ func TestRotationProfileRequirementsValidator_GeneralRequiresResource(t *testing
 	}
 }
 
-func TestRotationProfileRequirementsValidator_IAMUserRequiresConfiguration(t *testing.T) {
+func TestRotationProfileRequirementsValidator_GeneralForbidsSaaSConfigAndIamAadConfig(t *testing.T) {
+	t.Parallel()
+
+	cases := []struct {
+		name      string
+		overrides map[string]attr.Value
+	}{
+		{
+			name: "saas_config",
+			overrides: map[string]attr.Value{
+				"rotation_profile": types.StringValue(commonpamuser.RotProfileGeneral),
+				"resource":         types.StringValue("pam-resource-uid"),
+				"saas_config":      types.StringValue("saas-config-uid"),
+			},
+		},
+		{
+			name: "iam_aad_config",
+			overrides: map[string]attr.Value{
+				"rotation_profile": types.StringValue(commonpamuser.RotProfileGeneral),
+				"resource":         types.StringValue("pam-resource-uid"),
+				"iam_aad_config":   types.StringValue("iam-config-uid"),
+			},
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+			resp := validateRotationSettings(t, rotationSettingsAttrs(tc.overrides), commonpamuser.RotationProfileRequirementsValidator())
+			if !resp.Diagnostics.HasError() {
+				t.Fatalf("expected error when %s is set for general profile", tc.name)
+			}
+		})
+	}
+}
+
+func TestRotationProfileRequirementsValidator_IAMUserRequiresIamAadConfig(t *testing.T) {
 	t.Parallel()
 
 	resp := validateRotationSettings(t, rotationSettingsAttrs(map[string]attr.Value{
 		"rotation_profile": types.StringValue(commonpamuser.RotProfileIAMUser),
 	}), commonpamuser.RotationProfileRequirementsValidator())
 	if !resp.Diagnostics.HasError() {
-		t.Fatal("expected error when configuration is missing for iam_user profile")
+		t.Fatal("expected error when iam_aad_config is missing for iam_user profile")
+	}
+}
+
+func TestRotationProfileRequirementsValidator_IAMUserForbidsConfigurationResourceAndSaaSConfig(t *testing.T) {
+	t.Parallel()
+
+	base := map[string]attr.Value{
+		"rotation_profile": types.StringValue(commonpamuser.RotProfileIAMUser),
+		"iam_aad_config":   types.StringValue("iam-config-uid"),
+	}
+
+	cases := []struct {
+		name      string
+		field     string
+		overrides map[string]attr.Value
+	}{
+		{
+			name:  "configuration",
+			field: "configuration",
+			overrides: map[string]attr.Value{
+				"configuration": types.StringValue("pam-config-uid"),
+			},
+		},
+		{
+			name:  "resource",
+			field: "resource",
+			overrides: map[string]attr.Value{
+				"resource": types.StringValue("pam-resource-uid"),
+			},
+		},
+		{
+			name:  "saas_config",
+			field: "saas_config",
+			overrides: map[string]attr.Value{
+				"saas_config": types.StringValue("saas-config-uid"),
+			},
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+			overrides := map[string]attr.Value{}
+			for k, v := range base {
+				overrides[k] = v
+			}
+			for k, v := range tc.overrides {
+				overrides[k] = v
+			}
+			resp := validateRotationSettings(t, rotationSettingsAttrs(overrides), commonpamuser.RotationProfileRequirementsValidator())
+			if !resp.Diagnostics.HasError() {
+				t.Fatalf("expected error when %s is set for iam_user profile", tc.field)
+			}
+		})
 	}
 }
 
@@ -133,6 +214,135 @@ func TestRotationProfileRequirementsValidator_ScriptsOnlyRequiresConfiguration(t
 	}
 }
 
+func TestRotationProfileRequirementsValidator_ScriptsOnlyForbidsIamAadConfigResourceAndSaaSConfig(t *testing.T) {
+	t.Parallel()
+
+	base := map[string]attr.Value{
+		"rotation_profile": types.StringValue(commonpamuser.RotProfileScriptsOnly),
+		"configuration":    types.StringValue("pam-config-uid"),
+	}
+
+	cases := []struct {
+		name      string
+		overrides map[string]attr.Value
+	}{
+		{
+			name: "iam_aad_config",
+			overrides: map[string]attr.Value{
+				"iam_aad_config": types.StringValue("iam-config-uid"),
+			},
+		},
+		{
+			name: "resource",
+			overrides: map[string]attr.Value{
+				"resource": types.StringValue("pam-resource-uid"),
+			},
+		},
+		{
+			name: "saas_config",
+			overrides: map[string]attr.Value{
+				"saas_config": types.StringValue("saas-config-uid"),
+			},
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+			overrides := map[string]attr.Value{}
+			for k, v := range base {
+				overrides[k] = v
+			}
+			for k, v := range tc.overrides {
+				overrides[k] = v
+			}
+			resp := validateRotationSettings(t, rotationSettingsAttrs(overrides), commonpamuser.RotationProfileRequirementsValidator())
+			if !resp.Diagnostics.HasError() {
+				t.Fatalf("expected error when %s is set for scripts_only profile", tc.name)
+			}
+		})
+	}
+}
+
+func TestRotationProfileRequirementsValidator_SaaSRequiresConfigurationAndSaaSConfig(t *testing.T) {
+	t.Parallel()
+
+	cases := []struct {
+		name      string
+		overrides map[string]attr.Value
+	}{
+		{
+			name: "missing configuration",
+			overrides: map[string]attr.Value{
+				"rotation_profile": types.StringValue(commonpamuser.RotProfileSaaS),
+				"saas_config":      types.StringValue("saas-config-uid"),
+			},
+		},
+		{
+			name: "missing saas_config",
+			overrides: map[string]attr.Value{
+				"rotation_profile": types.StringValue(commonpamuser.RotProfileSaaS),
+				"configuration":    types.StringValue("pam-config-uid"),
+			},
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+			resp := validateRotationSettings(t, rotationSettingsAttrs(tc.overrides), commonpamuser.RotationProfileRequirementsValidator())
+			if !resp.Diagnostics.HasError() {
+				t.Fatalf("expected error for %#v", tc.overrides)
+			}
+		})
+	}
+}
+
+func TestRotationProfileRequirementsValidator_SaaSForbidsResourceAndIamAadConfig(t *testing.T) {
+	t.Parallel()
+
+	base := map[string]attr.Value{
+		"rotation_profile": types.StringValue(commonpamuser.RotProfileSaaS),
+		"configuration":    types.StringValue("pam-config-uid"),
+		"saas_config":      types.StringValue("saas-config-uid"),
+	}
+
+	cases := []struct {
+		name      string
+		overrides map[string]attr.Value
+	}{
+		{
+			name: "resource",
+			overrides: map[string]attr.Value{
+				"resource": types.StringValue("pam-resource-uid"),
+			},
+		},
+		{
+			name: "iam_aad_config",
+			overrides: map[string]attr.Value{
+				"iam_aad_config": types.StringValue("iam-config-uid"),
+			},
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+			overrides := map[string]attr.Value{}
+			for k, v := range base {
+				overrides[k] = v
+			}
+			for k, v := range tc.overrides {
+				overrides[k] = v
+			}
+			resp := validateRotationSettings(t, rotationSettingsAttrs(overrides), commonpamuser.RotationProfileRequirementsValidator())
+			if !resp.Diagnostics.HasError() {
+				t.Fatalf("expected error when %s is set for saas profile", tc.name)
+			}
+		})
+	}
+}
+
 func TestRotationProfileRequirementsValidator_ValidProfiles(t *testing.T) {
 	t.Parallel()
 
@@ -140,14 +350,20 @@ func TestRotationProfileRequirementsValidator_ValidProfiles(t *testing.T) {
 		{
 			"rotation_profile": types.StringValue(commonpamuser.RotProfileGeneral),
 			"resource":         types.StringValue("pam-resource-uid"),
+			"configuration":    types.StringValue("pam-config-uid"),
 		},
 		{
 			"rotation_profile": types.StringValue(commonpamuser.RotProfileIAMUser),
-			"configuration":    types.StringValue("pam-config-uid"),
+			"iam_aad_config":   types.StringValue("iam-config-uid"),
 		},
 		{
 			"rotation_profile": types.StringValue(commonpamuser.RotProfileScriptsOnly),
 			"configuration":    types.StringValue("pam-config-uid"),
+		},
+		{
+			"rotation_profile": types.StringValue(commonpamuser.RotProfileSaaS),
+			"configuration":    types.StringValue("pam-config-uid"),
+			"saas_config":      types.StringValue("saas-config-uid"),
 		},
 	}
 

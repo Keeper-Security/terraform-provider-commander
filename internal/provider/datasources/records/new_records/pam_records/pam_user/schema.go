@@ -112,6 +112,11 @@ func (d *PamUserDataSource) Schema(ctx context.Context, req datasource.SchemaReq
 						Description:         commonpamuser.RotResourceDescription,
 						MarkdownDescription: commonpamuser.RotResourceMarkdownDescription,
 					},
+					"saas_config": dschema.StringAttribute{
+						Computed:            true,
+						Description:         commonpamuser.RotSaaSConfigDescription,
+						MarkdownDescription: commonpamuser.RotSaaSConfigMarkdownDescription,
+					},
 					"admin_user": dschema.StringAttribute{
 						Computed:            true,
 						Description:         commonpamuser.RotAdminUserDescription,

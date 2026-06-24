@@ -38,4 +38,5 @@ type PamUserRotationSettings struct {
 	OnDemand        types.Bool   `tfsdk:"on_demand"`
 	ScheduleConfig  types.Bool   `tfsdk:"schedule_config"`
 	Complexity      types.String `tfsdk:"complexity"`
+	SaaSConfig      types.String `tfsdk:"saas_config"`
 }

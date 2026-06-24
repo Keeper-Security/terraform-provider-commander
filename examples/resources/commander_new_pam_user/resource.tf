@@ -5,24 +5,26 @@
 # private key) that can be associated with PAM Machines or Databases for
 # rotation, connections, and tunneling.
 #
-# Required fields ............ title
-# Optional fields ............ login, password, folder, notes,
-#                              distinguished_name, private_pem_key,
-#                              connect_database, managed, rotation_settings,
-#                              share
+# Required fields ............ title, login
+# Optional fields ............ password, folder_location, notes,
+#                              distinguished_name, private_pem_key, public_key,
+#                              private_key_passphrase, connect_database,
+#                              managed, rotation_settings, share
 # Read-only fields ........... id (record UID assigned by Keeper after create)
 #
+# Note: `folder_location` cannot be changed after create for NSF PAM records.
+#
 # -----------------------------------------------------------------------------
-# Which UID does each rotation_profile need?
+# Which fields does each rotation_profile need?
 # -----------------------------------------------------------------------------
-#   rotation_profile = "general"        => set `resource`        (PAM Machine
-#                                                                 or PAM Database UID)
-#                                          and usually `admin_user`
-#                                          (UID of the rotating account)
-#   rotation_profile = "iam_user"       => set `configuration`   (PAM Configuration UID
-#                                                                 for IAM / Azure AD)
-#   rotation_profile = "scripts_only"   => set `configuration`   (PAM Configuration UID
-#                                                                 that runs the script)
+#   rotation_profile = "general"      => `configuration` + `resource`
+#   rotation_profile = "iam_user"       => `iam_aad_config`  (not `configuration`)
+#   rotation_profile = "scripts_only"   => `configuration`
+#   rotation_profile = "saas"           => `configuration` + `saas_config`
+#
+# Schedule: set only ONE of on_demand, schedule_config, schedule_cron, schedule_json.
+# Cron uses Keeper Quartz format (6 or 7 fields, seconds first), e.g. "0 0 4 * * ?".
+# Complexity: five integers length,upper,lower,digits,symbols (length min 20).
 # -----------------------------------------------------------------------------
 
 ###############################################################################
@@ -60,10 +62,8 @@ resource "commander_new_pam_user" "mysql_app_account" {
 # Usage 2 - Rotation profile: "general"  (rotates ON a PAM resource)
 #
 # For type "general" you MUST pass:
-#   - resource    : UID of the PAM Machine / PAM Database record where the
-#                   credential lives and where Keeper will perform the rotation.
-#   - admin_user  : UID of the PAM User Keeper uses to log in and rotate the
-#                   target account (usually a privileged admin account).
+#   - configuration : PAM Configuration UID
+#   - resource      : UID of the PAM Machine or PAM Database
 ###############################################################################
 
 # resource "commander_new_pam_user" "mysql_rotation_user" {
@@ -72,12 +72,13 @@ resource "commander_new_pam_user" "mysql_app_account" {
 #   password           = "_REPLACE_WITH_STRONG_PASSWORD_"
 #   distinguished_name = "CN=sqluser,OU=DB,DC=corp,DC=local"
 #   connect_database   = "billing_prod"
+#   folder_location    = "_REPLACE_WITH_NSF_FOLDER_UID_OR_PATH_"
 #
 #   rotation_settings = {
 #     rotation_profile = "general"
-#     resource         = "_REPLACE_WITH_PAM_MACHINE_OR_DATABASE_UID_" # required for "general"
-#     admin_user       = "_REPLACE_WITH_ADMIN_PAM_USER_UID_"          # privileged rotator UID
-#     complexity       = "32,5,5,5,5"                                 # length, upper, lower, digits, symbols
+#     configuration    = "_REPLACE_WITH_PAM_CONFIGURATION_UID_"
+#     resource         = "_REPLACE_WITH_PAM_MACHINE_OR_DATABASE_UID_"
+#     complexity       = "32,5,1,1,2"
 #     enabled          = true
 #     on_demand        = true
 #   }
@@ -89,6 +90,9 @@ resource "commander_new_pam_user" "mysql_app_account" {
 
 ###############################################################################
 # Usage 3 - Rotation profile: "iam_user"  (cloud IAM / Azure AD)
+#
+# For type "iam_user" you MUST pass:
+#   - iam_aad_config : PAM Configuration UID for IAM / Azure AD rotation
 ###############################################################################
 
 # resource "commander_new_pam_user" "aws_iam_deploy_user" {
@@ -96,44 +100,77 @@ resource "commander_new_pam_user" "mysql_app_account" {
 #   login              = "deploy@111122223333"
 #   password           = "_REPLACE_WITH_STRONG_PASSWORD_"
 #   distinguished_name = "deploy@aws-prod"
+#   folder_location    = "_REPLACE_WITH_NSF_FOLDER_UID_OR_PATH_"
 #
 #   rotation_settings = {
 #     rotation_profile = "iam_user"
-#     configuration    = "_REPLACE_WITH_PAM_CONFIGURATION_UID_FOR_IAM_" # required for "iam_user"
-#     complexity       = "32,5,5,5,5"
+#     iam_aad_config   = "_REPLACE_WITH_PAM_CONFIGURATION_UID_FOR_IAM_"
+#     complexity       = "32,5,1,1,2"
 #     enabled          = true
 #     on_demand        = true
 #   }
 # }
 
 ###############################################################################
-# Usage 4 - Rotation schedule (cron / json / inherit-from-config)
+# Usage 4 - Rotation profile: "saas"  (SaaS account rotation)
 #
-# Pick exactly ONE of: schedule_cron, schedule_json, schedule_config.
+# For type "saas" you MUST pass:
+#   - configuration : PAM Configuration UID
+#   - saas_config   : SaaS Configuration record UID
+###############################################################################
+
+# resource "commander_new_pam_user" "saas_app_user" {
+#   title           = "SaaS - app service account"
+#   login           = "svc_saas_app"
+#   password        = "_REPLACE_WITH_STRONG_PASSWORD_"
+#   folder_location = "_REPLACE_WITH_NSF_FOLDER_UID_OR_PATH_"
+#
+#   rotation_settings = {
+#     rotation_profile = "saas"
+#     configuration    = "_REPLACE_WITH_PAM_CONFIGURATION_UID_"
+#     saas_config      = "_REPLACE_WITH_SAAS_CONFIGURATION_UID_"
+#     complexity       = "32,5,1,1,2"
+#     enabled          = true
+#     schedule_cron    = "0 0 4 * * ?"
+#   }
+# }
+
+###############################################################################
+# Usage 5 - Rotation schedule (cron / json / inherit-from-config)
+#
+# Pick exactly ONE of: on_demand, schedule_cron, schedule_json, schedule_config.
 ###############################################################################
 
 # resource "commander_new_pam_user" "scheduled_postgres_user" {
 #   title              = "Postgres - scheduled rotation user"
+#   login              = "svc_scheduled"
 #   distinguished_name = "svc_scheduled"
 #   connect_database   = "analytics_prod"
+#   folder_location    = "_REPLACE_WITH_NSF_FOLDER_UID_OR_PATH_"
 #
 #   rotation_settings = {
 #     rotation_profile = "scripts_only"
 #     configuration    = "_REPLACE_WITH_PAM_CONFIGURATION_UID_"
-#     complexity       = "20,1,1,1,1"
+#     complexity       = "32,1,1,1,1"
 #     enabled          = true
 #
 #     # ----- pick ONE of the schedule options below -----
 #     schedule_cron = "0 0 3 1 * ?" # First of every month at 3 AM UTC
 #     # schedule_json   = "{\"type\": \"DAILY\", \"utcTime\": \"17:56\", \"intervalCount\": 1}"
-#     # schedule_config = true                                                                                            # Inherit schedule from the PAM Configuration
+#     # schedule_config = true      # Inherit schedule from the PAM Configuration
+#     # on_demand       = true      # Manual rotation only
 #   }
 # }
 
 ###############################################################################
-# Usage 5 - Import an existing PAM User into Terraform
+# Usage 6 - Import an existing PAM User into Terraform
+#
+# After import, run `terraform plan` and align this block with the remote state.
+# SaaS profiles are detected from vault dagDebug parentAclEdge rotation settings.
 ###############################################################################
 
 # resource "commander_new_pam_user" "imported_pam_user" {
+#   title = "Imported PAM User"
+#   login = "imported_user"
 #   rotation_settings = {}
 # }

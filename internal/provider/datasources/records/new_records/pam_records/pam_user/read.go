@@ -75,7 +75,7 @@ func (d *PamUserDataSource) Read(ctx context.Context, req datasource.ReadRequest
 			resp.Diagnostics.AddError(commonpamuser.ErrDetailRotationInfoFailed, err.Error())
 			return
 		}
-		commonpamuser.MapRotationSettingsToState(&rotInfo, commonpamuser.RotationProfileFromVaultRecord(&rec), data.RotationSettings, &data.PamUserSharedModel)
+		commonpamuser.MapRotationSettingsToState(&rotInfo, &rec, data.RotationSettings, &data.PamUserSharedModel)
 	}
 
 	if err := new_share.MapResponseToModel(rec.UserPermissions, &data.ShareModel); err != nil {
