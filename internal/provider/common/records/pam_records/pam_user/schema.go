@@ -140,14 +140,6 @@ func SharedAttributes() map[string]schema.Attribute {
 						utils.StringMinLengthValidator("PAM Configuration UID", 1, true),
 					},
 				},
-				"iam_aad_config": schema.StringAttribute{
-					Optional:            true,
-					Description:         RotIamAadConfigDescription,
-					MarkdownDescription: RotIamAadConfigMarkdownDescription,
-					Validators: []validator.String{
-						utils.StringMinLengthValidator("IAM/AAD Config UID", 1, true),
-					},
-				},
 				"saas_config": schema.StringAttribute{
 					Optional:            true,
 					Description:         RotSaaSConfigDescription,
@@ -182,7 +174,7 @@ func SharedAttributes() map[string]schema.Attribute {
 					Description:         RotScheduleJSONDescription,
 					MarkdownDescription: RotScheduleJSONMarkdownDescription,
 					Validators: []validator.String{
-						utils.JSONStringValidator("Schedule JSON"),
+						RotationScheduleJSONValidator(),
 					},
 				},
 				"on_demand": schema.BoolAttribute{

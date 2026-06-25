@@ -297,6 +297,7 @@ type VaultRecordGetResponse struct {
 	PamConfigurationUID          string                                `json:"pam_configuration_uid,omitempty"`
 	ConfigurationAllowedSettings *ConfigurationAllowedSettingsResponse `json:"configuration_allowed_settings,omitempty"`
 	UserPermissions              []UserPermissionEntry                 `json:"user_permissions,omitempty"`
+	RotationProfile              *RotationProfileResponse              `json:"rotationProfile,omitempty"`
 }
 
 // UserPermissionEntry is one element of the API response's user_permissions +
@@ -352,10 +353,9 @@ type PamSettingsEnabledResponse struct {
 }
 
 type DagDebugResponse struct {
-	VertexContent   *DagDebugVertexContentResponse   `json:"vertex_content,omitempty"`
-	AllEdges        []DagDebugEdgeResponse           `json:"all_edges,omitempty"`
-	RotationProfile *DagDebugRotationProfileResponse `json:"rotation_profile,omitempty"`
-	ParentAclEdge   *DagDebugParentAclEdgeResponse   `json:"parentAclEdge,omitempty"`
+	VertexContent *DagDebugVertexContentResponse `json:"vertex_content,omitempty"`
+	AllEdges      []DagDebugEdgeResponse         `json:"all_edges,omitempty"`
+	ParentAclEdge *DagDebugParentAclEdgeResponse `json:"parentAclEdge,omitempty"`
 }
 
 type DagDebugParentAclEdgeResponse struct {
@@ -373,7 +373,7 @@ type DagDebugParentAclEdgeContentRotationSettingsResponse struct {
 	SaaSRecordUIDList []string `json:"saas_record_uid_list,omitempty"`
 }
 
-type DagDebugRotationProfileResponse struct {
+type RotationProfileResponse struct {
 	Type             string `json:"type"`
 	ResourceUID      string `json:"resourceUid"`
 	ConfigurationUID string `json:"configUid"`

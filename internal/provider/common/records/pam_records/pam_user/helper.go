@@ -206,16 +206,18 @@ func BuildPamRotationEditCommand(recordUID string, rs *PamUserRotationSettings) 
 		fmt.Sprintf("%s %s", FlagRecordShort, quoteShellSingle(recordUID)),
 	}
 
-	if !rs.Configuration.IsNull() && !rs.Configuration.IsUnknown() {
-		parts = append(parts, fmt.Sprintf("%s %s", FlagConfig, quoteShellSingle(rs.Configuration.ValueString())))
-	}
-
 	if !rs.RotationProfile.IsNull() && !rs.RotationProfile.IsUnknown() {
 		parts = append(parts, fmt.Sprintf("%s %s", FlagRotationProfile, rs.RotationProfile.ValueString()))
 	}
 
-	if !rs.IamAadConfig.IsNull() && !rs.IamAadConfig.IsUnknown() {
-		parts = append(parts, fmt.Sprintf("%s %s", FlagIamAadConfig, quoteShellSingle(rs.IamAadConfig.ValueString())))
+	if !rs.Configuration.IsNull() && !rs.Configuration.IsUnknown() {
+		flagToUse := FlagConfig
+
+		// If the rotation profile is IAM User, we need to use the IAM/AAD config flag.
+		if rs.RotationProfile.ValueString() == RotProfileIAMUser {
+			flagToUse = FlagIamAadConfig
+		}
+		parts = append(parts, fmt.Sprintf("%s %s", flagToUse, quoteShellSingle(rs.Configuration.ValueString())))
 	}
 
 	if !rs.Resource.IsNull() && !rs.Resource.IsUnknown() {
@@ -264,7 +266,6 @@ func RotationSettingsNeedApply(plan, state *PamUserRotationSettings) bool {
 	}
 	return !plan.RotationProfile.Equal(state.RotationProfile) ||
 		!plan.Configuration.Equal(state.Configuration) ||
-		!plan.IamAadConfig.Equal(state.IamAadConfig) ||
 		!plan.Resource.Equal(state.Resource) ||
 		!plan.SaaSConfig.Equal(state.SaaSConfig) ||
 		!plan.Enabled.Equal(state.Enabled) ||
@@ -285,7 +286,6 @@ func MapRotationSettingsToState(rotInfo *PamRotationInfoResponse, rec *utils.Vau
 		rs = &PamUserRotationSettings{
 			RotationProfile: existing.RotationProfile,
 			Configuration:   existing.Configuration,
-			IamAadConfig:    existing.IamAadConfig,
 			Resource:        existing.Resource,
 			Enabled:         existing.Enabled,
 			ScheduleCron:    existing.ScheduleCron,
@@ -304,8 +304,17 @@ func MapRotationSettingsToState(rotInfo *PamRotationInfoResponse, rec *utils.Vau
 		return
 	}
 
+	// set configuration
 	if uid := configurationFromRotInfoOrRecord(rotInfo, rec); uid != "" {
 		rs.Configuration = types.StringValue(uid)
+	}
+
+	// extract dagDebug from vault record
+	dagDebug := DagDebugResponseFromVaultRecord(rec)
+
+	// set rotation profile
+	if rotationProfile := setRotationProfile(dagDebug, rec.RotationProfile); rotationProfile != "" {
+		rs.RotationProfile = types.StringValue(rotationProfile)
 	}
 
 	if rotInfo.Disable {
@@ -323,16 +332,34 @@ func MapRotationSettingsToState(rotInfo *PamRotationInfoResponse, rec *utils.Vau
 		}
 	}
 
-	dagDebug := DagDebugResponseFromVaultRecord(rec)
-
-	if !mapSaaSRotationFromDagDebug(dagDebug, rs) {
-		mapRotationProfileFromDagDebug(dagDebug, rs)
+	if !mapSaaSRotationFromDagDebug(dagDebug, rs) &&
+		rec.RotationProfile != nil &&
+		rec.RotationProfile.Type == RotProfileGeneral {
+		rs.Resource = types.StringValue(rec.RotationProfile.ResourceUID)
 	}
 
 	parseScheduleValue(rotInfo.ScheduleData, rs)
 
 	rs.Complexity = MapPasswordComplexityResponseToState(rotInfo.PasswordComplexityDetails)
 	state.RotationSettings = rs
+}
+
+func setRotationProfile(dagDebug *utils.DagDebugResponse, rotationProfile *utils.RotationProfileResponse) string {
+	if dagDebug == nil {
+		return ""
+	}
+
+	// SaaS is inferred from parent_acl_edge; rotationProfile.type is never "saas".
+	if rotSettings := parentAclEdgeRotationSettings(dagDebug); rotSettings != nil {
+		if rotSettings.Noop && len(rotSettings.SaaSRecordUIDList) > 0 {
+			return RotProfileSaaS
+		}
+	}
+
+	if rotationProfile == nil {
+		return ""
+	}
+	return rotationProfile.Type
 }
 
 // mapSaaSRotationFromDagDebug infers SaaS rotation from parent_acl_edge noop + saas_record_uid_list.
@@ -348,42 +375,11 @@ func mapSaaSRotationFromDagDebug(dagDebug *utils.DagDebugResponse, rs *PamUserRo
 		return false
 	}
 
-	rs.RotationProfile = types.StringValue(RotProfileSaaS)
-	if dagDebug.RotationProfile != nil {
-		setConfigurationIfEmpty(rs, dagDebug.RotationProfile.ConfigurationUID)
-	}
 	if uid := strings.TrimSpace(saasUIDs[0]); uid != "" {
 		rs.SaaSConfig = types.StringValue(uid)
 	}
 	rs.Resource = types.StringNull()
-	rs.IamAadConfig = types.StringNull()
 	return true
-}
-
-func mapRotationProfileFromDagDebug(dagDebug *utils.DagDebugResponse, rs *PamUserRotationSettings) {
-	if dagDebug == nil || dagDebug.RotationProfile == nil {
-		return
-	}
-
-	rs.RotationProfile = types.StringValue(dagDebug.RotationProfile.Type)
-
-	switch dagDebug.RotationProfile.Type {
-	case RotProfileGeneral:
-		rs.Resource = types.StringValue(dagDebug.RotationProfile.ResourceUID)
-		rs.Configuration = types.StringValue(dagDebug.RotationProfile.ConfigurationUID)
-		rs.SaaSConfig = types.StringNull()
-		rs.IamAadConfig = types.StringNull()
-	case RotProfileIAMUser:
-		rs.IamAadConfig = types.StringValue(dagDebug.RotationProfile.ConfigurationUID)
-		rs.Resource = types.StringNull()
-		rs.Configuration = types.StringNull()
-		rs.SaaSConfig = types.StringNull()
-	case RotProfileScriptsOnly:
-		rs.Configuration = types.StringValue(dagDebug.RotationProfile.ConfigurationUID)
-		rs.Resource = types.StringNull()
-		rs.IamAadConfig = types.StringNull()
-		rs.SaaSConfig = types.StringNull()
-	}
 }
 
 func parentAclEdgeRotationSettings(dagDebug *utils.DagDebugResponse) *utils.DagDebugParentAclEdgeContentRotationSettingsResponse {
@@ -407,16 +403,6 @@ func configurationFromRotInfoOrRecord(rotInfo *PamRotationInfoResponse, rec *uti
 		return strings.TrimSpace(rec.PamConfigurationUID)
 	}
 	return ""
-}
-
-func setConfigurationIfEmpty(rs *PamUserRotationSettings, uid string) {
-	uid = strings.TrimSpace(uid)
-	if uid == "" {
-		return
-	}
-	if rs.Configuration.IsNull() || rs.Configuration.IsUnknown() || strings.TrimSpace(rs.Configuration.ValueString()) == "" {
-		rs.Configuration = types.StringValue(uid)
-	}
 }
 
 // DagDebugResponseFromVaultRecord returns dagDebug from a vault record, if present.
@@ -459,7 +445,7 @@ func parseScheduleValue(raw string, rs *PamUserRotationSettings) {
 			rs.OnDemand = types.BoolNull()
 			rs.ScheduleJSON = types.StringNull()
 		}
-	case "DAILY", "WEEKLY", "MONTHLY":
+	case "DAILY", "WEEKLY", "MONTHLY_BY_WEEKDAY", "YEARLY":
 		rs.ScheduleJSON = types.StringValue(raw)
 		rs.OnDemand = types.BoolNull()
 		rs.ScheduleCron = types.StringNull()

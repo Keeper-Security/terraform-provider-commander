@@ -102,11 +102,6 @@ func (d *PamUserDataSource) Schema(ctx context.Context, req datasource.SchemaReq
 						Description:         commonpamuser.RotConfigDescription,
 						MarkdownDescription: commonpamuser.RotConfigMarkdownDescription,
 					},
-					"iam_aad_config": dschema.StringAttribute{
-						Computed:            true,
-						Description:         commonpamuser.RotIamAadConfigDescription,
-						MarkdownDescription: commonpamuser.RotIamAadConfigMarkdownDescription,
-					},
 					"resource": dschema.StringAttribute{
 						Computed:            true,
 						Description:         commonpamuser.RotResourceDescription,
@@ -116,11 +111,6 @@ func (d *PamUserDataSource) Schema(ctx context.Context, req datasource.SchemaReq
 						Computed:            true,
 						Description:         commonpamuser.RotSaaSConfigDescription,
 						MarkdownDescription: commonpamuser.RotSaaSConfigMarkdownDescription,
-					},
-					"admin_user": dschema.StringAttribute{
-						Computed:            true,
-						Description:         commonpamuser.RotAdminUserDescription,
-						MarkdownDescription: commonpamuser.RotAdminUserMarkdownDescription,
 					},
 					"enabled": dschema.BoolAttribute{
 						Computed:            true,

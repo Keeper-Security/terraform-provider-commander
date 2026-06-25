@@ -42,24 +42,68 @@ const (
 
 	RotProfileScheduleTypeManual = "manual"
 
-	RotProfileDescription                = "Rotation profile type: general (resource-based), iam_user (IAM/Azure user), scripts_only (run PAM scripts only), or saas (SaaS Account). Required when rotation_settings is set."
-	RotProfileMarkdownDescription        = "Rotation profile type: `general` (resource-based), `iam_user` (IAM/Azure user), `scripts_only` (run PAM scripts only), or `saas` (SaaS Account). **Required** when `rotation_settings` is set."
-	RotConfigDescription                 = "PAM Configuration UID to use for rotation. Required when rotation_profile is iam_user, saas or scripts_only."
-	RotConfigMarkdownDescription         = "PAM Configuration UID to use for rotation. **Required** when `rotation_profile` is `iam_user`, `saas` or `scripts_only`."
-	RotIamAadConfigDescription           = "PAM Configuration UID for IAM or Azure AD users. Used instead of resource when rotation_profile is iam_user."
-	RotIamAadConfigMarkdownDescription   = "PAM Configuration UID for IAM or Azure AD users. Used instead of `resource` when `rotation_profile` is `iam_user`."
-	RotSaaSConfigDescription             = "SaaS Configuration UID which is associted with that PAM Configuration to use for rotation. Required when rotation_profile is saas."
-	RotSaaSConfigMarkdownDescription     = "SaaS Configuration UID which is associted with that PAM Configuration to use for rotation. **Required** when `rotation_profile` is `saas`."
-	RotResourceDescription               = "UID of the PAM resource record (machine or database) this user rotates on. Required when rotation_profile is general."
-	RotResourceMarkdownDescription       = "UID of the PAM resource record (machine or database) this user rotates on. Required when `rotation_profile` is `general`."
-	RotAdminUserDescription              = "UID of the PAM User record to use as admin credential when rotating."
-	RotAdminUserMarkdownDescription      = "UID of the PAM User record to use as admin credential when rotating."
-	RotEnabledDescription                = "Whether rotation is enabled for this PAM User."
-	RotEnabledMarkdownDescription        = "Whether rotation is enabled for this PAM User."
-	RotScheduleCronDescription           = "Cron schedule for rotation using Keeper Quartz format (6 or 7 fields), e.g. \"0 28 17 ? * *\". Schedules must have at least a 1-hour interval. Invalid expressions are rejected at plan time."
-	RotScheduleCronMarkdownDescription   = "Cron schedule for rotation using the [Keeper Quartz cron spec](https://docs.keeper.io/keeperpam/privileged-access-manager/references/cron-spec) (**6 or 7 fields**, seconds first, e.g. `0 28 17 ? * *`). Schedules must have at least a **1-hour interval** between executions. Invalid expressions fail at **plan** time so the vault record is not created first."
-	RotScheduleJSONDescription           = "JSON schedule for rotation (e.g. {\"type\": \"WEEKLY\", \"weekday\": \"SATURDAY\", \"time\": \"22:00\", \"tz\": \"America/New_York\"})."
-	RotScheduleJSONMarkdownDescription   = "JSON schedule for rotation."
+	RotProfileDescription              = "Rotation profile type: general (resource-based), iam_user (IAM/Azure user), scripts_only (run PAM scripts only), or saas (SaaS Account). Required when rotation_settings is set."
+	RotProfileMarkdownDescription      = "Rotation profile type: `general` (resource-based), `iam_user` (IAM/Azure user), `scripts_only` (run PAM scripts only), or `saas` (SaaS Account). **Required** when `rotation_settings` is set."
+	RotConfigDescription               = "PAM Configuration UID to use for rotation. Required when rotation_profile is general, iam_user, saas or scripts_only."
+	RotConfigMarkdownDescription       = "PAM Configuration UID to use for rotation. **Required** when `rotation_profile` is `general`, `iam_user`, `saas` or `scripts_only`."
+	RotIamAadConfigDescription         = "PAM Configuration UID for IAM or Azure AD users. Used instead of resource when rotation_profile is iam_user."
+	RotIamAadConfigMarkdownDescription = "PAM Configuration UID for IAM or Azure AD users. Used instead of `resource` when `rotation_profile` is `iam_user`."
+	RotSaaSConfigDescription           = "SaaS Configuration UID which is associted with that PAM Configuration to use for rotation. Required when rotation_profile is saas."
+	RotSaaSConfigMarkdownDescription   = "SaaS Configuration UID which is associted with that PAM Configuration to use for rotation. **Required** when `rotation_profile` is `saas`."
+	RotResourceDescription             = "UID of the PAM resource record (machine or database) this user rotates on. Required when rotation_profile is general."
+	RotResourceMarkdownDescription     = "UID of the PAM resource record (machine or database) this user rotates on. Required when `rotation_profile` is `general`."
+	RotAdminUserDescription            = "UID of the PAM User record to use as admin credential when rotating."
+	RotAdminUserMarkdownDescription    = "UID of the PAM User record to use as admin credential when rotating."
+	RotEnabledDescription              = "Whether rotation is enabled for this PAM User."
+	RotEnabledMarkdownDescription      = "Whether rotation is enabled for this PAM User."
+	RotScheduleCronDescription         = "Cron schedule for rotation using Keeper Quartz format (6 or 7 fields), e.g. \"0 28 17 ? * *\". Schedules must have at least a 1-hour interval. Invalid expressions are rejected at plan time."
+	RotScheduleCronMarkdownDescription = "Cron schedule for rotation using the [Keeper Quartz cron spec](https://docs.keeper.io/keeperpam/privileged-access-manager/references/cron-spec) (**6 or 7 fields**, seconds first, e.g. `0 28 17 ? * *`). Schedules must have at least a **1-hour interval** between executions. Invalid expressions fail at **plan** time so the vault record is not created first."
+	RotScheduleJSONDescription         = "Schedule JSON for rotation. Supported types: DAILY, WEEKLY, MONTHLY_BY_WEEKDAY, YEARLY. Use either time (HH:MM:SS) or utcTime (HH:MM), not both. For cron schedules use schedule_cron instead. Examples: {\"type\":\"DAILY\",\"intervalCount\":1,\"time\":\"17:00:00\",\"tz\":\"Asia/Calcutta\"}; {\"type\":\"WEEKLY\",\"time\":\"17:00:00\",\"tz\":\"Asia/Calcutta\",\"weekday\":\"WEDNESDAY\"}."
+	RotScheduleJSONMarkdownDescription = "Schedule JSON for rotation. Provide a **single JSON object** with a required `type` field.\n\n" +
+		"**Supported types:** `DAILY`, `WEEKLY`, `MONTHLY_BY_WEEKDAY`, `YEARLY`.\n\n" +
+		"**Common fields:**\n" +
+		"- `time` — `HH:MM:SS` (24-hour), **or** `utcTime` — `HH:MM` (use one, not both)\n" +
+		"- `tz` — IANA timezone (recommended), e.g. `Asia/Calcutta`, `Etc/UTC`\n" +
+		"- `intervalCount` — optional positive integer (default `1`)\n\n" +
+		"**Type-specific fields:**\n" +
+		"- `WEEKLY` / `MONTHLY_BY_WEEKDAY` — `weekday` (`SUNDAY`..`SATURDAY`)\n" +
+		"- `YEARLY` — `monthDay` (`1`–`28`)\n" +
+		"- `MONTHLY_BY_WEEKDAY` — `occurrence` (`FIRST`, `SECOND`, `THIRD`, `FOURTH`, `LAST`)\n" +
+		"- `YEARLY` — `month` (`JANUARY`..`DECEMBER`)\n\n" +
+		"**Examples by type:**\n\n" +
+		"`DAILY` — every day at 5:00 PM IST:\n" +
+		"```json\n" +
+		"{\"type\":\"DAILY\",\"intervalCount\":1,\"time\":\"17:00:00\",\"tz\":\"Asia/Calcutta\"}\n" +
+		"```\n\n" +
+		"`WEEKLY` — every Wednesday at 5:00 PM IST:\n" +
+		"```json\n" +
+		"{\"type\":\"WEEKLY\",\"intervalCount\":1,\"time\":\"17:00:00\",\"tz\":\"Asia/Calcutta\",\"weekday\":\"WEDNESDAY\"}\n" +
+		"```\n\n" +
+		"`WEEKLY` — every Saturday at midnight UTC using `utcTime`:\n" +
+		"```json\n" +
+		"{\"type\":\"WEEKLY\",\"utcTime\":\"00:00\",\"weekday\":\"SATURDAY\",\"intervalCount\":1,\"tz\":\"Etc/UTC\"}\n" +
+		"```\n\n" +
+		"`MONTHLY_BY_WEEKDAY` — on the second Tuesday of each month at 9:30 AM Eastern:\n" +
+		"```json\n" +
+		"{\"type\":\"MONTHLY_BY_WEEKDAY\",\"intervalCount\":1,\"time\":\"09:30:00\",\"tz\":\"America/New_York\",\"weekday\":\"TUESDAY\",\"occurrence\":\"SECOND\"}\n" +
+		"```\n\n" +
+		"`YEARLY` — every May 20 at midnight UTC:\n" +
+		"```json\n" +
+		"{\"type\":\"YEARLY\",\"intervalCount\":1,\"time\":\"00:00:00\",\"tz\":\"Etc/UTC\",\"month\":\"MAY\",\"monthDay\":20}\n" +
+		"```\n\n" +
+		"**Terraform usage** (recommended — avoids escaping issues):\n" +
+		"```hcl\n" +
+		"rotation_settings {\n" +
+		"  schedule_json = jsonencode({\n" +
+		"    type          = \"WEEKLY\"\n" +
+		"    intervalCount = 1\n" +
+		"    time          = \"17:00:00\"\n" +
+		"    tz            = \"Asia/Calcutta\"\n" +
+		"    weekday       = \"WEDNESDAY\"\n" +
+		"  })\n" +
+		"}\n" +
+		"```\n\n" +
+		"Mutually exclusive with `on_demand`, `schedule_cron`, and `schedule_config`. For cron schedules use `schedule_cron`."
 	RotOnDemandDescription               = "If true, rotation is on-demand (manual) only."
 	RotOnDemandMarkdownDescription       = "If `true`, rotation is on-demand (manual) only."
 	RotScheduleConfigDescription         = "If true, uses the schedule from the PAM Configuration."

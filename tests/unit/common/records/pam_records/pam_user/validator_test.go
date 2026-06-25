@@ -382,7 +382,7 @@ func TestRotationScheduleCombinationValidator_SingleOptionValid(t *testing.T) {
 		{"on_demand": types.BoolValue(true)},
 		{"schedule_config": types.BoolValue(true)},
 		{"schedule_cron": types.StringValue("0 28 17 ? * *")},
-		{"schedule_json": types.StringValue(`{"type":"WEEKLY","weekday":"SATURDAY"}`)},
+		{"schedule_json": types.StringValue(`{"type":"WEEKLY","weekday":"SATURDAY","time":"17:00:00","tz":"Etc/UTC"}`)},
 	}
 
 	for _, overrides := range cases {
@@ -403,7 +403,7 @@ func TestRotationScheduleCombinationValidator_MultipleOptionsInvalid(t *testing.
 		},
 		{
 			"schedule_cron": types.StringValue("0 28 17 ? * *"),
-			"schedule_json": types.StringValue(`{"type":"DAILY"}`),
+			"schedule_json": types.StringValue(`{"type":"DAILY","time":"17:00:00","tz":"Etc/UTC"}`),
 		},
 		{
 			"on_demand":       types.BoolValue(true),
@@ -411,7 +411,7 @@ func TestRotationScheduleCombinationValidator_MultipleOptionsInvalid(t *testing.
 		},
 		{
 			"schedule_config": types.BoolValue(true),
-			"schedule_json":   types.StringValue(`{"type":"DAILY"}`),
+			"schedule_json":   types.StringValue(`{"type":"DAILY","utcTime":"17:56","tz":"Etc/UTC"}`),
 		},
 	}
 
@@ -432,5 +432,84 @@ func TestRotationScheduleCombinationValidator_FalseOnDemandWithCronValid(t *test
 	}), commonpamuser.RotationScheduleCombinationValidator())
 	if resp.Diagnostics.HasError() {
 		t.Fatalf("on_demand=false with schedule_cron should be valid: %v", resp.Diagnostics)
+	}
+}
+
+func TestValidateRotationScheduleJSON_ValidExamples(t *testing.T) {
+	t.Parallel()
+
+	cases := []string{
+		`{"type":"DAILY","intervalCount":1,"time":"17:00:00","tz":"Asia/Calcutta"}`,
+		`{"type":"WEEKLY","intervalCount":1,"time":"17:00:00","tz":"Asia/Calcutta","weekday":"WEDNESDAY"}`,
+		`{"type":"WEEKLY","utcTime":"00:00","weekday":"SATURDAY","intervalCount":1,"tz":"Etc/UTC"}`,
+		`{"type":"MONTHLY_BY_WEEKDAY","intervalCount":1,"time":"09:30:00","tz":"America/New_York","weekday":"TUESDAY","occurrence":"SECOND"}`,
+		`{"type":"YEARLY","intervalCount":1,"time":"00:00:00","tz":"Etc/UTC","month":"MAY","monthDay":20}`,
+	}
+
+	for _, jsonVal := range cases {
+		if err := commonpamuser.ValidateRotationScheduleJSON(jsonVal); err != nil {
+			t.Fatalf("expected valid schedule_json %s, got: %v", jsonVal, err)
+		}
+	}
+}
+
+func TestValidateRotationScheduleJSON_InvalidExamples(t *testing.T) {
+	t.Parallel()
+
+	cases := []struct {
+		name string
+		json string
+	}{
+		{name: "empty", json: ""},
+		{name: "not json", json: "not-json"},
+		{name: "missing type", json: `{"time":"17:00:00"}`},
+		{name: "unknown type", json: `{"type":"HOURLY","time":"17:00:00"}`},
+		{name: "daily with weekday", json: `{"type":"DAILY","time":"17:00:00","weekday":"MONDAY"}`},
+		{name: "weekly missing weekday", json: `{"type":"WEEKLY","time":"17:00:00"}`},
+		{name: "weekly invalid weekday", json: `{"type":"WEEKLY","time":"17:00:00","weekday":"FUNDAY"}`},
+		{name: "both time fields", json: `{"type":"DAILY","time":"17:00:00","utcTime":"17:00"}`},
+		{name: "missing time fields", json: `{"type":"DAILY","tz":"Etc/UTC"}`},
+		{name: "monthly by weekday missing occurrence", json: `{"type":"MONTHLY_BY_WEEKDAY","time":"09:30:00","weekday":"TUESDAY"}`},
+		{name: "monthly by day type not supported", json: `{"type":"MONTHLY_BY_DAY","time":"02:00:00","tz":"Etc/UTC","monthDay":15}`},
+		{name: "yearly missing month", json: `{"type":"YEARLY","time":"00:00:00","monthDay":20}`},
+		{name: "cron type not supported", json: `{"type":"CRON","cron":"0 0 17 * * ?","tz":"Etc/UTC"}`},
+		{name: "invalid intervalCount", json: `{"type":"DAILY","time":"17:00:00","intervalCount":0}`},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+			if err := commonpamuser.ValidateRotationScheduleJSON(tc.json); err == nil {
+				t.Fatalf("expected error for %q", tc.json)
+			}
+		})
+	}
+}
+
+func TestRotationScheduleJSONValidator_ValidString(t *testing.T) {
+	t.Parallel()
+
+	var resp validator.StringResponse
+	req := validator.StringRequest{
+		Path:        path.Root("schedule_json"),
+		ConfigValue: types.StringValue(`{"type":"DAILY","time":"17:00:00","tz":"Etc/UTC"}`),
+	}
+	commonpamuser.RotationScheduleJSONValidator().ValidateString(context.Background(), req, &resp)
+	if resp.Diagnostics.HasError() {
+		t.Fatalf("expected valid schedule_json, got: %v", resp.Diagnostics)
+	}
+}
+
+func TestRotationScheduleJSONValidator_InvalidString(t *testing.T) {
+	t.Parallel()
+
+	var resp validator.StringResponse
+	req := validator.StringRequest{
+		Path:        path.Root("schedule_json"),
+		ConfigValue: types.StringValue(`{"type":"WEEKLY","time":"17:00:00"}`),
+	}
+	commonpamuser.RotationScheduleJSONValidator().ValidateString(context.Background(), req, &resp)
+	if !resp.Diagnostics.HasError() {
+		t.Fatal("expected error for weekly schedule without weekday")
 	}
 }

@@ -30,7 +30,6 @@ type PamUserSharedModel struct {
 type PamUserRotationSettings struct {
 	RotationProfile types.String `tfsdk:"rotation_profile"`
 	Configuration   types.String `tfsdk:"configuration"`
-	IamAadConfig    types.String `tfsdk:"iam_aad_config"`
 	Resource        types.String `tfsdk:"resource"`
 	Enabled         types.Bool   `tfsdk:"enabled"`
 	ScheduleCron    types.String `tfsdk:"schedule_cron"`

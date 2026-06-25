@@ -132,38 +132,95 @@ output "pam_user_share" {
 
 ### Read-Only
 
-- `connect_database` (String) **Database name** the PAM User connects to.
-- `distinguished_name` (String) **LDAP distinguished name** of the PAM User.
-- `folder_location` (String) **Folder** UID or path for the record.
-- `id` (String) Same as **record_uid** from the vault.
-- `login` (String) **Login** (username) for the PAM User.
-- `managed` (Boolean) Whether this PAM User account is **managed** by Keeper.
-- `notes` (String) **Notes** on the record, if any.
-- `password` (String, Sensitive) **Password** for the PAM User.
+- `connect_database` (String) Database name the PAM User connects to.
+- `distinguished_name` (String) LDAP distinguished name of the PAM User (e.g. `CN=svc_myapp,OU=Service Accounts,DC=corp,DC=local`).
+- `folder_location` (String) Folder path or UID where the record will be stored.
+- `id` (String) The unique identifier (UID) of the PAM User record.
+- `login` (String) Login (username) for the PAM User.
+- `managed` (Boolean) Whether this PAM User account is managed by Keeper.
+- `notes` (String) Optional notes for the PAM User record.
+- `password` (String, Sensitive) Password for the PAM User.
 - `private_key_passphrase` (String, Sensitive) Passphrase for the private key associated with the PAM User.
-- `private_pem_key` (String, Sensitive) **Private PEM key** associated with the PAM User.
-- `public_key` (String, Sensitive) **Public key** associated with the PAM User.
-- `rotation_settings` (Attributes) **Rotation settings** for the PAM User record, if configured. (see [below for nested schema](#nestedatt--rotation_settings))
+- `private_pem_key` (String, Sensitive) Private PEM key associated with the PAM User.
+- `public_key` (String, Sensitive) Public key associated with the PAM User.
+- `rotation_settings` (Attributes) Rotation settings for the PAM User record. Configures password rotation via `pam rotation edit`.
+
+**Required:** `rotation_profile`. **Profile-specific:** `resource` when `rotation_profile` is `general`; `configuration` when `rotation_profile` is `iam_user` or `scripts_only`. `configuration` and `resource` are **mutually exclusive**.
+
+**Schedule:** set **only one** of `on_demand`, `schedule_config`, `schedule_cron`, or `schedule_json` (mutually exclusive). (see [below for nested schema](#nestedatt--rotation_settings))
 - `share` (Attributes Map) Mapping of share permissions for this record. Each map **key** is a **user email**; each **value** is an object with `can_share` and `can_edit` booleans. (see [below for nested schema](#nestedatt--share))
-- `title` (String) **Title** of the PAM User record.
+- `title` (String) Title of the PAM User record.
 
 <a id="nestedatt--rotation_settings"></a>
 ### Nested Schema for `rotation_settings`
 
 Read-Only:
 
-- `admin_user` (String) **Admin PAM User** UID used for rotation.
-- `complexity` (String) **Password complexity** for rotation.
-- `configuration` (String) **PAM Configuration UID**.
-- `enabled` (Boolean) Whether rotation is **enabled**.
-- `iam_aad_config` (String) **IAM/Azure AD** PAM Configuration UID.
-- `on_demand` (Boolean) Whether rotation is **on-demand** (manual).
-- `resource` (String) **PAM resource** record UID (machine or database).
-- `rotation_profile` (String) Rotation profile type: `general`, `iam_user`, or `scripts_only`.
-- `saas_config` (String) **SaaS Configuration UID**.
-- `schedule_config` (Boolean) Whether schedule is inherited from **PAM Configuration**.
-- `schedule_cron` (String) **Cron schedule** for rotation.
-- `schedule_json` (String) **JSON schedule** for rotation.
+- `complexity` (String) Password complexity for rotation: `length,upper,lower,digits,symbols` as **five integers**. Password **length** must be **1–99**; upper, lower, digits, and symbols minimums must each be **0–99** (Keeper UI limits). Invalid values fail at plan time.
+- `configuration` (String) PAM Configuration UID to use for rotation. **Required** when `rotation_profile` is `general`, `iam_user`, `saas` or `scripts_only`.
+- `enabled` (Boolean) Whether rotation is enabled for this PAM User.
+- `on_demand` (Boolean) If `true`, rotation is on-demand (manual) only.
+- `resource` (String) UID of the PAM resource record (machine or database) this user rotates on. Required when `rotation_profile` is `general`.
+- `rotation_profile` (String) Rotation profile type: `general` (resource-based), `iam_user` (IAM/Azure user), `scripts_only` (run PAM scripts only), or `saas` (SaaS Account). **Required** when `rotation_settings` is set.
+- `saas_config` (String) SaaS Configuration UID which is associted with that PAM Configuration to use for rotation. **Required** when `rotation_profile` is `saas`.
+- `schedule_config` (Boolean) If `true`, uses the schedule from the PAM Configuration instead of a per-record schedule.
+- `schedule_cron` (String) Cron schedule for rotation using the [Keeper Quartz cron spec](https://docs.keeper.io/keeperpam/privileged-access-manager/references/cron-spec) (**6 or 7 fields**, seconds first, e.g. `0 28 17 ? * *`). Schedules must have at least a **1-hour interval** between executions. Invalid expressions fail at **plan** time so the vault record is not created first.
+- `schedule_json` (String) Schedule JSON for rotation. Provide a **single JSON object** with a required `type` field.
+
+**Supported types:** `DAILY`, `WEEKLY`, `MONTHLY_BY_WEEKDAY`, `YEARLY`.
+
+**Common fields:**
+- `time` — `HH:MM:SS` (24-hour), **or** `utcTime` — `HH:MM` (use one, not both)
+- `tz` — IANA timezone (recommended), e.g. `Asia/Calcutta`, `Etc/UTC`
+- `intervalCount` — optional positive integer (default `1`)
+
+**Type-specific fields:**
+- `WEEKLY` / `MONTHLY_BY_WEEKDAY` — `weekday` (`SUNDAY`..`SATURDAY`)
+- `YEARLY` — `monthDay` (`1`–`28`)
+- `MONTHLY_BY_WEEKDAY` — `occurrence` (`FIRST`, `SECOND`, `THIRD`, `FOURTH`, `LAST`)
+- `YEARLY` — `month` (`JANUARY`..`DECEMBER`)
+
+**Examples by type:**
+
+`DAILY` — every day at 5:00 PM IST:
+```json
+{"type":"DAILY","intervalCount":1,"time":"17:00:00","tz":"Asia/Calcutta"}
+```
+
+`WEEKLY` — every Wednesday at 5:00 PM IST:
+```json
+{"type":"WEEKLY","intervalCount":1,"time":"17:00:00","tz":"Asia/Calcutta","weekday":"WEDNESDAY"}
+```
+
+`WEEKLY` — every Saturday at midnight UTC using `utcTime`:
+```json
+{"type":"WEEKLY","utcTime":"00:00","weekday":"SATURDAY","intervalCount":1,"tz":"Etc/UTC"}
+```
+
+`MONTHLY_BY_WEEKDAY` — on the second Tuesday of each month at 9:30 AM Eastern:
+```json
+{"type":"MONTHLY_BY_WEEKDAY","intervalCount":1,"time":"09:30:00","tz":"America/New_York","weekday":"TUESDAY","occurrence":"SECOND"}
+```
+
+`YEARLY` — every May 20 at midnight UTC:
+```json
+{"type":"YEARLY","intervalCount":1,"time":"00:00:00","tz":"Etc/UTC","month":"MAY","monthDay":20}
+```
+
+**Terraform usage** (recommended — avoids escaping issues):
+```hcl
+rotation_settings {
+  schedule_json = jsonencode({
+    type          = "WEEKLY"
+    intervalCount = 1
+    time          = "17:00:00"
+    tz            = "Asia/Calcutta"
+    weekday       = "WEDNESDAY"
+  })
+}
+```
+
+Mutually exclusive with `on_demand`, `schedule_cron`, and `schedule_config`. For cron schedules use `schedule_cron`.
 
 
 <a id="nestedatt--share"></a>

@@ -49,7 +49,6 @@ func ValidateRotationProfileRequirements(basePath path.Path, attrs map[string]at
 	hasConfiguration := stringAttrNonEmpty(attrs, "configuration")
 	hasSaaSConfig := stringAttrNonEmpty(attrs, "saas_config")
 	hasResource := stringAttrNonEmpty(attrs, "resource")
-	hasIamAadConfig := stringAttrNonEmpty(attrs, "iam_aad_config")
 
 	profile, ok := stringAttrValue(attrs, "rotation_profile")
 	if !ok {
@@ -67,9 +66,6 @@ func ValidateRotationProfileRequirements(basePath path.Path, attrs map[string]at
 		if hasSaaSConfig {
 			addForbiddenRotationFieldError(basePath, resp, "saas_config", profile)
 		}
-		if hasIamAadConfig {
-			addForbiddenRotationFieldError(basePath, resp, "iam_aad_config", profile)
-		}
 
 		// Validation for fields that are required for the profile
 		if !hasConfiguration {
@@ -80,9 +76,6 @@ func ValidateRotationProfileRequirements(basePath path.Path, attrs map[string]at
 		}
 	case RotProfileIAMUser:
 		// Validation for fields that are forbidden for the profile
-		if hasConfiguration {
-			addForbiddenRotationFieldError(basePath, resp, "configuration", profile)
-		}
 		if hasResource {
 			addForbiddenRotationFieldError(basePath, resp, "resource", profile)
 		}
@@ -91,15 +84,12 @@ func ValidateRotationProfileRequirements(basePath path.Path, attrs map[string]at
 		}
 
 		// Validation for fields that are required for the profile
-		if !hasIamAadConfig {
-			addRequiredRotationFieldError(basePath, resp, "iam_aad_config", profile)
+		if !hasConfiguration {
+			addRequiredRotationFieldError(basePath, resp, "configuration", profile)
 		}
 
 	case RotProfileScriptsOnly:
 		// Validation for fields that are forbidden for the profile
-		if hasIamAadConfig {
-			addForbiddenRotationFieldError(basePath, resp, "iam_aad_config", profile)
-		}
 		if hasResource {
 			addForbiddenRotationFieldError(basePath, resp, "resource", profile)
 		}
@@ -116,9 +106,6 @@ func ValidateRotationProfileRequirements(basePath path.Path, attrs map[string]at
 		// Validation for fields that are forbidden for the profile
 		if hasResource {
 			addForbiddenRotationFieldError(basePath, resp, "resource", profile)
-		}
-		if hasIamAadConfig {
-			addForbiddenRotationFieldError(basePath, resp, "iam_aad_config", profile)
 		}
 
 		// Validation for fields that are required for the profile

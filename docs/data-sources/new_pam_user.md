@@ -163,15 +163,68 @@ output "pam_user_share" {
 
 Read-Only:
 
-- `admin_user` (String) UID of the PAM User record to use as admin credential when rotating.
 - `complexity` (String) Password complexity for rotation: `length,upper,lower,digits,symbols` as **five integers**. Password **length** must be **1–99**; upper, lower, digits, and symbols minimums must each be **0–99** (Keeper UI limits). Invalid values fail at plan time.
-- `configuration` (String) PAM Configuration UID to use for rotation. **Required** when `rotation_profile` is `iam_user`, `saas` or `scripts_only`.
+- `configuration` (String) PAM Configuration UID to use for rotation. **Required** when `rotation_profile` is `general`, `iam_user`, `saas` or `scripts_only`.
 - `enabled` (Boolean) Whether rotation is enabled for this PAM User.
-- `iam_aad_config` (String) PAM Configuration UID for IAM or Azure AD users. Used instead of `resource` when `rotation_profile` is `iam_user`.
 - `on_demand` (Boolean) If `true`, rotation is on-demand (manual) only.
 - `resource` (String) UID of the PAM resource record (machine or database) this user rotates on. Required when `rotation_profile` is `general`.
 - `rotation_profile` (String) Rotation profile type: `general` (resource-based), `iam_user` (IAM/Azure user), `scripts_only` (run PAM scripts only), or `saas` (SaaS Account). **Required** when `rotation_settings` is set.
 - `saas_config` (String) SaaS Configuration UID which is associted with that PAM Configuration to use for rotation. **Required** when `rotation_profile` is `saas`.
 - `schedule_config` (Boolean) If `true`, uses the schedule from the PAM Configuration instead of a per-record schedule.
 - `schedule_cron` (String) Cron schedule for rotation using the [Keeper Quartz cron spec](https://docs.keeper.io/keeperpam/privileged-access-manager/references/cron-spec) (**6 or 7 fields**, seconds first, e.g. `0 28 17 ? * *`). Schedules must have at least a **1-hour interval** between executions. Invalid expressions fail at **plan** time so the vault record is not created first.
-- `schedule_json` (String) JSON schedule for rotation.
+- `schedule_json` (String) Schedule JSON for rotation. Provide a **single JSON object** with a required `type` field.
+
+**Supported types:** `DAILY`, `WEEKLY`, `MONTHLY_BY_WEEKDAY`, `YEARLY`.
+
+**Common fields:**
+- `time` — `HH:MM:SS` (24-hour), **or** `utcTime` — `HH:MM` (use one, not both)
+- `tz` — IANA timezone (recommended), e.g. `Asia/Calcutta`, `Etc/UTC`
+- `intervalCount` — optional positive integer (default `1`)
+
+**Type-specific fields:**
+- `WEEKLY` / `MONTHLY_BY_WEEKDAY` — `weekday` (`SUNDAY`..`SATURDAY`)
+- `YEARLY` — `monthDay` (`1`–`28`)
+- `MONTHLY_BY_WEEKDAY` — `occurrence` (`FIRST`, `SECOND`, `THIRD`, `FOURTH`, `LAST`)
+- `YEARLY` — `month` (`JANUARY`..`DECEMBER`)
+
+**Examples by type:**
+
+`DAILY` — every day at 5:00 PM IST:
+```json
+{"type":"DAILY","intervalCount":1,"time":"17:00:00","tz":"Asia/Calcutta"}
+```
+
+`WEEKLY` — every Wednesday at 5:00 PM IST:
+```json
+{"type":"WEEKLY","intervalCount":1,"time":"17:00:00","tz":"Asia/Calcutta","weekday":"WEDNESDAY"}
+```
+
+`WEEKLY` — every Saturday at midnight UTC using `utcTime`:
+```json
+{"type":"WEEKLY","utcTime":"00:00","weekday":"SATURDAY","intervalCount":1,"tz":"Etc/UTC"}
+```
+
+`MONTHLY_BY_WEEKDAY` — on the second Tuesday of each month at 9:30 AM Eastern:
+```json
+{"type":"MONTHLY_BY_WEEKDAY","intervalCount":1,"time":"09:30:00","tz":"America/New_York","weekday":"TUESDAY","occurrence":"SECOND"}
+```
+
+`YEARLY` — every May 20 at midnight UTC:
+```json
+{"type":"YEARLY","intervalCount":1,"time":"00:00:00","tz":"Etc/UTC","month":"MAY","monthDay":20}
+```
+
+**Terraform usage** (recommended — avoids escaping issues):
+```hcl
+rotation_settings {
+  schedule_json = jsonencode({
+    type          = "WEEKLY"
+    intervalCount = 1
+    time          = "17:00:00"
+    tz            = "Asia/Calcutta"
+    weekday       = "WEDNESDAY"
+  })
+}
+```
+
+Mutually exclusive with `on_demand`, `schedule_cron`, and `schedule_config`. For cron schedules use `schedule_cron`.
