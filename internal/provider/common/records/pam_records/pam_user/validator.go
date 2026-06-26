@@ -90,9 +90,6 @@ func ValidateRotationProfileRequirements(basePath path.Path, attrs map[string]at
 
 	case RotProfileScriptsOnly:
 		// Validation for fields that are forbidden for the profile
-		if hasResource {
-			addForbiddenRotationFieldError(basePath, resp, "resource", profile)
-		}
 		if hasSaaSConfig {
 			addForbiddenRotationFieldError(basePath, resp, "saas_config", profile)
 		}
@@ -100,6 +97,9 @@ func ValidateRotationProfileRequirements(basePath path.Path, attrs map[string]at
 		// Validation for fields that are required for the profile
 		if !hasConfiguration {
 			addRequiredRotationFieldError(basePath, resp, "configuration", profile)
+		}
+		if !hasResource {
+			addRequiredRotationFieldError(basePath, resp, "resource", profile)
 		}
 
 	case RotProfileSaaS:
