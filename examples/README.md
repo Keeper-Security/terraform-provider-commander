@@ -61,3 +61,5 @@ make generate
 ```
 
 This runs tfplugindocs and updates `docs/` from the schema and these examples.
+
+Doc Registry categories (sidebar grouping) are configured in `docs/doc_subcategories.yaml`. When adding a resource or data source, add it under the appropriate category there before running `make generate`.
