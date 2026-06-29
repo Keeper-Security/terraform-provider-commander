@@ -8,13 +8,17 @@ import (
 
 	commonepm "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/epm_policy"
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/utils"
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/setdefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
+
+var epmPolicyEmptyStringSetDefault = setdefault.StaticValue(types.SetValueMust(types.StringType, []attr.Value{}))
 
 func (r *EpmPolicyResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
@@ -92,8 +96,8 @@ func (r *EpmPolicyResource) Schema(ctx context.Context, req resource.SchemaReque
 			"machine_collections": schema.SetAttribute{
 				Optional:            true,
 				ElementType:         types.StringType,
-				Description:         "Machine collections: \"*\" to select all machines, or a set of machine collection IDs. Cannot use \"*\" with other IDs.<br> Required (with user_groups and/or applications) for " + commonepm.PolicyTypeElevation + "/" + commonepm.PolicyTypeFileAccess + " monitor/monitor_and_notify; required with user_groups for " + commonepm.PolicyTypeCommand + " monitor/monitor_and_notify. Optional for " + commonepm.PolicyTypeLeastPrivilege + ".",
-				MarkdownDescription: "**Machine collections**: `\"*\"` to select all machines, or a set of machine collection IDs. Cannot use **\"*\"** with other IDs.<br> Required (with user_groups and/or applications) for " + commonepm.PolicyTypeElevation + "/" + commonepm.PolicyTypeFileAccess + " monitor/monitor_and_notify; required with user_groups for " + commonepm.PolicyTypeCommand + " monitor/monitor_and_notify. Optional for **" + commonepm.PolicyTypeLeastPrivilege + "**.",
+				Description:         "Machine collections: \"*\" to select all machines, or a set of machine collection IDs. Cannot use \"*\" with other IDs.<br> Required (with user_groups and/or applications) for " + commonepm.PolicyTypeElevation + "/" + commonepm.PolicyTypeFileAccess + " monitor/monitor_and_notify; required with user_groups for " + commonepm.PolicyTypeCommand + " monitor/monitor_and_notify. Required for " + commonepm.PolicyTypeLeastPrivilege + ".",
+				MarkdownDescription: "**Machine collections**: `\"*\"` to select all machines, or a set of machine collection IDs. Cannot use **\"*\"** with other IDs.<br> Required (with user_groups and/or applications) for " + commonepm.PolicyTypeElevation + "/" + commonepm.PolicyTypeFileAccess + " monitor/monitor_and_notify; required with user_groups for " + commonepm.PolicyTypeCommand + " monitor/monitor_and_notify. Required for **" + commonepm.PolicyTypeLeastPrivilege + "**.",
 				Validators: []validator.Set{
 					commonepm.CollectionSetValidator{DisplayName: "Machine collection"},
 				},
@@ -109,27 +113,33 @@ func (r *EpmPolicyResource) Schema(ctx context.Context, req resource.SchemaReque
 			},
 			"day_filter": schema.SetAttribute{
 				Optional:            true,
+				Computed:            true,
 				ElementType:         types.StringType,
-				Description:         "Day filter. Set of days, each one of: " + commonepm.DayFilterDescription() + " (case-insensitive). Not allowed for " + commonepm.PolicyTypeLeastPrivilege + " policy type.",
-				MarkdownDescription: "**Day filter**. Set of days, each one of: " + commonepm.DayFilterMarkdown() + " (case-insensitive). Not allowed for **" + commonepm.PolicyTypeLeastPrivilege + "** policy type.",
+				Default:             epmPolicyEmptyStringSetDefault,
+				Description:         "Day filter. Set of days, each one of: " + commonepm.DayFilterDescription() + " (case-insensitive). Defaults to an empty set. Not allowed for " + commonepm.PolicyTypeLeastPrivilege + " policy type.",
+				MarkdownDescription: "**Day filter**. Set of days, each one of: " + commonepm.DayFilterMarkdown() + " (case-insensitive). Defaults to an **empty set**. Not allowed for **" + commonepm.PolicyTypeLeastPrivilege + "** policy type.",
 				Validators: []validator.Set{
 					commonepm.DayFilterSetValidator{},
 				},
 			},
 			"time_filter": schema.SetAttribute{
 				Optional:            true,
+				Computed:            true,
 				ElementType:         types.StringType,
-				Description:         "Policy time filter. Set of hour ranges as start-end (hours 0–23), e.g. \"9-12\". Ranges must not overlap. Not allowed for " + commonepm.PolicyTypeLeastPrivilege + " policy type.",
-				MarkdownDescription: "**Time filter**. Set of hour ranges as **start-end** (hours **0–23**), e.g. `9-12`. Ranges must **not overlap**. Not allowed for **" + commonepm.PolicyTypeLeastPrivilege + "** policy type.",
+				Default:             epmPolicyEmptyStringSetDefault,
+				Description:         "Policy time filter. Set of hour ranges as start-end (hours 0–23), e.g. \"9-12\". Ranges must not overlap. Defaults to an empty set. Not allowed for " + commonepm.PolicyTypeLeastPrivilege + " policy type.",
+				MarkdownDescription: "**Time filter**. Set of hour ranges as **start-end** (hours **0–23**), e.g. `9-12`. Ranges must **not overlap**. Defaults to an **empty set**. Not allowed for **" + commonepm.PolicyTypeLeastPrivilege + "** policy type.",
 				Validators: []validator.Set{
 					commonepm.TimeFilterSetValidator{},
 				},
 			},
 			"date_filter": schema.SetAttribute{
 				Optional:            true,
+				Computed:            true,
 				ElementType:         types.StringType,
-				Description:         "Policy date filter. Set of date ranges in ISO format YYYY-MM-DD:YYYY-MM-DD. Ranges must not overlap. Not allowed for " + commonepm.PolicyTypeLeastPrivilege + " policy type.",
-				MarkdownDescription: "**Date filter**. Set of date ranges in **ISO format** `YYYY-MM-DD:YYYY-MM-DD`. Ranges must **not overlap**. Not allowed for **" + commonepm.PolicyTypeLeastPrivilege + "** policy type.",
+				Default:             epmPolicyEmptyStringSetDefault,
+				Description:         "Policy date filter. Set of date ranges in ISO format YYYY-MM-DD:YYYY-MM-DD. Ranges must not overlap. Defaults to an empty set. Not allowed for " + commonepm.PolicyTypeLeastPrivilege + " policy type.",
+				MarkdownDescription: "**Date filter**. Set of date ranges in **ISO format** `YYYY-MM-DD:YYYY-MM-DD`. Ranges must **not overlap**. Defaults to an **empty set**. Not allowed for **" + commonepm.PolicyTypeLeastPrivilege + "** policy type.",
 				Validators: []validator.Set{
 					commonepm.DateFilterSetValidator{},
 				},

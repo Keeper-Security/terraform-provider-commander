@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.1.0 (YYYY-MM-DD)
+
+Added new resources and data sources
+
+- **Resources:** `commander_epm_policy`, `commander_shared_folder`, `commander_enterprise_push`, `commander_enterprise_scim`, `commander_enterprise_scim_push`
+- **Data sources:** `commander_epm_policy`, `commander_shared_folder`, `commander_enterprise_scim`
+
 ## 1.0.0 (YYYY-MM-DD)
 
 FEATURES:

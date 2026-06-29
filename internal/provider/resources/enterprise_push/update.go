@@ -8,7 +8,6 @@ import (
 
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/utils"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
-	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
 // Update handles email/team changes: push only to newly added emails/teams; on removal only update state.
@@ -36,16 +35,14 @@ func (r *EnterprisePushResource) Update(ctx context.Context, req resource.Update
 	addedEmails := setDifference(planEmails, stateEmails)
 	addedTeams := setDifference(planTeams, stateTeams)
 
-	// Read file once (needed for push when adds, and for id/file_content_sha256).
-	filePath := plan.FilePath.ValueString()
-	content, fileData, err := readFileAndParseJSON(filePath)
-	if err != nil {
-		resp.Diagnostics.AddError("Read File Failed", err.Error())
-		return
-	}
-
 	// If any new emails or teams were added, push file content only to those.
 	if len(addedEmails) > 0 || len(addedTeams) > 0 {
+		filePath := plan.FilePath.ValueString()
+		_, fileData, err := readFileAndParseJSON(filePath)
+		if err != nil {
+			resp.Diagnostics.AddError("Read File Failed", err.Error())
+			return
+		}
 		command := buildEnterprisePushCommandWithTargets(addedEmails, addedTeams)
 		if err := utils.RunWithManagedCompanyContext(ctx, r.ApiManager, plan.ManagedCompany, func() error {
 			_, err := r.ApiManager.ExecuteCommand(ctx, command, "Enterprise push failed", fileData)
@@ -58,8 +55,10 @@ func (r *EnterprisePushResource) Update(ctx context.Context, req resource.Update
 		}
 	}
 
-	// Update state with new id and file_content_sha256 (id = f(content, plan emails/teams)).
-	plan.Id = types.StringValue(computeID(content, &plan))
-	plan.FileContentSha256 = types.StringValue(contentSHA256Hex(content))
+	// Preserve the existing ID — Terraform forbids changing id during in-place updates.
+	// file_content_sha256 and file_path have RequiresReplace, so content/path changes
+	// never reach Update; only email/team changes do.
+	plan.Id = state.Id
+	plan.FileContentSha256 = state.FileContentSha256
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }

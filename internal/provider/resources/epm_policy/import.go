@@ -7,6 +7,7 @@ import (
 	"context"
 
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/utils"
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
@@ -43,9 +44,9 @@ func (r *EpmPolicyResource) ImportState(ctx context.Context, req resource.Import
 		UserGroups:                   types.SetNull(types.StringType),
 		MachineCollections:           types.SetNull(types.StringType),
 		Applications:                 types.SetNull(types.StringType),
-		DayFilter:                    types.SetNull(types.StringType),
-		TimeFilter:                   types.SetNull(types.StringType),
-		DateFilter:                   types.SetNull(types.StringType),
+		DayFilter:                    types.SetValueMust(types.StringType, []attr.Value{}),
+		TimeFilter:                   types.SetValueMust(types.StringType, []attr.Value{}),
+		DateFilter:                   types.SetValueMust(types.StringType, []attr.Value{}),
 	}
 	if managedCompany != "" {
 		state.ManagedCompany = types.StringValue(managedCompany)

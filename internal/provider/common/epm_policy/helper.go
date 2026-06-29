@@ -341,13 +341,26 @@ func NotificationAttributesFromMapped(mappedStatus, apiMessage string, apiRequir
 
 // BuildPolicyViewCommand builds `epm policy view <id> --format json` for the given policy ID.
 func BuildPolicyViewCommand(policyID string) string {
-	policyID = strings.TrimSpace(policyID)
+	policyID = fmt.Sprintf("'%s'", strings.TrimSpace(policyID))
 	return strings.Join([]string{
 		CmdEpmPolicyView,
 		policyID,
 		FlagFormat,
 		ValueFormatJSON,
 	}, " ")
+}
+
+// StringSliceToStringSetOrEmpty maps API slices to Terraform sets for attributes whose schema defaults to an empty set.
+// An empty API slice yields a known empty set (not null) so state matches plan defaults and avoids drift.
+func StringSliceToStringSetOrEmpty(values []string) (types.Set, error) {
+	if len(values) == 0 {
+		s, diags := types.SetValue(types.StringType, []attr.Value{})
+		if diags.HasError() {
+			return types.SetNull(types.StringType), fmt.Errorf("%s", diags.Errors()[0].Summary())
+		}
+		return s, nil
+	}
+	return StringSliceToStringSet(values)
 }
 
 // stringSliceToStringSet builds a Terraform string set from a slice (e.g. after API read mapping).
