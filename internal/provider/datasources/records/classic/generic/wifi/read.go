@@ -8,11 +8,10 @@ import (
 	"fmt"
 	"strings"
 
+	commonrecordwifi "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/classic/generic/wifi"
 	commonrecordsutils "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/utils"
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/utils"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
-	"github.com/hashicorp/terraform-plugin-framework/diag"
-	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
 func (d *WifiDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
@@ -62,30 +61,9 @@ func (d *WifiDataSource) Read(ctx context.Context, req datasource.ReadRequest, r
 		return
 	}
 
-	resp.Diagnostics.Append(mapVaultRecordToDataSource(ctx, &rec, &data)...)
+	resp.Diagnostics.Append(commonrecordwifi.MapVaultRecordGetResponseToWifiModel(&rec, data.FolderLocation, &data.WifiModel)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
-}
-
-// mapVaultRecordToDataSource hydrates the data source model from a `get <uid> --format json` payload.
-// `SSID` is matched by the `SSID` label since `text` is a generic field type. The remaining
-// built-in fields are matched by type alone — Keeper returns label="" or label=<type>
-// inconsistently, and either form is supported by the AnyLabel helpers.
-func mapVaultRecordToDataSource(ctx context.Context, rec *utils.VaultRecordGetResponse, data *WifiDataSourceModel) diag.Diagnostics {
-	if uid := strings.TrimSpace(rec.RecordUID); uid != "" {
-		data.Id = types.StringValue(uid)
-	}
-	data.Title = utils.StringOrNull(rec.Title)
-	data.Notes = utils.StringOrNull(rec.Notes)
-	data.FolderLocation = utils.ExtractFolderValue(rec.FolderLocation, data.FolderLocation)
-
-	data.SSID = commonrecordsutils.FirstStringField(rec.Fields, commonrecordsutils.FieldTypeText, "SSID")
-	data.Password = commonrecordsutils.FirstStringFieldAnyLabel(rec.Fields, commonrecordsutils.FieldTypePassword)
-	data.Encryption = commonrecordsutils.FirstStringFieldAnyLabel(rec.Fields, commonrecordsutils.FieldTypeWifiEncryption)
-	data.IsSSIDHidden = commonrecordsutils.FirstBoolFieldAnyLabel(rec.Fields, commonrecordsutils.FieldTypeIsSSIDHidden)
-
-	data.Custom = commonrecordsutils.ParseCustomFields(rec.Custom)
-	return nil
 }

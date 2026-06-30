@@ -3,16 +3,6 @@
 
 package contact
 
-// Commander CLI record field keys for contact (pam_records-style: explicit f.text.* / f.* paths).
-const (
-	FlagName        = "f.name"
-	FlagTextCompany = "f.text.company"
-	FlagEmail       = "f.email"
-	FlagAddressRef  = "f.addressRef"
-	// FlagPhonePrefix — per-type phone slots: phone.Mobile, phone.Home, ...
-	FlagPhonePrefix = "phone."
-)
-
 const (
 	SchemaDescription         = "Creates and manages a Keeper Contact record in the vault."
 	SchemaMarkdownDescription = "Creates and manages a Keeper `contact` record in the vault."

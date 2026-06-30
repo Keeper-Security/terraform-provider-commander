@@ -10,6 +10,7 @@ import (
 	"strings"
 
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/api"
+	commonrecordcontact "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/classic/generic/contact"
 	commonrecordsutils "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/utils"
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/utils"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -63,6 +64,6 @@ func (r *ContactResource) Read(ctx context.Context, req resource.ReadRequest, re
 		return
 	}
 
-	mapVaultRecordToModel(&rec, state.FolderLocation, &state)
+	commonrecordcontact.MapVaultRecordGetResponseToContactModel(&rec, state.FolderLocation, &state)
 	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
 }

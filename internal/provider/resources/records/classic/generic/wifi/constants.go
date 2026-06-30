@@ -4,13 +4,6 @@
 package wifi
 
 const (
-	FlagSSID         = "text.SSID"
-	FlagPassword     = "password"
-	FlagEncryption   = "wifiEncryption"
-	FlagIsSSIDHidden = "isSSIDHidden"
-)
-
-const (
 	SchemaDescription         = "Creates and manages a Keeper WiFi credentials record (`wifiCredentials`) in the vault."
 	SchemaMarkdownDescription = "Creates and manages a Keeper **WiFi credentials** record (`wifiCredentials`) in the vault."
 
@@ -22,6 +15,3 @@ const (
 	ErrDetailReadFailed   = "Something went wrong when reading the WiFi credentials record."
 	ErrDetailUpdateFailed = "Something went wrong when updating the WiFi credentials record."
 )
-
-// AllowedEncryptions lists the supported wifiEncryption values accepted by Keeper.
-var AllowedEncryptions = []string{"wep", "wpa", "noEncryption"}

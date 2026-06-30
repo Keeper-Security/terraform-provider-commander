@@ -8,6 +8,7 @@ import (
 	"fmt"
 
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/classic_share"
+	commonrecordwifi "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/classic/generic/wifi"
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/utils"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -28,7 +29,7 @@ func (r *WifiResource) Create(ctx context.Context, req resource.CreateRequest, r
 		return
 	}
 
-	cmd := buildRecordAddCommand(data)
+	cmd := commonrecordwifi.BuildAddCommand(data)
 	apiResp, err := r.ApiManager.ExecuteCommand(ctx, cmd, ErrDetailCreateFailed)
 	if err != nil {
 		resp.Diagnostics.AddError(ErrSummaryCreateFailed, err.Error())

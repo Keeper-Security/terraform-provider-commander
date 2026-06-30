@@ -9,10 +9,10 @@ import (
 	"strings"
 
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/classic_share"
+	commonrecordcontact "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/classic/generic/contact"
 	commonrecordsutils "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/utils"
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/utils"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
-	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
 func (d *ContactDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
@@ -59,16 +59,10 @@ func (d *ContactDataSource) Read(ctx context.Context, req datasource.ReadRequest
 		return
 	}
 
-	data.Id = types.StringValue(strings.TrimSpace(rec.RecordUID))
-	data.Title = utils.StringOrNull(rec.Title)
-	data.Notes = utils.StringOrNull(rec.Notes)
-	data.FolderLocation = utils.ExtractFolderValue(rec.FolderLocation, types.StringNull())
-	data.Name = commonrecordsutils.NameFromFields(rec.Fields, "")
-	data.Company = commonrecordsutils.FirstStringField(rec.Fields, commonrecordsutils.FieldTypeText, "company")
-	data.Email = commonrecordsutils.FirstStringField(rec.Fields, commonrecordsutils.FieldTypeEmail, "")
-	data.Phone = commonrecordsutils.PhonesFromField(rec.Fields, "")
-	data.AddressRef = commonrecordsutils.FirstRefUID(rec.Fields, commonrecordsutils.FieldTypeAddressRef, "")
-	data.Custom = commonrecordsutils.ParseCustomFields(rec.Custom)
+	resp.Diagnostics.Append(commonrecordcontact.MapVaultRecordGetResponseToContactModel(&rec, data.FolderLocation, &data.ContactModel)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 
 	if err := classic_share.MapResponseToModel(rec.UserPermissions, &data.ShareModel); err != nil {
 		resp.Diagnostics.AddError(ErrSummaryReadContactDataSource, err.Error())
