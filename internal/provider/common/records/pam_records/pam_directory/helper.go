@@ -11,6 +11,7 @@ import (
 	"strings"
 
 	commonpamrecords "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/pam_records"
+	commonrecordsutils "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/utils"
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/utils"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -127,34 +128,21 @@ func appendAlternativeIPsField(parts *[]string, s types.Set) {
 	*parts = append(*parts, fmt.Sprintf("'%s=%s'", FlagAlternativeIPs, joined))
 }
 
-func setStringOrNull(val string) types.String {
-	if strings.TrimSpace(val) == "" {
-		return types.StringNull()
-	}
-	return types.StringValue(val)
-}
-
 // MapVaultRecordGetResponseToPamDirectoryModel fills state from `get <uid> --format json` payload.
 func MapVaultRecordGetResponseToPamDirectoryModel(rec *utils.VaultRecordGetResponse, state *PamDirectoryResourceModel) diag.Diagnostics {
 	var diags diag.Diagnostics
 
-	if strings.TrimSpace(rec.RecordUID) != "" {
-		state.Id = types.StringValue(strings.TrimSpace(rec.RecordUID))
-	}
-	state.Title = setStringOrNull(rec.Title)
-	state.Notes = setStringOrNull(rec.Notes)
-
-	state.FolderLocation = utils.ExtractFolderValue(rec.FolderLocation, state.FolderLocation)
+	commonrecordsutils.MapBaseVaultRecord(rec, state.FolderLocation, &state.BaseVaultRecordModel)
 
 	state.HostnameOrIP = ExtractPamHostnameFieldValue(rec.Fields)
 	state.UseSSL = extractCheckboxFieldValue(rec.Fields, "useSSL")
-	state.DomainName = setStringOrNull(commonpamrecords.ExtractFirstTextFieldValue(rec.Fields, "domainName"))
+	state.DomainName = utils.StringOrNull(commonpamrecords.ExtractFirstTextFieldValue(rec.Fields, "domainName"))
 	state.AlternativeIPs = extractMultilineAsSet(rec.Fields, "alternativeIPs")
-	state.DirectoryId = setStringOrNull(commonpamrecords.ExtractFirstTextFieldValue(rec.Fields, "directoryId"))
+	state.DirectoryId = utils.StringOrNull(commonpamrecords.ExtractFirstTextFieldValue(rec.Fields, "directoryId"))
 	state.DirectoryType = extractDirectoryTypeFieldValue(rec.Fields)
-	state.UserMatch = setStringOrNull(commonpamrecords.ExtractFirstTextFieldValue(rec.Fields, "userMatch"))
-	state.ProviderGroup = setStringOrNull(commonpamrecords.ExtractFirstTextFieldValue(rec.Fields, "providerGroup"))
-	state.ProviderRegion = setStringOrNull(commonpamrecords.ExtractFirstTextFieldValue(rec.Fields, "providerRegion"))
+	state.UserMatch = utils.StringOrNull(commonpamrecords.ExtractFirstTextFieldValue(rec.Fields, "userMatch"))
+	state.ProviderGroup = utils.StringOrNull(commonpamrecords.ExtractFirstTextFieldValue(rec.Fields, "providerGroup"))
+	state.ProviderRegion = utils.StringOrNull(commonpamrecords.ExtractFirstTextFieldValue(rec.Fields, "providerRegion"))
 
 	state.PamSettings = commonpamrecords.ExtractMachineDirectoryPamSettingsFromResponse(rec, state.PamSettings)
 
@@ -174,7 +162,7 @@ func ExtractPamHostnameFieldValue(fields []utils.VaultRecordFieldResponse) *comm
 		}
 		if len(vals) > 0 {
 			model := &commonpamrecords.HostnameOrIPModel{
-				HostName: setStringOrNull(vals[0].HostName),
+				HostName: utils.StringOrNull(vals[0].HostName),
 			}
 			portStr := strings.TrimSpace(vals[0].AdministrativePort)
 			if portStr != "" {
@@ -222,7 +210,7 @@ func extractDirectoryTypeFieldValue(fields []utils.VaultRecordFieldResponse) typ
 			return types.StringNull()
 		}
 		if len(vals) > 0 {
-			return setStringOrNull(vals[0])
+			return utils.StringOrNull(vals[0])
 		}
 	}
 	return types.StringNull()

@@ -8,8 +8,8 @@ import (
 	"strings"
 
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/classic_share"
-	commonpamrecords "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/pam_records"
 	commonpamuser "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/pam_records/pam_user"
+	commonrecordsutils "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/utils"
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/utils"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 )
@@ -45,7 +45,7 @@ func (r *PamUserResource) Update(ctx context.Context, req resource.UpdateRequest
 		return
 	}
 
-	if err := commonpamrecords.MoveRecordFromSourceToDestination(ctx, r.ApiManager, recordUID, plan.FolderLocation.ValueString(), state.FolderLocation.ValueString()); err != nil {
+	if err := commonrecordsutils.MoveRecordFromSourceToDestination(ctx, r.ApiManager, recordUID, plan.FolderLocation.ValueString(), state.FolderLocation.ValueString()); err != nil {
 		resp.Diagnostics.AddError(utils.ErrSummaryMoveRecordFailed, err.Error())
 		return
 	}

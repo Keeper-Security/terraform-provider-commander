@@ -11,8 +11,8 @@ import (
 
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/api"
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/classic_share"
-	commonpamrecords "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/pam_records"
 	commonpamdirectory "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/pam_records/pam_directory"
+	commonrecordsutils "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/utils"
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/utils"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 )
@@ -41,7 +41,7 @@ func (r *PamDirectoryResource) Read(ctx context.Context, req resource.ReadReques
 		return
 	}
 
-	apiResp, err := commonpamrecords.FetchVaultRecord(ctx, r.ApiManager, id)
+	apiResp, err := commonrecordsutils.FetchVaultRecord(ctx, r.ApiManager, id)
 	if err != nil {
 		if errors.Is(err, api.ErrResourceNotFound) {
 			resp.State.RemoveResource(ctx)

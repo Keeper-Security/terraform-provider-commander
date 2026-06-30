@@ -11,6 +11,7 @@ import (
 	"sort"
 	"strings"
 
+	commonrecordsutils "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/utils"
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/utils"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
@@ -252,22 +253,7 @@ const (
 func MapVaultRecordGetResponseToPamRemoteBrowserModel(ctx context.Context, rec *utils.VaultRecordGetResponse, state *PamRemoteBrowserResourceModel) diag.Diagnostics {
 	var diags diag.Diagnostics
 
-	if strings.TrimSpace(rec.RecordUID) != "" {
-		state.Id = types.StringValue(strings.TrimSpace(rec.RecordUID))
-	}
-	if strings.TrimSpace(rec.Title) == "" {
-		state.Title = types.StringNull()
-	} else {
-		state.Title = types.StringValue(rec.Title)
-	}
-
-	if strings.TrimSpace(rec.Notes) == "" {
-		state.Notes = types.StringNull()
-	} else {
-		state.Notes = types.StringValue(rec.Notes)
-	}
-
-	state.FolderLocation = utils.ExtractFolderValue(rec.FolderLocation, state.FolderLocation)
+	commonrecordsutils.MapBaseVaultRecord(rec, state.FolderLocation, &state.BaseVaultRecordModel)
 
 	var rbiURL string
 	var settingsConn *utils.PamRemoteBrowserSettingsFieldConnectionResponse

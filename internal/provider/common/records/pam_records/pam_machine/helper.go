@@ -10,6 +10,7 @@ import (
 	"strings"
 
 	commonpamrecords "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/pam_records"
+	commonrecordsutils "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/utils"
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/utils"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -88,34 +89,21 @@ func RecordUpdateHasMutations(plan, state PamMachineResourceModel) bool {
 		!plan.Notes.Equal(state.Notes)
 }
 
-func setStringOrNull(val string) types.String {
-	if strings.TrimSpace(val) == "" {
-		return types.StringNull()
-	}
-	return types.StringValue(val)
-}
-
 // MapVaultRecordGetResponseToPamMachineModel fills state from `get <uid> --format json` payload.
 func MapVaultRecordGetResponseToPamMachineModel(rec *utils.VaultRecordGetResponse, state *PamMachineResourceModel) diag.Diagnostics {
 	var diags diag.Diagnostics
 
-	if strings.TrimSpace(rec.RecordUID) != "" {
-		state.Id = types.StringValue(strings.TrimSpace(rec.RecordUID))
-	}
-	state.Title = setStringOrNull(rec.Title)
-	state.Notes = setStringOrNull(rec.Notes)
-
-	state.FolderLocation = utils.ExtractFolderValue(rec.FolderLocation, state.FolderLocation)
+	commonrecordsutils.MapBaseVaultRecord(rec, state.FolderLocation, &state.BaseVaultRecordModel)
 
 	// pamHostname field
 	state.HostnameOrIP = ExtractPamHostnameFieldValue(rec.Fields)
 
 	// Text fields extracted by label
-	state.OperatingSystem = setStringOrNull(commonpamrecords.ExtractFirstTextFieldValue(rec.Fields, "operatingSystem"))
-	state.InstanceName = setStringOrNull(commonpamrecords.ExtractFirstTextFieldValue(rec.Fields, "instanceName"))
-	state.InstanceId = setStringOrNull(commonpamrecords.ExtractFirstTextFieldValue(rec.Fields, "instanceId"))
-	state.ProviderGroup = setStringOrNull(commonpamrecords.ExtractFirstTextFieldValue(rec.Fields, "providerGroup"))
-	state.ProviderRegion = setStringOrNull(commonpamrecords.ExtractFirstTextFieldValue(rec.Fields, "providerRegion"))
+	state.OperatingSystem = utils.StringOrNull(commonpamrecords.ExtractFirstTextFieldValue(rec.Fields, "operatingSystem"))
+	state.InstanceName = utils.StringOrNull(commonpamrecords.ExtractFirstTextFieldValue(rec.Fields, "instanceName"))
+	state.InstanceId = utils.StringOrNull(commonpamrecords.ExtractFirstTextFieldValue(rec.Fields, "instanceId"))
+	state.ProviderGroup = utils.StringOrNull(commonpamrecords.ExtractFirstTextFieldValue(rec.Fields, "providerGroup"))
+	state.ProviderRegion = utils.StringOrNull(commonpamrecords.ExtractFirstTextFieldValue(rec.Fields, "providerRegion"))
 
 	state.PamSettings = commonpamrecords.ExtractMachineDirectoryPamSettingsFromResponse(rec, state.PamSettings)
 
@@ -135,7 +123,7 @@ func ExtractPamHostnameFieldValue(fields []utils.VaultRecordFieldResponse) *comm
 		}
 		if len(vals) > 0 {
 			model := &commonpamrecords.HostnameOrIPModel{
-				HostName: setStringOrNull(vals[0].HostName),
+				HostName: utils.StringOrNull(vals[0].HostName),
 			}
 			portStr := strings.TrimSpace(vals[0].AdministrativePort)
 			if portStr != "" {

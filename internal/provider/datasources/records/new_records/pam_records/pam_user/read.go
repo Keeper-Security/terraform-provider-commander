@@ -9,8 +9,8 @@ import (
 	"strings"
 
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/new_share"
-	commonpamrecords "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/pam_records"
 	commonpamuser "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/pam_records/pam_user"
+	commonrecordsutils "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/utils"
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/utils"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 )
@@ -40,7 +40,7 @@ func (d *PamUserDataSource) Read(ctx context.Context, req datasource.ReadRequest
 	}
 
 	// Phase 1: fetch the vault record
-	apiResp, err := commonpamrecords.FetchVaultRecord(ctx, d.ApiManager, recordUID)
+	apiResp, err := commonrecordsutils.FetchVaultRecord(ctx, d.ApiManager, recordUID)
 	if err != nil {
 		resp.Diagnostics.AddError(errSummaryReadPamUserDataSource, err.Error())
 		return

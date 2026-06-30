@@ -16,13 +16,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
-func FetchVaultRecord(ctx context.Context, apiManager *api.ApiManager, recordUID string) (*api.RequestResultResponse, error) {
-	command := fmt.Sprintf("%s '%s' %s %s", utils.CmdGet, recordUID, utils.FlagFormatJSON, utils.FlagIncludeDag)
-	apiResp, err := apiManager.ExecuteCommand(ctx, command, utils.ErrSummaryFetchVaultRecordFailed)
-
-	return apiResp, err
-}
-
 // ExtractFirstTextFieldValue finds a field with type "text" and the given label,
 // then returns the first string from its value array. Returns "" if not found.
 // Reusable across pamMachine, pamDatabase, pamDirectory, etc.
@@ -41,21 +34,6 @@ func ExtractFirstTextFieldValue(fields []utils.VaultRecordFieldResponse, label s
 		}
 	}
 	return ""
-}
-
-func MoveRecordFromSourceToDestination(ctx context.Context, apiManager *api.ApiManager, recordUID string, planFolderData string, stateFolderData string) error {
-	if planFolderData == stateFolderData {
-		return nil
-	}
-
-	dest := planFolderData
-	if dest == "" {
-		dest = "/"
-	}
-
-	command := fmt.Sprintf("%s '%s' '%s' %s", utils.CmdMv, recordUID, dest, utils.FlagForce)
-	_, err := apiManager.ExecuteCommand(ctx, command, utils.ErrSummaryMoveRecordFailed)
-	return err
 }
 
 // ExtractPamSettingsFromResponse reads pamSettings from the API response and
@@ -419,18 +397,18 @@ func extractKubernetesFromResponse(
 		k8s.UseSSL = optionalBoolValue(k8sConn.UseSSL)
 		k8s.IgnoreCert = optionalBoolValue(k8sConn.IgnoreCert)
 		k8s.ReadOnly = optionalBoolValue(k8sConn.ReadOnly)
-		k8s.CaCert = setStringOrNull(k8sConn.CaCert)
-		k8s.ClientCert = setStringOrNull(k8sConn.ClientCert)
-		k8s.ClientKey = setStringOrNull(k8sConn.ClientKey)
-		k8s.Namespace = setStringOrNull(k8sConn.Namespace)
-		k8s.Pod = setStringOrNull(k8sConn.Pod)
-		k8s.Container = setStringOrNull(k8sConn.Container)
-		k8s.Command = setStringOrNull(k8sConn.Command)
-		k8s.ColorScheme = setStringOrNull(k8sConn.ColorScheme)
-		k8s.FontName = setStringOrNull(k8sConn.FontName)
+		k8s.CaCert = utils.StringOrNull(k8sConn.CaCert)
+		k8s.ClientCert = utils.StringOrNull(k8sConn.ClientCert)
+		k8s.ClientKey = utils.StringOrNull(k8sConn.ClientKey)
+		k8s.Namespace = utils.StringOrNull(k8sConn.Namespace)
+		k8s.Pod = utils.StringOrNull(k8sConn.Pod)
+		k8s.Container = utils.StringOrNull(k8sConn.Container)
+		k8s.Command = utils.StringOrNull(k8sConn.Command)
+		k8s.ColorScheme = utils.StringOrNull(k8sConn.ColorScheme)
+		k8s.FontName = utils.StringOrNull(k8sConn.FontName)
 		k8s.FontSize = parseStringToInt32(k8sConn.FontSize)
 		k8s.Scrollback = types.Int32Value(int32(k8sConn.Scrollback))
-		k8s.Backspace = setStringOrNull(k8sConn.Backspace)
+		k8s.Backspace = utils.StringOrNull(k8sConn.Backspace)
 	}
 
 	return k8s
@@ -466,9 +444,9 @@ func extractDatabaseConnectionFromResponse(dbConn *utils.DatabaseConnectionRespo
 	db.DisablePaste = optionalBoolValueWithDefault(dbConn.DisablePaste)
 	db.DisableCsvExport = optionalBoolValueWithDefault(dbConn.DisableCsvExport)
 	db.DisableCsvImport = optionalBoolValueWithDefault(dbConn.DisableCsvImport)
-	db.Database = setStringOrNull(dbConn.Database)
-	db.ColorScheme = setStringOrNull(dbConn.ColorScheme)
-	db.FontName = setStringOrNull(dbConn.FontName)
+	db.Database = utils.StringOrNull(dbConn.Database)
+	db.ColorScheme = utils.StringOrNull(dbConn.ColorScheme)
+	db.FontName = utils.StringOrNull(dbConn.FontName)
 	db.FontSize = parseStringToInt32(dbConn.FontSize)
 	db.Scrollback = types.Int32Value(int32(dbConn.Scrollback))
 
@@ -503,7 +481,7 @@ func extractMariaDbOracleDatabaseConnectionFromResponse(dbConn *utils.DatabaseCo
 	db.DisablePaste = optionalBoolValueWithDefault(dbConn.DisablePaste)
 	db.DisableCsvExport = optionalBoolValueWithDefault(dbConn.DisableCsvExport)
 	db.DisableCsvImport = optionalBoolValueWithDefault(dbConn.DisableCsvImport)
-	db.Database = setStringOrNull(dbConn.Database)
+	db.Database = utils.StringOrNull(dbConn.Database)
 
 	return db
 }
@@ -576,19 +554,19 @@ func extractRdpConnectionFromResponse(rdpConn *utils.RdpConnectionResponse, pamE
 	rdp.DisableCopy = optionalBoolValueWithDefault(rdpConn.DisableCopy)
 	rdp.DisablePaste = optionalBoolValueWithDefault(rdpConn.DisablePaste)
 
-	rdp.NormalizeClipboard = setStringOrNull(rdpConn.NormalizeClipboard)
-	rdp.Security = setStringOrNull(rdpConn.Security)
-	rdp.LoadBalanceInfo = setStringOrNull(rdpConn.LoadBalanceInfo)
-	rdp.PreconnectionId = setStringOrNull(rdpConn.PreconnectionId)
-	rdp.PreconnectionBlob = setStringOrNull(rdpConn.PreconnectionBlob)
-	rdp.RedirectedPrinterName = setStringOrNull(rdpConn.RedirectedPrinterName)
-	rdp.RemoteApp = setStringOrNull(rdpConn.RemoteApp)
-	rdp.RemoteAppDir = setStringOrNull(rdpConn.RemoteAppDir)
-	rdp.RemoteAppArgs = setStringOrNull(rdpConn.RemoteAppArgs)
-	rdp.Timezone = setStringOrNull(rdpConn.Timezone)
-	rdp.ClientName = setStringOrNull(rdpConn.ClientName)
-	rdp.InitialProgram = setStringOrNull(rdpConn.InitialProgram)
-	rdp.DriveRedirectionMode = setStringOrNull(rdpConn.DriveRedirectionPath)
+	rdp.NormalizeClipboard = utils.StringOrNull(rdpConn.NormalizeClipboard)
+	rdp.Security = utils.StringOrNull(rdpConn.Security)
+	rdp.LoadBalanceInfo = utils.StringOrNull(rdpConn.LoadBalanceInfo)
+	rdp.PreconnectionId = utils.StringOrNull(rdpConn.PreconnectionId)
+	rdp.PreconnectionBlob = utils.StringOrNull(rdpConn.PreconnectionBlob)
+	rdp.RedirectedPrinterName = utils.StringOrNull(rdpConn.RedirectedPrinterName)
+	rdp.RemoteApp = utils.StringOrNull(rdpConn.RemoteApp)
+	rdp.RemoteAppDir = utils.StringOrNull(rdpConn.RemoteAppDir)
+	rdp.RemoteAppArgs = utils.StringOrNull(rdpConn.RemoteAppArgs)
+	rdp.Timezone = utils.StringOrNull(rdpConn.Timezone)
+	rdp.ClientName = utils.StringOrNull(rdpConn.ClientName)
+	rdp.InitialProgram = utils.StringOrNull(rdpConn.InitialProgram)
+	rdp.DriveRedirectionMode = utils.StringOrNull(rdpConn.DriveRedirectionPath)
 
 	// resizeMethod is coupled to the UI's "Disable Dynamic Resizing" checkbox,
 	// which is not a real API field. When that checkbox is enabled in the UI,
@@ -628,9 +606,9 @@ func extractRdpConnectionFromResponse(rdpConn *utils.RdpConnectionResponse, pamE
 func extractSftpFromResponse(s *utils.SftpResponse) *ConnectionSftpModel {
 	sftp := &ConnectionSftpModel{}
 	sftp.EnableSftp = optionalBoolValue(s.EnableSftp)
-	sftp.SftpResourceUid = setStringOrNull(s.SftpResourceUid)
-	sftp.SftpUserUid = setStringOrNull(s.SftpUserUid)
-	sftp.SftpDirectory = setStringOrNull(s.SftpDirectory)
+	sftp.SftpResourceUid = utils.StringOrNull(s.SftpResourceUid)
+	sftp.SftpUserUid = utils.StringOrNull(s.SftpUserUid)
+	sftp.SftpDirectory = utils.StringOrNull(s.SftpDirectory)
 	if s.SftpServerAliveInterval > 0 {
 		sftp.SftpServerAliveInterval = types.Int32Value(int32(s.SftpServerAliveInterval))
 	} else {
@@ -651,13 +629,6 @@ func optionalBoolValue(b *bool) types.Bool {
 		return types.BoolNull()
 	}
 	return types.BoolValue(*b)
-}
-
-func setStringOrNull(val string) types.String {
-	if strings.TrimSpace(val) == "" {
-		return types.StringNull()
-	}
-	return types.StringValue(val)
 }
 
 // extractAdminCredential returns the adminCredential value from
@@ -1340,25 +1311,25 @@ func extractSshConnectionFromResponse(sshConn *utils.SshConnectionResponse, pamE
 	ssh.ReadOnly = optionalBoolValue(sshConn.ReadOnly)
 	ssh.DisableCopy = optionalBoolValueWithDefault(sshConn.DisableCopy)
 	ssh.DisablePaste = optionalBoolValueWithDefault(sshConn.DisablePaste)
-	ssh.ColorScheme = setStringOrNull(sshConn.ColorScheme)
-	ssh.FontName = setStringOrNull(sshConn.FontName)
+	ssh.ColorScheme = utils.StringOrNull(sshConn.ColorScheme)
+	ssh.FontName = utils.StringOrNull(sshConn.FontName)
 	ssh.FontSize = parseStringToInt32(sshConn.FontSize)
 	if sshConn.Scrollback > 0 {
 		ssh.Scrollback = types.Int32Value(int32(sshConn.Scrollback))
 	} else {
 		ssh.Scrollback = types.Int32Null()
 	}
-	ssh.HostKey = setStringOrNull(sshConn.HostKey)
-	ssh.Command = setStringOrNull(sshConn.Command)
-	ssh.Locale = setStringOrNull(sshConn.Locale)
-	ssh.Timezone = setStringOrNull(sshConn.Timezone)
+	ssh.HostKey = utils.StringOrNull(sshConn.HostKey)
+	ssh.Command = utils.StringOrNull(sshConn.Command)
+	ssh.Locale = utils.StringOrNull(sshConn.Locale)
+	ssh.Timezone = utils.StringOrNull(sshConn.Timezone)
 	if sshConn.ServerAliveInterval > 0 {
 		ssh.ServerAliveInterval = types.Int32Value(int32(sshConn.ServerAliveInterval))
 	} else {
 		ssh.ServerAliveInterval = types.Int32Null()
 	}
-	ssh.Backspace = setStringOrNull(sshConn.Backspace)
-	ssh.TerminalType = setStringOrNull(sshConn.TerminalType)
+	ssh.Backspace = utils.StringOrNull(sshConn.Backspace)
+	ssh.TerminalType = utils.StringOrNull(sshConn.TerminalType)
 
 	if sshConn.Sftp != nil {
 		ssh.Sftp = &ConnectionSshSftpModel{
@@ -1439,20 +1410,20 @@ func extractTelnetConnectionFromResponse(telnetConn *utils.TelnetConnectionRespo
 	telnet.ReadOnly = optionalBoolValue(telnetConn.ReadOnly)
 	telnet.DisableCopy = optionalBoolValueWithDefault(telnetConn.DisableCopy)
 	telnet.DisablePaste = optionalBoolValueWithDefault(telnetConn.DisablePaste)
-	telnet.ColorScheme = setStringOrNull(telnetConn.ColorScheme)
-	telnet.FontName = setStringOrNull(telnetConn.FontName)
+	telnet.ColorScheme = utils.StringOrNull(telnetConn.ColorScheme)
+	telnet.FontName = utils.StringOrNull(telnetConn.FontName)
 	telnet.FontSize = parseStringToInt32(telnetConn.FontSize)
 	if telnetConn.Scrollback > 0 {
 		telnet.Scrollback = types.Int32Value(int32(telnetConn.Scrollback))
 	} else {
 		telnet.Scrollback = types.Int32Null()
 	}
-	telnet.UsernameRegex = setStringOrNull(telnetConn.UsernameRegex)
-	telnet.PasswordRegex = setStringOrNull(telnetConn.PasswordRegex)
-	telnet.LoginSuccessRegex = setStringOrNull(telnetConn.LoginSuccessRegex)
-	telnet.LoginFailureRegex = setStringOrNull(telnetConn.LoginFailureRegex)
-	telnet.Backspace = setStringOrNull(telnetConn.Backspace)
-	telnet.TerminalType = setStringOrNull(telnetConn.TerminalType)
+	telnet.UsernameRegex = utils.StringOrNull(telnetConn.UsernameRegex)
+	telnet.PasswordRegex = utils.StringOrNull(telnetConn.PasswordRegex)
+	telnet.LoginSuccessRegex = utils.StringOrNull(telnetConn.LoginSuccessRegex)
+	telnet.LoginFailureRegex = utils.StringOrNull(telnetConn.LoginFailureRegex)
+	telnet.Backspace = utils.StringOrNull(telnetConn.Backspace)
+	telnet.TerminalType = utils.StringOrNull(telnetConn.TerminalType)
 
 	return telnet
 }
@@ -1538,11 +1509,11 @@ func extractVncConnectionFromResponse(vncConn *utils.VncConnectionResponse, pamE
 	vnc.SwapRedBlue = optionalBoolValue(vncConn.SwapRedBlue)
 	vnc.ForceLossless = optionalBoolValue(vncConn.ForceLossless)
 	vnc.EnableAudio = optionalBoolValue(vncConn.EnableAudio)
-	vnc.AudioServername = setStringOrNull(vncConn.AudioServername)
-	vnc.DestHost = setStringOrNull(vncConn.DestHost)
+	vnc.AudioServername = utils.StringOrNull(vncConn.AudioServername)
+	vnc.DestHost = utils.StringOrNull(vncConn.DestHost)
 	vnc.DestPort = parseStringToInt32(vncConn.DestPort)
-	vnc.ClipboardEncoding = setStringOrNull(vncConn.ClipboardEncoding)
-	vnc.Cursor = setStringOrNull(vncConn.Cursor)
+	vnc.ClipboardEncoding = utils.StringOrNull(vncConn.ClipboardEncoding)
+	vnc.Cursor = utils.StringOrNull(vncConn.Cursor)
 
 	if strings.TrimSpace(vncConn.ColorDepth) != "" {
 		vnc.ColorDepth = parseStringToInt32(vncConn.ColorDepth)

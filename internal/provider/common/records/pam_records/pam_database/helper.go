@@ -10,6 +10,7 @@ import (
 	"strings"
 
 	commonpamrecords "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/pam_records"
+	commonrecordsutils "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/utils"
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/utils"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -98,31 +99,18 @@ func appendOptionalDatabaseTypeField(parts *[]string, v types.String) {
 	*parts = append(*parts, fmt.Sprintf("'%s=%s'", FlagDatabaseType, v.ValueString()))
 }
 
-func setStringOrNull(val string) types.String {
-	if strings.TrimSpace(val) == "" {
-		return types.StringNull()
-	}
-	return types.StringValue(val)
-}
-
 // MapVaultRecordGetResponseToPamDatabaseModel fills state from `get <uid> --format json` payload.
 func MapVaultRecordGetResponseToPamDatabaseModel(rec *utils.VaultRecordGetResponse, state *PamDatabaseResourceModel) diag.Diagnostics {
 	var diags diag.Diagnostics
 
-	if strings.TrimSpace(rec.RecordUID) != "" {
-		state.Id = types.StringValue(strings.TrimSpace(rec.RecordUID))
-	}
-	state.Title = setStringOrNull(rec.Title)
-	state.Notes = setStringOrNull(rec.Notes)
-
-	state.FolderLocation = utils.ExtractFolderValue(rec.FolderLocation, state.FolderLocation)
+	commonrecordsutils.MapBaseVaultRecord(rec, state.FolderLocation, &state.BaseVaultRecordModel)
 
 	state.HostnameOrIP = ExtractPamHostnameFieldValue(rec.Fields)
 	state.UseSSL = extractCheckboxFieldValue(rec.Fields, "useSSL")
-	state.DatabaseId = setStringOrNull(commonpamrecords.ExtractFirstTextFieldValue(rec.Fields, "databaseId"))
+	state.DatabaseId = utils.StringOrNull(commonpamrecords.ExtractFirstTextFieldValue(rec.Fields, "databaseId"))
 	state.DatabaseType = extractDatabaseTypeFieldValue(rec.Fields)
-	state.ProviderGroup = setStringOrNull(commonpamrecords.ExtractFirstTextFieldValue(rec.Fields, "providerGroup"))
-	state.ProviderRegion = setStringOrNull(commonpamrecords.ExtractFirstTextFieldValue(rec.Fields, "providerRegion"))
+	state.ProviderGroup = utils.StringOrNull(commonpamrecords.ExtractFirstTextFieldValue(rec.Fields, "providerGroup"))
+	state.ProviderRegion = utils.StringOrNull(commonpamrecords.ExtractFirstTextFieldValue(rec.Fields, "providerRegion"))
 
 	state.PamSettings = commonpamrecords.ExtractDatabasePamSettingsFromResponse(rec, state.PamSettings)
 
@@ -142,7 +130,7 @@ func ExtractPamHostnameFieldValue(fields []utils.VaultRecordFieldResponse) *comm
 		}
 		if len(vals) > 0 {
 			model := &commonpamrecords.HostnameOrIPModel{
-				HostName: setStringOrNull(vals[0].HostName),
+				HostName: utils.StringOrNull(vals[0].HostName),
 			}
 			portStr := strings.TrimSpace(vals[0].AdministrativePort)
 			if portStr != "" {
@@ -190,7 +178,7 @@ func extractDatabaseTypeFieldValue(fields []utils.VaultRecordFieldResponse) type
 			return types.StringNull()
 		}
 		if len(vals) > 0 {
-			return setStringOrNull(vals[0])
+			return utils.StringOrNull(vals[0])
 		}
 	}
 	return types.StringNull()

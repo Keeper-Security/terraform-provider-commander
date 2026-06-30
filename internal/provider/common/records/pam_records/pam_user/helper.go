@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	commonpamrecords "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/pam_records"
+	commonrecordsutils "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/utils"
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/utils"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
@@ -130,13 +131,7 @@ const (
 // MapVaultRecordToState maps a `get <uid> --format json` response onto the
 // shared PAM User model.
 func MapVaultRecordToState(rec *utils.VaultRecordGetResponse, state *PamUserSharedModel) {
-	if strings.TrimSpace(rec.RecordUID) != "" {
-		state.Id = types.StringValue(strings.TrimSpace(rec.RecordUID))
-	}
-
-	state.Title = stringOrNull(rec.Title)
-	state.Notes = stringOrNull(rec.Notes)
-	state.FolderLocation = utils.ExtractFolderValue(rec.FolderLocation, state.FolderLocation)
+	commonrecordsutils.MapBaseVaultRecord(rec, state.FolderLocation, &state.BaseVaultRecordModel)
 
 	for i := range rec.Fields {
 		f := &rec.Fields[i]
@@ -168,13 +163,6 @@ func MapVaultRecordToState(rec *utils.VaultRecordGetResponse, state *PamUserShar
 			}
 		}
 	}
-}
-
-func stringOrNull(s string) types.String {
-	if strings.TrimSpace(s) == "" {
-		return types.StringNull()
-	}
-	return types.StringValue(s)
 }
 
 func firstStringValue(raw json.RawMessage) types.String {
