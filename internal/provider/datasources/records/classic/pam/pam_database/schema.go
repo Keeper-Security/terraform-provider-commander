@@ -7,7 +7,6 @@ import (
 	"context"
 
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/classic_share"
-	commonpamrecords "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/pam"
 	commonpamdatabase "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/pam/pam_database"
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/utils"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
@@ -18,75 +17,16 @@ func (d *PamDatabaseDataSource) Schema(ctx context.Context, req datasource.Schem
 	resp.Schema = dschema.Schema{
 		Description:         "Use this data source to look up a classic PAM database record by UID.",
 		MarkdownDescription: "Use this data source to look up a **classic PAM database** record by **UID**.",
-		Attributes: utils.MergeDataSourceAttributes(map[string]dschema.Attribute{
-			"pam_database": dschema.StringAttribute{
-				Required:            true,
-				Description:         "PAM database record UID to read.",
-				MarkdownDescription: "PAM database record **UID** to read.",
-			},
-			"id": dschema.StringAttribute{
-				Computed:            true,
-				Description:         commonpamdatabase.IDDescription,
-				MarkdownDescription: commonpamdatabase.IDMarkdownDescription,
-			},
-			"title": dschema.StringAttribute{
-				Computed:            true,
-				Description:         commonpamdatabase.TitleDescription,
-				MarkdownDescription: commonpamdatabase.TitleMarkdownDescription,
-			},
-			"hostname_or_ip": dschema.SingleNestedAttribute{
-				Computed:            true,
-				Description:         commonpamdatabase.HostnameOrIPDescription,
-				MarkdownDescription: commonpamdatabase.HostnameOrIPMarkdownDescription,
-				Attributes: map[string]dschema.Attribute{
-					"hostname": dschema.StringAttribute{
-						Computed:            true,
-						Description:         commonpamdatabase.HostNameDescription,
-						MarkdownDescription: commonpamdatabase.HostNameMarkdownDescription,
-					},
-					"administrative_port": dschema.Int32Attribute{
-						Computed:            true,
-						Description:         commonpamdatabase.PortDescription,
-						MarkdownDescription: commonpamdatabase.PortMarkdownDescription,
-					},
+		Attributes: utils.MergeDataSourceAttributes(
+			map[string]dschema.Attribute{
+				"pam_database": dschema.StringAttribute{
+					Required:            true,
+					Description:         "PAM database record UID to read.",
+					MarkdownDescription: "PAM database record **UID** to read.",
 				},
 			},
-			"use_ssl": dschema.BoolAttribute{
-				Computed:            true,
-				Description:         commonpamdatabase.UseSSLDescription,
-				MarkdownDescription: commonpamdatabase.UseSSLMarkdownDescription,
-			},
-			"database_id": dschema.StringAttribute{
-				Computed:            true,
-				Description:         commonpamdatabase.DatabaseIdDescription,
-				MarkdownDescription: commonpamdatabase.DatabaseIdMarkdownDescription,
-			},
-			"database_type": dschema.StringAttribute{
-				Computed:            true,
-				Description:         commonpamdatabase.DatabaseTypeDescription,
-				MarkdownDescription: commonpamdatabase.DatabaseTypeMarkdownDescription,
-			},
-			"provider_group": dschema.StringAttribute{
-				Computed:            true,
-				Description:         commonpamdatabase.ProviderGroupDescription,
-				MarkdownDescription: commonpamdatabase.ProviderGroupMarkdownDescription,
-			},
-			"provider_region": dschema.StringAttribute{
-				Computed:            true,
-				Description:         commonpamdatabase.ProviderRegionDescription,
-				MarkdownDescription: commonpamdatabase.ProviderRegionMarkdownDescription,
-			},
-			"notes": dschema.StringAttribute{
-				Computed:            true,
-				Description:         commonpamdatabase.NotesDescription,
-				MarkdownDescription: commonpamdatabase.NotesMarkdownDescription,
-			},
-			"folder_location": dschema.StringAttribute{
-				Computed:            true,
-				Description:         commonpamdatabase.FolderDescription,
-				MarkdownDescription: commonpamdatabase.FolderMarkdownDescription,
-			},
-			"pam_settings": commonpamrecords.CommonPamSettingsDataSourceAttribute(commonpamrecords.DatabaseProtocols),
-		}, classic_share.DataSourceShareAttribute()),
+			commonpamdatabase.SharedDataSourceAttributes(),
+			classic_share.DataSourceShareAttribute(),
+		),
 	}
 }

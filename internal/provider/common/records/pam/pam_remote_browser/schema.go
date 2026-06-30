@@ -6,6 +6,7 @@ package pamremotebrowser
 import (
 	pamrecords "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/pam"
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/utils"
+	dschema "github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int32default"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64default"
@@ -205,6 +206,154 @@ func SharedAttributes() map[string]schema.Attribute {
 					MarkdownDescription: pamrecords.ConnectionAllowSupplyUserMarkdownDescription,
 				},
 			},
+		},
+	}
+}
+
+// SharedDataSourceAttributes returns computed PAM Remote Browser data source
+// attributes shared between classic and new data sources. Callers add the lookup
+// key (e.g. remote_browser) and share-extension attributes separately.
+func SharedDataSourceAttributes() map[string]dschema.Attribute {
+	return map[string]dschema.Attribute{
+		"id": dschema.StringAttribute{
+			Computed:            true,
+			Description:         IDDescription,
+			MarkdownDescription: IDMarkdownDescription,
+		},
+		"title": dschema.StringAttribute{
+			Computed:            true,
+			Description:         TitleDescription,
+			MarkdownDescription: TitleMarkdownDescription,
+		},
+		"url": dschema.StringAttribute{
+			Computed:            true,
+			Description:         URLDescription,
+			MarkdownDescription: URLMarkdownDescription,
+		},
+		"notes": dschema.StringAttribute{
+			Computed:            true,
+			Description:         NotesDescription,
+			MarkdownDescription: NotesMarkdownDescription,
+		},
+		"folder_location": dschema.StringAttribute{
+			Computed:            true,
+			Description:         FolderDescription,
+			MarkdownDescription: FolderMarkdownDescription,
+		},
+		"pam_remote_browser_settings": dschema.SingleNestedAttribute{
+			Computed:            true,
+			Optional:            true,
+			Description:         PamRemoteBrowserSettingsDescription,
+			MarkdownDescription: PamRemoteBrowserSettingsMarkdownDescription,
+			Attributes:          remoteBrowserRBISettingsDataSourceAttributes(),
+		},
+	}
+}
+
+func remoteBrowserRBISettingsDataSourceAttributes() map[string]dschema.Attribute {
+	return map[string]dschema.Attribute{
+		"configuration": dschema.StringAttribute{
+			Computed:            true,
+			Description:         SettingsConfigurationDescription,
+			MarkdownDescription: SettingsConfigurationMarkdownDescription,
+		},
+		"remote_browser_isolation": dschema.BoolAttribute{
+			Computed:            true,
+			Description:         SettingsRemoteBrowserIsolationDescription,
+			MarkdownDescription: SettingsRemoteBrowserIsolationMarkdownDescription,
+		},
+		"connections_recording": dschema.BoolAttribute{
+			Computed:            true,
+			Description:         SettingsConnectionsRecordingDescription,
+			MarkdownDescription: SettingsConnectionsRecordingMarkdownDescription,
+		},
+		"key_events": dschema.BoolAttribute{
+			Computed:            true,
+			Description:         SettingsKeyEventsDescription,
+			MarkdownDescription: SettingsKeyEventsMarkdownDescription,
+		},
+		"allow_url_navigation": dschema.BoolAttribute{
+			Computed:            true,
+			Description:         SettingsAllowURLNavigationDescription,
+			MarkdownDescription: SettingsAllowURLNavigationMarkdownDescription,
+		},
+		"ignore_server_cert": dschema.BoolAttribute{
+			Computed:            true,
+			Description:         SettingsIgnoreServerCertDescription,
+			MarkdownDescription: SettingsIgnoreServerCertMarkdownDescription,
+		},
+		"allowed_urls": dschema.SetAttribute{
+			Computed:            true,
+			ElementType:         types.StringType,
+			Description:         SettingsAllowedURLsDescription,
+			MarkdownDescription: SettingsAllowedURLsMarkdownDescription,
+		},
+		"allowed_resource_urls": dschema.SetAttribute{
+			Computed:            true,
+			ElementType:         types.StringType,
+			Description:         SettingsAllowedResourceURLsDescription,
+			MarkdownDescription: SettingsAllowedResourceURLsMarkdownDescription,
+		},
+		"auto_fill_targets": dschema.SetAttribute{
+			Computed:            true,
+			ElementType:         types.StringType,
+			Description:         SettingsAutoFillTargetsDescription,
+			MarkdownDescription: SettingsAutoFillTargetsMarkdownDescription,
+		},
+		"auto_fill_credentials": dschema.StringAttribute{
+			Computed:            true,
+			Description:         SettingsAutoFillCredentialsDescription,
+			MarkdownDescription: SettingsAutoFillCredentialsMarkdownDescription,
+		},
+		"allow_copy": dschema.BoolAttribute{
+			Computed:            true,
+			Description:         SettingsAllowCopyDescription,
+			MarkdownDescription: SettingsAllowCopyMarkdownDescription,
+		},
+		"allow_paste": dschema.BoolAttribute{
+			Computed:            true,
+			Description:         SettingsAllowPasteDescription,
+			MarkdownDescription: SettingsAllowPasteMarkdownDescription,
+		},
+		"disable_audio": dschema.BoolAttribute{
+			Computed:            true,
+			Description:         SettingsDisableAudioDescription,
+			MarkdownDescription: SettingsDisableAudioMarkdownDescription,
+		},
+		"audio_channels": dschema.Int32Attribute{
+			Computed:            true,
+			Description:         SettingsAudioChannelsDescription,
+			MarkdownDescription: SettingsAudioChannelsMarkdownDescription,
+		},
+		"audio_bit_depth": dschema.Int64Attribute{
+			Computed:            true,
+			Description:         SettingsAudioBitDepthDescription,
+			MarkdownDescription: SettingsAudioBitDepthMarkdownDescription,
+		},
+		"audio_sample_rate": dschema.Int64Attribute{
+			Computed:            true,
+			Description:         SettingsAudioSampleRateDescription,
+			MarkdownDescription: SettingsAudioSampleRateMarkdownDescription,
+		},
+		"session_persistence": dschema.StringAttribute{
+			Computed:            true,
+			Description:         SettingsSessionPersistenceDescription,
+			MarkdownDescription: SettingsSessionPersistenceMarkdownDescription,
+		},
+		"allow_file_uploads": dschema.BoolAttribute{
+			Computed:            true,
+			Description:         SettingsAllowFileUploadsDescription,
+			MarkdownDescription: SettingsAllowFileUploadsMarkdownDescription,
+		},
+		"allow_file_downloads": dschema.BoolAttribute{
+			Computed:            true,
+			Description:         SettingsAllowFileDownloadsDescription,
+			MarkdownDescription: SettingsAllowFileDownloadsMarkdownDescription,
+		},
+		"allow_supply_user": dschema.BoolAttribute{
+			Computed:            true,
+			Description:         pamrecords.ConnectionAllowSupplyUserDescription,
+			MarkdownDescription: pamrecords.ConnectionAllowSupplyUserMarkdownDescription,
 		},
 	}
 }

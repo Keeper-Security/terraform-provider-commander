@@ -6,6 +6,7 @@ package pamuser
 import (
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/utils"
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/utils/cronvalidate"
+	dschema "github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
@@ -195,6 +196,139 @@ func SharedAttributes() map[string]schema.Attribute {
 						RotationPasswordComplexityValidator(),
 					},
 				},
+			},
+		},
+	}
+}
+
+// SharedDataSourceAttributes returns computed PAM User data source attributes
+// shared between classic and new data sources. Callers add the lookup key
+// (e.g. pam_user) and share-extension attributes separately.
+func SharedDataSourceAttributes() map[string]dschema.Attribute {
+	return map[string]dschema.Attribute{
+		"id": dschema.StringAttribute{
+			Computed:            true,
+			Description:         IDDescription,
+			MarkdownDescription: IDMarkdownDescription,
+		},
+		"title": dschema.StringAttribute{
+			Computed:            true,
+			Description:         TitleDescription,
+			MarkdownDescription: TitleMarkdownDescription,
+		},
+		"login": dschema.StringAttribute{
+			Computed:            true,
+			Description:         LoginDescription,
+			MarkdownDescription: LoginMarkdownDescription,
+		},
+		"password": dschema.StringAttribute{
+			Computed:            true,
+			Sensitive:           true,
+			Description:         PasswordDescription,
+			MarkdownDescription: PasswordMarkdownDescription,
+		},
+		"folder_location": dschema.StringAttribute{
+			Computed:            true,
+			Description:         FolderDescription,
+			MarkdownDescription: FolderMarkdownDescription,
+		},
+		"notes": dschema.StringAttribute{
+			Computed:            true,
+			Description:         NotesDescription,
+			MarkdownDescription: NotesMarkdownDescription,
+		},
+		"distinguished_name": dschema.StringAttribute{
+			Computed:            true,
+			Description:         DistinguishedNameDescription,
+			MarkdownDescription: DistinguishedNameMarkdownDescription,
+		},
+		"private_pem_key": dschema.StringAttribute{
+			Computed:            true,
+			Sensitive:           true,
+			Description:         PrivatePEMKeyDescription,
+			MarkdownDescription: PrivatePEMKeyMarkdownDescription,
+		},
+		"public_key": dschema.StringAttribute{
+			Computed:            true,
+			Sensitive:           true,
+			Description:         PublicKeyDescription,
+			MarkdownDescription: PublicKeyMarkdownDescription,
+		},
+		"private_key_passphrase": dschema.StringAttribute{
+			Computed:            true,
+			Sensitive:           true,
+			Description:         PrivateKeyPassphraseDescription,
+			MarkdownDescription: PrivateKeyPassphraseMarkdownDescription,
+		},
+		"connect_database": dschema.StringAttribute{
+			Computed:            true,
+			Description:         ConnectDatabaseDescription,
+			MarkdownDescription: ConnectDatabaseMarkdownDescription,
+		},
+		"managed": dschema.BoolAttribute{
+			Computed:            true,
+			Description:         ManagedDescription,
+			MarkdownDescription: ManagedMarkdownDescription,
+		},
+		"rotation_settings": rotationSettingsDataSourceAttribute(),
+	}
+}
+
+func rotationSettingsDataSourceAttribute() dschema.SingleNestedAttribute {
+	return dschema.SingleNestedAttribute{
+		Computed:            true,
+		Description:         RotationSettingsDescription,
+		MarkdownDescription: RotationSettingsMarkdownDescription,
+		Attributes: map[string]dschema.Attribute{
+			"rotation_profile": dschema.StringAttribute{
+				Computed:            true,
+				Description:         RotProfileDescription,
+				MarkdownDescription: RotProfileMarkdownDescription,
+			},
+			"configuration": dschema.StringAttribute{
+				Computed:            true,
+				Description:         RotConfigDescription,
+				MarkdownDescription: RotConfigMarkdownDescription,
+			},
+			"resource": dschema.StringAttribute{
+				Computed:            true,
+				Description:         RotResourceDescription,
+				MarkdownDescription: RotResourceMarkdownDescription,
+			},
+			"saas_config": dschema.StringAttribute{
+				Computed:            true,
+				Description:         RotSaaSConfigDescription,
+				MarkdownDescription: RotSaaSConfigMarkdownDescription,
+			},
+			"enabled": dschema.BoolAttribute{
+				Computed:            true,
+				Description:         RotEnabledDescription,
+				MarkdownDescription: RotEnabledMarkdownDescription,
+			},
+			"schedule_cron": dschema.StringAttribute{
+				Computed:            true,
+				Description:         RotScheduleCronDescription,
+				MarkdownDescription: RotScheduleCronMarkdownDescription,
+			},
+			"schedule_json": dschema.StringAttribute{
+				Computed:            true,
+				Description:         RotScheduleJSONDescription,
+				MarkdownDescription: RotScheduleJSONMarkdownDescription,
+			},
+			"on_demand": dschema.BoolAttribute{
+				Computed:            true,
+				Description:         RotOnDemandDescription,
+				MarkdownDescription: RotOnDemandMarkdownDescription,
+			},
+			"schedule_config": dschema.BoolAttribute{
+				Computed:            true,
+				Description:         RotScheduleConfigDescription,
+				MarkdownDescription: RotScheduleConfigMarkdownDescription,
+			},
+			"complexity": dschema.StringAttribute{
+				Computed:            true,
+				Description:         RotComplexityDescription,
+				MarkdownDescription: RotComplexityMarkdownDescription,
 			},
 		},
 	}

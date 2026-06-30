@@ -4,7 +4,9 @@
 package pammachine
 
 import (
+	commonpamrecords "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/pam"
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/utils"
+	dschema "github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
@@ -109,6 +111,81 @@ func SharedAttributes() map[string]schema.Attribute {
 			MarkdownDescription: FolderMarkdownDescription,
 			Validators: []validator.String{
 				utils.StringMinLengthValidator("Folder Location", 1, true),
+			},
+		},
+	}
+}
+
+// SharedDataSourceAttributes returns computed PAM Machine data source attributes
+// shared between classic and new data sources. Callers add the lookup key
+// (e.g. pam_machine) and share-extension attributes separately.
+func SharedDataSourceAttributes() map[string]dschema.Attribute {
+	return map[string]dschema.Attribute{
+		"id": dschema.StringAttribute{
+			Computed:            true,
+			Description:         IDDescription,
+			MarkdownDescription: IDMarkdownDescription,
+		},
+		"title": dschema.StringAttribute{
+			Computed:            true,
+			Description:         TitleDescription,
+			MarkdownDescription: TitleMarkdownDescription,
+		},
+		"hostname_or_ip": hostnameOrIPDataSourceAttribute(),
+		"operating_system": dschema.StringAttribute{
+			Computed:            true,
+			Description:         OperatingSystemDescription,
+			MarkdownDescription: OperatingSystemMarkdownDescription,
+		},
+		"instance_name": dschema.StringAttribute{
+			Computed:            true,
+			Description:         InstanceNameDescription,
+			MarkdownDescription: InstanceNameMarkdownDescription,
+		},
+		"instance_id": dschema.StringAttribute{
+			Computed:            true,
+			Description:         InstanceIdDescription,
+			MarkdownDescription: InstanceIdMarkdownDescription,
+		},
+		"provider_group": dschema.StringAttribute{
+			Computed:            true,
+			Description:         ProviderGroupDescription,
+			MarkdownDescription: ProviderGroupMarkdownDescription,
+		},
+		"provider_region": dschema.StringAttribute{
+			Computed:            true,
+			Description:         ProviderRegionDescription,
+			MarkdownDescription: ProviderRegionMarkdownDescription,
+		},
+		"notes": dschema.StringAttribute{
+			Computed:            true,
+			Description:         NotesDescription,
+			MarkdownDescription: NotesMarkdownDescription,
+		},
+		"folder_location": dschema.StringAttribute{
+			Computed:            true,
+			Description:         FolderDescription,
+			MarkdownDescription: FolderMarkdownDescription,
+		},
+		"pam_settings": commonpamrecords.CommonPamSettingsDataSourceAttribute(commonpamrecords.MachineDirectoryProtocols),
+	}
+}
+
+func hostnameOrIPDataSourceAttribute() dschema.SingleNestedAttribute {
+	return dschema.SingleNestedAttribute{
+		Computed:            true,
+		Description:         HostnameOrIPDescription,
+		MarkdownDescription: HostnameOrIPMarkdownDescription,
+		Attributes: map[string]dschema.Attribute{
+			"hostname": dschema.StringAttribute{
+				Computed:            true,
+				Description:         HostNameDescription,
+				MarkdownDescription: HostNameMarkdownDescription,
+			},
+			"administrative_port": dschema.Int32Attribute{
+				Computed:            true,
+				Description:         PortDescription,
+				MarkdownDescription: PortMarkdownDescription,
 			},
 		},
 	}
