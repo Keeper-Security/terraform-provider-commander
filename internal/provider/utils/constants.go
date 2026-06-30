@@ -8,11 +8,14 @@ const (
 	CmdRecordAdd         = "record-add"
 	CmdRecordUpdate      = "record-update"
 	CmdRecordDelete      = "rm"
-	CmdGetRecord         = "get"
+	CmdGet               = "get"
 	CmdMv                = "mv"
 	CmdShareRecord       = "share-record"
 	CmdPamTunnelEdit     = "pam tunnel edit"
 	CmdPamConnectionEdit = "pam connection edit"
+	CmdNsfGet            = "nsf-get"
+	CmdNsfRecordAdd      = "nsf-record-add"
+	CmdNsfRecordUpdate   = "nsf-record-update"
 )
 
 // Commander CLI command flags.
@@ -32,6 +35,7 @@ const (
 	FlagShare        = "--share"
 	FlagWrite        = "--write"
 	FlagActionRevoke = "--action revoke"
+	FlagOperation    = "--operation"
 )
 
 // PAM tunnel / connection CLI flags.
@@ -48,6 +52,7 @@ const (
 	FlagTypescriptRecording         = "--typescript-recording"
 	FlagKeyEvents                   = "--key-events"
 	FlagProtocol                    = "--protocol"
+	FlagRotateOnTermination         = "--rotate-on-termination"
 	FlagPamSettings                 = "pamSettings"
 )
 

@@ -15,7 +15,7 @@ import (
 type epmPolicyConfigValidator struct{}
 
 func (epmPolicyConfigValidator) Description(ctx context.Context) string {
-	return "Validates fields allowed and required for the policy type and status (e.g. " + commonepm.PolicyTypeLeastPrivilege + " allows only policy name, type, status " + commonepm.StatusDescriptionForLeastPrivilege() + ", machine_collections; elevation/file_access enforce require control and three collections; command enforce requires control and user/machine collections only—applications are never allowed for command). message and require_policy_acknowledgement are only allowed when status is " + commonepm.StatusMonitorAndNotify + "."
+	return "Validates fields allowed and required for the policy type and status (e.g. " + commonepm.PolicyTypeLeastPrivilege + " allows only policy name, type, status " + commonepm.StatusDescriptionForLeastPrivilege() + " and requires machine_collections; elevation/file_access enforce require control and three collections; command enforce requires control and user/machine collections only—applications are never allowed for command). message and require_policy_acknowledgement are only allowed when status is " + commonepm.StatusMonitorAndNotify + "."
 }
 
 func (epmPolicyConfigValidator) MarkdownDescription(ctx context.Context) string {

@@ -213,35 +213,6 @@ func isDecimalDigits(s string) bool {
 	return true
 }
 
-// SharedFolderRecordEntry is one element of the records array from get shared folder --format json.
-type SharedFolderRecordEntry struct {
-	RecordUID  string `json:"record_uid"`
-	RecordName string `json:"record_name"`
-	CanShare   bool   `json:"can_share"`
-	CanEdit    bool   `json:"can_edit"`
-}
-
-// SharedFolderUserEntry is one element of the users array from get shared folder --format json.
-type SharedFolderUserEntry struct {
-	Username      string `json:"username"`
-	UserID        string `json:"user_id"`
-	ManageUsers   bool   `json:"manage_users"`
-	ManageRecords bool   `json:"manage_records"`
-	Expiration    string `json:"expiration"`
-}
-
-// SharedFolderResponse is the data payload from get SHARED_FOLDER_ID --format json.
-type SharedFolderResponse struct {
-	SharedFolderUID string                    `json:"shared_folder_uid"`
-	Path            string                    `json:"path"`
-	ManageUsers     bool                      `json:"manage_users"`
-	ManageRecords   bool                      `json:"manage_records"`
-	CanShare        bool                      `json:"can_share"`
-	CanEdit         bool                      `json:"can_edit"`
-	Records         []SharedFolderRecordEntry `json:"records"`
-	Users           []SharedFolderUserEntry   `json:"users"`
-}
-
 // PamConfigListSharedFolder is the shared_folder object from pam config list --format json.
 type PamConfigListSharedFolder struct {
 	Name string `json:"name"`
@@ -290,6 +261,7 @@ type PamConfigFieldsResponse struct {
 	PamDomainId []string `json:"pamDomainId,omitempty"`
 	UseSSL      []string `json:"useSSL,omitempty"`
 	ScanDCCIDR  []string `json:"scanDCCIDR,omitempty"`
+	UserMatch   []string `json:"userMatch,omitempty"`
 
 	// GCP
 	PamGcpId             []string `json:"pamGcpId,omitempty"`
@@ -321,17 +293,35 @@ type VaultRecordGetResponse struct {
 	PamSettingsEnabled           *PamSettingsEnabledResponse           `json:"pamSettingsEnabled,omitempty"`
 	DagDebug                     *DagDebugResponse                     `json:"dagDebug,omitempty"`
 	AssociatedCredentials        *AssociatedCredentialsResponse        `json:"associatedCredentials,omitempty"`
-	Folder                       *RecordFolderResponse                 `json:"folder,omitempty"`
+	FolderLocation               *FolderLocationResponse               `json:"folder,omitempty"`
 	PamConfigurationUID          string                                `json:"pam_configuration_uid,omitempty"`
 	ConfigurationAllowedSettings *ConfigurationAllowedSettingsResponse `json:"configuration_allowed_settings,omitempty"`
-	UserPermissions              []UserPermissionResponse              `json:"user_permissions,omitempty"`
+	UserPermissions              []UserPermissionEntry                 `json:"user_permissions,omitempty"`
+	RotationProfile              *RotationProfileResponse              `json:"rotationProfile,omitempty"`
 }
 
-// UserPermissionResponse represents a single user permission entry from the API response.
-type UserPermissionResponse struct {
-	Username  string `json:"username"`
-	Shareable bool   `json:"shareable"`
-	Editable  bool   `json:"editable"`
+// UserPermissionEntry is one element of the API response's user_permissions +
+// team_permissions arrays. The same JSON array key (`user_permissions` / `team_permissions`) is returned in two
+// different shapes depending on the record style:
+//
+// UserPermissionEntry is used in classic records and new folder and record.
+//
+//	Classic Record user_permissions attribute: {username, shareable, editable}
+//	NSF Folder user_permissions/team_permissions attribute: accessor, access_type, role
+//	NSF Record user_permissions attribute: username, shareable, editable, role
+//
+// All fields use `omitempty` so each helper sees zero values for the
+// irrelevant shape and naturally filters them out.
+// new_share.UserPermissionEntry and classic_share.UserPermissionEntry both
+// alias this type.
+type UserPermissionEntry struct {
+	Accessor   string `json:"accessor,omitempty"`
+	AccessType string `json:"access_type,omitempty"`
+	Role       string `json:"role,omitempty"`
+	Username   string `json:"username,omitempty"`
+	Shareable  bool   `json:"shareable,omitempty"` // This is for classic records only
+	Editable   bool   `json:"editable,omitempty"`  // This is for classic records only
+	Owner      bool   `json:"owner,omitempty"`     // This is for classic records only
 }
 
 // ConfigurationAllowedSettingsResponse maps the configuration_allowed_settings object from the API response.
@@ -340,7 +330,15 @@ type ConfigurationAllowedSettingsResponse struct {
 	RemoteBrowserIsolation bool `json:"remote_browser_isolation"`
 }
 
-type RecordFolderResponse struct {
+/*
+FolderLocationResponse is struct of folder field that is returned by the API response for get <record/folder> --format json.
+Which consists of uid and path where record/folder is located.
+
+To use this struct in type of api response of folder and record response like:
+
+folder type FolderLocationResponse  'json:"folder"'.
+*/
+type FolderLocationResponse struct {
 	UID  string `json:"uid"`
 	Path string `json:"path"`
 }
@@ -357,6 +355,28 @@ type PamSettingsEnabledResponse struct {
 type DagDebugResponse struct {
 	VertexContent *DagDebugVertexContentResponse `json:"vertex_content,omitempty"`
 	AllEdges      []DagDebugEdgeResponse         `json:"all_edges,omitempty"`
+	ParentAclEdge *DagDebugParentAclEdgeResponse `json:"parentAclEdge,omitempty"`
+}
+
+type DagDebugParentAclEdgeResponse struct {
+	ParentUID  string                                `json:"parent_uid,omitempty"`
+	ParentType string                                `json:"parent_type,omitempty"`
+	Content    *DagDebugParentAclEdgeContentResponse `json:"content,omitempty"`
+}
+
+type DagDebugParentAclEdgeContentResponse struct {
+	RotationSettings *DagDebugParentAclEdgeContentRotationSettingsResponse `json:"rotation_settings,omitempty"`
+}
+
+type DagDebugParentAclEdgeContentRotationSettingsResponse struct {
+	Noop              bool     `json:"noop,omitempty"`
+	SaaSRecordUIDList []string `json:"saas_record_uid_list,omitempty"`
+}
+
+type RotationProfileResponse struct {
+	Type             string `json:"type"`
+	ResourceUID      string `json:"resourceUid"`
+	ConfigurationUID string `json:"configUid"`
 }
 
 type DagDebugEdgeResponse struct {
@@ -480,6 +500,7 @@ type RdpConnectionResponse struct {
 	ServerLayout             string        `json:"serverLayout"`
 	DisableCopy              *bool         `json:"disableCopy"`
 	DisablePaste             *bool         `json:"disablePaste"`
+	DriveRedirectionPath     string        `json:"driveRedirectionPath"`
 }
 
 // SftpResponse is the shared SFTP nested block used by RDP and VNC.
@@ -614,6 +635,10 @@ type PamRemoteBrowserSettingsFieldConnectionResponse struct {
 	AudioChannels              int    `json:"audioChannels"`
 	AudioBps                   int    `json:"audioBps"`
 	AudioSampleRate            int    `json:"audioSampleRate"`
+	SessionPersistence         string `json:"sessionPersistence"`
+	AllowFileUploads           bool   `json:"allowFileUploads"`
+	AllowFileDownloads         bool   `json:"allowFileDownloads"`
+	AllowSupplyUser            bool   `json:"allowSupplyUser"`
 }
 
 // PamRemoteBrowserSettingsFieldResponse is one element of the pamRemoteBrowserSettings field value array.

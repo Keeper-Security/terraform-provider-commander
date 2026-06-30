@@ -60,3 +60,6 @@ terraform-provider-commander
 
 # Claude Code local settings
 .claude/
+
+# Cursor settings
+.cursor/

@@ -169,8 +169,8 @@ const (
 
 	// AWS.
 
-	DescAwsId   = "A unique id for the instance of AWS."
-	DescAwsIdMD = "A `Unique ID` for the instance of AWS."
+	DescAwsId   = "A unique id for the instance of AWS. Required"
+	DescAwsIdMD = "A `Unique ID` for the instance of AWS. **Required**"
 
 	DescAccessKeyId   = "From an IAM user account, the Access key ID from the desired Access key."
 	DescAccessKeyIdMD = "From an IAM user account, the `Access key ID` from the desired Access key."
@@ -183,20 +183,20 @@ const (
 
 	// Azure.
 
-	DescAzureId   = "A unique id for your instance of Azure."
-	DescAzureIdMD = "A `Unique ID` for your instance of Azure."
+	DescAzureId   = "A Entra ID for your instance of Azure. Required"
+	DescAzureIdMD = "A `Entra ID` for your instance of Azure. **Required**"
 
-	DescClientId   = "The application/client id (UUID) of the Azure application"
-	DescClientIdMD = "The `application/client id` (UUID) of the Azure application"
+	DescClientId   = "The application/client id (UUID) of the Azure application. Required"
+	DescClientIdMD = "The `application/client id` (UUID) of the Azure application. **Required**"
 
-	DescClientSecret   = "The client credentials secret for the Azure application"
-	DescClientSecretMD = "The `client credentials secret` for the Azure application"
+	DescClientSecret   = "The client credentials secret for the Azure application. Required"
+	DescClientSecretMD = "The `client credentials secret` for the Azure application. **Required**"
 
-	DescSubscriptionId   = "The UUID of the subscription (i.e. Pay-As-You-GO)."
-	DescSubscriptionIdMD = "The `UUID` of the subscription (i.e. Pay-As-You-GO)."
+	DescSubscriptionId   = "The UUID of the subscription (i.e. Pay-As-You-GO). Required"
+	DescSubscriptionIdMD = "The `UUID` of the subscription (i.e. Pay-As-You-GO). **Required**"
 
-	DescTenantId   = "The UUID of the Azure Active Directory"
-	DescTenantIdMD = "The `UUID` of the Azure Active Directory"
+	DescTenantId   = "The UUID of the Azure Active Directory. Required"
+	DescTenantIdMD = "The `UUID` of the Azure Active Directory. **Required**"
 
 	DescResourceGroups   = "A list of resource groups to be checked. If left blank, all resource groups will be checked. "
 	DescResourceGroupsMD = "A list of `resource groups` to be checked. If left blank, all resource groups will be checked. "
@@ -206,8 +206,8 @@ const (
 	DescDomainId   = "The FQDN domain used by the Domain Controller. For example, EXAMPLE.COM and not EXAMPLE."
 	DescDomainIdMD = "The `FQDN` domain used by the Domain Controller. For example, `EXAMPLE.COM` and not `EXAMPLE`."
 
-	DescDomainHostname   = "Hostname for the domain controller."
-	DescDomainHostnameMD = "Hostname for the `domain controller`."
+	DescDomainHostname   = "Hostname for the domain controller. Required"
+	DescDomainHostnameMD = "Hostname for the `domain controller`. **Required**"
 
 	DescDomainPort   = "Port for the domain controller."
 	DescDomainPortMD = "Port for the `domain controller`."
@@ -221,8 +221,11 @@ const (
 	DescDomainNetworkCidr   = "Scan additional CIDRs from the field."
 	DescDomainNetworkCidrMD = "`Scan additional CIDRs` from the field."
 
-	DescDomainAdmin   = "Credentials of a domain administrator or an account with equivalent privileges, required to perform full discovery and access all domain resources."
-	DescDomainAdminMD = "Credentials of a `domain administrator` or an account with equivalent privileges, required to perform full discovery and access all domain resources."
+	DescDomainAdmin   = "Domain Administrative Credentials. Required"
+	DescDomainAdminMD = "Domain Administrative Credentials. **Required**"
+
+	DescUserMatch   = "OU/DN filter (or regex) that limits which Active Directory or OpenLDAP users the Gateway discovers and imports during PAM Discovery."
+	DescUserMatchMD = "OU/DN filter (or regex) that limits which Active Directory or OpenLDAP users the Gateway discovers and imports during PAM Discovery."
 
 	// GCP.
 

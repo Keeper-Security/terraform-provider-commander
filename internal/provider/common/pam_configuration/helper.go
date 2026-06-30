@@ -184,6 +184,7 @@ func mapFieldsToDomain(f *utils.PamConfigFieldsResponse, domainAdministrativeCre
 		DomainScanDcCidr:  parseDomainBool(f.ScanDCCIDR),
 		DomainNetworkCidr: setStringFromField(f.NetworkCIDR),
 		DomainAdmin:       types.StringValue(domainAdministrativeCredential),
+		UserMatch:         setStringFromField(f.UserMatch),
 	}
 }
 

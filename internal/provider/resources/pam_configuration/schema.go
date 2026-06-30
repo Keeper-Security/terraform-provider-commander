@@ -311,6 +311,14 @@ func (r *PamConfigurationResource) Schema(ctx context.Context, req resource.Sche
 							utils.StringMinLengthValidator("Domain Admin", 1, true),
 						},
 					},
+					"user_match": schema.StringAttribute{
+						Optional:            true,
+						Description:         DescUserMatch,
+						MarkdownDescription: DescUserMatchMD,
+						Validators: []validator.String{
+							utils.StringMinLengthValidator("User Match", 1, true),
+						},
+					},
 				},
 			},
 			"gcp": schema.SingleNestedBlock{

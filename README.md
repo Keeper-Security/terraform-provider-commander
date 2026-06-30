@@ -17,31 +17,128 @@
 
 ### Resources
 
+#### Enterprise Management
+
 | Name | Description |
-|------|--------------|
+|------|-------------|
 | `commander_enterprise_node` | Create and manage enterprise nodes (MSP or enterprise account). |
-| `commander_enterprise_push` | Push record data from a JSON file to users' or teams' Keeper vaults. |
+| `commander_enterprise_user` | Create and manage enterprise users. |
 | `commander_enterprise_role` | Create and manage enterprise roles and policies. |
 | `commander_enterprise_scim` | Create and manage enterprise SCIM configurations for automated provisioning. |
 | `commander_enterprise_scim_push` | Push SCIM data to a Keeper SCIM endpoint in a single step. |
 | `commander_enterprise_team` | Create and manage enterprise teams. |
-| `commander_enterprise_user` | Create and manage enterprise users. |
-| `commander_epm_policy` | Create and manage EPM (Endpoint Policy Management) policies. |
+| `commander_enterprise_scim` | Create and manage enterprise SCIM configurations for automated provisioning. |
+| `commander_enterprise_push` | Push record data from a JSON file to users' or teams' Keeper vaults. |
+| `commander_enterprise_scim_push` | Push SCIM data to a Keeper SCIM endpoint in a single step. |
+
+#### MSP Management
+
+| Name | Description |
+|------|-------------|
 | `commander_managed_company` | Create and manage managed companies (MSP only). |
 | `commander_shared_folder` | Create and manage shared folders. |
 
-### Data sources
+#### Classic Folders
 
 | Name | Description |
-|------|--------------|
+|------|-------------|
+| `commander_non_shared_folder` | Create and manage non-shared vault folders. |
+| `commander_shared_folder` | Create and manage classic shared folders. |
+
+#### Nested Shared Folders (NSF)
+
+| Name | Description |
+|------|-------------|
+| `commander_new_folder` | Create and manage nested shared folders. |
+
+#### KeeperPAM
+
+| Name | Description |
+|------|-------------|
+| `commander_pam_configuration` | Create and manage Keeper PAM configurations. |
+
+#### Classic PAM Records
+
+| Name | Description |
+|------|-------------|
+| `commander_classic_pam_user` | Create and manage classic PAM user records in the vault. |
+| `commander_classic_pam_machine` | Create and manage classic PAM machine records in the vault. |
+| `commander_classic_pam_database` | Create and manage classic PAM database records in the vault. |
+| `commander_classic_pam_directory` | Create and manage classic PAM directory records in the vault. |
+| `commander_classic_pam_remote_browser` | Create and manage classic PAM remote browser (RBI) records in the vault. |
+
+#### Endpoint Privilege Manager (EPM)
+
+| Name | Description |
+|------|-------------|
+| `commander_epm_policy` | Create and manage EPM (Endpoint Policy Management) policies. |
+
+#### Secrets Manager
+
+| Name | Description |
+|------|-------------|
+| `commander_secrets_manager` | Create and manage Keeper Secrets Manager applications. |
+
+### Data sources
+
+#### Enterprise Management
+
+| Name | Description |
+|------|-------------|
 | `commander_enterprise_node` | Look up an enterprise node by name or ID. |
+| `commander_enterprise_user` | Look up an enterprise user by email or ID. |
 | `commander_enterprise_role` | Look up an enterprise role by name or ID. |
 | `commander_enterprise_scim` | Look up an enterprise SCIM configuration by ID, node, or managed company. |
 | `commander_enterprise_team` | Look up an enterprise team by name or ID. |
-| `commander_enterprise_user` | Look up an enterprise user by email or ID. |
-| `commander_epm_policy` | Look up an existing EPM policy by its policy ID. |
+| `commander_enterprise_scim` | Look up an enterprise SCIM configuration by ID, node, or managed company. |
+
+#### MSP Management
+
+| Name | Description |
+|------|-------------|
 | `commander_managed_company` | Look up a managed company by name or ID (MSP only). |
 | `commander_shared_folder` | Look up an existing shared folder by UID or name. |
+
+#### Classic Folders
+
+| Name | Description |
+|------|-------------|
+| `commander_non_shared_folder` | Look up a non-shared folder by UID. |
+| `commander_shared_folder` | Look up a classic shared folder by UID. |
+
+#### Nested Shared Folders (NSF)
+
+| Name | Description |
+|------|-------------|
+| `commander_new_folder` | Look up a nested shared folder by UID. |
+
+#### KeeperPAM
+
+| Name | Description |
+|------|-------------|
+| `commander_pam_configuration` | Look up a PAM configuration by UID. |
+
+#### Classic PAM Records
+
+| Name | Description |
+|------|-------------|
+| `commander_classic_pam_user` | Look up a classic PAM user record by record UID. |
+| `commander_classic_pam_machine` | Look up a classic PAM machine record by record UID. |
+| `commander_classic_pam_database` | Look up a classic PAM database record by record UID. |
+| `commander_classic_pam_directory` | Look up a classic PAM directory record by record UID. |
+| `commander_classic_pam_remote_browser` | Look up a classic PAM remote browser record by record UID. |
+
+#### Endpoint Privilege Manager (EPM)
+
+| Name | Description |
+|------|-------------|
+| `commander_epm_policy` | Look up an existing EPM policy by its policy ID. |
+
+#### Secrets Manager
+
+| Name | Description |
+|------|-------------|
+| `commander_secrets_manager` | Look up a Secrets Manager application by name or UID. |
 
 ## Prerequisites
 
@@ -64,7 +161,7 @@ Note the following Important Items:
 2) Make sure the following commands are in the list:
 
 ```
-this-device,sync-down,switch-to-mc,switch-to-msp,msp-add,msp-down,msp-info,msp-remove,msp-update,enterprise-info,enterprise-node,enterprise-user,enterprise-role,enterprise-team,enterprise-down,enterprise-push,team-approve,record-add,record-update,rm,get,list,record-type-info,share-folder,rmdir,rndir,mkdir,epm,scim,mv,pam,secrets-manager,ln,share-record
+this-device,sync-down,switch-to-mc,switch-to-msp,msp-add,msp-down,msp-info,msp-remove,msp-update,enterprise-info,enterprise-node,enterprise-user,enterprise-role,enterprise-team,enterprise-down,enterprise-push,team-approve,record-add,record-update,rm,get,list,record-type-info,share-folder,rmdir,rndir,mkdir,epm,scim,mv,pam,secrets-manager,ln,share-record,nsf-mkdir,nsf-get,nsf-rmdir,nsf-record-add,nsf-record-update,nsf-rm,nsf-rmdir,nsf-rndir,nsf-share-folder,nsf-share-record,nsf-ln
 ```
 
 > If you encounter a 429 Too Many Requests error due to rate limiting, you can configure rate-limit for your service mode using the `-rl` or `--ratelimit flag`.

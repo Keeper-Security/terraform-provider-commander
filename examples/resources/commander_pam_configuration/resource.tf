@@ -106,6 +106,7 @@ resource "commander_pam_configuration" "domain_example" {
     domain_scan_dc_cidr = true
     domain_network_cidr = "172.16.0.0/12"
     domain_admin        = "admin-record-uid"
+    user_match          = "OU=Users,DC=company,DC=com"
   }
 }
 

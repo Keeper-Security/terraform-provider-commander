@@ -15,7 +15,7 @@ import (
 // matches the API response, the state value is preserved so Terraform does not
 // show a spurious diff. Otherwise the folder UID from the response is used.
 // Path comparison normalizes spaces around "/" so "Test / My Folder" matches "Test/My Folder".
-func ExtractFolderValue(folder *utils.RecordFolderResponse, stateFolder types.String) types.String {
+func ExtractFolderValue(folder *utils.FolderLocationResponse, stateFolder types.String) types.String {
 	if folder == nil || (strings.TrimSpace(folder.UID) == "" && strings.TrimSpace(folder.Path) == "") {
 		return types.StringNull()
 	}

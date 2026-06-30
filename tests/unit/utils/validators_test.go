@@ -337,6 +337,61 @@ func TestStringMinLengthValidator_EnterpriseNodeParent_WhitespaceOnlyFails(t *te
 	}
 }
 
+func TestMapNonEmptyValidator_Description(t *testing.T) {
+	v := utils.MapNonEmptyValidator("Share User UID or Email")
+	ctx := context.Background()
+	want := "Share User UID or Email must have at least one entry; omit the block instead of setting it to an empty map."
+	if v.Description(ctx) != want {
+		t.Errorf("unexpected Description: %s", v.Description(ctx))
+	}
+	if v.MarkdownDescription(ctx) != v.Description(ctx) {
+		t.Error("expected MarkdownDescription to equal Description")
+	}
+}
+
+func TestMapNonEmptyValidator_NullOrUnknown(t *testing.T) {
+	v := utils.MapNonEmptyValidator("Share User UID or Email")
+	ctx := context.Background()
+	for _, m := range []types.Map{types.MapNull(types.StringType), types.MapUnknown(types.StringType)} {
+		req := validator.MapRequest{ConfigValue: m, Path: path.Root("share")}
+		var resp validator.MapResponse
+		v.ValidateMap(ctx, req, &resp)
+		if resp.Diagnostics.HasError() {
+			t.Errorf("expected no diagnostics for null/unknown, got: %v", resp.Diagnostics)
+		}
+	}
+}
+
+func TestMapNonEmptyValidator_EmptyMapRejected(t *testing.T) {
+	v := utils.MapNonEmptyValidator("Share User UID or Email")
+	ctx := context.Background()
+	m, diags := types.MapValueFrom(ctx, types.StringType, map[string]string{})
+	if diags.HasError() {
+		t.Fatal(diags)
+	}
+	req := validator.MapRequest{ConfigValue: m, Path: path.Root("share")}
+	var resp validator.MapResponse
+	v.ValidateMap(ctx, req, &resp)
+	if !resp.Diagnostics.HasError() {
+		t.Error("expected diagnostics for explicit empty map ({})")
+	}
+}
+
+func TestMapNonEmptyValidator_NonEmptyMapAccepted(t *testing.T) {
+	v := utils.MapNonEmptyValidator("Share User UID or Email")
+	ctx := context.Background()
+	m, diags := types.MapValueFrom(ctx, types.StringType, map[string]string{"alice@example.com": "viewer"})
+	if diags.HasError() {
+		t.Fatal(diags)
+	}
+	req := validator.MapRequest{ConfigValue: m, Path: path.Root("share")}
+	var resp validator.MapResponse
+	v.ValidateMap(ctx, req, &resp)
+	if resp.Diagnostics.HasError() {
+		t.Errorf("expected no diagnostics for non-empty map, got: %v", resp.Diagnostics)
+	}
+}
+
 func TestMapKeysMinLengthValidator_WhitespaceOnlyKey(t *testing.T) {
 	v := utils.MapKeysMinLengthValidator("managing node name", 1)
 	ctx := context.Background()
@@ -349,5 +404,145 @@ func TestMapKeysMinLengthValidator_WhitespaceOnlyKey(t *testing.T) {
 	v.ValidateMap(ctx, req, &resp)
 	if !resp.Diagnostics.HasError() {
 		t.Error("expected diagnostics for whitespace-only map key")
+	}
+}
+
+func TestMapKeysEmailValidator_Description(t *testing.T) {
+	v := utils.MapKeysEmailValidator("Share User Email")
+	ctx := context.Background()
+	if v.Description(ctx) != "All Share User Email (map keys) must be non-empty email addresses (e.g. user@example.com)." {
+		t.Errorf("unexpected Description: %s", v.Description(ctx))
+	}
+	if v.MarkdownDescription(ctx) != v.Description(ctx) {
+		t.Error("expected MarkdownDescription to equal Description")
+	}
+}
+
+func TestMapKeysEmailValidator_NullOrUnknown(t *testing.T) {
+	v := utils.MapKeysEmailValidator("Share User Email")
+	ctx := context.Background()
+	for _, m := range []types.Map{types.MapNull(types.StringType), types.MapUnknown(types.StringType)} {
+		req := validator.MapRequest{ConfigValue: m, Path: path.Root("share")}
+		var resp validator.MapResponse
+		v.ValidateMap(ctx, req, &resp)
+		if resp.Diagnostics.HasError() {
+			t.Errorf("expected no diagnostics for null/unknown, got: %v", resp.Diagnostics)
+		}
+	}
+}
+
+func TestMapKeysEmailValidator_ValidEmails(t *testing.T) {
+	v := utils.MapKeysEmailValidator("Share User Email")
+	ctx := context.Background()
+	in := map[string]string{
+		"user@example.com":           "viewer",
+		"first.last@sub.example.com": "share-manager",
+		"a+tag@host.co":              "content-manager",
+		"single.char@x.io":           "full-manager",
+	}
+	m, diags := types.MapValueFrom(ctx, types.StringType, in)
+	if diags.HasError() {
+		t.Fatal(diags)
+	}
+	req := validator.MapRequest{ConfigValue: m, Path: path.Root("share")}
+	var resp validator.MapResponse
+	v.ValidateMap(ctx, req, &resp)
+	if resp.Diagnostics.HasError() {
+		t.Errorf("expected no diagnostics for valid emails, got: %v", resp.Diagnostics)
+	}
+}
+
+func TestMapKeysEmailValidator_InvalidEmails(t *testing.T) {
+	v := utils.MapKeysEmailValidator("Share User Email")
+	ctx := context.Background()
+	cases := []string{
+		"",
+		"  ",
+		"no-at-sign",
+		"@no-local.com",
+		"two@@example.com",
+		"missing-domain-dot@example",
+	}
+	for _, key := range cases {
+		t.Run(key, func(t *testing.T) {
+			m, diags := types.MapValueFrom(ctx, types.StringType, map[string]string{key: "viewer"})
+			if diags.HasError() {
+				t.Fatal(diags)
+			}
+			req := validator.MapRequest{ConfigValue: m, Path: path.Root("share")}
+			var resp validator.MapResponse
+			v.ValidateMap(ctx, req, &resp)
+			if !resp.Diagnostics.HasError() {
+				t.Errorf("expected diagnostics for invalid email key %q", key)
+			}
+		})
+	}
+}
+
+func TestMapValuesStringOneOfValidator_Description(t *testing.T) {
+	v := utils.MapValuesStringOneOfValidator("Share Permission", []string{"viewer", "share-manager"})
+	ctx := context.Background()
+	want := "Share Permission (map values) must each be one of: viewer, share-manager."
+	if v.Description(ctx) != want {
+		t.Errorf("Description = %q, want %q", v.Description(ctx), want)
+	}
+	if v.MarkdownDescription(ctx) != want {
+		t.Errorf("MarkdownDescription = %q, want %q", v.MarkdownDescription(ctx), want)
+	}
+}
+
+func TestMapValuesStringOneOfValidator_AllAllowed(t *testing.T) {
+	allowed := []string{"viewer", "share-manager", "content-manager", "content-share-manager", "full-manager"}
+	v := utils.MapValuesStringOneOfValidator("Share Permission", allowed)
+	ctx := context.Background()
+	in := map[string]string{
+		"a@x.com": "viewer",
+		"b@x.com": "share-manager",
+		"c@x.com": "content-manager",
+		"d@x.com": "content-share-manager",
+		"e@x.com": "full-manager",
+	}
+	m, diags := types.MapValueFrom(ctx, types.StringType, in)
+	if diags.HasError() {
+		t.Fatal(diags)
+	}
+	req := validator.MapRequest{ConfigValue: m, Path: path.Root("share")}
+	var resp validator.MapResponse
+	v.ValidateMap(ctx, req, &resp)
+	if resp.Diagnostics.HasError() {
+		t.Errorf("expected no diagnostics for all-allowed values, got: %v", resp.Diagnostics)
+	}
+}
+
+func TestMapValuesStringOneOfValidator_Disallowed(t *testing.T) {
+	allowed := []string{"viewer", "share-manager"}
+	v := utils.MapValuesStringOneOfValidator("Share Permission", allowed)
+	ctx := context.Background()
+	in := map[string]string{
+		"a@x.com": "viewer",
+		"b@x.com": "owner", // disallowed
+	}
+	m, diags := types.MapValueFrom(ctx, types.StringType, in)
+	if diags.HasError() {
+		t.Fatal(diags)
+	}
+	req := validator.MapRequest{ConfigValue: m, Path: path.Root("share")}
+	var resp validator.MapResponse
+	v.ValidateMap(ctx, req, &resp)
+	if !resp.Diagnostics.HasError() {
+		t.Error("expected diagnostics for disallowed value")
+	}
+}
+
+func TestMapValuesStringOneOfValidator_NullOrUnknown(t *testing.T) {
+	v := utils.MapValuesStringOneOfValidator("Share Permission", []string{"viewer"})
+	ctx := context.Background()
+	for _, m := range []types.Map{types.MapNull(types.StringType), types.MapUnknown(types.StringType)} {
+		req := validator.MapRequest{ConfigValue: m, Path: path.Root("share")}
+		var resp validator.MapResponse
+		v.ValidateMap(ctx, req, &resp)
+		if resp.Diagnostics.HasError() {
+			t.Errorf("expected no diagnostics for null/unknown map, got: %v", resp.Diagnostics)
+		}
 	}
 }

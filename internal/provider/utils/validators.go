@@ -7,7 +7,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"regexp"
 	"strconv"
 	"strings"
 
@@ -298,6 +297,41 @@ func (v jsonStringValidator) ValidateString(_ context.Context, req validator.Str
 	}
 }
 
+// ----- GENERIC: MAP NON-EMPTY --------------------------------
+// MapNonEmptyValidator rejects an explicitly empty map ({}) on an Optional
+// attribute. Null and unknown values are accepted (the user simply omitted
+// the block). Use this when an Optional map should be expressed by omitting
+// the block entirely rather than by writing `= {}`, so resource Reads can
+// safely treat null and an empty filtered API response identically.
+func MapNonEmptyValidator(displayName string) mapNonEmptyValidator {
+	return mapNonEmptyValidator{DisplayName: displayName}
+}
+
+type mapNonEmptyValidator struct {
+	DisplayName string
+}
+
+func (v mapNonEmptyValidator) Description(_ context.Context) string {
+	return v.DisplayName + " must have at least one entry; omit the block instead of setting it to an empty map."
+}
+
+func (v mapNonEmptyValidator) MarkdownDescription(ctx context.Context) string {
+	return v.Description(ctx)
+}
+
+func (v mapNonEmptyValidator) ValidateMap(_ context.Context, req validator.MapRequest, resp *validator.MapResponse) {
+	if req.ConfigValue.IsNull() || req.ConfigValue.IsUnknown() {
+		return
+	}
+	if len(req.ConfigValue.Elements()) == 0 {
+		resp.Diagnostics.AddAttributeError(
+			req.Path,
+			"Invalid "+v.DisplayName,
+			v.DisplayName+" must have at least one entry. Remove the block entirely if you do not want to manage it.",
+		)
+	}
+}
+
 // ----- GENERIC: MAP KEYS MIN LENGTH --------------------------------
 // MapKeysMinLengthValidator validates that all keys in a map have at least MinLen characters
 // after strings.TrimSpace (whitespace-only keys are rejected).
@@ -335,33 +369,104 @@ func (v mapKeysMinLengthValidator) ValidateMap(ctx context.Context, req validato
 }
 
 // ----- GENERIC: MAP KEYS EMAIL --------------------------------
-
-var emailRegex = regexp.MustCompile(`^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$`)
-
-func MapKeysEmailValidator() mapKeysEmailValidator {
-	return mapKeysEmailValidator{}
+// MapKeysEmailValidator validates that all keys in a map are non-empty and
+// look like email addresses: trimmed length >= 1, contain exactly one '@',
+// have at least one character before the '@', and at least one '.' after the
+// '@'. Used for map attributes where keys are user emails (e.g. share blocks).
+// DisplayName is used in error messages (e.g. "Share User Email").
+func MapKeysEmailValidator(displayName string) mapKeysEmailValidator {
+	return mapKeysEmailValidator{DisplayName: displayName}
 }
 
-type mapKeysEmailValidator struct{}
+type mapKeysEmailValidator struct {
+	DisplayName string
+}
 
-func (v mapKeysEmailValidator) Description(ctx context.Context) string {
-	return "All map keys must be valid email addresses."
+func (v mapKeysEmailValidator) Description(_ context.Context) string {
+	return "All " + v.DisplayName + " (map keys) must be non-empty email addresses (e.g. user@example.com)."
 }
 
 func (v mapKeysEmailValidator) MarkdownDescription(ctx context.Context) string {
-	return "All map keys must be valid email addresses."
+	return v.Description(ctx)
 }
 
-func (v mapKeysEmailValidator) ValidateMap(ctx context.Context, req validator.MapRequest, resp *validator.MapResponse) {
+func (v mapKeysEmailValidator) ValidateMap(_ context.Context, req validator.MapRequest, resp *validator.MapResponse) {
 	if req.ConfigValue.IsNull() || req.ConfigValue.IsUnknown() {
 		return
 	}
 	for key := range req.ConfigValue.Elements() {
-		if !emailRegex.MatchString(key) {
+		trimmed := strings.TrimSpace(key)
+		if trimmed == "" {
 			resp.Diagnostics.AddAttributeError(
 				req.Path.AtMapKey(key),
-				"Invalid Email Address",
-				fmt.Sprintf("Map key %q is not a valid email address.", key),
+				"Invalid "+v.DisplayName,
+				v.DisplayName+" (map key) must be a non-empty email address, without leading or trailing whitespace.",
+			)
+			continue
+		}
+		at := strings.Index(trimmed, "@")
+		// Reject if no '@', '@' at start, more than one '@', or no '.' in the domain part.
+		if at <= 0 || at != strings.LastIndex(trimmed, "@") || !strings.Contains(trimmed[at+1:], ".") {
+			resp.Diagnostics.AddAttributeError(
+				req.Path.AtMapKey(key),
+				"Invalid "+v.DisplayName,
+				fmt.Sprintf("%s (map key) %q is not a valid email address. Expected format: user@example.com.", v.DisplayName, key),
+			)
+		}
+	}
+}
+
+// ----- GENERIC: MAP VALUES STRING ONE-OF --------------------------------
+// MapValuesStringOneOfValidator validates that every string value in a map
+// attribute (whose element type is types.StringType) is one of Allowed.
+// DisplayName is used in error messages.
+func MapValuesStringOneOfValidator(displayName string, allowed []string) mapValuesStringOneOfValidator {
+	return mapValuesStringOneOfValidator{DisplayName: displayName, Allowed: allowed}
+}
+
+type mapValuesStringOneOfValidator struct {
+	DisplayName string
+	Allowed     []string
+}
+
+func (v mapValuesStringOneOfValidator) Description(_ context.Context) string {
+	return v.DisplayName + " (map values) must each be one of: " + strings.Join(v.Allowed, ", ") + "."
+}
+
+func (v mapValuesStringOneOfValidator) MarkdownDescription(ctx context.Context) string {
+	return v.Description(ctx)
+}
+
+func (v mapValuesStringOneOfValidator) ValidateMap(_ context.Context, req validator.MapRequest, resp *validator.MapResponse) {
+	if req.ConfigValue.IsNull() || req.ConfigValue.IsUnknown() {
+		return
+	}
+	for key, elem := range req.ConfigValue.Elements() {
+		strValue, ok := elem.(types.String)
+		if !ok {
+			resp.Diagnostics.AddAttributeError(
+				req.Path.AtMapKey(key),
+				"Invalid "+v.DisplayName,
+				fmt.Sprintf("Expected string value for %s, got: %T.", v.DisplayName, elem),
+			)
+			continue
+		}
+		if strValue.IsNull() || strValue.IsUnknown() {
+			continue
+		}
+		val := strValue.ValueString()
+		allowed := false
+		for _, a := range v.Allowed {
+			if val == a {
+				allowed = true
+				break
+			}
+		}
+		if !allowed {
+			resp.Diagnostics.AddAttributeError(
+				req.Path.AtMapKey(key),
+				"Invalid "+v.DisplayName,
+				fmt.Sprintf("%s value %q is not supported. Must be one of: %s.", v.DisplayName, val, strings.Join(v.Allowed, ", ")),
 			)
 		}
 	}
