@@ -63,9 +63,9 @@ func NameFromFields(fields []utils.VaultRecordFieldResponse, label string) *Name
 		}
 		v := arr[0]
 		return &NameValue{
-			First:  StringOrNull(v.First),
-			Middle: StringOrNull(v.Middle),
-			Last:   StringOrNull(v.Last),
+			First:  utils.StringOrNull(v.First),
+			Middle: utils.StringOrNull(v.Middle),
+			Last:   utils.StringOrNull(v.Last),
 		}
 	}
 	return nil
@@ -127,10 +127,10 @@ func PhonesFromField(fields []utils.VaultRecordFieldResponse, label string) []Ph
 		out := make([]PhoneValue, 0, len(arr))
 		for _, v := range arr {
 			out = append(out, PhoneValue{
-				Region: StringOrNull(v.Region),
-				Number: StringOrNull(v.Number),
-				Ext:    StringOrNull(v.Ext),
-				Type:   StringOrNull(v.Type),
+				Region: utils.StringOrNull(v.Region),
+				Number: utils.StringOrNull(v.Number),
+				Ext:    utils.StringOrNull(v.Ext),
+				Type:   utils.StringOrNull(v.Type),
 			})
 		}
 		return out
@@ -223,12 +223,12 @@ func AddressFromFields(fields []utils.VaultRecordFieldResponse, label string) *A
 		}
 		v := arr[0]
 		return &AddressValue{
-			Street1: StringOrNull(v.Street1),
-			Street2: StringOrNull(v.Street2),
-			City:    StringOrNull(v.City),
-			State:   StringOrNull(v.State),
-			Zip:     StringOrNull(v.Zip),
-			Country: StringOrNull(v.Country),
+			Street1: utils.StringOrNull(v.Street1),
+			Street2: utils.StringOrNull(v.Street2),
+			City:    utils.StringOrNull(v.City),
+			State:   utils.StringOrNull(v.State),
+			Zip:     utils.StringOrNull(v.Zip),
+			Country: utils.StringOrNull(v.Country),
 		}
 	}
 	return nil
@@ -284,8 +284,8 @@ func HostFromFields(fields []utils.VaultRecordFieldResponse, label string) *Host
 		}
 		v := arr[0]
 		return &HostValue{
-			HostName: StringOrNull(v.HostName),
-			Port:     StringOrNull(v.Port),
+			HostName: utils.StringOrNull(v.HostName),
+			Port:     utils.StringOrNull(v.Port),
 		}
 	}
 	return nil
@@ -343,9 +343,9 @@ func PaymentCardFromFields(fields []utils.VaultRecordFieldResponse, label string
 		}
 		v := arr[0]
 		return &PaymentCardValue{
-			CardNumber:         StringOrNull(v.CardNumber),
-			CardExpirationDate: StringOrNull(v.CardExpirationDate),
-			CardSecurityCode:   StringOrNull(v.CardSecurityCode),
+			CardNumber:         utils.StringOrNull(v.CardNumber),
+			CardExpirationDate: utils.StringOrNull(v.CardExpirationDate),
+			CardSecurityCode:   utils.StringOrNull(v.CardSecurityCode),
 		}
 	}
 	return nil
@@ -407,10 +407,10 @@ func BankAccountFromFields(fields []utils.VaultRecordFieldResponse, label string
 		}
 		v := arr[0]
 		return &BankAccountValue{
-			AccountType:   StringOrNull(v.AccountType),
-			OtherType:     StringOrNull(v.OtherType),
-			RoutingNumber: StringOrNull(v.RoutingNumber),
-			AccountNumber: StringOrNull(v.AccountNumber),
+			AccountType:   utils.StringOrNull(v.AccountType),
+			OtherType:     utils.StringOrNull(v.OtherType),
+			RoutingNumber: utils.StringOrNull(v.RoutingNumber),
+			AccountNumber: utils.StringOrNull(v.AccountNumber),
 		}
 	}
 	return nil
@@ -466,8 +466,8 @@ func SecurityQuestionFromFields(fields []utils.VaultRecordFieldResponse, label s
 		}
 		v := arr[0]
 		return &SecurityQuestionValue{
-			Question: StringOrNull(v.Question),
-			Answer:   StringOrNull(v.Answer),
+			Question: utils.StringOrNull(v.Question),
+			Answer:   utils.StringOrNull(v.Answer),
 		}
 	}
 	return nil
@@ -522,8 +522,8 @@ func KeyPairFromFields(fields []utils.VaultRecordFieldResponse, label string) *K
 		}
 		v := arr[0]
 		return &KeyPairValue{
-			PublicKey:  StringOrNull(v.PublicKey),
-			PrivateKey: StringOrNull(v.PrivateKey),
+			PublicKey:  utils.StringOrNull(v.PublicKey),
+			PrivateKey: utils.StringOrNull(v.PrivateKey),
 		}
 	}
 	return nil
@@ -546,14 +546,6 @@ func stringOrEmpty(s types.String) string {
 		return ""
 	}
 	return s.ValueString()
-}
-
-// StringOrNull returns a types.StringValue if non-empty, otherwise types.StringNull.
-func StringOrNull(s string) types.String {
-	if strings.TrimSpace(s) == "" {
-		return types.StringNull()
-	}
-	return types.StringValue(s)
 }
 
 // FirstStringField returns the first string from a typed field's value array (standard fields).
