@@ -47,6 +47,7 @@ const (
 	FlagDomainScanDcCidr  = "--domain-scan-dc-cidr"
 	FlagDomainNetworkCidr = "--domain-network-cidr"
 	FlagDomainAdmin       = "--domain-admin"
+	FlagDomainUserMatch   = "--domain-user-match"
 
 	FlagGcpId             = "--gcp-id"
 	FlagServiceAccountKey = "--service-account-key"
