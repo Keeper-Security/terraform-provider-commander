@@ -16,7 +16,7 @@
 # Which fields does each rotation_profile need?
 # -----------------------------------------------------------------------------
 #   rotation_profile = "general"      => `configuration` + `resource`
-#   rotation_profile = "iam_user"       => `iam_aad_config`  (not `configuration`)
+#   rotation_profile = "iam_user"       => `configuration`  (not `resource` or `saas_config`)
 #   rotation_profile = "scripts_only"   => `configuration`
 #   rotation_profile = "saas"           => `configuration` + `saas_config`
 #
@@ -88,7 +88,7 @@ resource "commander_classic_pam_user" "mysql_app_account" {
 #   - configuration : PAM Configuration UID for the rotation gateway / policy
 #   - resource      : UID of the PAM Machine or PAM Database where rotation runs
 #
-# Do NOT set iam_aad_config or saas_config for this profile.
+# Do NOT set saas_config for this profile.
 ###############################################################################
 
 # resource "commander_classic_pam_user" "mysql_rotation_user" {
@@ -112,9 +112,9 @@ resource "commander_classic_pam_user" "mysql_app_account" {
 # Usage 2.2 - Rotation profile: "iam_user"  (cloud IAM / Azure AD)
 #
 # For type "iam_user" you MUST pass:
-#   - iam_aad_config : PAM Configuration UID for IAM / Azure AD rotation
+#   - configuration : PAM Configuration UID for IAM / Azure AD rotation
 #
-# Do NOT set configuration, resource, or saas_config for this profile.
+# Do NOT set resource or saas_config for this profile.
 ###############################################################################
 
 # resource "commander_classic_pam_user" "aws_iam_deploy_user" {
@@ -125,7 +125,7 @@ resource "commander_classic_pam_user" "mysql_app_account" {
 #
 #   rotation_settings = {
 #     rotation_profile = "iam_user"
-#     iam_aad_config   = "_REPLACE_WITH_PAM_CONFIGURATION_UID_FOR_IAM_"
+#     configuration    = "_REPLACE_WITH_PAM_CONFIGURATION_UID_FOR_IAM_"
 #     complexity       = "32,5,1,1,2"
 #     enabled          = true
 #     on_demand        = true
@@ -139,7 +139,7 @@ resource "commander_classic_pam_user" "mysql_app_account" {
 #   - configuration : PAM Configuration UID that hosts the rotation script
 #
 # `login` / `password` are optional if the script does not need a starting credential.
-# Do NOT set resource, iam_aad_config, or saas_config for this profile.
+# Do NOT set resource or saas_config for this profile.
 ###############################################################################
 
 # resource "commander_classic_pam_user" "custom_script_runner" {
@@ -164,7 +164,7 @@ resource "commander_classic_pam_user" "mysql_app_account" {
 #   - configuration : PAM Configuration UID
 #   - saas_config   : SaaS Configuration record UID linked to that PAM Configuration
 #
-# Do NOT set resource or iam_aad_config for this profile.
+# Do NOT set resource for this profile.
 ###############################################################################
 
 # resource "commander_classic_pam_user" "saas_app_user" {

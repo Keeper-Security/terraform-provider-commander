@@ -310,6 +310,7 @@ func MapRotationSettingsToState(rotInfo *PamRotationInfoResponse, rec *utils.Vau
 		rs.ScheduleCron = types.StringNull()
 		rs.ScheduleJSON = types.StringNull()
 		rs.OnDemand = types.BoolNull()
+		rs.ScheduleConfig = types.BoolNull()
 	} else {
 		rs.Enabled = types.BoolValue(true)
 

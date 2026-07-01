@@ -18,7 +18,7 @@
 # Which fields does each rotation_profile need?
 # -----------------------------------------------------------------------------
 #   rotation_profile = "general"      => `configuration` + `resource`
-#   rotation_profile = "iam_user"       => `iam_aad_config`  (not `configuration`)
+#   rotation_profile = "iam_user"       => `configuration`  (not `resource` or `saas_config`)
 #   rotation_profile = "scripts_only"   => `configuration`
 #   rotation_profile = "saas"           => `configuration` + `saas_config`
 #
@@ -92,7 +92,9 @@ resource "commander_new_pam_user" "mysql_app_account" {
 # Usage 3 - Rotation profile: "iam_user"  (cloud IAM / Azure AD)
 #
 # For type "iam_user" you MUST pass:
-#   - iam_aad_config : PAM Configuration UID for IAM / Azure AD rotation
+#   - configuration : PAM Configuration UID for IAM / Azure AD rotation
+#
+# Do NOT set resource or saas_config for this profile.
 ###############################################################################
 
 # resource "commander_new_pam_user" "aws_iam_deploy_user" {
@@ -104,7 +106,7 @@ resource "commander_new_pam_user" "mysql_app_account" {
 #
 #   rotation_settings = {
 #     rotation_profile = "iam_user"
-#     iam_aad_config   = "_REPLACE_WITH_PAM_CONFIGURATION_UID_FOR_IAM_"
+#     configuration    = "_REPLACE_WITH_PAM_CONFIGURATION_UID_FOR_IAM_"
 #     complexity       = "32,5,1,1,2"
 #     enabled          = true
 #     on_demand        = true

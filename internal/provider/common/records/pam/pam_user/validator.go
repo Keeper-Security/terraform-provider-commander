@@ -34,7 +34,7 @@ func (rotationProfileRequirementsValidator) Description(_ context.Context) strin
 }
 
 func (rotationProfileRequirementsValidator) MarkdownDescription(_ context.Context) string {
-	return "`rotation_profile` is **required** when `rotation_settings` is set. Profile-specific fields: `general` requires `resource` (not `configuration` or `saas_config`); `iam_user` and `scripts_only` require `configuration` (not `resource` or `saas_config`); `saas` requires `configuration` and `saas_config` (not `resource`)."
+	return "`rotation_profile` is **required** when `rotation_settings` is set. Profile-specific fields: `general` requires `configuration` and `resource` (not `saas_config`); `iam_user` and `scripts_only` require `configuration` (not `resource` or `saas_config`); `saas` requires `configuration` and `saas_config` (not `resource`)."
 }
 
 func (rotationProfileRequirementsValidator) ValidateObject(_ context.Context, req validator.ObjectRequest, resp *validator.ObjectResponse) {
@@ -90,6 +90,9 @@ func ValidateRotationProfileRequirements(basePath path.Path, attrs map[string]at
 
 	case RotProfileScriptsOnly:
 		// Validation for fields that are forbidden for the profile
+		if hasResource {
+			addForbiddenRotationFieldError(basePath, resp, "resource", profile)
+		}
 		if hasSaaSConfig {
 			addForbiddenRotationFieldError(basePath, resp, "saas_config", profile)
 		}
@@ -97,9 +100,6 @@ func ValidateRotationProfileRequirements(basePath path.Path, attrs map[string]at
 		// Validation for fields that are required for the profile
 		if !hasConfiguration {
 			addRequiredRotationFieldError(basePath, resp, "configuration", profile)
-		}
-		if !hasResource {
-			addRequiredRotationFieldError(basePath, resp, "resource", profile)
 		}
 
 	case RotProfileSaaS:
@@ -215,7 +215,7 @@ func stringAttrValue(attrs map[string]attr.Value, key string) (string, bool) {
 
 // RotationPasswordComplexityValidator validates rotation_settings.complexity:
 // exactly five comma-separated non-negative integers: length, upper, lower, digits, symbols.
-// The password length (first value) must be 1–99 to match Keeper UI limits.
+// The password length (first value) must be 20–99 to match Keeper UI limits.
 type rotationPasswordComplexityValidator struct{}
 
 func RotationPasswordComplexityValidator() rotationPasswordComplexityValidator {
@@ -223,11 +223,11 @@ func RotationPasswordComplexityValidator() rotationPasswordComplexityValidator {
 }
 
 func (rotationPasswordComplexityValidator) Description(_ context.Context) string {
-	return "must be five comma-separated integers length,upper,lower,digits,symbols with length 1–99 and each count 0–99 (Keeper UI limits)"
+	return "must be five comma-separated integers length,upper,lower,digits,symbols with length 20–99 and each count 0–99 (Keeper UI limits)"
 }
 
 func (rotationPasswordComplexityValidator) MarkdownDescription(_ context.Context) string {
-	return "Five comma-separated integers: `length,upper,lower,digits,symbols`. Password **length** (first value) must be **1–99**; each count must be **0–99**, matching Keeper UI limits."
+	return "Five comma-separated integers: `length,upper,lower,digits,symbols`. Password **length** (first value) must be **20–99**; each count must be **0–99**, matching Keeper UI limits."
 }
 
 func (rotationPasswordComplexityValidator) ValidateString(_ context.Context, req validator.StringRequest, resp *validator.StringResponse) {

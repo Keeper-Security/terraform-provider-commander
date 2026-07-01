@@ -34,7 +34,7 @@ A PAM User record stores privileged credentials (login/password) that can be ass
 # Which fields does each rotation_profile need?
 # -----------------------------------------------------------------------------
 #   rotation_profile = "general"      => `configuration` + `resource`
-#   rotation_profile = "iam_user"       => `iam_aad_config`  (not `configuration`)
+#   rotation_profile = "iam_user"       => `configuration`  (not `resource` or `saas_config`)
 #   rotation_profile = "scripts_only"   => `configuration`
 #   rotation_profile = "saas"           => `configuration` + `saas_config`
 #
@@ -106,7 +106,7 @@ resource "commander_classic_pam_user" "mysql_app_account" {
 #   - configuration : PAM Configuration UID for the rotation gateway / policy
 #   - resource      : UID of the PAM Machine or PAM Database where rotation runs
 #
-# Do NOT set iam_aad_config or saas_config for this profile.
+# Do NOT set saas_config for this profile.
 ###############################################################################
 
 # resource "commander_classic_pam_user" "mysql_rotation_user" {
@@ -130,9 +130,9 @@ resource "commander_classic_pam_user" "mysql_app_account" {
 # Usage 2.2 - Rotation profile: "iam_user"  (cloud IAM / Azure AD)
 #
 # For type "iam_user" you MUST pass:
-#   - iam_aad_config : PAM Configuration UID for IAM / Azure AD rotation
+#   - configuration : PAM Configuration UID for IAM / Azure AD rotation
 #
-# Do NOT set configuration, resource, or saas_config for this profile.
+# Do NOT set resource or saas_config for this profile.
 ###############################################################################
 
 # resource "commander_classic_pam_user" "aws_iam_deploy_user" {
@@ -143,7 +143,7 @@ resource "commander_classic_pam_user" "mysql_app_account" {
 #
 #   rotation_settings = {
 #     rotation_profile = "iam_user"
-#     iam_aad_config   = "_REPLACE_WITH_PAM_CONFIGURATION_UID_FOR_IAM_"
+#     configuration    = "_REPLACE_WITH_PAM_CONFIGURATION_UID_FOR_IAM_"
 #     complexity       = "32,5,1,1,2"
 #     enabled          = true
 #     on_demand        = true
@@ -157,7 +157,7 @@ resource "commander_classic_pam_user" "mysql_app_account" {
 #   - configuration : PAM Configuration UID that hosts the rotation script
 #
 # `login` / `password` are optional if the script does not need a starting credential.
-# Do NOT set resource, iam_aad_config, or saas_config for this profile.
+# Do NOT set resource or saas_config for this profile.
 ###############################################################################
 
 # resource "commander_classic_pam_user" "custom_script_runner" {
@@ -182,7 +182,7 @@ resource "commander_classic_pam_user" "mysql_app_account" {
 #   - configuration : PAM Configuration UID
 #   - saas_config   : SaaS Configuration record UID linked to that PAM Configuration
 #
-# Do NOT set resource or iam_aad_config for this profile.
+# Do NOT set resource for this profile.
 ###############################################################################
 
 # resource "commander_classic_pam_user" "saas_app_user" {
@@ -263,9 +263,9 @@ resource "commander_classic_pam_user" "mysql_app_account" {
 - `private_key_passphrase` (String, Sensitive) Passphrase for the private key associated with the PAM User.
 - `private_pem_key` (String, Sensitive) Private PEM key associated with the PAM User.
 - `public_key` (String, Sensitive) Public key associated with the PAM User.
-- `rotation_settings` (Attributes) Rotation settings for the PAM User record. Configures password rotation via `pam rotation edit`.
+- `rotation_settings` (Attributes) Rotation settings for the PAM User record.
 
-**Required:** `rotation_profile`. **Profile-specific:** `resource` when `rotation_profile` is `general`; `configuration` when `rotation_profile` is `iam_user` or `scripts_only`. `configuration` and `resource` are **mutually exclusive**.
+**Required:** `rotation_profile`. **Profile-specific:** `general` requires `configuration` and `resource` (do not set `saas_config`); `iam_user` and `scripts_only` require `configuration` (do not set `resource` or `saas_config`); `saas` requires `configuration` and `saas_config` (do not set `resource`).
 
 **Schedule:** set **only one** of `on_demand`, `schedule_config`, `schedule_cron`, or `schedule_json` (mutually exclusive). (see [below for nested schema](#nestedatt--rotation_settings))
 - `share` (Attributes Map) Mapping of share permissions for this record. Each map **key** is a **user email**; each **value** is an object with `can_share` and `can_edit` booleans. (see [below for nested schema](#nestedatt--share))
@@ -279,13 +279,13 @@ resource "commander_classic_pam_user" "mysql_app_account" {
 
 Optional:
 
-- `complexity` (String) Password complexity for rotation: `length,upper,lower,digits,symbols` as **five integers**. Password **length** must be **1–99**; upper, lower, digits, and symbols minimums must each be **0–99** (Keeper UI limits). Invalid values fail at plan time.
+- `complexity` (String) Password complexity for rotation: `length,upper,lower,digits,symbols` as **five integers**. Password **length** must be **20–99**; upper, lower, digits, and symbols minimums must each be **0–99** (Keeper UI limits). Invalid values fail at plan time.
 - `configuration` (String) PAM Configuration UID to use for rotation. **Required** when `rotation_profile` is `general`, `iam_user`, `saas` or `scripts_only`.
 - `enabled` (Boolean) Whether rotation is enabled for this PAM User.
 - `on_demand` (Boolean) If `true`, rotation is on-demand (manual) only.
-- `resource` (String) UID of the PAM resource record (machine or database) this user rotates on. Required when `rotation_profile` is `general`.
+- `resource` (String) UID of the PAM resource record (machine or database) this user rotates on. **Required** when `rotation_profile` is `general` (along with `configuration`).
 - `rotation_profile` (String) Rotation profile type: `general` (resource-based), `iam_user` (IAM/Azure user), `scripts_only` (run PAM scripts only), or `saas` (SaaS Account). **Required** when `rotation_settings` is set.
-- `saas_config` (String) SaaS Configuration UID which is associted with that PAM Configuration to use for rotation. **Required** when `rotation_profile` is `saas`.
+- `saas_config` (String) SaaS Configuration UID associated with the PAM Configuration to use for rotation. **Required** when `rotation_profile` is `saas` (along with `configuration`).
 - `schedule_config` (Boolean) If `true`, uses the schedule from the PAM Configuration instead of a per-record schedule.
 - `schedule_cron` (String) Cron schedule for rotation using the [Keeper Quartz cron spec](https://docs.keeper.io/keeperpam/privileged-access-manager/references/cron-spec) (**6 or 7 fields**, seconds first, e.g. `0 28 17 ? * *`). Schedules must have at least a **1-hour interval** between executions. Invalid expressions fail at **plan** time so the vault record is not created first.
 - `schedule_json` (String) Schedule JSON for rotation. Provide a **single JSON object** with a required `type` field.
