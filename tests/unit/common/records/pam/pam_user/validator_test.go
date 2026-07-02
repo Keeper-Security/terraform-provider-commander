@@ -15,28 +15,30 @@ import (
 )
 
 var rotationSettingsAttrTypes = map[string]attr.Type{
-	"rotation_profile": types.StringType,
-	"configuration":    types.StringType,
-	"iam_aad_config":   types.StringType,
-	"saas_config":      types.StringType,
-	"resource":         types.StringType,
-	"on_demand":        types.BoolType,
-	"schedule_config":  types.BoolType,
-	"schedule_cron":    types.StringType,
-	"schedule_json":    types.StringType,
+	"rotation_profile":              types.StringType,
+	"configuration":                 types.StringType,
+	"saas_config":                   types.StringType,
+	"resource":                      types.StringType,
+	"enabled":                       types.BoolType,
+	"on_demand":                     types.BoolType,
+	"use_default_rotation_schedule": types.BoolType,
+	"schedule_cron":                 types.StringType,
+	"schedule_json":                 types.StringType,
+	"complexity":                    types.StringType,
 }
 
 func rotationSettingsAttrs(overrides map[string]attr.Value) map[string]attr.Value {
 	attrs := map[string]attr.Value{
-		"rotation_profile": types.StringNull(),
-		"configuration":    types.StringNull(),
-		"iam_aad_config":   types.StringNull(),
-		"saas_config":      types.StringNull(),
-		"resource":         types.StringNull(),
-		"on_demand":        types.BoolNull(),
-		"schedule_config":  types.BoolNull(),
-		"schedule_cron":    types.StringNull(),
-		"schedule_json":    types.StringNull(),
+		"rotation_profile":              types.StringNull(),
+		"configuration":                 types.StringNull(),
+		"saas_config":                   types.StringNull(),
+		"resource":                      types.StringNull(),
+		"enabled":                       types.BoolNull(),
+		"on_demand":                     types.BoolNull(),
+		"use_default_rotation_schedule": types.BoolNull(),
+		"schedule_cron":                 types.StringNull(),
+		"schedule_json":                 types.StringNull(),
+		"complexity":                    types.StringNull(),
 	}
 	for k, v := range overrides {
 		attrs[k] = v
@@ -47,6 +49,7 @@ func rotationSettingsAttrs(overrides map[string]attr.Value) map[string]attr.Valu
 func generalRotationSettings(overrides map[string]attr.Value) map[string]attr.Value {
 	base := map[string]attr.Value{
 		"rotation_profile": types.StringValue(commonpamuser.RotProfileGeneral),
+		"configuration":    types.StringValue("pam-config-uid"),
 		"resource":         types.StringValue("pam-resource-uid"),
 	}
 	for k, v := range overrides {
@@ -91,18 +94,7 @@ func TestRotationProfileRequirementsValidator_MissingProfile(t *testing.T) {
 	}
 }
 
-func TestRotationProfileRequirementsValidator_GeneralRequiresResource(t *testing.T) {
-	t.Parallel()
-
-	resp := validateRotationSettings(t, rotationSettingsAttrs(map[string]attr.Value{
-		"rotation_profile": types.StringValue(commonpamuser.RotProfileGeneral),
-	}), commonpamuser.RotationProfileRequirementsValidator())
-	if !resp.Diagnostics.HasError() {
-		t.Fatal("expected error when resource is missing for general profile")
-	}
-}
-
-func TestRotationProfileRequirementsValidator_GeneralForbidsSaaSConfigAndIamAadConfig(t *testing.T) {
+func TestRotationProfileRequirementsValidator_GeneralRequiresConfigurationAndResource(t *testing.T) {
 	t.Parallel()
 
 	cases := []struct {
@@ -110,19 +102,17 @@ func TestRotationProfileRequirementsValidator_GeneralForbidsSaaSConfigAndIamAadC
 		overrides map[string]attr.Value
 	}{
 		{
-			name: "saas_config",
+			name: "missing resource",
 			overrides: map[string]attr.Value{
 				"rotation_profile": types.StringValue(commonpamuser.RotProfileGeneral),
-				"resource":         types.StringValue("pam-resource-uid"),
-				"saas_config":      types.StringValue("saas-config-uid"),
+				"configuration":    types.StringValue("pam-config-uid"),
 			},
 		},
 		{
-			name: "iam_aad_config",
+			name: "missing configuration",
 			overrides: map[string]attr.Value{
 				"rotation_profile": types.StringValue(commonpamuser.RotProfileGeneral),
 				"resource":         types.StringValue("pam-resource-uid"),
-				"iam_aad_config":   types.StringValue("iam-config-uid"),
 			},
 		},
 	}
@@ -132,29 +122,43 @@ func TestRotationProfileRequirementsValidator_GeneralForbidsSaaSConfigAndIamAadC
 			t.Parallel()
 			resp := validateRotationSettings(t, rotationSettingsAttrs(tc.overrides), commonpamuser.RotationProfileRequirementsValidator())
 			if !resp.Diagnostics.HasError() {
-				t.Fatalf("expected error when %s is set for general profile", tc.name)
+				t.Fatalf("expected error for %#v", tc.overrides)
 			}
 		})
 	}
 }
 
-func TestRotationProfileRequirementsValidator_IAMUserRequiresIamAadConfig(t *testing.T) {
+func TestRotationProfileRequirementsValidator_GeneralForbidsSaaSConfig(t *testing.T) {
+	t.Parallel()
+
+	resp := validateRotationSettings(t, rotationSettingsAttrs(map[string]attr.Value{
+		"rotation_profile": types.StringValue(commonpamuser.RotProfileGeneral),
+		"configuration":    types.StringValue("pam-config-uid"),
+		"resource":         types.StringValue("pam-resource-uid"),
+		"saas_config":      types.StringValue("saas-config-uid"),
+	}), commonpamuser.RotationProfileRequirementsValidator())
+	if !resp.Diagnostics.HasError() {
+		t.Fatal("expected error when saas_config is set for general profile")
+	}
+}
+
+func TestRotationProfileRequirementsValidator_IAMUserRequiresConfiguration(t *testing.T) {
 	t.Parallel()
 
 	resp := validateRotationSettings(t, rotationSettingsAttrs(map[string]attr.Value{
 		"rotation_profile": types.StringValue(commonpamuser.RotProfileIAMUser),
 	}), commonpamuser.RotationProfileRequirementsValidator())
 	if !resp.Diagnostics.HasError() {
-		t.Fatal("expected error when iam_aad_config is missing for iam_user profile")
+		t.Fatal("expected error when configuration is missing for iam_user profile")
 	}
 }
 
-func TestRotationProfileRequirementsValidator_IAMUserForbidsConfigurationResourceAndSaaSConfig(t *testing.T) {
+func TestRotationProfileRequirementsValidator_IAMUserForbidsResourceAndSaaSConfig(t *testing.T) {
 	t.Parallel()
 
 	base := map[string]attr.Value{
 		"rotation_profile": types.StringValue(commonpamuser.RotProfileIAMUser),
-		"iam_aad_config":   types.StringValue("iam-config-uid"),
+		"configuration":    types.StringValue("pam-config-uid"),
 	}
 
 	cases := []struct {
@@ -162,13 +166,6 @@ func TestRotationProfileRequirementsValidator_IAMUserForbidsConfigurationResourc
 		field     string
 		overrides map[string]attr.Value
 	}{
-		{
-			name:  "configuration",
-			field: "configuration",
-			overrides: map[string]attr.Value{
-				"configuration": types.StringValue("pam-config-uid"),
-			},
-		},
 		{
 			name:  "resource",
 			field: "resource",
@@ -214,7 +211,7 @@ func TestRotationProfileRequirementsValidator_ScriptsOnlyRequiresConfiguration(t
 	}
 }
 
-func TestRotationProfileRequirementsValidator_ScriptsOnlyForbidsIamAadConfigResourceAndSaaSConfig(t *testing.T) {
+func TestRotationProfileRequirementsValidator_ScriptsOnlyForbidsResourceAndSaaSConfig(t *testing.T) {
 	t.Parallel()
 
 	base := map[string]attr.Value{
@@ -226,12 +223,6 @@ func TestRotationProfileRequirementsValidator_ScriptsOnlyForbidsIamAadConfigReso
 		name      string
 		overrides map[string]attr.Value
 	}{
-		{
-			name: "iam_aad_config",
-			overrides: map[string]attr.Value{
-				"iam_aad_config": types.StringValue("iam-config-uid"),
-			},
-		},
 		{
 			name: "resource",
 			overrides: map[string]attr.Value{
@@ -298,48 +289,17 @@ func TestRotationProfileRequirementsValidator_SaaSRequiresConfigurationAndSaaSCo
 	}
 }
 
-func TestRotationProfileRequirementsValidator_SaaSForbidsResourceAndIamAadConfig(t *testing.T) {
+func TestRotationProfileRequirementsValidator_SaaSForbidsResource(t *testing.T) {
 	t.Parallel()
 
-	base := map[string]attr.Value{
+	resp := validateRotationSettings(t, rotationSettingsAttrs(map[string]attr.Value{
 		"rotation_profile": types.StringValue(commonpamuser.RotProfileSaaS),
 		"configuration":    types.StringValue("pam-config-uid"),
 		"saas_config":      types.StringValue("saas-config-uid"),
-	}
-
-	cases := []struct {
-		name      string
-		overrides map[string]attr.Value
-	}{
-		{
-			name: "resource",
-			overrides: map[string]attr.Value{
-				"resource": types.StringValue("pam-resource-uid"),
-			},
-		},
-		{
-			name: "iam_aad_config",
-			overrides: map[string]attr.Value{
-				"iam_aad_config": types.StringValue("iam-config-uid"),
-			},
-		},
-	}
-
-	for _, tc := range cases {
-		t.Run(tc.name, func(t *testing.T) {
-			t.Parallel()
-			overrides := map[string]attr.Value{}
-			for k, v := range base {
-				overrides[k] = v
-			}
-			for k, v := range tc.overrides {
-				overrides[k] = v
-			}
-			resp := validateRotationSettings(t, rotationSettingsAttrs(overrides), commonpamuser.RotationProfileRequirementsValidator())
-			if !resp.Diagnostics.HasError() {
-				t.Fatalf("expected error when %s is set for saas profile", tc.name)
-			}
-		})
+		"resource":         types.StringValue("pam-resource-uid"),
+	}), commonpamuser.RotationProfileRequirementsValidator())
+	if !resp.Diagnostics.HasError() {
+		t.Fatal("expected error when resource is set for saas profile")
 	}
 }
 
@@ -354,7 +314,7 @@ func TestRotationProfileRequirementsValidator_ValidProfiles(t *testing.T) {
 		},
 		{
 			"rotation_profile": types.StringValue(commonpamuser.RotProfileIAMUser),
-			"iam_aad_config":   types.StringValue("iam-config-uid"),
+			"configuration":    types.StringValue("pam-config-uid"),
 		},
 		{
 			"rotation_profile": types.StringValue(commonpamuser.RotProfileScriptsOnly),
@@ -375,12 +335,62 @@ func TestRotationProfileRequirementsValidator_ValidProfiles(t *testing.T) {
 	}
 }
 
+func TestRotationScheduleCombinationValidator_DisabledWithoutScheduleValid(t *testing.T) {
+	t.Parallel()
+
+	resp := validateRotationSettings(t, generalRotationSettings(map[string]attr.Value{
+		"enabled": types.BoolValue(false),
+	}), commonpamuser.RotationScheduleCombinationValidator())
+	if resp.Diagnostics.HasError() {
+		t.Fatalf("expected valid when enabled=false with no schedule fields, got: %v", resp.Diagnostics)
+	}
+}
+
+func TestRotationScheduleCombinationValidator_DisabledWithScheduleInvalid(t *testing.T) {
+	t.Parallel()
+
+	cases := []map[string]attr.Value{
+		{"enabled": types.BoolValue(false), "on_demand": types.BoolValue(true)},
+		{"enabled": types.BoolValue(false), "use_default_rotation_schedule": types.BoolValue(true)},
+		{"enabled": types.BoolValue(false), "schedule_cron": types.StringValue("0 28 17 ? * *")},
+		{"enabled": types.BoolValue(false), "schedule_json": types.StringValue(`{"type":"DAILY","time":"17:00:00","tz":"Etc/UTC"}`)},
+		{"enabled": types.BoolValue(false), "complexity": types.StringValue("32,5,1,1,2")},
+	}
+
+	for _, overrides := range cases {
+		resp := validateRotationSettings(t, generalRotationSettings(overrides), commonpamuser.RotationScheduleCombinationValidator())
+		if !resp.Diagnostics.HasError() {
+			t.Fatalf("expected error for %#v", overrides)
+		}
+	}
+}
+
+func TestRotationScheduleCombinationValidator_NoOptionInvalid(t *testing.T) {
+	t.Parallel()
+
+	resp := validateRotationSettings(t, generalRotationSettings(nil), commonpamuser.RotationScheduleCombinationValidator())
+	if !resp.Diagnostics.HasError() {
+		t.Fatal("expected error when no schedule option is set")
+	}
+}
+
+func TestRotationScheduleCombinationValidator_FalseOnDemandAloneInvalid(t *testing.T) {
+	t.Parallel()
+
+	resp := validateRotationSettings(t, generalRotationSettings(map[string]attr.Value{
+		"on_demand": types.BoolValue(false),
+	}), commonpamuser.RotationScheduleCombinationValidator())
+	if !resp.Diagnostics.HasError() {
+		t.Fatal("expected error when on_demand=false is the only schedule field set")
+	}
+}
+
 func TestRotationScheduleCombinationValidator_SingleOptionValid(t *testing.T) {
 	t.Parallel()
 
 	cases := []map[string]attr.Value{
 		{"on_demand": types.BoolValue(true)},
-		{"schedule_config": types.BoolValue(true)},
+		{"use_default_rotation_schedule": types.BoolValue(true)},
 		{"schedule_cron": types.StringValue("0 28 17 ? * *")},
 		{"schedule_json": types.StringValue(`{"type":"WEEKLY","weekday":"SATURDAY","time":"17:00:00","tz":"Etc/UTC"}`)},
 	}
@@ -406,12 +416,12 @@ func TestRotationScheduleCombinationValidator_MultipleOptionsInvalid(t *testing.
 			"schedule_json": types.StringValue(`{"type":"DAILY","time":"17:00:00","tz":"Etc/UTC"}`),
 		},
 		{
-			"on_demand":       types.BoolValue(true),
-			"schedule_config": types.BoolValue(true),
+			"on_demand":                     types.BoolValue(true),
+			"use_default_rotation_schedule": types.BoolValue(true),
 		},
 		{
-			"schedule_config": types.BoolValue(true),
-			"schedule_json":   types.StringValue(`{"type":"DAILY","utcTime":"17:56","tz":"Etc/UTC"}`),
+			"use_default_rotation_schedule": types.BoolValue(true),
+			"schedule_json":                 types.StringValue(`{"type":"DAILY","utcTime":"17:56","tz":"Etc/UTC"}`),
 		},
 	}
 

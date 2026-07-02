@@ -151,6 +151,7 @@ func appendDomainFlags(parts *[]string, m *commonpamconfiguration.PamDomainModel
 	*parts = append(*parts, fmt.Sprintf("%s %s", FlagDomainScanDcCidr, boolToTrueFalse(m.DomainScanDcCidr)))
 	appendFlagString(parts, FlagDomainNetworkCidr, m.DomainNetworkCidr)
 	appendFlagString(parts, FlagDomainAdmin, m.DomainAdmin)
+	appendFlagString(parts, FlagDomainUserMatch, m.UserMatch)
 }
 
 func appendGcpFlags(parts *[]string, m *commonpamconfiguration.PamGcpModel) {

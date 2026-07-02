@@ -226,7 +226,7 @@ func BuildPamRotationEditCommand(recordUID string, rs *PamUserRotationSettings) 
 
 	if !rs.OnDemand.IsNull() && !rs.OnDemand.IsUnknown() && rs.OnDemand.ValueBool() {
 		parts = append(parts, FlagOnDemand)
-	} else if !rs.ScheduleConfig.IsNull() && !rs.ScheduleConfig.IsUnknown() && rs.ScheduleConfig.ValueBool() {
+	} else if !rs.UseDefaultRotationSchedule.IsNull() && !rs.UseDefaultRotationSchedule.IsUnknown() && rs.UseDefaultRotationSchedule.ValueBool() {
 		parts = append(parts, FlagScheduleConfig)
 	} else if !rs.ScheduleCron.IsNull() && !rs.ScheduleCron.IsUnknown() {
 		parts = append(parts, fmt.Sprintf("%s %s", FlagScheduleCron, quoteShellSingle(rs.ScheduleCron.ValueString())))
@@ -260,7 +260,7 @@ func RotationSettingsNeedApply(plan, state *PamUserRotationSettings) bool {
 		!plan.ScheduleCron.Equal(state.ScheduleCron) ||
 		!plan.ScheduleJSON.Equal(state.ScheduleJSON) ||
 		!plan.OnDemand.Equal(state.OnDemand) ||
-		!plan.ScheduleConfig.Equal(state.ScheduleConfig) ||
+		!plan.UseDefaultRotationSchedule.Equal(state.UseDefaultRotationSchedule) ||
 		!plan.Complexity.Equal(state.Complexity)
 }
 
@@ -272,16 +272,16 @@ func MapRotationSettingsToState(rotInfo *PamRotationInfoResponse, rec *utils.Vau
 	var rs *PamUserRotationSettings
 	if existing != nil {
 		rs = &PamUserRotationSettings{
-			RotationProfile: existing.RotationProfile,
-			Configuration:   existing.Configuration,
-			Resource:        existing.Resource,
-			Enabled:         existing.Enabled,
-			ScheduleCron:    existing.ScheduleCron,
-			ScheduleJSON:    existing.ScheduleJSON,
-			OnDemand:        existing.OnDemand,
-			ScheduleConfig:  existing.ScheduleConfig,
-			Complexity:      existing.Complexity,
-			SaaSConfig:      existing.SaaSConfig,
+			RotationProfile:            existing.RotationProfile,
+			Configuration:              existing.Configuration,
+			Resource:                   existing.Resource,
+			Enabled:                    existing.Enabled,
+			ScheduleCron:               existing.ScheduleCron,
+			ScheduleJSON:               existing.ScheduleJSON,
+			OnDemand:                   existing.OnDemand,
+			UseDefaultRotationSchedule: existing.UseDefaultRotationSchedule,
+			Complexity:                 existing.Complexity,
+			SaaSConfig:                 existing.SaaSConfig,
 		}
 	} else {
 		rs = &PamUserRotationSettings{}
@@ -305,30 +305,31 @@ func MapRotationSettingsToState(rotInfo *PamRotationInfoResponse, rec *utils.Vau
 		rs.RotationProfile = types.StringValue(rotationProfile)
 	}
 
+	if !mapSaaSRotationFromDagDebug(dagDebug, rs) && rec.RotationProfile != nil && rec.RotationProfile.Type == RotProfileGeneral {
+		rs.Resource = types.StringValue(rec.RotationProfile.ResourceUID)
+	}
+
 	if rotInfo.Disable {
 		rs.Enabled = types.BoolValue(false)
 		rs.ScheduleCron = types.StringNull()
 		rs.ScheduleJSON = types.StringNull()
 		rs.OnDemand = types.BoolNull()
+		rs.UseDefaultRotationSchedule = types.BoolNull()
+		rs.Complexity = types.StringNull()
 	} else {
 		rs.Enabled = types.BoolValue(true)
 
 		if rotInfo.ScheduleType == RotProfileScheduleTypeManual {
 			rs.OnDemand = types.BoolValue(true)
-		} else {
-			rs.OnDemand = types.BoolValue(false)
 		}
+
+		if rotInfo.ScheduleType == RotProfileScheduleTypeScheduled {
+			parseScheduleValue(rotInfo.ScheduleData, rs, rotInfo.UseDefaultRotationSchedule)
+		}
+
+		rs.Complexity = MapPasswordComplexityResponseToState(rotInfo.PasswordComplexityDetails)
 	}
 
-	if !mapSaaSRotationFromDagDebug(dagDebug, rs) &&
-		rec.RotationProfile != nil &&
-		rec.RotationProfile.Type == RotProfileGeneral {
-		rs.Resource = types.StringValue(rec.RotationProfile.ResourceUID)
-	}
-
-	parseScheduleValue(rotInfo.ScheduleData, rs)
-
-	rs.Complexity = MapPasswordComplexityResponseToState(rotInfo.PasswordComplexityDetails)
 	state.RotationSettings = rs
 }
 
@@ -414,7 +415,14 @@ func MapPasswordComplexityResponseToState(response *PamRotationInfoPasswordCompl
 //   - {"type":"CRON","cron":"0 56 17 * * ?","tz":"Etc/UTC"}
 //   - {"type":"DAILY","utcTime":"17:56","intervalCount":1}
 //   - {"type":"WEEKLY","utcTime":"15:44","weekday":"SUNDAY","intervalCount":1}
-func parseScheduleValue(raw string, rs *PamUserRotationSettings) {
+func parseScheduleValue(raw string, rs *PamUserRotationSettings, useDefaultRotationSchedule bool) {
+	// if useDefaultRotationSchedule is true, we need to set the schedule config to true
+	// Means the schedule is inherited from the PAM Configuration.
+	if useDefaultRotationSchedule {
+		rs.UseDefaultRotationSchedule = types.BoolValue(true)
+		return
+	}
+
 	raw = strings.TrimSpace(raw)
 	if raw == "" {
 		return
@@ -432,10 +440,12 @@ func parseScheduleValue(raw string, rs *PamUserRotationSettings) {
 			rs.ScheduleCron = types.StringValue(cron)
 			rs.OnDemand = types.BoolNull()
 			rs.ScheduleJSON = types.StringNull()
+			rs.UseDefaultRotationSchedule = types.BoolNull()
 		}
 	case "DAILY", "WEEKLY", "MONTHLY_BY_WEEKDAY", "YEARLY":
 		rs.ScheduleJSON = types.StringValue(raw)
 		rs.OnDemand = types.BoolNull()
 		rs.ScheduleCron = types.StringNull()
+		rs.UseDefaultRotationSchedule = types.BoolNull()
 	}
 }

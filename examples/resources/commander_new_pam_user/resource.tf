@@ -18,11 +18,11 @@
 # Which fields does each rotation_profile need?
 # -----------------------------------------------------------------------------
 #   rotation_profile = "general"      => `configuration` + `resource`
-#   rotation_profile = "iam_user"       => `iam_aad_config`  (not `configuration`)
+#   rotation_profile = "iam_user"       => `configuration`  (not `resource` or `saas_config`)
 #   rotation_profile = "scripts_only"   => `configuration`
 #   rotation_profile = "saas"           => `configuration` + `saas_config`
 #
-# Schedule: set only ONE of on_demand, schedule_config, schedule_cron, schedule_json.
+# Schedule: when enabled is not false, set exactly ONE of on_demand, use_default_rotation_schedule, schedule_cron, schedule_json (required).
 # Cron uses Keeper Quartz format (6 or 7 fields, seconds first), e.g. "0 0 4 * * ?".
 # Complexity: five integers length,upper,lower,digits,symbols (length min 20).
 # -----------------------------------------------------------------------------
@@ -92,7 +92,9 @@ resource "commander_new_pam_user" "mysql_app_account" {
 # Usage 3 - Rotation profile: "iam_user"  (cloud IAM / Azure AD)
 #
 # For type "iam_user" you MUST pass:
-#   - iam_aad_config : PAM Configuration UID for IAM / Azure AD rotation
+#   - configuration : PAM Configuration UID for IAM / Azure AD rotation
+#
+# Do NOT set resource or saas_config for this profile.
 ###############################################################################
 
 # resource "commander_new_pam_user" "aws_iam_deploy_user" {
@@ -104,7 +106,7 @@ resource "commander_new_pam_user" "mysql_app_account" {
 #
 #   rotation_settings = {
 #     rotation_profile = "iam_user"
-#     iam_aad_config   = "_REPLACE_WITH_PAM_CONFIGURATION_UID_FOR_IAM_"
+#     configuration    = "_REPLACE_WITH_PAM_CONFIGURATION_UID_FOR_IAM_"
 #     complexity       = "32,5,1,1,2"
 #     enabled          = true
 #     on_demand        = true
@@ -138,7 +140,7 @@ resource "commander_new_pam_user" "mysql_app_account" {
 ###############################################################################
 # Usage 5 - Rotation schedule (cron / json / inherit-from-config)
 #
-# Pick exactly ONE of: on_demand, schedule_cron, schedule_json, schedule_config.
+# Pick exactly ONE of: on_demand, schedule_cron, schedule_json, use_default_rotation_schedule (required).
 ###############################################################################
 
 # resource "commander_new_pam_user" "scheduled_postgres_user" {
@@ -157,7 +159,7 @@ resource "commander_new_pam_user" "mysql_app_account" {
 #     # ----- pick ONE of the schedule options below -----
 #     schedule_cron = "0 0 3 1 * ?" # First of every month at 3 AM UTC
 #     # schedule_json   = "{\"type\": \"DAILY\", \"utcTime\": \"17:56\", \"intervalCount\": 1}"
-#     # schedule_config = true      # Inherit schedule from the PAM Configuration
+#     # use_default_rotation_schedule = true      # Inherit schedule from the PAM Configuration
 #     # on_demand       = true      # Manual rotation only
 #   }
 # }

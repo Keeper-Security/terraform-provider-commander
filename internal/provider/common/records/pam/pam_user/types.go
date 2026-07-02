@@ -4,12 +4,13 @@
 package pamuser
 
 type PamRotationInfoResponse struct {
-	PamConfigUID              string                                                `json:"pam_config_uid"`
-	AdminResourceUID          string                                                `json:"admin_resource_uid"`
-	ScheduleType              string                                                `json:"schedule_type"`
-	ScheduleData              string                                                `json:"schedule_data"` // We will use this to set ScheduleCron, ScheduleJSON
-	PasswordComplexityDetails *PamRotationInfoPasswordComplexityDetailsDataResponse `json:"password_complexity_detail"`
-	Disable                   bool                                                  `json:"disabled"`
+	PamConfigUID               string                                                `json:"pam_config_uid"`
+	AdminResourceUID           string                                                `json:"admin_resource_uid"`
+	ScheduleType               string                                                `json:"schedule_type"`
+	ScheduleData               string                                                `json:"schedule_data"` // We will use this to set ScheduleCron, ScheduleJSON
+	PasswordComplexityDetails  *PamRotationInfoPasswordComplexityDetailsDataResponse `json:"password_complexity_detail"`
+	Disable                    bool                                                  `json:"disabled"`
+	UseDefaultRotationSchedule bool                                                  `json:"use_default_rotation_schedule"`
 }
 
 type PamRotationInfoPasswordComplexityDetailsDataResponse struct {

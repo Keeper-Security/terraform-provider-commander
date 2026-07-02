@@ -143,11 +143,11 @@ output "pam_user_share" {
 - `private_key_passphrase` (String, Sensitive) Passphrase for the private key associated with the PAM User.
 - `private_pem_key` (String, Sensitive) Private PEM key associated with the PAM User.
 - `public_key` (String, Sensitive) Public key associated with the PAM User.
-- `rotation_settings` (Attributes) Rotation settings for the PAM User record. Configures password rotation via `pam rotation edit`.
+- `rotation_settings` (Attributes) Rotation settings for the PAM User record.
 
-**Required:** `rotation_profile`. **Profile-specific:** `resource` when `rotation_profile` is `general`; `configuration` when `rotation_profile` is `iam_user` or `scripts_only`. `configuration` and `resource` are **mutually exclusive**.
+**Required:** `rotation_profile`. **Profile-specific:** `general` requires `configuration` and `resource` (do not set `saas_config`); `iam_user` and `scripts_only` require `configuration` (do not set `resource` or `saas_config`); `saas` requires `configuration` and `saas_config` (do not set `resource`).
 
-**Schedule:** set **only one** of `on_demand`, `schedule_config`, `schedule_cron`, or `schedule_json` (mutually exclusive). (see [below for nested schema](#nestedatt--rotation_settings))
+**Schedule:** when `enabled` is not `false`, set **exactly one** of `on_demand`, `use_default_rotation_schedule`, `schedule_cron`, or `schedule_json` (required and mutually exclusive). When `enabled` is `false`, do not set schedule fields or `complexity`. (see [below for nested schema](#nestedatt--rotation_settings))
 - `share` (Attributes Map) Mapping of share permissions for this record. Each map **key** is a **user email**; each **value** is an object with `can_share` and `can_edit` booleans. (see [below for nested schema](#nestedatt--share))
 - `title` (String) Title of the PAM User record.
 
@@ -156,14 +156,13 @@ output "pam_user_share" {
 
 Read-Only:
 
-- `complexity` (String) Password complexity for rotation: `length,upper,lower,digits,symbols` as **five integers**. Password **length** must be **1–99**; upper, lower, digits, and symbols minimums must each be **0–99** (Keeper UI limits). Invalid values fail at plan time.
+- `complexity` (String) Password complexity for rotation: `length,upper,lower,digits,symbols` as **five integers**. Password **length** must be **20–99**; upper, lower, digits, and symbols minimums must each be **0–99** (Keeper UI limits). Must not be set when `enabled` is `false`. Invalid values fail at plan time.
 - `configuration` (String) PAM Configuration UID to use for rotation. **Required** when `rotation_profile` is `general`, `iam_user`, `saas` or `scripts_only`.
-- `enabled` (Boolean) Whether rotation is enabled for this PAM User.
+- `enabled` (Boolean) Whether rotation is enabled for this PAM User. When `false`, do not set `on_demand`, `use_default_rotation_schedule`, `schedule_cron`, `schedule_json`, or `complexity`.
 - `on_demand` (Boolean) If `true`, rotation is on-demand (manual) only.
-- `resource` (String) UID of the PAM resource record (machine or database) this user rotates on. Required when `rotation_profile` is `general`.
+- `resource` (String) UID of the PAM resource record (machine or database) this user rotates on. **Required** when `rotation_profile` is `general` (along with `configuration`).
 - `rotation_profile` (String) Rotation profile type: `general` (resource-based), `iam_user` (IAM/Azure user), `scripts_only` (run PAM scripts only), or `saas` (SaaS Account). **Required** when `rotation_settings` is set.
-- `saas_config` (String) SaaS Configuration UID which is associted with that PAM Configuration to use for rotation. **Required** when `rotation_profile` is `saas`.
-- `schedule_config` (Boolean) If `true`, uses the schedule from the PAM Configuration instead of a per-record schedule.
+- `saas_config` (String) SaaS Configuration UID associated with the PAM Configuration to use for rotation. **Required** when `rotation_profile` is `saas` (along with `configuration`).
 - `schedule_cron` (String) Cron schedule for rotation using the [Keeper Quartz cron spec](https://docs.keeper.io/keeperpam/privileged-access-manager/references/cron-spec) (**6 or 7 fields**, seconds first, e.g. `0 28 17 ? * *`). Schedules must have at least a **1-hour interval** between executions. Invalid expressions fail at **plan** time so the vault record is not created first.
 - `schedule_json` (String) Schedule JSON for rotation. Provide a **single JSON object** with a required `type` field.
 
@@ -220,7 +219,8 @@ rotation_settings {
 }
 ```
 
-Mutually exclusive with `on_demand`, `schedule_cron`, and `schedule_config`. For cron schedules use `schedule_cron`.
+Mutually exclusive with `on_demand`, `schedule_cron`, and `use_default_rotation_schedule`. For cron schedules use `schedule_cron`.
+- `use_default_rotation_schedule` (Boolean) If `true`, uses the schedule from the PAM Configuration instead of a per-record schedule.
 
 
 <a id="nestedatt--share"></a>
