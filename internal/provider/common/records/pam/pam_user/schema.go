@@ -183,10 +183,10 @@ func SharedAttributes() map[string]schema.Attribute {
 					Description:         RotOnDemandDescription,
 					MarkdownDescription: RotOnDemandMarkdownDescription,
 				},
-				"schedule_config": schema.BoolAttribute{
+				"use_default_rotation_schedule": schema.BoolAttribute{
 					Optional:            true,
-					Description:         RotScheduleConfigDescription,
-					MarkdownDescription: RotScheduleConfigMarkdownDescription,
+					Description:         RotUseDefaultRotationScheduleDescription,
+					MarkdownDescription: RotUseDefaultRotationScheduleMarkdownDescription,
 				},
 				"complexity": schema.StringAttribute{
 					Optional:            true,
@@ -320,10 +320,10 @@ func rotationSettingsDataSourceAttribute() dschema.SingleNestedAttribute {
 				Description:         RotOnDemandDescription,
 				MarkdownDescription: RotOnDemandMarkdownDescription,
 			},
-			"schedule_config": dschema.BoolAttribute{
+			"use_default_rotation_schedule": dschema.BoolAttribute{
 				Computed:            true,
-				Description:         RotScheduleConfigDescription,
-				MarkdownDescription: RotScheduleConfigMarkdownDescription,
+				Description:         RotUseDefaultRotationScheduleDescription,
+				MarkdownDescription: RotUseDefaultRotationScheduleMarkdownDescription,
 			},
 			"complexity": dschema.StringAttribute{
 				Computed:            true,

@@ -38,7 +38,7 @@ A PAM User record stores privileged credentials (login/password) that can be ass
 #   rotation_profile = "scripts_only"   => `configuration`
 #   rotation_profile = "saas"           => `configuration` + `saas_config`
 #
-# Schedule: set only ONE of on_demand, schedule_config, schedule_cron, schedule_json.
+# Schedule: when enabled is not false, set exactly ONE of on_demand, use_default_rotation_schedule, schedule_cron, schedule_json (required).
 # Cron uses Keeper Quartz format (6 or 7 fields, seconds first), e.g. "0 0 4 * * ?".
 # Complexity: five integers length,upper,lower,digits,symbols (length min 20).
 # -----------------------------------------------------------------------------
@@ -203,8 +203,8 @@ resource "commander_classic_pam_user" "mysql_app_account" {
 ###############################################################################
 # Usage 2.5 - Rotation schedule (cron / json / inherit-from-config)
 #
-# Pick exactly ONE of: on_demand, schedule_cron, schedule_json, schedule_config.
-# `schedule_config = true` inherits the schedule from the PAM Configuration.
+# Pick exactly ONE of: on_demand, schedule_cron, schedule_json, use_default_rotation_schedule (required).
+# `use_default_rotation_schedule = true` inherits the schedule from the PAM Configuration.
 ###############################################################################
 
 # resource "commander_classic_pam_user" "scheduled_postgres_user" {
@@ -224,7 +224,7 @@ resource "commander_classic_pam_user" "mysql_app_account" {
 #     # schedule_cron   = "0 0 2 1 1,4,7,10 ?"                                                                            # First of every quarter at 2 AM UTC
 #     # schedule_json   = "{\"type\": \"DAILY\", \"utcTime\": \"17:56\", \"intervalCount\": 1}"                            # Daily at 5:56 PM UTC
 #     # schedule_json   = "{\"type\": \"WEEKLY\", \"utcTime\": \"00:00\", \"weekday\": \"SATURDAY\", \"intervalCount\": 1}" # Weekly on Saturday at 12:00 AM UTC
-#     # schedule_config = true                                                                                            # Inherit schedule from the PAM Configuration
+#     # use_default_rotation_schedule = true                                                                                            # Inherit schedule from the PAM Configuration
 #     # on_demand       = true                                                                                            # Manual rotation only
 #   }
 # }
@@ -267,7 +267,7 @@ resource "commander_classic_pam_user" "mysql_app_account" {
 
 **Required:** `rotation_profile`. **Profile-specific:** `general` requires `configuration` and `resource` (do not set `saas_config`); `iam_user` and `scripts_only` require `configuration` (do not set `resource` or `saas_config`); `saas` requires `configuration` and `saas_config` (do not set `resource`).
 
-**Schedule:** set **only one** of `on_demand`, `schedule_config`, `schedule_cron`, or `schedule_json` (mutually exclusive). (see [below for nested schema](#nestedatt--rotation_settings))
+**Schedule:** when `enabled` is not `false`, set **exactly one** of `on_demand`, `use_default_rotation_schedule`, `schedule_cron`, or `schedule_json` (required and mutually exclusive). When `enabled` is `false`, do not set schedule fields or `complexity`. (see [below for nested schema](#nestedatt--rotation_settings))
 - `share` (Attributes Map) Mapping of share permissions for this record. Each map **key** is a **user email**; each **value** is an object with `can_share` and `can_edit` booleans. (see [below for nested schema](#nestedatt--share))
 
 ### Read-Only
@@ -279,14 +279,13 @@ resource "commander_classic_pam_user" "mysql_app_account" {
 
 Optional:
 
-- `complexity` (String) Password complexity for rotation: `length,upper,lower,digits,symbols` as **five integers**. Password **length** must be **20–99**; upper, lower, digits, and symbols minimums must each be **0–99** (Keeper UI limits). Invalid values fail at plan time.
+- `complexity` (String) Password complexity for rotation: `length,upper,lower,digits,symbols` as **five integers**. Password **length** must be **20–99**; upper, lower, digits, and symbols minimums must each be **0–99** (Keeper UI limits). Must not be set when `enabled` is `false`. Invalid values fail at plan time.
 - `configuration` (String) PAM Configuration UID to use for rotation. **Required** when `rotation_profile` is `general`, `iam_user`, `saas` or `scripts_only`.
-- `enabled` (Boolean) Whether rotation is enabled for this PAM User.
+- `enabled` (Boolean) Whether rotation is enabled for this PAM User. When `false`, do not set `on_demand`, `use_default_rotation_schedule`, `schedule_cron`, `schedule_json`, or `complexity`.
 - `on_demand` (Boolean) If `true`, rotation is on-demand (manual) only.
 - `resource` (String) UID of the PAM resource record (machine or database) this user rotates on. **Required** when `rotation_profile` is `general` (along with `configuration`).
 - `rotation_profile` (String) Rotation profile type: `general` (resource-based), `iam_user` (IAM/Azure user), `scripts_only` (run PAM scripts only), or `saas` (SaaS Account). **Required** when `rotation_settings` is set.
 - `saas_config` (String) SaaS Configuration UID associated with the PAM Configuration to use for rotation. **Required** when `rotation_profile` is `saas` (along with `configuration`).
-- `schedule_config` (Boolean) If `true`, uses the schedule from the PAM Configuration instead of a per-record schedule.
 - `schedule_cron` (String) Cron schedule for rotation using the [Keeper Quartz cron spec](https://docs.keeper.io/keeperpam/privileged-access-manager/references/cron-spec) (**6 or 7 fields**, seconds first, e.g. `0 28 17 ? * *`). Schedules must have at least a **1-hour interval** between executions. Invalid expressions fail at **plan** time so the vault record is not created first.
 - `schedule_json` (String) Schedule JSON for rotation. Provide a **single JSON object** with a required `type` field.
 
@@ -343,7 +342,8 @@ rotation_settings {
 }
 ```
 
-Mutually exclusive with `on_demand`, `schedule_cron`, and `schedule_config`. For cron schedules use `schedule_cron`.
+Mutually exclusive with `on_demand`, `schedule_cron`, and `use_default_rotation_schedule`. For cron schedules use `schedule_cron`.
+- `use_default_rotation_schedule` (Boolean) If `true`, uses the schedule from the PAM Configuration instead of a per-record schedule.
 
 
 <a id="nestedatt--share"></a>

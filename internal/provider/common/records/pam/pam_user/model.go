@@ -28,14 +28,14 @@ type PamUserSharedModel struct {
 // PamUserRotationSettings models the nested `rotation_settings` block applied
 // via `pam rotation edit` and read back via `pam rotation info`.
 type PamUserRotationSettings struct {
-	RotationProfile types.String `tfsdk:"rotation_profile"`
-	Configuration   types.String `tfsdk:"configuration"`
-	Resource        types.String `tfsdk:"resource"`
-	Enabled         types.Bool   `tfsdk:"enabled"`
-	ScheduleCron    types.String `tfsdk:"schedule_cron"`
-	ScheduleJSON    types.String `tfsdk:"schedule_json"`
-	OnDemand        types.Bool   `tfsdk:"on_demand"`
-	ScheduleConfig  types.Bool   `tfsdk:"schedule_config"`
-	Complexity      types.String `tfsdk:"complexity"`
-	SaaSConfig      types.String `tfsdk:"saas_config"`
+	RotationProfile            types.String `tfsdk:"rotation_profile"`
+	Configuration              types.String `tfsdk:"configuration"`
+	Resource                   types.String `tfsdk:"resource"`
+	Enabled                    types.Bool   `tfsdk:"enabled"`
+	ScheduleCron               types.String `tfsdk:"schedule_cron"`
+	ScheduleJSON               types.String `tfsdk:"schedule_json"`
+	OnDemand                   types.Bool   `tfsdk:"on_demand"`
+	UseDefaultRotationSchedule types.Bool   `tfsdk:"use_default_rotation_schedule"`
+	Complexity                 types.String `tfsdk:"complexity"`
+	SaaSConfig                 types.String `tfsdk:"saas_config"`
 }

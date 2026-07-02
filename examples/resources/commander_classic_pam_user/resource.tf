@@ -20,7 +20,7 @@
 #   rotation_profile = "scripts_only"   => `configuration`
 #   rotation_profile = "saas"           => `configuration` + `saas_config`
 #
-# Schedule: set only ONE of on_demand, schedule_config, schedule_cron, schedule_json.
+# Schedule: when enabled is not false, set exactly ONE of on_demand, use_default_rotation_schedule, schedule_cron, schedule_json (required).
 # Cron uses Keeper Quartz format (6 or 7 fields, seconds first), e.g. "0 0 4 * * ?".
 # Complexity: five integers length,upper,lower,digits,symbols (length min 20).
 # -----------------------------------------------------------------------------
@@ -185,8 +185,8 @@ resource "commander_classic_pam_user" "mysql_app_account" {
 ###############################################################################
 # Usage 2.5 - Rotation schedule (cron / json / inherit-from-config)
 #
-# Pick exactly ONE of: on_demand, schedule_cron, schedule_json, schedule_config.
-# `schedule_config = true` inherits the schedule from the PAM Configuration.
+# Pick exactly ONE of: on_demand, schedule_cron, schedule_json, use_default_rotation_schedule (required).
+# `use_default_rotation_schedule = true` inherits the schedule from the PAM Configuration.
 ###############################################################################
 
 # resource "commander_classic_pam_user" "scheduled_postgres_user" {
@@ -206,7 +206,7 @@ resource "commander_classic_pam_user" "mysql_app_account" {
 #     # schedule_cron   = "0 0 2 1 1,4,7,10 ?"                                                                            # First of every quarter at 2 AM UTC
 #     # schedule_json   = "{\"type\": \"DAILY\", \"utcTime\": \"17:56\", \"intervalCount\": 1}"                            # Daily at 5:56 PM UTC
 #     # schedule_json   = "{\"type\": \"WEEKLY\", \"utcTime\": \"00:00\", \"weekday\": \"SATURDAY\", \"intervalCount\": 1}" # Weekly on Saturday at 12:00 AM UTC
-#     # schedule_config = true                                                                                            # Inherit schedule from the PAM Configuration
+#     # use_default_rotation_schedule = true                                                                                            # Inherit schedule from the PAM Configuration
 #     # on_demand       = true                                                                                            # Manual rotation only
 #   }
 # }

@@ -33,14 +33,15 @@ const (
 	ManagedMarkdownDescription              = "Whether this PAM User account is managed by Keeper."
 
 	RotationSettingsDescription         = "Rotation settings for the PAM User record."
-	RotationSettingsMarkdownDescription = "Rotation settings for the PAM User record.\n\n**Required:** `rotation_profile`. **Profile-specific:** `general` requires `configuration` and `resource` (do not set `saas_config`); `iam_user` and `scripts_only` require `configuration` (do not set `resource` or `saas_config`); `saas` requires `configuration` and `saas_config` (do not set `resource`).\n\n**Schedule:** set **only one** of `on_demand`, `schedule_config`, `schedule_cron`, or `schedule_json` (mutually exclusive)."
+	RotationSettingsMarkdownDescription = "Rotation settings for the PAM User record.\n\n**Required:** `rotation_profile`. **Profile-specific:** `general` requires `configuration` and `resource` (do not set `saas_config`); `iam_user` and `scripts_only` require `configuration` (do not set `resource` or `saas_config`); `saas` requires `configuration` and `saas_config` (do not set `resource`).\n\n**Schedule:** when `enabled` is not `false`, set **exactly one** of `on_demand`, `use_default_rotation_schedule`, `schedule_cron`, or `schedule_json` (required and mutually exclusive). When `enabled` is `false`, do not set schedule fields or `complexity`."
 
 	RotProfileGeneral     = "general"
 	RotProfileIAMUser     = "iam_user"
 	RotProfileScriptsOnly = "scripts_only"
 	RotProfileSaaS        = "saas"
 
-	RotProfileScheduleTypeManual = "manual"
+	RotProfileScheduleTypeManual    = "manual"
+	RotProfileScheduleTypeScheduled = "scheduled"
 
 	RotProfileDescription              = "Rotation profile type: general (resource-based), iam_user (IAM/Azure user), scripts_only (run PAM scripts only), or saas (SaaS Account). Required when rotation_settings is set."
 	RotProfileMarkdownDescription      = "Rotation profile type: `general` (resource-based), `iam_user` (IAM/Azure user), `scripts_only` (run PAM scripts only), or `saas` (SaaS Account). **Required** when `rotation_settings` is set."
@@ -54,8 +55,8 @@ const (
 	RotResourceMarkdownDescription     = "UID of the PAM resource record (machine or database) this user rotates on. **Required** when `rotation_profile` is `general` (along with `configuration`)."
 	RotAdminUserDescription            = "UID of the PAM User record to use as admin credential when rotating."
 	RotAdminUserMarkdownDescription    = "UID of the PAM User record to use as admin credential when rotating."
-	RotEnabledDescription              = "Whether rotation is enabled for this PAM User."
-	RotEnabledMarkdownDescription      = "Whether rotation is enabled for this PAM User."
+	RotEnabledDescription              = "Whether rotation is enabled for this PAM User. When false, schedule and complexity fields must not be set."
+	RotEnabledMarkdownDescription      = "Whether rotation is enabled for this PAM User. When `false`, do not set `on_demand`, `use_default_rotation_schedule`, `schedule_cron`, `schedule_json`, or `complexity`."
 	RotScheduleCronDescription         = "Cron schedule for rotation using Keeper Quartz format (6 or 7 fields), e.g. \"0 28 17 ? * *\". Schedules must have at least a 1-hour interval. Invalid expressions are rejected at plan time."
 	RotScheduleCronMarkdownDescription = "Cron schedule for rotation using the [Keeper Quartz cron spec](https://docs.keeper.io/keeperpam/privileged-access-manager/references/cron-spec) (**6 or 7 fields**, seconds first, e.g. `0 28 17 ? * *`). Schedules must have at least a **1-hour interval** between executions. Invalid expressions fail at **plan** time so the vault record is not created first."
 	RotScheduleJSONDescription         = "Schedule JSON for rotation. Supported types: DAILY, WEEKLY, MONTHLY_BY_WEEKDAY, YEARLY. Use either time (HH:MM:SS) or utcTime (HH:MM), not both. For cron schedules use schedule_cron instead. Examples: {\"type\":\"DAILY\",\"intervalCount\":1,\"time\":\"17:00:00\",\"tz\":\"Asia/Calcutta\"}; {\"type\":\"WEEKLY\",\"time\":\"17:00:00\",\"tz\":\"Asia/Calcutta\",\"weekday\":\"WEDNESDAY\"}."
@@ -103,13 +104,13 @@ const (
 		"  })\n" +
 		"}\n" +
 		"```\n\n" +
-		"Mutually exclusive with `on_demand`, `schedule_cron`, and `schedule_config`. For cron schedules use `schedule_cron`."
-	RotOnDemandDescription               = "If true, rotation is on-demand (manual) only."
-	RotOnDemandMarkdownDescription       = "If `true`, rotation is on-demand (manual) only."
-	RotScheduleConfigDescription         = "If true, uses the schedule from the PAM Configuration."
-	RotScheduleConfigMarkdownDescription = "If `true`, uses the schedule from the PAM Configuration instead of a per-record schedule."
-	RotComplexityDescription             = "Password complexity for rotation: five integers length,upper,lower,digits,symbols (length 20\u201399; each count 0\u201399 per Keeper UI)."
-	RotComplexityMarkdownDescription     = "Password complexity for rotation: `length,upper,lower,digits,symbols` as **five integers**. Password **length** must be **20\u201399**; upper, lower, digits, and symbols minimums must each be **0\u201399** (Keeper UI limits). Invalid values fail at plan time."
+		"Mutually exclusive with `on_demand`, `schedule_cron`, and `use_default_rotation_schedule`. For cron schedules use `schedule_cron`."
+	RotOnDemandDescription                           = "If true, rotation is on-demand (manual) only."
+	RotOnDemandMarkdownDescription                   = "If `true`, rotation is on-demand (manual) only."
+	RotUseDefaultRotationScheduleDescription         = "If true, uses the schedule from the PAM Configuration."
+	RotUseDefaultRotationScheduleMarkdownDescription = "If `true`, uses the schedule from the PAM Configuration instead of a per-record schedule."
+	RotComplexityDescription                         = "Password complexity for rotation: five integers length,upper,lower,digits,symbols (length 20\u201399; each count 0\u201399 per Keeper UI). Must not be set when enabled is false."
+	RotComplexityMarkdownDescription                 = "Password complexity for rotation: `length,upper,lower,digits,symbols` as **five integers**. Password **length** must be **20\u201399**; upper, lower, digits, and symbols minimums must each be **0\u201399** (Keeper UI limits). Must not be set when `enabled` is `false`. Invalid values fail at plan time."
 
 	ErrSummaryCreateFailed       = "PAM User Record Create Failed"
 	ErrSummaryReadFailed         = "PAM User Record Read Failed"

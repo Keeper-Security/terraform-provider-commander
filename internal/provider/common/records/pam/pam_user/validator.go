@@ -136,8 +136,8 @@ func addRequiredRotationFieldError(basePath path.Path, resp *validator.ObjectRes
 	)
 }
 
-// RotationScheduleCombinationValidator ensures only one rotation schedule option
-// is set within rotation_settings: on_demand, schedule_config, schedule_cron, or
+// RotationScheduleCombinationValidator ensures exactly one rotation schedule option
+// is set within rotation_settings: on_demand, use_default_rotation_schedule, schedule_cron, or
 // schedule_json (same mutual exclusivity as Commander pam rotation edit).
 type rotationScheduleCombinationValidator struct{}
 
@@ -146,19 +146,38 @@ func RotationScheduleCombinationValidator() rotationScheduleCombinationValidator
 }
 
 func (rotationScheduleCombinationValidator) Description(_ context.Context) string {
-	return "only one of on_demand, schedule_config, schedule_cron, or schedule_json may be set"
+	return "when enabled is not false, exactly one of on_demand, use_default_rotation_schedule, schedule_cron, or schedule_json must be set; when enabled is false, schedule and complexity fields must not be set"
 }
 
 func (rotationScheduleCombinationValidator) MarkdownDescription(_ context.Context) string {
-	return "Set **only one** of `on_demand`, `schedule_config`, `schedule_cron`, or `schedule_json`."
+	return "When `enabled` is not `false`, set **exactly one** of `on_demand`, `use_default_rotation_schedule`, `schedule_cron`, or `schedule_json`. When `enabled` is `false`, do not set schedule fields or `complexity`."
 }
 
 func (rotationScheduleCombinationValidator) ValidateObject(_ context.Context, req validator.ObjectRequest, resp *validator.ObjectResponse) {
 	if req.ConfigValue.IsNull() || req.ConfigValue.IsUnknown() {
 		return
 	}
-	if active := activeRotationScheduleOptions(req.ConfigValue.Attributes()); len(active) > 1 {
-		resp.Diagnostics.AddAttributeError(req.Path,
+	ValidateRotationScheduleCombination(req.Path, req.ConfigValue.Attributes(), resp)
+}
+
+// ValidateRotationScheduleCombination checks schedule option presence and exclusivity.
+func ValidateRotationScheduleCombination(basePath path.Path, attrs map[string]attr.Value, resp *validator.ObjectResponse) {
+	if boolAttrExplicitFalse(attrs, "enabled") {
+		validateRotationFieldsForbiddenWhenDisabled(basePath, attrs, resp)
+		return
+	}
+
+	active := activeRotationScheduleOptions(attrs)
+	switch len(active) {
+	case 0:
+		resp.Diagnostics.AddAttributeError(basePath,
+			"Missing rotation_settings schedule",
+			"Set one schedule option in rotation_settings: on_demand, use_default_rotation_schedule, schedule_cron, or schedule_json.",
+		)
+	case 1:
+		return
+	default:
+		resp.Diagnostics.AddAttributeError(basePath,
 			"Invalid rotation_settings schedule",
 			fmt.Sprintf(
 				"Set only one schedule option in rotation_settings; %s are mutually exclusive.",
@@ -168,13 +187,30 @@ func (rotationScheduleCombinationValidator) ValidateObject(_ context.Context, re
 	}
 }
 
+func validateRotationFieldsForbiddenWhenDisabled(basePath path.Path, attrs map[string]attr.Value, resp *validator.ObjectResponse) {
+	for _, field := range activeRotationScheduleOptions(attrs) {
+		addForbiddenWhenRotationDisabledError(basePath, resp, field)
+	}
+	if stringAttrNonEmpty(attrs, "complexity") {
+		addForbiddenWhenRotationDisabledError(basePath, resp, "complexity")
+	}
+}
+
+func addForbiddenWhenRotationDisabledError(basePath path.Path, resp *validator.ObjectResponse, field string) {
+	resp.Diagnostics.AddAttributeError(
+		basePath.AtName(field),
+		fmt.Sprintf("Invalid %s", field),
+		fmt.Sprintf("%s must not be set when enabled is false.", field),
+	)
+}
+
 func activeRotationScheduleOptions(attrs map[string]attr.Value) []string {
 	var active []string
 	if boolAttrExplicitTrue(attrs, "on_demand") {
 		active = append(active, "on_demand")
 	}
-	if boolAttrExplicitTrue(attrs, "schedule_config") {
-		active = append(active, "schedule_config")
+	if boolAttrExplicitTrue(attrs, "use_default_rotation_schedule") {
+		active = append(active, "use_default_rotation_schedule")
 	}
 	if stringAttrNonEmpty(attrs, "schedule_cron") {
 		active = append(active, "schedule_cron")
@@ -191,6 +227,14 @@ func boolAttrExplicitTrue(attrs map[string]attr.Value, key string) bool {
 		return false
 	}
 	return v.ValueBool()
+}
+
+func boolAttrExplicitFalse(attrs map[string]attr.Value, key string) bool {
+	v, ok := attrs[key].(types.Bool)
+	if !ok || v.IsNull() || v.IsUnknown() {
+		return false
+	}
+	return !v.ValueBool()
 }
 
 func stringAttrNonEmpty(attrs map[string]attr.Value, key string) bool {
@@ -223,20 +267,39 @@ func RotationPasswordComplexityValidator() rotationPasswordComplexityValidator {
 }
 
 func (rotationPasswordComplexityValidator) Description(_ context.Context) string {
-	return "must be five comma-separated integers length,upper,lower,digits,symbols with length 20–99 and each count 0–99 (Keeper UI limits)"
+	return "must be five comma-separated integers length,upper,lower,digits,symbols with length 20–99 and each count 0–99 (Keeper UI limits); must not be set when enabled is false"
 }
 
 func (rotationPasswordComplexityValidator) MarkdownDescription(_ context.Context) string {
-	return "Five comma-separated integers: `length,upper,lower,digits,symbols`. Password **length** (first value) must be **20–99**; each count must be **0–99**, matching Keeper UI limits."
+	return "Five comma-separated integers: `length,upper,lower,digits,symbols`. Password **length** (first value) must be **20–99**; each count must be **0–99**, matching Keeper UI limits. Must not be set when `enabled` is `false`."
 }
 
-func (rotationPasswordComplexityValidator) ValidateString(_ context.Context, req validator.StringRequest, resp *validator.StringResponse) {
+func (rotationPasswordComplexityValidator) ValidateString(ctx context.Context, req validator.StringRequest, resp *validator.StringResponse) {
 	if req.ConfigValue.IsNull() || req.ConfigValue.IsUnknown() {
+		return
+	}
+	if rotationExplicitlyDisabledFromStringRequest(ctx, req) {
+		resp.Diagnostics.AddAttributeError(req.Path, "Invalid rotation complexity", "complexity must not be set when enabled is false.")
 		return
 	}
 	if err := ValidateRotationPasswordComplexity(req.ConfigValue.ValueString()); err != nil {
 		resp.Diagnostics.AddAttributeError(req.Path, "Invalid rotation complexity", err.Error())
 	}
+}
+
+func rotationExplicitlyDisabledFromStringRequest(ctx context.Context, req validator.StringRequest) bool {
+	enabledPath := req.PathExpression.Merge(path.MatchRelative().AtParent().AtName("enabled"))
+	paths, diags := req.Config.PathMatches(ctx, enabledPath)
+	if diags.HasError() || len(paths) == 0 {
+		return false
+	}
+
+	var enabled types.Bool
+	diags = req.Config.GetAttribute(ctx, paths[0], &enabled)
+	if diags.HasError() || enabled.IsNull() || enabled.IsUnknown() {
+		return false
+	}
+	return !enabled.ValueBool()
 }
 
 // ValidateRotationPasswordComplexity parses complexity for tests and shared checks.
