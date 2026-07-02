@@ -938,6 +938,14 @@ func NormalizeFolderPath(p string) string {
 	return strings.Join(parts, "/")
 }
 
+// StringOrNull returns types.StringValue when s is non-empty after trim, otherwise types.StringNull.
+func StringOrNull(s string) types.String {
+	if strings.TrimSpace(s) == "" {
+		return types.StringNull()
+	}
+	return types.StringValue(s)
+}
+
 // MergeResourceAttributes combines resource attribute maps; later maps override earlier keys.
 func MergeResourceAttributes(maps ...map[string]schema.Attribute) map[string]schema.Attribute {
 	result := map[string]schema.Attribute{}

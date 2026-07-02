@@ -119,6 +119,11 @@ func MapResponseToModel(permissions []UserPermissionEntry, m *ShareModel) error 
 		if strings.TrimSpace(p.Username) == "" {
 			continue
 		}
+		// Skip owner entries as they are managed by Keeper and are not tracked in Terraform state.
+		// Will not add them to the share map.
+		if p.Owner {
+			continue
+		}
 		obj, diags := types.ObjectValue(SharePermissionsObjectType(), map[string]attr.Value{
 			AttrCanShare: types.BoolValue(p.Shareable),
 			AttrCanEdit:  types.BoolValue(p.Editable),

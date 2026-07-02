@@ -189,7 +189,11 @@ func (d *PamConfigurationDataSource) Schema(ctx context.Context, req datasource.
 					"domain_admin": dschema.StringAttribute{
 						Computed:    true,
 						Sensitive:   true,
-						Description: "Domain administrator credentials.",
+						Description: "Domain Administrative Credentials.",
+					},
+					"user_match": dschema.StringAttribute{
+						Computed:    true,
+						Description: "OU/DN filter (or regex) that limits which Active Directory or OpenLDAP users the Gateway discovers and imports during PAM Discovery.",
 					},
 				},
 			},

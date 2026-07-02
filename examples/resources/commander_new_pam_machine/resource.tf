@@ -56,13 +56,13 @@ resource "commander_new_pam_machine" "example" {
 
     connection {
       enable            = true
-      protocol          = "ssh" # one of: kubernetes, mysql, postgresql, rdp, sql-server, ssh, telnet, vnc
+      protocol          = "ssh" # one of: kubernetes, rdp, ssh, telnet, vnc
       connection_port   = 22
       launch_credential = "_REPLACE_WITH_LAUNCH_CREDENTIAL_UID_"
 
       # Only the block matching "protocol" should be set; see the
       # commander_classic_pam_machine example for connection variants
-      # (kubernetes, mysql, postgresql, sql_server, rdp, telnet, vnc).
+      # (kubernetes, rdp, ssh, telnet, vnc).
       ssh {
         session_recording      = true
         typescript_recording   = true

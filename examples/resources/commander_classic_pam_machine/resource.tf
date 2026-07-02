@@ -44,7 +44,7 @@ resource "commander_classic_pam_machine" "example" {
 
     connection {
       enable            = true
-      protocol          = "ssh" # one of: kubernetes, mysql, postgresql, rdp, sql-server, ssh, telnet, vnc
+      protocol          = "ssh" # one of: kubernetes, rdp, ssh, telnet, vnc
       connection_port   = 22
       launch_credential = "_REPLACE_WITH_LAUNCH_CREDENTIAL_UID_"
 
@@ -86,66 +86,6 @@ resource "commander_classic_pam_machine" "example" {
       #     MIIEvQIBADANBgkqhkExampleFakeKey...
       #     -----END PRIVATE KEY-----
       #   EOT
-      # }
-
-      # -----------------------------------------------------------------------
-      # MySQL (postgresql and sql_server share the same attributes)
-      # -----------------------------------------------------------------------
-      # mysql {
-      #   session_recording      = true
-      #   typescript_recording   = true
-      #   recording_include_keys = true
-      #   allow_supply_user      = true
-      #   read_only              = false
-      #   database               = "production_db"
-      #   color_scheme           = "white-black"
-      #   font_name              = "monospace"
-      #   font_size              = 12
-      #   scrollback             = 500
-      #   disable_copy           = false
-      #   disable_paste          = false
-      #   disable_csv_export     = true
-      #   disable_csv_import     = true
-      # }
-
-      # -----------------------------------------------------------------------
-      # PostgreSQL
-      # -----------------------------------------------------------------------
-      # postgresql {
-      #   session_recording      = true
-      #   typescript_recording   = true
-      #   recording_include_keys = true
-      #   allow_supply_user      = true
-      #   read_only              = false
-      #   database               = "analytics"
-      #   color_scheme           = "black-white"
-      #   font_name              = "monospace"
-      #   font_size              = 12
-      #   scrollback             = 500
-      #   disable_copy           = false
-      #   disable_paste          = false
-      #   disable_csv_export     = false
-      #   disable_csv_import     = false
-      # }
-
-      # -----------------------------------------------------------------------
-      # SQL Server
-      # -----------------------------------------------------------------------
-      # sql_server {
-      #   session_recording      = true
-      #   typescript_recording   = true
-      #   recording_include_keys = true
-      #   allow_supply_user      = true
-      #   read_only              = true
-      #   database               = "finance_prod"
-      #   color_scheme           = "black-white"
-      #   font_name              = "monospace"
-      #   font_size              = 12
-      #   scrollback             = 500
-      #   disable_copy           = false
-      #   disable_paste          = false
-      #   disable_csv_export     = false
-      #   disable_csv_import     = false
       # }
 
       # -----------------------------------------------------------------------
@@ -221,6 +161,9 @@ resource "commander_classic_pam_machine" "example" {
       #     sftp_directory             = "/uploads"
       #     sftp_server_alive_interval = 30
       #   }
+
+      #   # Drive redirection
+      #   drive_redirection_mode = "user"
       # }
 
       # -----------------------------------------------------------------------

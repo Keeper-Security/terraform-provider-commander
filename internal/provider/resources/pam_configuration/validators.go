@@ -189,17 +189,8 @@ func validateRequiredBlockFields(env string, config *commonpamconfiguration.PamC
 		}
 	case commonpamconfiguration.EnvDomain:
 		m := config.Domain
-		if m == nil || !isStringSet(m.DomainId) {
-			addMissing("domain", "domain_id")
-		}
 		if m == nil || !isStringSet(m.DomainHostname) {
 			addMissing("domain", "domain_hostname")
-		}
-		if m == nil || !isStringSet(m.DomainPort) {
-			addMissing("domain", "domain_port")
-		}
-		if m == nil || !isBoolSet(m.DomainUseSsl) {
-			addMissing("domain", "domain_use_ssl")
 		}
 		if m == nil || !isStringSet(m.DomainAdmin) {
 			addMissing("domain", "domain_admin")

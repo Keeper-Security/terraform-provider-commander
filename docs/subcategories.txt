@@ -1,0 +1,8 @@
+Classic Folders
+Classic PAM Records
+Endpoint Privilege Manager (EPM)
+Enterprise Management
+KeeperPAM
+MSP Management
+Nested Shared Folders (NSF)
+Secrets Manager

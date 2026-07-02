@@ -68,6 +68,16 @@ output "pam_user_private_pem_key" {
   sensitive = true
 }
 
+output "pam_user_public_key" {
+  value     = data.commander_new_pam_user.mysql_app_account.public_key
+  sensitive = true
+}
+
+output "pam_user_private_key_passphrase" {
+  value     = data.commander_new_pam_user.mysql_app_account.private_key_passphrase
+  sensitive = true
+}
+
 ###############################################################################
 # Outputs - rotation_settings (may be null if rotation isn't configured)
 ###############################################################################

@@ -49,9 +49,11 @@ func TestNewFolderResource_Read_Success_ShareDeclared(t *testing.T) {
 
 	// Inspect the persisted state.
 	type state struct {
-		Id    string            `tfsdk:"id"`
-		Name  string            `tfsdk:"name"`
-		Share map[string]string `tfsdk:"share"`
+		Id             string            `tfsdk:"id"`
+		Name           string            `tfsdk:"name"`
+		FolderLocation *string           `tfsdk:"folder_location"`
+		Records        []string          `tfsdk:"records"`
+		Share          map[string]string `tfsdk:"share"`
 	}
 	var got state
 	if diags := resp.State.Get(context.Background(), &got); diags.HasError() {
@@ -107,9 +109,11 @@ func TestNewFolderResource_Read_Success_ShareNullInState_PopulatedFromApi(t *tes
 	}
 
 	type state struct {
-		Id    string            `tfsdk:"id"`
-		Name  string            `tfsdk:"name"`
-		Share map[string]string `tfsdk:"share"`
+		Id             string            `tfsdk:"id"`
+		Name           string            `tfsdk:"name"`
+		FolderLocation *string           `tfsdk:"folder_location"`
+		Records        []string          `tfsdk:"records"`
+		Share          map[string]string `tfsdk:"share"`
 	}
 	var got state
 	if diags := resp.State.Get(context.Background(), &got); diags.HasError() {

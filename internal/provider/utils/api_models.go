@@ -261,6 +261,7 @@ type PamConfigFieldsResponse struct {
 	PamDomainId []string `json:"pamDomainId,omitempty"`
 	UseSSL      []string `json:"useSSL,omitempty"`
 	ScanDCCIDR  []string `json:"scanDCCIDR,omitempty"`
+	UserMatch   []string `json:"userMatch,omitempty"`
 
 	// GCP
 	PamGcpId             []string `json:"pamGcpId,omitempty"`
@@ -296,6 +297,7 @@ type VaultRecordGetResponse struct {
 	PamConfigurationUID          string                                `json:"pam_configuration_uid,omitempty"`
 	ConfigurationAllowedSettings *ConfigurationAllowedSettingsResponse `json:"configuration_allowed_settings,omitempty"`
 	UserPermissions              []UserPermissionEntry                 `json:"user_permissions,omitempty"`
+	RotationProfile              *RotationProfileResponse              `json:"rotationProfile,omitempty"`
 }
 
 // UserPermissionEntry is one element of the API response's user_permissions +
@@ -317,8 +319,9 @@ type UserPermissionEntry struct {
 	AccessType string `json:"access_type,omitempty"`
 	Role       string `json:"role,omitempty"`
 	Username   string `json:"username,omitempty"`
-	Shareable  bool   `json:"shareable,omitempty"`
-	Editable   bool   `json:"editable,omitempty"`
+	Shareable  bool   `json:"shareable,omitempty"` // This is for classic records only
+	Editable   bool   `json:"editable,omitempty"`  // This is for classic records only
+	Owner      bool   `json:"owner,omitempty"`     // This is for classic records only
 }
 
 // ConfigurationAllowedSettingsResponse maps the configuration_allowed_settings object from the API response.
@@ -352,6 +355,28 @@ type PamSettingsEnabledResponse struct {
 type DagDebugResponse struct {
 	VertexContent *DagDebugVertexContentResponse `json:"vertex_content,omitempty"`
 	AllEdges      []DagDebugEdgeResponse         `json:"all_edges,omitempty"`
+	ParentAclEdge *DagDebugParentAclEdgeResponse `json:"parentAclEdge,omitempty"`
+}
+
+type DagDebugParentAclEdgeResponse struct {
+	ParentUID  string                                `json:"parent_uid,omitempty"`
+	ParentType string                                `json:"parent_type,omitempty"`
+	Content    *DagDebugParentAclEdgeContentResponse `json:"content,omitempty"`
+}
+
+type DagDebugParentAclEdgeContentResponse struct {
+	RotationSettings *DagDebugParentAclEdgeContentRotationSettingsResponse `json:"rotation_settings,omitempty"`
+}
+
+type DagDebugParentAclEdgeContentRotationSettingsResponse struct {
+	Noop              bool     `json:"noop,omitempty"`
+	SaaSRecordUIDList []string `json:"saas_record_uid_list,omitempty"`
+}
+
+type RotationProfileResponse struct {
+	Type             string `json:"type"`
+	ResourceUID      string `json:"resourceUid"`
+	ConfigurationUID string `json:"configUid"`
 }
 
 type DagDebugEdgeResponse struct {
@@ -475,6 +500,7 @@ type RdpConnectionResponse struct {
 	ServerLayout             string        `json:"serverLayout"`
 	DisableCopy              *bool         `json:"disableCopy"`
 	DisablePaste             *bool         `json:"disablePaste"`
+	DriveRedirectionPath     string        `json:"driveRedirectionPath"`
 }
 
 // SftpResponse is the shared SFTP nested block used by RDP and VNC.
@@ -609,6 +635,10 @@ type PamRemoteBrowserSettingsFieldConnectionResponse struct {
 	AudioChannels              int    `json:"audioChannels"`
 	AudioBps                   int    `json:"audioBps"`
 	AudioSampleRate            int    `json:"audioSampleRate"`
+	SessionPersistence         string `json:"sessionPersistence"`
+	AllowFileUploads           bool   `json:"allowFileUploads"`
+	AllowFileDownloads         bool   `json:"allowFileDownloads"`
+	AllowSupplyUser            bool   `json:"allowSupplyUser"`
 }
 
 // PamRemoteBrowserSettingsFieldResponse is one element of the pamRemoteBrowserSettings field value array.

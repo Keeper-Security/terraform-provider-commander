@@ -38,6 +38,7 @@ type PamDomainModel struct {
 	DomainScanDcCidr  types.Bool   `tfsdk:"domain_scan_dc_cidr"`
 	DomainNetworkCidr types.String `tfsdk:"domain_network_cidr"`
 	DomainAdmin       types.String `tfsdk:"domain_admin"`
+	UserMatch         types.String `tfsdk:"user_match"`
 }
 
 // PamGcpModel maps to GCP-specific CLI flags.

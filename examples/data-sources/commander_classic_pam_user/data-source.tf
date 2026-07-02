@@ -10,7 +10,7 @@
 ###############################################################################
 
 data "commander_classic_pam_user" "mysql_app_account" {
-  record_uid = "_REPLACE_WITH_RECORD_UID_"
+  pam_user = "_REPLACE_WITH_RECORD_UID_"
 }
 
 ###############################################################################
@@ -18,7 +18,7 @@ data "commander_classic_pam_user" "mysql_app_account" {
 ###############################################################################
 
 # data "commander_classic_pam_user" "from_managed_resource" {
-#   record_uid = commander_classic_pam_user.mysql_app_account.id
+#   pam_user = commander_classic_pam_user.mysql_app_account.id
 # }
 
 ###############################################################################

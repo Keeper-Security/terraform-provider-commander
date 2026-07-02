@@ -19,9 +19,11 @@ import (
 // newFolderAttrTypes mirrors the resource schema attribute types for tftypes-
 // based plan/state construction in tests.
 var newFolderAttrTypes = map[string]tftypes.Type{
-	"id":    tftypes.String,
-	"name":  tftypes.String,
-	"share": tftypes.Map{ElementType: tftypes.String},
+	"id":              tftypes.String,
+	"name":            tftypes.String,
+	"folder_location": tftypes.String,
+	"records":         tftypes.Set{ElementType: tftypes.String},
+	"share":           tftypes.Map{ElementType: tftypes.String},
 }
 
 func newFolderObjectType() tftypes.Object {
@@ -30,6 +32,7 @@ func newFolderObjectType() tftypes.Object {
 
 // newPlanStateValues builds tftypes values for plan/state. Pass nil for null
 // attributes; pass a map[string]tftypes.Value for share (or nil for null).
+// folder_location and records are Computed and default to null.
 func newPlanStateValues(id, name interface{}, share map[string]tftypes.Value) map[string]tftypes.Value {
 	var shareVal tftypes.Value
 	if share == nil {
@@ -38,9 +41,11 @@ func newPlanStateValues(id, name interface{}, share map[string]tftypes.Value) ma
 		shareVal = tftypes.NewValue(tftypes.Map{ElementType: tftypes.String}, share)
 	}
 	return map[string]tftypes.Value{
-		"id":    tftypes.NewValue(tftypes.String, id),
-		"name":  tftypes.NewValue(tftypes.String, name),
-		"share": shareVal,
+		"id":              tftypes.NewValue(tftypes.String, id),
+		"name":            tftypes.NewValue(tftypes.String, name),
+		"folder_location": tftypes.NewValue(tftypes.String, nil),
+		"records":         tftypes.NewValue(tftypes.Set{ElementType: tftypes.String}, nil),
+		"share":           shareVal,
 	}
 }
 

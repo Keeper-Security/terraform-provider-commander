@@ -94,12 +94,14 @@ func TestUserExpirationManageUsersValidator(t *testing.T) {
 	attrTypes := map[string]attr.Type{
 		"manage_users":   types.BoolType,
 		"manage_records": types.BoolType,
+		"expiration":     types.StringType,
 	}
 
 	t.Run("datetime_and_manage_users_true_errors", func(t *testing.T) {
 		obj := types.ObjectValueMust(attrTypes, map[string]attr.Value{
 			"manage_users":   types.BoolValue(true),
 			"manage_records": types.BoolValue(false),
+			"expiration":     types.StringValue("2030-06-01T12:30:45"),
 		})
 		var resp validator.ObjectResponse
 		v.ValidateObject(ctx, validator.ObjectRequest{
@@ -115,6 +117,7 @@ func TestUserExpirationManageUsersValidator(t *testing.T) {
 		obj := types.ObjectValueMust(attrTypes, map[string]attr.Value{
 			"manage_users":   types.BoolValue(true),
 			"manage_records": types.BoolValue(true),
+			"expiration":     types.StringValue("never"),
 		})
 		var resp validator.ObjectResponse
 		v.ValidateObject(ctx, validator.ObjectRequest{
@@ -130,6 +133,7 @@ func TestUserExpirationManageUsersValidator(t *testing.T) {
 		obj := types.ObjectValueMust(attrTypes, map[string]attr.Value{
 			"manage_users":   types.BoolValue(true),
 			"manage_records": types.BoolValue(false),
+			"expiration":     types.StringNull(),
 		})
 		var resp validator.ObjectResponse
 		v.ValidateObject(ctx, validator.ObjectRequest{
@@ -145,6 +149,7 @@ func TestUserExpirationManageUsersValidator(t *testing.T) {
 		obj := types.ObjectValueMust(attrTypes, map[string]attr.Value{
 			"manage_users":   types.BoolValue(false),
 			"manage_records": types.BoolValue(true),
+			"expiration":     types.StringValue("2030-06-01T12:30:45"),
 		})
 		var resp validator.ObjectResponse
 		v.ValidateObject(ctx, validator.ObjectRequest{
@@ -160,6 +165,7 @@ func TestUserExpirationManageUsersValidator(t *testing.T) {
 		obj := types.ObjectValueMust(attrTypes, map[string]attr.Value{
 			"manage_users":   types.BoolValue(true),
 			"manage_records": types.BoolValue(false),
+			"expiration":     types.StringValue("30d"),
 		})
 		var resp validator.ObjectResponse
 		v.ValidateObject(ctx, validator.ObjectRequest{

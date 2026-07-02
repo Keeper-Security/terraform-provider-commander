@@ -85,6 +85,32 @@ func TestValidatePolicyTypeAllowedFields_LeastPrivilege(t *testing.T) {
 	if !diags.HasError() {
 		t.Fatal("empty machine_collections: want error")
 	}
+
+	diags = nil
+	commonepm.ValidatePolicyTypeAllowedFields(
+		commonepm.PolicyTypeLeastPrivilege, commonepm.StatusEnforce,
+		types.SetNull(types.StringType), types.SetNull(types.StringType),
+		types.SetNull(types.StringType), types.SetNull(types.StringType), types.SetNull(types.StringType),
+		types.SetNull(types.StringType), types.SetNull(types.StringType),
+		basePaths.status, basePaths.control, basePaths.day, basePaths.user, basePaths.machine, basePaths.apps, basePaths.time, basePaths.date,
+		&diags,
+	)
+	if !diags.HasError() {
+		t.Fatal("least_privilege enforce with null machine_collections: want error")
+	}
+
+	diags = nil
+	commonepm.ValidatePolicyTypeAllowedFields(
+		commonepm.PolicyTypeLeastPrivilege, commonepm.StatusEnforce,
+		types.SetNull(types.StringType), types.SetNull(types.StringType),
+		types.SetNull(types.StringType), mustSetVals(t, "*"), types.SetNull(types.StringType),
+		types.SetNull(types.StringType), types.SetNull(types.StringType),
+		basePaths.status, basePaths.control, basePaths.day, basePaths.user, basePaths.machine, basePaths.apps, basePaths.time, basePaths.date,
+		&diags,
+	)
+	if diags.HasError() {
+		t.Fatal("least_privilege enforce with machine_collections: want no error", diags)
+	}
 }
 
 func TestValidatePolicyTypeAllowedFields_Command(t *testing.T) {
