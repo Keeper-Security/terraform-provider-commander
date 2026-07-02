@@ -137,7 +137,7 @@
 
 ## Prerequisites
 
-- **Keeper Commander Service Mode**: A service account running latest version of Commander Service Mode REST API. Make sure you are running **Commander version 17.2.9** or **later** before starting Service Mode
+- **Keeper Commander Service Mode**: A service account running latest version of Commander Service Mode REST API. Make sure you are running **Commander version 18.0.9** or **later** before starting Service Mode
 - [Terraform](https://developer.hashicorp.com/terraform/downloads) >= 1.0
 
 ## Setup and Installation
