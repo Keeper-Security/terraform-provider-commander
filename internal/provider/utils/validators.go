@@ -10,9 +10,21 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
+
+// IsExplicitlyMissing reports whether a config value was omitted or set to
+// null. Unknown values are not missing — they are deferred to apply time (e.g.
+// resource.id references in the same apply) and should not fail required-field
+// validators during plan.
+func IsExplicitlyMissing(v attr.Value) bool {
+	if v == nil {
+		return true
+	}
+	return v.IsNull()
+}
 
 // ----- GENERIC: STRING MIN LENGTH --------------------------------
 // StringMinLengthValidator validates that the string has at least MinLen characters after

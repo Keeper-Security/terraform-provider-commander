@@ -26,8 +26,8 @@ const (
 	PamSettingsDescription         = "PAM settings for the record, including connection, tunnel, and administrative options."
 	PamSettingsMarkdownDescription = "**PAM settings** for the record, including connection, tunnel, and administrative options."
 
-	PamSettingsAllowSupplyHostDescription         = "Whether the PAM record allows supplying a host at connection time."
-	PamSettingsAllowSupplyHostMarkdownDescription = "Whether the PAM record allows supplying a host at connection time."
+	PamSettingsAllowSupplyHostDescription         = "Whether the PAM record allows supplying a host at connection time. When true, hostname_or_ip must not be set. When false or unset, hostname_or_ip.hostname is required."
+	PamSettingsAllowSupplyHostMarkdownDescription = "Whether the PAM record allows supplying a host at connection time. When **true**, `hostname_or_ip` must not be set. When **false** or unset, `hostname_or_ip.hostname` is required."
 
 	PamSettingsConnectionDescription         = "Connection settings for the PAM record."
 	PamSettingsConnectionMarkdownDescription = "**Connection** settings for the PAM record."

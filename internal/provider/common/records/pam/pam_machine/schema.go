@@ -35,12 +35,12 @@ func SharedAttributes() map[string]schema.Attribute {
 			},
 		},
 		"hostname_or_ip": schema.SingleNestedAttribute{
-			Required:            true,
+			Optional:            true,
 			Description:         HostnameOrIPDescription,
 			MarkdownDescription: HostnameOrIPMarkdownDescription,
 			Attributes: map[string]schema.Attribute{
 				"hostname": schema.StringAttribute{
-					Required:            true,
+					Optional:            true,
 					Description:         HostNameDescription,
 					MarkdownDescription: HostNameMarkdownDescription,
 					Validators: []validator.String{

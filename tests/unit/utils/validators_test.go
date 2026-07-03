@@ -546,3 +546,18 @@ func TestMapValuesStringOneOfValidator_NullOrUnknown(t *testing.T) {
 		}
 	}
 }
+
+func TestIsExplicitlyMissing(t *testing.T) {
+	if !utils.IsExplicitlyMissing(nil) {
+		t.Fatal("nil value should be explicitly missing")
+	}
+	if !utils.IsExplicitlyMissing(types.StringNull()) {
+		t.Fatal("null value should be explicitly missing")
+	}
+	if utils.IsExplicitlyMissing(types.StringUnknown()) {
+		t.Fatal("unknown value should not be explicitly missing")
+	}
+	if utils.IsExplicitlyMissing(types.StringValue("known")) {
+		t.Fatal("known value should not be explicitly missing")
+	}
+}

@@ -9,6 +9,10 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/utils"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/path"
+	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
@@ -76,7 +80,7 @@ func (v pamSettingsRequiredFieldsValidator) ValidateObject(_ context.Context, re
 	attrs := req.ConfigValue.Attributes()
 
 	configAttr, ok := attrs["configuration"]
-	if !ok || configAttr.IsNull() || configAttr.IsUnknown() {
+	if !ok || utils.IsExplicitlyMissing(configAttr) {
 		resp.Diagnostics.AddAttributeError(
 			req.Path.AtName("configuration"),
 			"Missing Required PAM Settings Attribute",
@@ -290,7 +294,7 @@ func (v connectionFieldsRequireEnabledValidator) ValidateObject(_ context.Contex
 	requiredFields := []string{"connection_port", "launch_credential"}
 	for _, field := range requiredFields {
 		attr, exists := attrs[field]
-		if !exists || attr.IsNull() || attr.IsUnknown() {
+		if !exists || utils.IsExplicitlyMissing(attr) {
 			resp.Diagnostics.AddAttributeError(
 				req.Path.AtName(field),
 				"Missing Required Connection Attribute",
@@ -597,4 +601,117 @@ func (v colorSchemeValidator) ValidateString(_ context.Context, req validator.St
 			return
 		}
 	}
+}
+
+// ---------------------------------------------------------------------------
+// allow_supply_host vs hostname_or_ip config validation
+// ---------------------------------------------------------------------------
+
+// IsHostnameOrIPSet reports whether the hostname_or_ip block is present in config.
+func IsHostnameOrIPSet(m *HostnameOrIPModel) bool {
+	if m == nil {
+		return false
+	}
+	return isHostnameSet(m) ||
+		(!m.AdministrativePort.IsNull() && !m.AdministrativePort.IsUnknown())
+}
+
+func isHostnameSet(m *HostnameOrIPModel) bool {
+	if m == nil {
+		return false
+	}
+	return !m.HostName.IsNull() && !m.HostName.IsUnknown() && strings.TrimSpace(m.HostName.ValueString()) != ""
+}
+
+func allowSupplyHostEnabled(v types.Bool) bool {
+	return !v.IsNull() && !v.IsUnknown() && v.ValueBool()
+}
+
+// ValidateAllowSupplyHostHostnameConstraints enforces mutual exclusion between
+// pam_settings.allow_supply_host and hostname_or_ip. When allow_supply_host is
+// false or unset, hostname_or_ip.hostname is required.
+func ValidateAllowSupplyHostHostnameConstraints(allowSupplyHost types.Bool, hostnameOrIP *HostnameOrIPModel) diag.Diagnostics {
+	if allowSupplyHostEnabled(allowSupplyHost) {
+		if !IsHostnameOrIPSet(hostnameOrIP) {
+			return nil
+		}
+
+		var diags diag.Diagnostics
+		diags.AddAttributeError(
+			path.Root("hostname_or_ip"),
+			"Invalid Hostname Configuration",
+			"hostname_or_ip must not be set when pam_settings.allow_supply_host is true.",
+		)
+		diags.AddAttributeError(
+			path.Root("pam_settings").AtName("allow_supply_host"),
+			"Invalid PAM Settings Configuration",
+			"allow_supply_host cannot be true when hostname_or_ip is set.",
+		)
+		return diags
+	}
+
+	if isHostnameSet(hostnameOrIP) {
+		return nil
+	}
+
+	var diags diag.Diagnostics
+	diags.AddAttributeError(
+		path.Root("hostname_or_ip").AtName("hostname"),
+		"Missing Required Attribute",
+		"hostname is required when pam_settings.allow_supply_host is not true.",
+	)
+	return diags
+}
+
+// AllowSupplyHostFromMachineDirectoryPamSettings extracts allow_supply_host
+// from a machine/directory pam_settings block.
+func AllowSupplyHostFromMachineDirectoryPamSettings(settings *MachineDirectoryPamSettingsFieldResourceModel) types.Bool {
+	if settings == nil {
+		return types.BoolNull()
+	}
+	return settings.AllowSupplyHost
+}
+
+// AllowSupplyHostFromDatabasePamSettings extracts allow_supply_host from a
+// database pam_settings block.
+func AllowSupplyHostFromDatabasePamSettings(settings *DatabasePamSettingsFieldResourceModel) types.Bool {
+	if settings == nil {
+		return types.BoolNull()
+	}
+	return settings.AllowSupplyHost
+}
+
+// AllowSupplyHostHostnameConfigValidatorDescription returns the shared
+// description for allow_supply_host vs hostname_or_ip config validators.
+func AllowSupplyHostHostnameConfigValidatorDescription(_ context.Context) string {
+	return "When pam_settings.allow_supply_host is true, hostname_or_ip must not be set; otherwise hostname_or_ip.hostname is required."
+}
+
+type allowSupplyHostHostnameConfigValidator[T any] struct {
+	extract func(T) (types.Bool, *HostnameOrIPModel)
+}
+
+// NewAllowSupplyHostHostnameConfigValidator returns a resource config validator
+// that rejects hostname_or_ip when pam_settings.allow_supply_host is true.
+func NewAllowSupplyHostHostnameConfigValidator[T any](extract func(T) (types.Bool, *HostnameOrIPModel)) resource.ConfigValidator {
+	return allowSupplyHostHostnameConfigValidator[T]{extract: extract}
+}
+
+func (v allowSupplyHostHostnameConfigValidator[T]) Description(ctx context.Context) string {
+	return AllowSupplyHostHostnameConfigValidatorDescription(ctx)
+}
+
+func (v allowSupplyHostHostnameConfigValidator[T]) MarkdownDescription(ctx context.Context) string {
+	return AllowSupplyHostHostnameConfigValidatorDescription(ctx)
+}
+
+func (v allowSupplyHostHostnameConfigValidator[T]) ValidateResource(ctx context.Context, req resource.ValidateConfigRequest, resp *resource.ValidateConfigResponse) {
+	var config T
+	resp.Diagnostics.Append(req.Config.Get(ctx, &config)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	allowSupplyHost, hostnameOrIP := v.extract(config)
+	resp.Diagnostics.Append(ValidateAllowSupplyHostHostnameConstraints(allowSupplyHost, hostnameOrIP)...)
 }

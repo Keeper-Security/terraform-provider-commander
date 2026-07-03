@@ -281,12 +281,12 @@ resource "commander_classic_pam_machine" "example" {
 
 ### Required
 
-- `hostname_or_ip` (Attributes) **Hostname or IP address** with an optional port for the PAM machine. (see [below for nested schema](#nestedatt--hostname_or_ip))
 - `title` (String) **Title** of the PAM machine record.
 
 ### Optional
 
 - `folder_location` (String) Folder **UID** or path to store PAM machine record in your Keeper vault. If not provided, the record will be stored in the root path of vault.
+- `hostname_or_ip` (Attributes) **Hostname or IP address** with an optional port for the PAM machine. (see [below for nested schema](#nestedatt--hostname_or_ip))
 - `instance_id` (String) **Azure or AWS Instance ID**
 - `instance_name` (String) **Azure or AWS Instance Name**
 - `notes` (String) **Notes** for this PAM machine record.
@@ -303,13 +303,10 @@ resource "commander_classic_pam_machine" "example" {
 <a id="nestedatt--hostname_or_ip"></a>
 ### Nested Schema for `hostname_or_ip`
 
-Required:
-
-- `hostname` (String) **Address of the machine resource**.
-
 Optional:
 
 - `administrative_port` (Number) **Port to connect on. The Gateway uses this to determine connection method.**
+- `hostname` (String) **Address of the machine resource**.
 
 
 <a id="nestedblock--pam_settings"></a>
@@ -318,7 +315,7 @@ Optional:
 Optional:
 
 - `administrative_credentials` (String) **Linked PAM User credential** used for connection and administrative operations.
-- `allow_supply_host` (Boolean) Whether the PAM record allows supplying a host at connection time.
+- `allow_supply_host` (Boolean) Whether the PAM record allows supplying a host at connection time. When **true**, `hostname_or_ip` must not be set. When **false** or unset, `hostname_or_ip.hostname` is required.
 - `configuration` (String) **Configuration** identifier for the PAM record.
 - `connection` (Block, Optional) **Connection** settings for the PAM record. (see [below for nested schema](#nestedblock--pam_settings--connection))
 - `tunnel` (Block, Optional) **Tunneling** (port-forward) settings for the PAM record. (see [below for nested schema](#nestedblock--pam_settings--tunnel))

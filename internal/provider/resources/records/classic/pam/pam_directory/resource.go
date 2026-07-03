@@ -9,11 +9,13 @@ import (
 	commonpamrecords "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/pam"
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/utils"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
 var _ resource.Resource = &PamDirectoryResource{}
 var _ resource.ResourceWithConfigure = &PamDirectoryResource{}
 var _ resource.ResourceWithModifyPlan = &PamDirectoryResource{}
+var _ resource.ResourceWithConfigValidators = &PamDirectoryResource{}
 
 type PamDirectoryResource struct {
 	utils.BaseResource
@@ -45,6 +47,14 @@ func (r *PamDirectoryResource) ModifyPlan(ctx context.Context, req resource.Modi
 	}
 
 	resp.Diagnostics.Append(commonpamrecords.ValidateMachineDirectoryPamSettingsFieldsNotRemoved(plan.PamSettings, state.PamSettings)...)
+}
+
+func (r *PamDirectoryResource) ConfigValidators(_ context.Context) []resource.ConfigValidator {
+	return []resource.ConfigValidator{
+		commonpamrecords.NewAllowSupplyHostHostnameConfigValidator(func(config PamDirectoryResourceModel) (types.Bool, *commonpamrecords.HostnameOrIPModel) {
+			return commonpamrecords.AllowSupplyHostFromMachineDirectoryPamSettings(config.PamSettings), config.HostnameOrIP
+		}),
+	}
 }
 
 func NewPamDirectoryResource() resource.Resource {
