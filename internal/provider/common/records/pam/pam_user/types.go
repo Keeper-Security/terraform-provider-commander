@@ -4,6 +4,7 @@
 package pamuser
 
 type PamRotationInfoResponse struct {
+	Status                     string                                                `json:"status"`
 	PamConfigUID               string                                                `json:"pam_config_uid"`
 	AdminResourceUID           string                                                `json:"admin_resource_uid"`
 	ScheduleType               string                                                `json:"schedule_type"`

@@ -287,8 +287,8 @@ func MapRotationSettingsToState(rotInfo *PamRotationInfoResponse, rec *utils.Vau
 		rs = &PamUserRotationSettings{}
 	}
 
-	if rotInfo == nil {
-		state.RotationSettings = rs
+	if rotInfo == nil || rotInfo.Status == RotStatusNoRotation {
+		state.RotationSettings = nil
 		return
 	}
 
