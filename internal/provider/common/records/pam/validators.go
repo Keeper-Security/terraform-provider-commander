@@ -114,7 +114,7 @@ func (v connectionRequiredFieldsValidator) ValidateObject(_ context.Context, req
 
 	for _, field := range []string{"enable", "protocol"} {
 		attr, ok := attrs[field]
-		if !ok || attr.IsNull() || attr.IsUnknown() {
+		if !ok || utils.IsExplicitlyMissing(attr) {
 			resp.Diagnostics.AddAttributeError(
 				req.Path.AtName(field),
 				"Missing Required Connection Attribute",
@@ -148,7 +148,7 @@ func (v tunnelRequiredFieldsValidator) ValidateObject(_ context.Context, req val
 	attrs := req.ConfigValue.Attributes()
 
 	enableAttr, ok := attrs["enable"]
-	if !ok || enableAttr.IsNull() || enableAttr.IsUnknown() {
+	if !ok || utils.IsExplicitlyMissing(enableAttr) {
 		resp.Diagnostics.AddAttributeError(
 			req.Path.AtName("enable"),
 			"Missing Required Tunnel Attribute",
@@ -395,7 +395,7 @@ func (v tunnelLocalPortRequiredValidator) ValidateObject(_ context.Context, req 
 	}
 
 	localPortAttr, exists := attrs["local_port"]
-	if !exists || localPortAttr.IsNull() || localPortAttr.IsUnknown() {
+	if !exists || utils.IsExplicitlyMissing(localPortAttr) {
 		resp.Diagnostics.AddAttributeError(
 			req.Path.AtName("local_port"),
 			"Missing Required Tunnel Attribute",
@@ -440,7 +440,7 @@ func (v sftpUserUidRequiredValidator) ValidateObject(_ context.Context, req vali
 	}
 
 	userUidAttr, exists := attrs["sftp_user_uid"]
-	if !exists || userUidAttr.IsNull() || userUidAttr.IsUnknown() {
+	if !exists || utils.IsExplicitlyMissing(userUidAttr) {
 		resp.Diagnostics.AddAttributeError(
 			req.Path.AtName("sftp_user_uid"),
 			"Missing Required SFTP Attribute",

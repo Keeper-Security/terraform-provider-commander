@@ -96,7 +96,56 @@ func ExtractPamSettingsFromResponse(rec *utils.VaultRecordGetResponse, existingS
 	result.Tunnel = extractTunnelFromResponse(raw, rec.PamSettingsEnabled)
 	result.Connection = extractConnectionFromResponse(raw, rec.PamSettingsEnabled, rec.AssociatedCredentials, rec.DagDebug, existingState)
 
+	if !connectionHasMaterialConfig(result.Connection) {
+		if existingState != nil && existingState.Connection != nil {
+			result.Connection = existingState.Connection
+		} else {
+			result.Connection = nil
+		}
+	}
+
+	if !tunnelHasMaterialConfig(result.Tunnel) {
+		if existingState != nil && existingState.Tunnel != nil {
+			result.Tunnel = existingState.Tunnel
+		} else {
+			result.Tunnel = nil
+		}
+	}
+
 	return result
+}
+
+func connectionHasMaterialConfig(c *CommonPamSettingsConnectionResourceModel) bool {
+	if c == nil {
+		return false
+	}
+	if !c.Protocol.IsNull() && !c.Protocol.IsUnknown() && strings.TrimSpace(c.Protocol.ValueString()) != "" {
+		return true
+	}
+	if !c.LaunchCredential.IsNull() && !c.LaunchCredential.IsUnknown() && strings.TrimSpace(c.LaunchCredential.ValueString()) != "" {
+		return true
+	}
+	if !c.ConnectionPort.IsNull() && !c.ConnectionPort.IsUnknown() {
+		return true
+	}
+	return c.Kubernetes != nil || c.Mysql != nil || c.PostgreSql != nil || c.SqlServer != nil ||
+		c.Rdp != nil || c.Ssh != nil || c.Telnet != nil || c.Vnc != nil || c.MariaDb != nil || c.Oracle != nil
+}
+
+func tunnelHasMaterialConfig(t *CommonPamSettingsTunnelResourceModel) bool {
+	if t == nil {
+		return false
+	}
+	if !t.RemoteTargetPort.IsNull() && !t.RemoteTargetPort.IsUnknown() {
+		return true
+	}
+	if !t.LocalPort.IsNull() && !t.LocalPort.IsUnknown() {
+		return true
+	}
+	if !t.ReUsePort.IsNull() && !t.ReUsePort.IsUnknown() && t.ReUsePort.ValueBool() {
+		return true
+	}
+	return !t.UseSpecifiedLocalPort.IsNull() && !t.UseSpecifiedLocalPort.IsUnknown() && t.UseSpecifiedLocalPort.ValueBool()
 }
 
 // extractTunnelFromResponse builds a CommonPamSettingsTunnelResourceModel from

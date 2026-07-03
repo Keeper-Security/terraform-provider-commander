@@ -9,6 +9,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/utils"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
@@ -46,12 +47,25 @@ func (rotationProfileRequirementsValidator) ValidateObject(_ context.Context, re
 
 // ValidateRotationProfileRequirements checks rotation_profile and dependent fields.
 func ValidateRotationProfileRequirements(basePath path.Path, attrs map[string]attr.Value, resp *validator.ObjectResponse) {
-	hasConfiguration := stringAttrNonEmpty(attrs, "configuration")
+	hasConfiguration := stringAttrPresent(attrs, "configuration")
 	hasSaaSConfig := stringAttrNonEmpty(attrs, "saas_config")
-	hasResource := stringAttrNonEmpty(attrs, "resource")
+	hasResource := stringAttrPresent(attrs, "resource")
 
-	profile, ok := stringAttrValue(attrs, "rotation_profile")
-	if !ok {
+	profileAttr, ok := attrs["rotation_profile"].(types.String)
+	if !ok || utils.IsExplicitlyMissing(profileAttr) {
+		resp.Diagnostics.AddAttributeError(
+			basePath.AtName("rotation_profile"),
+			"Missing rotation_profile",
+			"rotation_profile is required when rotation_settings is set.",
+		)
+		return
+	}
+	if profileAttr.IsUnknown() {
+		return
+	}
+
+	profile := strings.TrimSpace(profileAttr.ValueString())
+	if profile == "" {
 		resp.Diagnostics.AddAttributeError(
 			basePath.AtName("rotation_profile"),
 			"Missing rotation_profile",
@@ -239,23 +253,36 @@ func boolAttrExplicitFalse(attrs map[string]attr.Value, key string) bool {
 
 func stringAttrNonEmpty(attrs map[string]attr.Value, key string) bool {
 	v, ok := attrs[key].(types.String)
-	if !ok || v.IsNull() || v.IsUnknown() {
+	if !ok || utils.IsExplicitlyMissing(v) || v.IsUnknown() {
 		return false
 	}
 	return strings.TrimSpace(v.ValueString()) != ""
 }
 
-func stringAttrValue(attrs map[string]attr.Value, key string) (string, bool) {
+// stringAttrPresent reports whether a string attribute is set in config,
+// including unknown values deferred to apply time.
+func stringAttrPresent(attrs map[string]attr.Value, key string) bool {
 	v, ok := attrs[key].(types.String)
-	if !ok || v.IsNull() || v.IsUnknown() {
-		return "", false
+	if !ok || utils.IsExplicitlyMissing(v) {
+		return false
 	}
-	s := strings.TrimSpace(v.ValueString())
-	if s == "" {
-		return "", false
+	if v.IsUnknown() {
+		return true
 	}
-	return s, true
+	return strings.TrimSpace(v.ValueString()) != ""
 }
+
+// func stringAttrValue(attrs map[string]attr.Value, key string) (string, bool) {
+// 	v, ok := attrs[key].(types.String)
+// 	if !ok || utils.IsExplicitlyMissing(v) || v.IsUnknown() {
+// 		return "", false
+// 	}
+// 	s := strings.TrimSpace(v.ValueString())
+// 	if s == "" {
+// 		return "", false
+// 	}
+// 	return s, true
+// }
 
 // RotationPasswordComplexityValidator validates rotation_settings.complexity:
 // exactly five comma-separated non-negative integers: length, upper, lower, digits, symbols.

@@ -203,9 +203,9 @@ func TestPamSettingsRequiredFieldsValidator_ErrorsOnNullConfiguration(t *testing
 func TestConnectionFieldsRequireEnabledValidator_AllowsUnknownLaunchCredential(t *testing.T) {
 	v := commonpamrecords.ConnectionFieldsRequireEnabledValidator()
 	obj, diags := types.ObjectValue(map[string]attr.Type{
-		"enable":             types.BoolType,
-		"connection_port":    types.Int32Type,
-		"launch_credential":  types.StringType,
+		"enable":            types.BoolType,
+		"connection_port":   types.Int32Type,
+		"launch_credential": types.StringType,
 	}, map[string]attr.Value{
 		"enable":            types.BoolValue(true),
 		"connection_port":   types.Int32Value(22),
@@ -228,9 +228,9 @@ func TestConnectionFieldsRequireEnabledValidator_AllowsUnknownLaunchCredential(t
 func TestConnectionFieldsRequireEnabledValidator_ErrorsOnNullLaunchCredential(t *testing.T) {
 	v := commonpamrecords.ConnectionFieldsRequireEnabledValidator()
 	obj, diags := types.ObjectValue(map[string]attr.Type{
-		"enable":             types.BoolType,
-		"connection_port":    types.Int32Type,
-		"launch_credential":  types.StringType,
+		"enable":            types.BoolType,
+		"connection_port":   types.Int32Type,
+		"launch_credential": types.StringType,
 	}, map[string]attr.Value{
 		"enable":            types.BoolValue(true),
 		"connection_port":   types.Int32Value(22),
@@ -247,5 +247,51 @@ func TestConnectionFieldsRequireEnabledValidator_ErrorsOnNullLaunchCredential(t 
 	}, &resp)
 	if !resp.Diagnostics.HasError() {
 		t.Fatal("expected error when launch_credential is null and connection is enabled")
+	}
+}
+
+func TestSftpUserUidRequiredValidator_AllowsUnknownUserUID(t *testing.T) {
+	v := commonpamrecords.SftpUserUidRequiredValidator()
+	obj, diags := types.ObjectValue(map[string]attr.Type{
+		"enable_sftp":   types.BoolType,
+		"sftp_user_uid": types.StringType,
+	}, map[string]attr.Value{
+		"enable_sftp":   types.BoolValue(true),
+		"sftp_user_uid": types.StringUnknown(),
+	})
+	if diags.HasError() {
+		t.Fatalf("building object: %v", diags)
+	}
+
+	var resp validator.ObjectResponse
+	v.ValidateObject(context.Background(), validator.ObjectRequest{
+		Path:        path.Root("pam_settings").AtName("connection").AtName("rdp").AtName("sftp"),
+		ConfigValue: obj,
+	}, &resp)
+	if resp.Diagnostics.HasError() {
+		t.Fatalf("unknown sftp_user_uid should be allowed during plan, got %v", resp.Diagnostics)
+	}
+}
+
+func TestTunnelLocalPortRequiredValidator_AllowsUnknownLocalPort(t *testing.T) {
+	v := commonpamrecords.TunnelLocalPortRequiredValidator()
+	obj, diags := types.ObjectValue(map[string]attr.Type{
+		"use_specified_local_port": types.BoolType,
+		"local_port":               types.Int32Type,
+	}, map[string]attr.Value{
+		"use_specified_local_port": types.BoolValue(true),
+		"local_port":               types.Int32Unknown(),
+	})
+	if diags.HasError() {
+		t.Fatalf("building object: %v", diags)
+	}
+
+	var resp validator.ObjectResponse
+	v.ValidateObject(context.Background(), validator.ObjectRequest{
+		Path:        path.Root("pam_settings").AtName("tunnel"),
+		ConfigValue: obj,
+	}, &resp)
+	if resp.Diagnostics.HasError() {
+		t.Fatalf("unknown local_port should be allowed during plan, got %v", resp.Diagnostics)
 	}
 }
