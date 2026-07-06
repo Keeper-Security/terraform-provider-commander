@@ -18,7 +18,7 @@ type WifiDataSource struct {
 }
 
 func (d *WifiDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_wifi"
+	resp.TypeName = req.ProviderTypeName + "_classic_wifi"
 }
 
 func (d *WifiDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {

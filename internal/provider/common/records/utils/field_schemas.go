@@ -6,6 +6,7 @@ package utils
 import (
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/utils"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
+	dschema "github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
@@ -37,7 +38,7 @@ func BaseRecordAttributes() map[string]schema.Attribute {
 			Description:         "Manage note for the record.",
 			MarkdownDescription: "Manage note for the record.",
 			Validators: []validator.String{
-				utils.StringMinLengthValidator("Notes", 0, true),
+				utils.StringMinLengthValidator("Notes", 1, true),
 			},
 		},
 		"folder_location": schema.StringAttribute{
@@ -48,7 +49,31 @@ func BaseRecordAttributes() map[string]schema.Attribute {
 				utils.StringMinLengthValidator("Folder", 1, true),
 			},
 		},
-		"custom": CustomFieldAttributeSchema(),
+	}
+}
+
+func DataSourceBaseRecordAttributes() map[string]dschema.Attribute {
+	return map[string]dschema.Attribute{
+		"id": dschema.StringAttribute{
+			Computed:            true,
+			Description:         "Unique identifier (UID) of the vault record.",
+			MarkdownDescription: "Unique identifier (UID) of the vault record.",
+		},
+		"title": dschema.StringAttribute{
+			Computed:            true,
+			Description:         "Record title.",
+			MarkdownDescription: "Record title.",
+		},
+		"notes": dschema.StringAttribute{
+			Computed:            true,
+			Description:         "Note of the record.",
+			MarkdownDescription: "Note of the record.",
+		},
+		"folder_location": dschema.StringAttribute{
+			Computed:            true,
+			Description:         "Folder path or UID where the record is to be stored.",
+			MarkdownDescription: "Folder `path` or `UID` where the record is to be stored.",
+		},
 	}
 }
 

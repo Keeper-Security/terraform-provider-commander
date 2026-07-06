@@ -19,7 +19,7 @@ type LoginResource struct {
 }
 
 func (r *LoginResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_login"
+	resp.TypeName = req.ProviderTypeName + "_classic_login"
 }
 
 func (r *LoginResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {

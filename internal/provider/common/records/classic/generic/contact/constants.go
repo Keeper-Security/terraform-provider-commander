@@ -54,7 +54,7 @@ const (
 	PhoneNumberMarkdownDescription = "Phone number."
 
 	PhoneExtDescription         = "Extension."
-	PhoneExtMarkdownDescription   = "Extension."
+	PhoneExtMarkdownDescription = "Extension."
 
 	PhoneTypeDescription         = "Phone type: Mobile, Home, or Work."
 	PhoneTypeMarkdownDescription = "Phone type: `Mobile`, `Home`, or `Work`."

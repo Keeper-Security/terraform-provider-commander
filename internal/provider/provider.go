@@ -22,6 +22,9 @@ import (
 	newfolderdatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/folders/new_folder"
 	managedcompanydatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/managed_company"
 	pamconfigurationdatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/pam_configuration"
+	classiccontactdatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/records/classic/generic/contact"
+	classiclogindatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/records/classic/generic/login"
+	classicwifidatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/records/classic/generic/wifi"
 	classicpamdatabasedatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/records/classic/pam/pam_database"
 	classicpamdirectorydatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/records/classic/pam/pam_directory"
 	classicpammachinedatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/records/classic/pam/pam_machine"
@@ -41,6 +44,9 @@ import (
 	newfolder "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/folders/new_folder"
 	managedcompany "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/managed_company"
 	pamconfiguration "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/pam_configuration"
+	classiccontact "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/records/classic/generic/contact"
+	classiclogin "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/records/classic/generic/login"
+	classicwifi "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/records/classic/generic/wifi"
 	classicpamdatabase "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/records/classic/pam/pam_database"
 	classicpamdirectory "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/records/classic/pam/pam_directory"
 	classicpammachine "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/records/classic/pam/pam_machine"
@@ -205,6 +211,9 @@ func (p *CommanderProvider) Resources(ctx context.Context) []func() resource.Res
 		classicpamdatabase.NewPamDatabaseResource,
 		classicpamdirectory.NewPamDirectoryResource,
 		classicpammachine.NewPamMachineResource,
+		classiclogin.NewLoginResource,
+		classicwifi.NewWifiResource,
+		classiccontact.NewContactResource,
 		classicsharedfolder.NewClassicSharedFolderResource,
 		newfolder.NewNewFolderResource,
 		secretsmanager.NewSecretsManagerAppResource,
@@ -229,6 +238,9 @@ func (p *CommanderProvider) DataSources(ctx context.Context) []func() datasource
 		epmpolicydatasource.NewEpmPolicyDataSource,
 		classicpamremotebrowserdatasource.NewPamRemoteBrowserDataSource,
 		classicpamuserdatasource.NewPamUserDataSource,
+		classiclogindatasource.NewLoginDataSource,
+		classiccontactdatasource.NewContactDataSource,
+		classicwifidatasource.NewWifiDataSource,
 		pamconfigurationdatasource.NewPamConfigurationDataSource,
 		classicpamdatabasedatasource.NewPamDatabaseDataSource,
 		classicpamdirectorydatasource.NewPamDirectoryDataSource,

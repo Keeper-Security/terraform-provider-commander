@@ -18,7 +18,7 @@ type ContactDataSource struct {
 }
 
 func (d *ContactDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_contact"
+	resp.TypeName = req.ProviderTypeName + "_classic_contact"
 }
 
 func (d *ContactDataSource) Configure(ctx context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {

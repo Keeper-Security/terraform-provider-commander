@@ -66,6 +66,16 @@ categories:
       - classic_pam_directory
       - classic_pam_remote_browser
 
+  Classic Records:
+    resources:
+      - classic_contact
+      - classic_login
+      - classic_wifi
+    data_sources:
+      - classic_contact
+      - classic_login
+      - classic_wifi
+
   Endpoint Privilege Manager (EPM):
     resources:
       - epm_policy

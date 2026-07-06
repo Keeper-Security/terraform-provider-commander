@@ -19,7 +19,7 @@ type WifiResource struct {
 }
 
 func (r *WifiResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_wifi"
+	resp.TypeName = req.ProviderTypeName + "_classic_wifi"
 }
 
 func (r *WifiResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {

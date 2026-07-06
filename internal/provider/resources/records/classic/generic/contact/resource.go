@@ -19,7 +19,7 @@ type ContactResource struct {
 }
 
 func (r *ContactResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_contact"
+	resp.TypeName = req.ProviderTypeName + "_classic_contact"
 }
 
 func (r *ContactResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {

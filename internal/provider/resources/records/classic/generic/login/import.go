@@ -27,10 +27,10 @@ func (r *LoginResource) ImportState(ctx context.Context, req resource.ImportStat
 			Notes:          types.StringNull(),
 			FolderLocation: types.StringNull(),
 		},
-		Login:    types.StringNull(),
-		Password: types.StringNull(),
+		Login:          types.StringNull(),
+		Password:       types.StringNull(),
 		WebsiteAddress: types.StringNull(),
-		Custom:   nil,
+		Custom:         nil,
 		ShareModel: classic_share.ShareModel{
 			Share: types.MapNull(classic_share.ShareEntryAttrType),
 		},

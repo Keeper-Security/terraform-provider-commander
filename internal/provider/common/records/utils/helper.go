@@ -41,6 +41,7 @@ func BuildRecordAdd(folder types.String, title, recordType string, extraParts []
 	if !notes.IsNull() && !notes.IsUnknown() {
 		parts = append(parts, fmt.Sprintf("%s %s", utils.FlagNotes, utils.QuoteShellSingle(notes.ValueString())))
 	}
+	parts = append(parts, utils.FlagForce)
 	return strings.Join(parts, " ")
 }
 
@@ -58,6 +59,8 @@ func BuildRecordUpdate(recordUID string, titlePlan, titleState types.String, ext
 	if !notesPlan.Equal(notesState) && !notesPlan.IsNull() && !notesPlan.IsUnknown() {
 		parts = append(parts, fmt.Sprintf("%s %s", utils.FlagNotes, utils.QuoteShellSingle(notesPlan.ValueString())))
 	}
+
+	parts = append(parts, utils.FlagForce)
 	return strings.Join(parts, " ")
 }
 

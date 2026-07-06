@@ -53,6 +53,7 @@ func MapVaultRecordGetResponseToLoginModel(rec *utils.VaultRecordGetResponse, st
 	m.Login = commonrecordsutils.FirstStringFieldAnyLabel(rec.Fields, commonrecordsutils.FieldTypeLogin)
 	m.Password = commonrecordsutils.FirstStringFieldAnyLabel(rec.Fields, commonrecordsutils.FieldTypePassword)
 	m.WebsiteAddress = commonrecordsutils.FirstStringFieldAnyLabel(rec.Fields, commonrecordsutils.FieldTypeURL)
+
 	m.Custom = commonrecordsutils.ParseCustomFields(rec.Custom)
 	return nil
 }

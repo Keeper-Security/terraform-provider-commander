@@ -14,8 +14,8 @@ import (
 type LoginModel struct {
 	utils.BaseVaultRecordModel
 
-	Login    types.String `tfsdk:"login"`
-	Password types.String `tfsdk:"password"`
+	Login          types.String `tfsdk:"login"`
+	Password       types.String `tfsdk:"password"`
 	WebsiteAddress types.String `tfsdk:"website_address"`
 
 	Custom []utils.CustomFieldModel `tfsdk:"custom"`

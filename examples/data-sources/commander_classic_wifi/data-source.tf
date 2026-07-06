@@ -2,7 +2,7 @@
 # Usage 1 - Look up a WiFi record by record UID
 ###############################################################################
 
-data "commander_wifi" "office_guest" {
+data "commander_classic_wifi" "office_guest" {
   wifi = "_REPLACE_WITH_RECORD_UID_OR_TITLE_"
 }
 
@@ -10,8 +10,8 @@ data "commander_wifi" "office_guest" {
 # Usage 2 - Chain from a managed resource (no hard-coded UID)
 ###############################################################################
 
-# data "commander_wifi" "from_managed_resource" {
-#   wifi = commander_wifi.home.id
+# data "commander_classic_wifi" "from_managed_resource" {
+#   wifi = commander_classic_wifi.home.id
 # }
 
 ###############################################################################
@@ -20,33 +20,33 @@ data "commander_wifi" "office_guest" {
 
 output "wifi_id" {
   description = "Record UID of the WiFi record."
-  value       = data.commander_wifi.office_guest.id
+  value       = data.commander_classic_wifi.office_guest.id
 }
 
 output "wifi_title" {
-  value = data.commander_wifi.office_guest.title
+  value = data.commander_classic_wifi.office_guest.title
 }
 
 output "wifi_ssid" {
   description = "WiFi network name (SSID)."
-  value       = data.commander_wifi.office_guest.ssid
+  value       = data.commander_classic_wifi.office_guest.ssid
 }
 
 output "wifi_encryption" {
   description = "Encryption type: wep | wpa | noEncryption."
-  value       = data.commander_wifi.office_guest.encryption
+  value       = data.commander_classic_wifi.office_guest.encryption
 }
 
 output "wifi_is_ssid_hidden" {
-  value = data.commander_wifi.office_guest.is_ssid_hidden
+  value = data.commander_classic_wifi.office_guest.is_ssid_hidden
 }
 
 output "wifi_folder" {
-  value = data.commander_wifi.office_guest.folder
+  value = data.commander_classic_wifi.office_guest.folder
 }
 
 output "wifi_notes" {
-  value = data.commander_wifi.office_guest.notes
+  value = data.commander_classic_wifi.office_guest.notes
 }
 
 ###############################################################################
@@ -55,7 +55,7 @@ output "wifi_notes" {
 
 output "wifi_password" {
   description = "WiFi password (returns null for open networks)."
-  value       = data.commander_wifi.office_guest.password
+  value       = data.commander_classic_wifi.office_guest.password
   sensitive   = true
 }
 
@@ -69,7 +69,7 @@ output "wifi_password" {
 
 output "wifi_custom" {
   description = "All custom fields stored on the record."
-  value       = data.commander_wifi.office_guest.custom
+  value       = data.commander_classic_wifi.office_guest.custom
   sensitive   = true
 }
 
@@ -82,5 +82,5 @@ output "wifi_custom" {
 
 output "wifi_share" {
   description = "Users this record is shared with and their permissions."
-  value       = data.commander_wifi.office_guest.share
+  value       = data.commander_classic_wifi.office_guest.share
 }
