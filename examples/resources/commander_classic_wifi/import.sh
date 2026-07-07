@@ -1,11 +1,11 @@
 # Import is supported. The import ID is the vault record UID of the wifiCredentials record.
 # Find it via: `record-list -t wifiCredentials` in the Commander CLI, or in the Keeper Vault UI.
 
-terraform import commander_wifi.imported_wifi "Tk835WOSf4LIz1vuyrdfEg"
+terraform import commander_classic_wifi.imported_wifi "Tk835WOSf4LIz1vuyrdfEg"
 
 # Or use an import block in configuration:
 # import {
-#   to = commander_wifi.imported_wifi
+#   to = commander_classic_wifi.imported_wifi
 #   id = "Tk835WOSf4LIz1vuyrdfEg"
 # }
 #

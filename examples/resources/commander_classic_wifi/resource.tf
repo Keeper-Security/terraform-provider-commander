@@ -1,27 +1,8 @@
-# commander_wifi
-#
-# Creates and manages a Keeper WiFi credentials record (`wifiCredentials`).
-# Stores SSID, password (sensitive), encryption type, hidden-SSID flag, and
-# any custom fields. Supports import via the record UID.
-
-terraform {
-  required_providers {
-    commander = {
-      source = "keeper-security/commander"
-    }
-  }
-}
-
-provider "commander" {
-  service_mode_url     = "http://localhost:8080/api/v2/"
-  service_mode_api_key = "XXXXXXXXXXXXXX"
-}
-
 ###############################################################################
 # Example 1 - Minimal: open guest network with no password.
 ###############################################################################
 
-resource "commander_wifi" "guest" {
+resource "commander_classic_wifi" "guest" {
   title = "Guest WiFi"
   ssid  = "Company-Guest"
   notes = "Open network in the lobby"
@@ -40,7 +21,7 @@ resource "commander_wifi" "guest" {
 # access automatically.
 ###############################################################################
 
-resource "commander_wifi" "home" {
+resource "commander_classic_wifi" "home" {
   title          = "Home WiFi"
   folder         = "Personal"
   ssid           = "MyHomeNetwork"
@@ -79,7 +60,7 @@ resource "commander_wifi" "home" {
 # Example 3 - Explicit open network (no encryption).
 ###############################################################################
 
-resource "commander_wifi" "lab" {
+resource "commander_classic_wifi" "lab" {
   title          = "Lab Open WiFi"
   folder         = "Lab"
   ssid           = "lab-open"
@@ -94,5 +75,5 @@ resource "commander_wifi" "lab" {
 
 output "wifi_home_id" {
   description = "UID of the managed Home WiFi record."
-  value       = commander_wifi.home.id
+  value       = commander_classic_wifi.home.id
 }

@@ -1,4 +1,4 @@
-resource "commander_contact" "full" {
+resource "commander_classic_contact" "full" {
   title = "Jane Smith - Acme Corp"
 
   name = {
