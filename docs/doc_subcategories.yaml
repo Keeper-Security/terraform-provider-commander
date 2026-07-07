@@ -71,10 +71,12 @@ categories:
       - classic_contact
       - classic_login
       - classic_wifi
+      - classic_ssh_keys
     data_sources:
       - classic_contact
       - classic_login
       - classic_wifi
+      - classic_ssh_keys
 
   Endpoint Privilege Manager (EPM):
     resources:

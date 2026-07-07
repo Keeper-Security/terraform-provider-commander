@@ -8,7 +8,6 @@ import (
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/utils"
 	dschema "github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 )
 
@@ -43,7 +42,7 @@ func SharedAttributes() map[string]schema.Attribute {
 					utils.StringMinLengthValidator("Website address", 1, true),
 				},
 			},
-			"custom": customFieldResourceAttribute(),
+			"custom": commonrecordsutils.CustomFieldAttributeSchema(),
 		},
 	)
 }
@@ -71,77 +70,7 @@ func SharedDataSourceAttributes() map[string]dschema.Attribute {
 				Description:         WebsiteAddressDescription,
 				MarkdownDescription: WebsiteAddressMarkdownDescription,
 			},
-			"custom": customFieldDataSourceAttribute(),
+			"custom": commonrecordsutils.CustomFieldDataSourceAttributeSchema(),
 		},
 	)
-}
-
-func customFieldResourceAttribute() schema.ListNestedAttribute {
-	return schema.ListNestedAttribute{
-		Optional:            true,
-		Description:         CustomDescription,
-		MarkdownDescription: CustomMarkdownDescription,
-		NestedObject: schema.NestedAttributeObject{
-			Attributes: map[string]schema.Attribute{
-				"type": schema.StringAttribute{
-					Required:            true,
-					Description:         CustomTypeDescription,
-					MarkdownDescription: CustomTypeMarkdownDescription,
-				},
-				"label": schema.StringAttribute{
-					Required:            true,
-					Description:         CustomLabelDescription,
-					MarkdownDescription: CustomLabelMarkdownDescription,
-					Validators: []validator.String{
-						utils.StringMinLengthValidator("Custom field label", 1, false),
-					},
-				},
-				"value": schema.StringAttribute{
-					Required:            true,
-					Description:         CustomValueDescription,
-					MarkdownDescription: CustomValueMarkdownDescription,
-				},
-				"sensitive": schema.BoolAttribute{
-					Optional:            true,
-					Computed:            true,
-					Description:         CustomSensitiveDescription,
-					MarkdownDescription: CustomSensitiveMarkdownDescription,
-					Default:             booldefault.StaticBool(false),
-				},
-			},
-		},
-	}
-}
-
-func customFieldDataSourceAttribute() dschema.ListNestedAttribute {
-	return dschema.ListNestedAttribute{
-		Computed:            true,
-		Description:         DSCustomDescription,
-		MarkdownDescription: DSCustomMarkdownDescription,
-		NestedObject: dschema.NestedAttributeObject{
-			Attributes: map[string]dschema.Attribute{
-				"type": dschema.StringAttribute{
-					Computed:            true,
-					Description:         DSCustomTypeDescription,
-					MarkdownDescription: DSCustomTypeMarkdownDescription,
-				},
-				"label": dschema.StringAttribute{
-					Computed:            true,
-					Description:         CustomLabelDescription,
-					MarkdownDescription: CustomLabelMarkdownDescription,
-				},
-				"value": dschema.StringAttribute{
-					Computed:            true,
-					Sensitive:           true,
-					Description:         DSCustomValueDescription,
-					MarkdownDescription: DSCustomValueMarkdownDescription,
-				},
-				"sensitive": dschema.BoolAttribute{
-					Computed:            true,
-					Description:         DSCustomSensitiveDescription,
-					MarkdownDescription: DSCustomSensitiveMarkdownDescription,
-				},
-			},
-		},
-	}
 }

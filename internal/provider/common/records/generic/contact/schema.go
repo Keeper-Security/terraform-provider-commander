@@ -8,7 +8,6 @@ import (
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/utils"
 	dschema "github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 )
 
@@ -23,7 +22,7 @@ func SharedAttributes() map[string]schema.Attribute {
 			"email":       optionalStringField("Email", EmailDescription, EmailMarkdownDescription),
 			"phone":       phoneResourceAttribute(),
 			"address_ref": refUIDField(AddressRefDescription, AddressRefMarkdownDescription),
-			"custom":      customFieldResourceAttribute(),
+			"custom":      commonrecordsutils.CustomFieldAttributeSchema(),
 		},
 	)
 }
@@ -40,7 +39,7 @@ func SharedDataSourceAttributes() map[string]dschema.Attribute {
 			"email":       computedStringAttribute(EmailDescription, EmailMarkdownDescription),
 			"phone":       phoneDataSourceAttribute(),
 			"address_ref": computedStringAttribute(AddressRefDescription, AddressRefMarkdownDescription),
-			"custom":      customFieldDataSourceAttribute(),
+			"custom":      commonrecordsutils.CustomFieldDataSourceAttributeSchema(),
 		},
 	)
 }
@@ -156,75 +155,6 @@ func phoneDataSourceAttribute() dschema.ListNestedAttribute {
 					Computed:            true,
 					Description:         PhoneTypeDescription,
 					MarkdownDescription: PhoneTypeMarkdownDescription,
-				},
-			},
-		},
-	}
-}
-
-func customFieldResourceAttribute() schema.ListNestedAttribute {
-	return schema.ListNestedAttribute{
-		Optional:            true,
-		Description:         CustomDescription,
-		MarkdownDescription: CustomMarkdownDescription,
-		NestedObject: schema.NestedAttributeObject{
-			Attributes: map[string]schema.Attribute{
-				"type": schema.StringAttribute{
-					Required:            true,
-					Description:         "Keeper field type (e.g. text, email, secret, phone, name, date).",
-					MarkdownDescription: "Keeper field type (e.g. `text`, `email`, `secret`, `phone`, `name`, `date`).",
-				},
-				"label": schema.StringAttribute{
-					Required:            true,
-					Description:         "Field label.",
-					MarkdownDescription: "Field label.",
-					Validators: []validator.String{
-						utils.StringMinLengthValidator("Custom field label", 1, false),
-					},
-				},
-				"value": schema.StringAttribute{
-					Required:            true,
-					Description:         "Field value; for complex types use jsonencode(JSON) matching the Keeper field schema.",
-					MarkdownDescription: "Field value; for complex types use `jsonencode(JSON)` matching the [Keeper field schema](https://docs.keeper.io/en/keeperpam/secrets-manager/about/field-record-types).",
-				},
-				"sensitive": schema.BoolAttribute{
-					Optional:            true,
-					Computed:            true,
-					Description:         "Whether to mark the value as sensitive in Terraform state display.",
-					MarkdownDescription: "Whether to mark the value as sensitive in Terraform state display.",
-					Default:             booldefault.StaticBool(false),
-				},
-			},
-		},
-	}
-}
-
-func customFieldDataSourceAttribute() dschema.ListNestedAttribute {
-	return dschema.ListNestedAttribute{
-		Computed:            true,
-		Description:         DSCustomDescription,
-		MarkdownDescription: DSCustomMarkdownDescription,
-		NestedObject: dschema.NestedAttributeObject{
-			Attributes: map[string]dschema.Attribute{
-				"type": dschema.StringAttribute{
-					Computed:            true,
-					Description:         DSCustomTypeDescription,
-					MarkdownDescription: DSCustomTypeMarkdownDescription,
-				},
-				"label": dschema.StringAttribute{
-					Computed:            true,
-					Description:         "Field label.",
-					MarkdownDescription: "Field label.",
-				},
-				"value": dschema.StringAttribute{
-					Computed:            true,
-					Description:         DSCustomValueDescription,
-					MarkdownDescription: DSCustomValueMarkdownDescription,
-				},
-				"sensitive": dschema.BoolAttribute{
-					Computed:            true,
-					Description:         DSCustomSensitiveDescription,
-					MarkdownDescription: DSCustomSensitiveMarkdownDescription,
 				},
 			},
 		},

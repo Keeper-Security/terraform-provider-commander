@@ -11,7 +11,7 @@ import (
 )
 
 // BuildAddCommand builds a record-add command for a login record.
-func BuildAddCommand(data LoginModel) string {
+func BuildAddCommand(cmd string, data LoginModel) string {
 	var extra []string
 
 	commonrecordsutils.AppendOptionalScalarAdd(&extra, FlagLogin, data.Login)
@@ -19,7 +19,7 @@ func BuildAddCommand(data LoginModel) string {
 	commonrecordsutils.AppendOptionalScalarAdd(&extra, FlagURL, data.WebsiteAddress)
 
 	custom := commonrecordsutils.NormalizeCustomFromPlan(data.Custom)
-	return commonrecordsutils.BuildRecordAdd(utils.CmdRecordAdd, commonrecordsutils.RecordTypeLogin, data.Title.ValueString(), data.FolderLocation, extra, custom, data.Notes)
+	return commonrecordsutils.BuildRecordAdd(cmd, commonrecordsutils.RecordTypeLogin, data.Title.ValueString(), data.FolderLocation, extra, custom, data.Notes)
 }
 
 // UpdateHasMutations reports whether plan differs from state on updatable login fields.
@@ -35,7 +35,7 @@ func UpdateHasMutations(plan, state LoginModel) bool {
 }
 
 // BuildUpdateCommand builds a record-update command for changed login fields.
-func BuildUpdateCommand(recordUID string, plan, state LoginModel) string {
+func BuildUpdateCommand(cmd string, recordUID string, plan, state LoginModel) string {
 	var extra []string
 
 	commonrecordsutils.AppendChangedStringField(&extra, FlagLogin, plan.Login, state.Login)
@@ -44,7 +44,7 @@ func BuildUpdateCommand(recordUID string, plan, state LoginModel) string {
 
 	customPlan := commonrecordsutils.NormalizeCustomFromPlan(plan.Custom)
 	customState := commonrecordsutils.NormalizeCustomFromPlan(state.Custom)
-	return commonrecordsutils.BuildRecordUpdate(utils.CmdRecordUpdate, recordUID, plan.Title, state.Title, extra, customPlan, customState, plan.Notes, state.Notes)
+	return commonrecordsutils.BuildRecordUpdate(cmd, recordUID, plan.Title, state.Title, extra, customPlan, customState, plan.Notes, state.Notes)
 }
 
 // MapVaultRecordGetResponseToLoginModel fills state from a `get <uid> --format json` payload.

@@ -9,10 +9,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
-// LoginDataSourceModel adds a lookup key (`login_record`) to the shared login model.
-// The lookup attribute is named login_record because login is the username field on the record.
+// LoginDataSourceModel adds a lookup key (`login`) to the shared login model.
+// The lookup attribute is named login because login is the username field on the record.
 type LoginDataSourceModel struct {
-	LoginRecord types.String `tfsdk:"login_record"`
+	LoginRecord types.String `tfsdk:"login"`
 	commonrecordlogin.LoginModel
 	classic_share.ShareModel
 }

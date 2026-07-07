@@ -13,7 +13,7 @@ import (
 )
 
 // BuildAddCommand builds a record-add command for a contact record.
-func BuildAddCommand(data ContactModel) string {
+func BuildAddCommand(cmd string, data ContactModel) string {
 	var extra []string
 
 	if data.Name != nil && !data.Name.IsNull() {
@@ -38,7 +38,7 @@ func BuildAddCommand(data ContactModel) string {
 	commonrecordsutils.AppendOptionalTextField(&extra, FlagAddressRef, data.AddressRef)
 
 	custom := commonrecordsutils.NormalizeCustomFromPlan(data.Custom)
-	return commonrecordsutils.BuildRecordAdd(utils.CmdRecordAdd, commonrecordsutils.RecordTypeContact, data.Title.ValueString(), data.FolderLocation, extra, custom, data.Notes)
+	return commonrecordsutils.BuildRecordAdd(cmd, commonrecordsutils.RecordTypeContact, data.Title.ValueString(), data.FolderLocation, extra, custom, data.Notes)
 }
 
 // UpdateHasMutations reports whether plan differs from state on updatable contact fields.
@@ -60,7 +60,7 @@ func UpdateHasMutations(plan, state ContactModel) bool {
 }
 
 // BuildUpdateCommand builds a record-update command for changed contact fields.
-func BuildUpdateCommand(recordUID string, plan, state ContactModel) string {
+func BuildUpdateCommand(cmd string, recordUID string, plan, state ContactModel) string {
 	var extra []string
 
 	planJSON, planErr := nameToJSON(plan.Name)
@@ -112,7 +112,7 @@ func BuildUpdateCommand(recordUID string, plan, state ContactModel) string {
 
 	customPlan := commonrecordsutils.NormalizeCustomFromPlan(plan.Custom)
 	customState := commonrecordsutils.NormalizeCustomFromPlan(state.Custom)
-	return commonrecordsutils.BuildRecordUpdate(utils.CmdRecordUpdate, recordUID, plan.Title, state.Title, extra, customPlan, customState, plan.Notes, state.Notes)
+	return commonrecordsutils.BuildRecordUpdate(cmd, recordUID, plan.Title, state.Title, extra, customPlan, customState, plan.Notes, state.Notes)
 }
 
 // MapVaultRecordGetResponseToContactModel fills state from a `get <uid> --format json` payload.

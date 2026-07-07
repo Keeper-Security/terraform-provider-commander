@@ -28,7 +28,7 @@ func (r *ContactResource) Create(ctx context.Context, req resource.CreateRequest
 		resp.Diagnostics.AddError(utils.ErrSummarySyncDownFailed, err.Error())
 		return
 	}
-	cmd := commonrecordcontact.BuildAddCommand(data.ContactModel)
+	cmd := commonrecordcontact.BuildAddCommand(utils.CmdRecordAdd, data.ContactModel)
 	apiResp, err := r.ApiManager.ExecuteCommand(ctx, cmd, ErrDetailCreateFailed)
 	if err != nil {
 		resp.Diagnostics.AddError(ErrSummaryCreateFailed, err.Error())

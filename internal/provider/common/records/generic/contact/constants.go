@@ -62,9 +62,6 @@ const (
 	AddressRefDescription         = "Linked Address record UID."
 	AddressRefMarkdownDescription = "UID of an `address` record linked via `addressRef`."
 
-	CustomDescription         = "Manage custom fields for the record."
-	CustomMarkdownDescription = "Manage custom fields for the record."
-
 	DSNotesDescription         = "Notes on the record."
 	DSNotesMarkdownDescription = "Notes on the record."
 
@@ -73,16 +70,4 @@ const (
 
 	DSPhoneDescription         = "Phone numbers."
 	DSPhoneMarkdownDescription = "Phone numbers."
-
-	DSCustomDescription         = "Custom fields on the record."
-	DSCustomMarkdownDescription = "Custom fields on the record."
-
-	DSCustomTypeDescription         = "Keeper field type."
-	DSCustomTypeMarkdownDescription = "Keeper field type."
-
-	DSCustomValueDescription         = "Field value."
-	DSCustomValueMarkdownDescription = "Field value."
-
-	DSCustomSensitiveDescription         = "Whether the value is sensitive."
-	DSCustomSensitiveMarkdownDescription = "Whether the value is sensitive."
 )

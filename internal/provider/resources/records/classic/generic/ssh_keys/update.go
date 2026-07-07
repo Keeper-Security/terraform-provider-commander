@@ -1,21 +1,21 @@
 // Copyright Keeper Security, Inc. 2026
 // SPDX-License-Identifier: MPL-2.0
 
-package contact
+package sshkeys
 
 import (
 	"context"
 	"strings"
 
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/classic_share"
-	commonrecordcontact "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/generic/contact"
+	commonrecordsshkeys "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/generic/ssh_keys"
 	commonrecordsutils "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/utils"
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/utils"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 )
 
-func (r *ContactResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var plan, state ContactResourceModel
+func (r *SshKeysResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	var plan, state SshKeysResourceModel
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -24,22 +24,19 @@ func (r *ContactResource) Update(ctx context.Context, req resource.UpdateRequest
 	if resp.Diagnostics.HasError() {
 		return
 	}
-
 	if err := r.EnsureApiManager(); err != nil {
 		resp.Diagnostics.AddError(utils.ERR_MSG_PROVIDER_CONFIGURATION_ERROR, err.Error())
 		return
 	}
-
 	if err := utils.SyncDown(ctx, r.ApiManager); err != nil {
 		resp.Diagnostics.AddError(utils.ErrSummarySyncDownFailed, err.Error())
 		return
 	}
 
 	plan.Id = state.Id
-
 	uid := strings.TrimSpace(plan.Id.ValueString())
 	if uid == "" {
-		resp.Diagnostics.AddError(ErrSummaryUpdateFailed, "Contact record id is empty")
+		resp.Diagnostics.AddError(ErrSummaryUpdateFailed, "SSH keys record id is empty")
 		return
 	}
 
@@ -48,19 +45,18 @@ func (r *ContactResource) Update(ctx context.Context, req resource.UpdateRequest
 		return
 	}
 
-	// Update record fields.
-	if commonrecordcontact.UpdateHasMutations(plan.ContactModel, state.ContactModel) {
-		cmd := commonrecordcontact.BuildUpdateCommand(utils.CmdRecordUpdate, uid, plan.ContactModel, state.ContactModel)
+	if commonrecordsshkeys.UpdateHasMutations(plan.SshKeysModel, state.SshKeysModel) {
+		cmd := commonrecordsshkeys.BuildUpdateCommand(utils.CmdRecordUpdate, uid, plan.SshKeysModel, state.SshKeysModel)
 		if _, err := r.ApiManager.ExecuteCommand(ctx, cmd, ErrDetailUpdateFailed); err != nil {
 			resp.Diagnostics.AddError(ErrSummaryUpdateFailed, err.Error())
 			return
 		}
 	}
 
-	// Reconcile share permissions (grant new/changed, revoke removed).
 	if err := classic_share.SyncSharePermissions(ctx, r.ApiManager, uid, plan.Share, state.Share); err != nil {
 		resp.Diagnostics.AddError(ErrSummaryUpdateFailed, err.Error())
 		return
 	}
+
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }

@@ -1,31 +1,31 @@
 // Copyright Keeper Security, Inc. 2026
 // SPDX-License-Identifier: MPL-2.0
 
-package login
+package sshkeys
 
 import (
 	"context"
 
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/classic_share"
-	commonrecordlogin "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/generic/login"
+	commonrecordsshkeys "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/generic/ssh_keys"
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/utils"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	dschema "github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 )
 
-func (d *LoginDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
+func (d *SshKeysDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = dschema.Schema{
 		Description:         SchemaDescription,
 		MarkdownDescription: SchemaMarkdownDescription,
 		Attributes: utils.MergeDataSourceAttributes(
 			map[string]dschema.Attribute{
-				"login": dschema.StringAttribute{
+				"ssh_keys": dschema.StringAttribute{
 					Required:            true,
-					Description:         "Login record title or UID to look up.",
-					MarkdownDescription: "Login record **title** or **UID** to look up.",
+					Description:         "SSH keys record title or UID to look up.",
+					MarkdownDescription: "SSH keys record **title** or **UID** to look up.",
 				},
 			},
-			commonrecordlogin.SharedDataSourceAttributes(),
+			commonrecordsshkeys.SharedDataSourceAttributes(),
 			classic_share.DataSourceShareAttribute(),
 		),
 	}

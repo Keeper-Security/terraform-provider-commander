@@ -1,21 +1,21 @@
 // Copyright Keeper Security, Inc. 2026
 // SPDX-License-Identifier: MPL-2.0
 
-package login
+package sshkeys
 
 import (
 	"context"
 	"fmt"
 
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/classic_share"
-	commonrecordlogin "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/generic/login"
+	commonrecordsshkeys "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/generic/ssh_keys"
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/utils"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
-func (r *LoginResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	var data LoginResourceModel
+func (r *SshKeysResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+	var data SshKeysResourceModel
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -29,7 +29,7 @@ func (r *LoginResource) Create(ctx context.Context, req resource.CreateRequest, 
 		return
 	}
 
-	cmd := commonrecordlogin.BuildAddCommand(utils.CmdRecordAdd, data.LoginModel)
+	cmd := commonrecordsshkeys.BuildAddCommand(utils.CmdRecordAdd, data.SshKeysModel)
 	apiResp, err := r.ApiManager.ExecuteCommand(ctx, cmd, ErrDetailCreateFailed)
 	if err != nil {
 		resp.Diagnostics.AddError(ErrSummaryCreateFailed, err.Error())

@@ -46,7 +46,7 @@ func (r *LoginResource) Update(ctx context.Context, req resource.UpdateRequest, 
 	}
 
 	if commonrecordlogin.UpdateHasMutations(plan.LoginModel, state.LoginModel) {
-		cmd := commonrecordlogin.BuildUpdateCommand(uid, plan.LoginModel, state.LoginModel)
+		cmd := commonrecordlogin.BuildUpdateCommand(utils.CmdRecordUpdate, uid, plan.LoginModel, state.LoginModel)
 		if _, err := r.ApiManager.ExecuteCommand(ctx, cmd, ErrDetailUpdateFailed); err != nil {
 			resp.Diagnostics.AddError(ErrSummaryUpdateFailed, err.Error())
 			return

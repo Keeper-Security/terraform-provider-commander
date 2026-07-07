@@ -9,44 +9,101 @@ import (
 	"strings"
 
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/utils"
+	dschema "github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
-// CustomFieldAttributeSchema returns the list nested attribute schema for `custom`.
+const (
+	CustomDescription                  = "Manage custom fields for the record."
+	CustomMarkdownDescription          = "Manage custom fields for the record."
+	CustomTypeDescription              = "Keeper field type (e.g. text, email, secret, phone, name, date)."
+	CustomTypeMarkdownDescription      = "Keeper field type (e.g. `text`, `email`, `secret`, `phone`, `name`, `date`)."
+	CustomLabelDescription             = "Field label."
+	CustomLabelMarkdownDescription     = "Field label."
+	CustomValueDescription             = "Field value; for complex types use jsonencode(JSON) matching the Keeper field schema."
+	CustomValueMarkdownDescription     = "Field value; for complex types use `jsonencode(JSON)` matching the [Keeper field schema](https://docs.keeper.io/en/keeperpam/secrets-manager/about/field-record-types)."
+	CustomSensitiveDescription         = "Whether to mark the value as sensitive in Terraform state display."
+	CustomSensitiveMarkdownDescription = "Whether to mark the value as sensitive in Terraform state display."
+
+	DSCustomDescription                  = "Custom fields stored in the record's `custom` array."
+	DSCustomMarkdownDescription          = "Custom fields stored in the record's `custom` array."
+	DSCustomTypeDescription              = "Keeper field type (e.g. text, email, secret)."
+	DSCustomTypeMarkdownDescription      = "Keeper field **type** (e.g. `text`, `email`, `secret`)."
+	DSCustomValueDescription             = "Field value (JSON-encoded for complex types)."
+	DSCustomValueMarkdownDescription     = "Field **value** (JSON-encoded for complex types)."
+	DSCustomSensitiveDescription         = "Whether the value should be treated as sensitive."
+	DSCustomSensitiveMarkdownDescription = "Whether the value should be treated as **sensitive**."
+)
+
+// CustomFieldAttributeSchema returns the list nested attribute schema for `custom` on resources.
 func CustomFieldAttributeSchema() schema.ListNestedAttribute {
 	return schema.ListNestedAttribute{
 		Optional:            true,
-		Description:         "Manage custom fields for the record.",
-		MarkdownDescription: "Manage custom fields for the record.",
+		Description:         CustomDescription,
+		MarkdownDescription: CustomMarkdownDescription,
 		NestedObject: schema.NestedAttributeObject{
 			Attributes: map[string]schema.Attribute{
 				"type": schema.StringAttribute{
 					Required:            true,
-					Description:         "Keeper field type (e.g. text, email, secret, phone, name, date).",
-					MarkdownDescription: "Keeper field type (e.g. `text`, `email`, `secret`, `phone`, `name`, `date`).",
+					Description:         CustomTypeDescription,
+					MarkdownDescription: CustomTypeMarkdownDescription,
 				},
 				"label": schema.StringAttribute{
 					Required:            true,
-					Description:         "Field label.",
-					MarkdownDescription: "Field label.",
+					Description:         CustomLabelDescription,
+					MarkdownDescription: CustomLabelMarkdownDescription,
 					Validators: []validator.String{
 						utils.StringMinLengthValidator("Custom field label", 1, false),
 					},
 				},
 				"value": schema.StringAttribute{
 					Required:            true,
-					Description:         "Field value; for complex types use jsonencode(JSON) matching the Keeper field schema.",
-					MarkdownDescription: "Field value; for complex types use `jsonencode(JSON)` matching the [Keeper field schema](https://docs.keeper.io/en/keeperpam/secrets-manager/about/field-record-types).",
+					Description:         CustomValueDescription,
+					MarkdownDescription: CustomValueMarkdownDescription,
 				},
 				"sensitive": schema.BoolAttribute{
 					Optional:            true,
 					Computed:            true,
-					Description:         "Whether to mark the value as sensitive in Terraform state display.",
-					MarkdownDescription: "Whether to mark the value as sensitive in Terraform state display.",
+					Description:         CustomSensitiveDescription,
+					MarkdownDescription: CustomSensitiveMarkdownDescription,
 					Default:             booldefault.StaticBool(false),
+				},
+			},
+		},
+	}
+}
+
+// CustomFieldDataSourceAttributeSchema returns the list nested attribute schema for `custom` on data sources.
+func CustomFieldDataSourceAttributeSchema() dschema.ListNestedAttribute {
+	return dschema.ListNestedAttribute{
+		Computed:            true,
+		Description:         DSCustomDescription,
+		MarkdownDescription: DSCustomMarkdownDescription,
+		NestedObject: dschema.NestedAttributeObject{
+			Attributes: map[string]dschema.Attribute{
+				"type": dschema.StringAttribute{
+					Computed:            true,
+					Description:         DSCustomTypeDescription,
+					MarkdownDescription: DSCustomTypeMarkdownDescription,
+				},
+				"label": dschema.StringAttribute{
+					Computed:            true,
+					Description:         CustomLabelDescription,
+					MarkdownDescription: CustomLabelMarkdownDescription,
+				},
+				"value": dschema.StringAttribute{
+					Computed:            true,
+					Sensitive:           true,
+					Description:         DSCustomValueDescription,
+					MarkdownDescription: DSCustomValueMarkdownDescription,
+				},
+				"sensitive": dschema.BoolAttribute{
+					Computed:            true,
+					Description:         DSCustomSensitiveDescription,
+					MarkdownDescription: DSCustomSensitiveMarkdownDescription,
 				},
 			},
 		},

@@ -86,7 +86,7 @@ output "contact_share" {
 
 - `address_ref` (String) UID of an `address` record linked via `addressRef`.
 - `company` (String) Company name.
-- `custom` (Attributes List) Custom fields on the record. (see [below for nested schema](#nestedatt--custom))
+- `custom` (Attributes List) Custom fields stored in the record's `custom` array. (see [below for nested schema](#nestedatt--custom))
 - `email` (String) Email address.
 - `folder_location` (String) Folder `path` or `UID` where the record is to be stored.
 - `id` (String) Unique identifier (UID) of the vault record.
@@ -102,9 +102,9 @@ output "contact_share" {
 Read-Only:
 
 - `label` (String) Field label.
-- `sensitive` (Boolean) Whether the value is sensitive.
-- `type` (String) Keeper field type.
-- `value` (String) Field value.
+- `sensitive` (Boolean) Whether the value should be treated as **sensitive**.
+- `type` (String) Keeper field **type** (e.g. `text`, `email`, `secret`).
+- `value` (String, Sensitive) Field **value** (JSON-encoded for complex types).
 
 
 <a id="nestedatt--name"></a>

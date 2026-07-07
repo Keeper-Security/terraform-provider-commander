@@ -35,31 +35,11 @@ const (
 	IsSSIDHiddenDescription         = "Whether the SSID is hidden (not broadcast)."
 	IsSSIDHiddenMarkdownDescription = "Whether the SSID is hidden (not broadcast). Maps to the record's `isSSIDHidden` field."
 
-	CustomDescription                  = "Manage custom fields for the record."
-	CustomMarkdownDescription          = "Manage custom fields for the record."
-	CustomTypeDescription              = "Keeper field type (e.g. text, email, secret, phone, name, date)."
-	CustomTypeMarkdownDescription      = "Keeper field type (e.g. `text`, `email`, `secret`, `phone`, `name`, `date`)."
-	CustomLabelDescription             = "Field label."
-	CustomLabelMarkdownDescription     = "Field label."
-	CustomValueDescription             = "Field value; for complex types use jsonencode(JSON) matching the Keeper field schema."
-	CustomValueMarkdownDescription     = "Field value; for complex types use `jsonencode(JSON)` matching the [Keeper field schema](https://docs.keeper.io/en/keeperpam/secrets-manager/about/field-record-types)."
-	CustomSensitiveDescription         = "Whether to mark the value as sensitive in Terraform state display."
-	CustomSensitiveMarkdownDescription = "Whether to mark the value as sensitive in Terraform state display."
-
 	DSNotesDescription         = "Notes on the record, if any."
 	DSNotesMarkdownDescription = "**Notes** on the record, if any."
 
 	DSFolderDescription         = "Folder path where the record is stored."
 	DSFolderMarkdownDescription = "**Folder path** where the record is stored."
-
-	DSCustomDescription                  = "Custom fields stored in the record's `custom` array."
-	DSCustomMarkdownDescription          = "Custom fields stored in the record's `custom` array."
-	DSCustomTypeDescription              = "Keeper field type (e.g. text, email, secret)."
-	DSCustomTypeMarkdownDescription      = "Keeper field **type** (e.g. `text`, `email`, `secret`)."
-	DSCustomValueDescription             = "Field value (JSON-encoded for complex types)."
-	DSCustomValueMarkdownDescription     = "Field **value** (JSON-encoded for complex types)."
-	DSCustomSensitiveDescription         = "Whether the value should be treated as sensitive."
-	DSCustomSensitiveMarkdownDescription = "Whether the value should be treated as **sensitive**."
 )
 
 // AllowedEncryptions lists the supported wifiEncryption values accepted by Keeper.

@@ -24,6 +24,7 @@ import (
 	pamconfigurationdatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/pam_configuration"
 	classiccontactdatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/records/classic/generic/contact"
 	classiclogindatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/records/classic/generic/login"
+	classicsshkeysdatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/records/classic/generic/ssh_keys"
 	classicwifidatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/records/classic/generic/wifi"
 	classicpamdatabasedatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/records/classic/pam/pam_database"
 	classicpamdirectorydatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/records/classic/pam/pam_directory"
@@ -46,6 +47,7 @@ import (
 	pamconfiguration "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/pam_configuration"
 	classiccontact "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/records/classic/generic/contact"
 	classiclogin "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/records/classic/generic/login"
+	classicsshkeys "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/records/classic/generic/ssh_keys"
 	classicwifi "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/records/classic/generic/wifi"
 	classicpamdatabase "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/records/classic/pam/pam_database"
 	classicpamdirectory "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/records/classic/pam/pam_directory"
@@ -214,6 +216,7 @@ func (p *CommanderProvider) Resources(ctx context.Context) []func() resource.Res
 		classiclogin.NewLoginResource,
 		classicwifi.NewWifiResource,
 		classiccontact.NewContactResource,
+		classicsshkeys.NewSshKeysResource,
 		classicsharedfolder.NewClassicSharedFolderResource,
 		newfolder.NewNewFolderResource,
 		secretsmanager.NewSecretsManagerAppResource,
@@ -241,6 +244,7 @@ func (p *CommanderProvider) DataSources(ctx context.Context) []func() datasource
 		classiclogindatasource.NewLoginDataSource,
 		classiccontactdatasource.NewContactDataSource,
 		classicwifidatasource.NewWifiDataSource,
+		classicsshkeysdatasource.NewSshKeysDataSource,
 		pamconfigurationdatasource.NewPamConfigurationDataSource,
 		classicpamdatabasedatasource.NewPamDatabaseDataSource,
 		classicpamdirectorydatasource.NewPamDirectoryDataSource,
