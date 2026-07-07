@@ -4,7 +4,8 @@
 package wifi
 
 import (
-	commonrecordwifi "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/classic/generic/wifi"
+	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/classic_share"
+	commonrecordwifi "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/generic/wifi"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
@@ -12,4 +13,5 @@ import (
 type WifiDataSourceModel struct {
 	Wifi types.String `tfsdk:"wifi"`
 	commonrecordwifi.WifiModel
+	classic_share.ShareModel
 }

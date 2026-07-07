@@ -3,7 +3,14 @@
 
 package contact
 
-import recordcontact "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/classic/generic/contact"
+import (
+	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/classic_share"
+	commonrecordcontact "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/generic/contact"
+)
 
-// ContactResourceModel is an alias for the shared contact model.
-type ContactResourceModel = recordcontact.ContactModel
+// ContactResourceModel is the classic contact resource state model: shared contact
+// fields plus the `share` attribute reconciled via classic_share.
+type ContactResourceModel struct {
+	commonrecordcontact.ContactModel
+	classic_share.ShareModel
+}

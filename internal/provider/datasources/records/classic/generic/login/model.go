@@ -4,7 +4,8 @@
 package login
 
 import (
-	commonrecordlogin "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/classic/generic/login"
+	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/classic_share"
+	commonrecordlogin "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/generic/login"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
@@ -13,4 +14,5 @@ import (
 type LoginDataSourceModel struct {
 	LoginRecord types.String `tfsdk:"login_record"`
 	commonrecordlogin.LoginModel
+	classic_share.ShareModel
 }

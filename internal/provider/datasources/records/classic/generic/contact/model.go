@@ -5,7 +5,7 @@ package contact
 
 import (
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/classic_share"
-	commonrecordcontact "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/classic/generic/contact"
+	commonrecordcontact "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/generic/contact"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 

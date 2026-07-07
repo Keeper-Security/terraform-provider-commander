@@ -19,7 +19,7 @@ func BuildAddCommand(data LoginModel) string {
 	commonrecordsutils.AppendOptionalScalarAdd(&extra, FlagURL, data.WebsiteAddress)
 
 	custom := commonrecordsutils.NormalizeCustomFromPlan(data.Custom)
-	return commonrecordsutils.BuildRecordAdd(data.FolderLocation, data.Title.ValueString(), commonrecordsutils.RecordTypeLogin, extra, custom, data.Notes)
+	return commonrecordsutils.BuildRecordAdd(utils.CmdRecordAdd, commonrecordsutils.RecordTypeLogin, data.Title.ValueString(), data.FolderLocation, extra, custom, data.Notes)
 }
 
 // UpdateHasMutations reports whether plan differs from state on updatable login fields.
@@ -44,7 +44,7 @@ func BuildUpdateCommand(recordUID string, plan, state LoginModel) string {
 
 	customPlan := commonrecordsutils.NormalizeCustomFromPlan(plan.Custom)
 	customState := commonrecordsutils.NormalizeCustomFromPlan(state.Custom)
-	return commonrecordsutils.BuildRecordUpdate(recordUID, plan.Title, state.Title, extra, customPlan, customState, plan.Notes, state.Notes)
+	return commonrecordsutils.BuildRecordUpdate(utils.CmdRecordUpdate, recordUID, plan.Title, state.Title, extra, customPlan, customState, plan.Notes, state.Notes)
 }
 
 // MapVaultRecordGetResponseToLoginModel fills state from a `get <uid> --format json` payload.

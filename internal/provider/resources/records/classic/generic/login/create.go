@@ -8,7 +8,7 @@ import (
 	"fmt"
 
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/classic_share"
-	commonrecordlogin "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/classic/generic/login"
+	commonrecordlogin "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/generic/login"
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/utils"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -29,7 +29,7 @@ func (r *LoginResource) Create(ctx context.Context, req resource.CreateRequest, 
 		return
 	}
 
-	cmd := commonrecordlogin.BuildAddCommand(data)
+	cmd := commonrecordlogin.BuildAddCommand(data.LoginModel)
 	apiResp, err := r.ApiManager.ExecuteCommand(ctx, cmd, ErrDetailCreateFailed)
 	if err != nil {
 		resp.Diagnostics.AddError(ErrSummaryCreateFailed, err.Error())

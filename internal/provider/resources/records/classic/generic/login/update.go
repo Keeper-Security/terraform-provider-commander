@@ -8,7 +8,7 @@ import (
 	"strings"
 
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/classic_share"
-	commonrecordlogin "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/classic/generic/login"
+	commonrecordlogin "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/generic/login"
 	commonrecordsutils "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/utils"
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/utils"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -45,8 +45,8 @@ func (r *LoginResource) Update(ctx context.Context, req resource.UpdateRequest, 
 		return
 	}
 
-	if commonrecordlogin.UpdateHasMutations(plan, state) {
-		cmd := commonrecordlogin.BuildUpdateCommand(uid, plan, state)
+	if commonrecordlogin.UpdateHasMutations(plan.LoginModel, state.LoginModel) {
+		cmd := commonrecordlogin.BuildUpdateCommand(uid, plan.LoginModel, state.LoginModel)
 		if _, err := r.ApiManager.ExecuteCommand(ctx, cmd, ErrDetailUpdateFailed); err != nil {
 			resp.Diagnostics.AddError(ErrSummaryUpdateFailed, err.Error())
 			return

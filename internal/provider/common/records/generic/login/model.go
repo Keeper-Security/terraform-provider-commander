@@ -4,7 +4,6 @@
 package login
 
 import (
-	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/classic_share"
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/utils"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
@@ -19,6 +18,4 @@ type LoginModel struct {
 	WebsiteAddress types.String `tfsdk:"website_address"`
 
 	Custom []utils.CustomFieldModel `tfsdk:"custom"`
-
-	classic_share.ShareModel
 }

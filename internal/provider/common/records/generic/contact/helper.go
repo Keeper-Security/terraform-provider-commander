@@ -38,7 +38,7 @@ func BuildAddCommand(data ContactModel) string {
 	commonrecordsutils.AppendOptionalTextField(&extra, FlagAddressRef, data.AddressRef)
 
 	custom := commonrecordsutils.NormalizeCustomFromPlan(data.Custom)
-	return commonrecordsutils.BuildRecordAdd(data.FolderLocation, data.Title.ValueString(), commonrecordsutils.RecordTypeContact, extra, custom, data.Notes)
+	return commonrecordsutils.BuildRecordAdd(utils.CmdRecordAdd, commonrecordsutils.RecordTypeContact, data.Title.ValueString(), data.FolderLocation, extra, custom, data.Notes)
 }
 
 // UpdateHasMutations reports whether plan differs from state on updatable contact fields.
@@ -112,7 +112,7 @@ func BuildUpdateCommand(recordUID string, plan, state ContactModel) string {
 
 	customPlan := commonrecordsutils.NormalizeCustomFromPlan(plan.Custom)
 	customState := commonrecordsutils.NormalizeCustomFromPlan(state.Custom)
-	return commonrecordsutils.BuildRecordUpdate(recordUID, plan.Title, state.Title, extra, customPlan, customState, plan.Notes, state.Notes)
+	return commonrecordsutils.BuildRecordUpdate(utils.CmdRecordUpdate, recordUID, plan.Title, state.Title, extra, customPlan, customState, plan.Notes, state.Notes)
 }
 
 // MapVaultRecordGetResponseToContactModel fills state from a `get <uid> --format json` payload.

@@ -4,7 +4,6 @@
 package wifi
 
 import (
-	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/classic_share"
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/utils"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
@@ -20,6 +19,4 @@ type WifiModel struct {
 	IsSSIDHidden types.Bool   `tfsdk:"is_ssid_hidden"`
 
 	Custom []utils.CustomFieldModel `tfsdk:"custom"`
-
-	classic_share.ShareModel
 }

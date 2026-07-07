@@ -10,7 +10,8 @@ import (
 	"strings"
 
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/api"
-	commonrecordcontact "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/classic/generic/contact"
+	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/classic_share"
+	commonrecordcontact "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/generic/contact"
 	commonrecordsutils "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/utils"
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/utils"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -64,6 +65,15 @@ func (r *ContactResource) Read(ctx context.Context, req resource.ReadRequest, re
 		return
 	}
 
-	commonrecordcontact.MapVaultRecordGetResponseToContactModel(&rec, state.FolderLocation, &state)
+	resp.Diagnostics.Append(commonrecordcontact.MapVaultRecordGetResponseToContactModel(&rec, state.FolderLocation, &state.ContactModel)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	if err := classic_share.MapResponseToModel(rec.UserPermissions, &state.ShareModel); err != nil {
+		resp.Diagnostics.AddError(ErrSummaryReadFailed, err.Error())
+		return
+	}
+
 	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
 }

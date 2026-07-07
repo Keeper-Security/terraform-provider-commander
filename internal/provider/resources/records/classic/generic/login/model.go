@@ -3,7 +3,13 @@
 
 package login
 
-import commonrecordlogin "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/classic/generic/login"
+import (
+	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/classic_share"
+	commonrecordlogin "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/generic/login"
+)
 
 // LoginResourceModel is an alias for the shared login model.
-type LoginResourceModel = commonrecordlogin.LoginModel
+type LoginResourceModel struct {
+	commonrecordlogin.LoginModel
+	classic_share.ShareModel
+}

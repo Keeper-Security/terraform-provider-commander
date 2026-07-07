@@ -8,7 +8,8 @@ import (
 	"fmt"
 	"strings"
 
-	commonrecordwifi "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/classic/generic/wifi"
+	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/classic_share"
+	commonrecordwifi "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/generic/wifi"
 	commonrecordsutils "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/utils"
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/utils"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
@@ -65,5 +66,11 @@ func (d *WifiDataSource) Read(ctx context.Context, req datasource.ReadRequest, r
 	if resp.Diagnostics.HasError() {
 		return
 	}
+
+	if err := classic_share.MapResponseToModel(rec.UserPermissions, &data.ShareModel); err != nil {
+		resp.Diagnostics.AddError(ErrDetailReadFailed, err.Error())
+		return
+	}
+
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }

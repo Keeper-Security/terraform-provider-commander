@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/classic_share"
+	commonrecordlogin "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/generic/login"
 	commonrecordsutils "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/utils"
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/utils"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -21,16 +22,18 @@ func (r *LoginResource) ImportState(ctx context.Context, req resource.ImportStat
 		return
 	}
 	m := LoginResourceModel{
-		BaseVaultRecordModel: commonrecordsutils.BaseVaultRecordModel{
-			Id:             types.StringValue(id),
-			Title:          types.StringNull(),
-			Notes:          types.StringNull(),
-			FolderLocation: types.StringNull(),
+		LoginModel: commonrecordlogin.LoginModel{
+			BaseVaultRecordModel: commonrecordsutils.BaseVaultRecordModel{
+				Id:             types.StringValue(id),
+				Title:          types.StringNull(),
+				Notes:          types.StringNull(),
+				FolderLocation: types.StringNull(),
+			},
+			Login:          types.StringNull(),
+			Password:       types.StringNull(),
+			WebsiteAddress: types.StringNull(),
+			Custom:         nil,
 		},
-		Login:          types.StringNull(),
-		Password:       types.StringNull(),
-		WebsiteAddress: types.StringNull(),
-		Custom:         nil,
 		ShareModel: classic_share.ShareModel{
 			Share: types.MapNull(classic_share.ShareEntryAttrType),
 		},

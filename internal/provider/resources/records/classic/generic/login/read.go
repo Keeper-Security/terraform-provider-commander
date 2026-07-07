@@ -10,7 +10,8 @@ import (
 	"strings"
 
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/api"
-	commonrecordlogin "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/classic/generic/login"
+	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/classic_share"
+	commonrecordlogin "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/generic/login"
 	commonrecordsutils "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/utils"
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/utils"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -60,7 +61,12 @@ func (r *LoginResource) Read(ctx context.Context, req resource.ReadRequest, resp
 		return
 	}
 
-	commonrecordlogin.MapVaultRecordGetResponseToLoginModel(&rec, state.FolderLocation, &state)
+	commonrecordlogin.MapVaultRecordGetResponseToLoginModel(&rec, state.FolderLocation, &state.LoginModel)
+
+	if err := classic_share.MapResponseToModel(rec.UserPermissions, &state.ShareModel); err != nil {
+		resp.Diagnostics.AddError(ErrSummaryReadFailed, err.Error())
+		return
+	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
 }

@@ -8,7 +8,7 @@ import (
 	"strings"
 
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/classic_share"
-	commonrecordcontact "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/classic/generic/contact"
+	commonrecordcontact "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/generic/contact"
 	commonrecordsutils "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/utils"
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/utils"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -49,8 +49,8 @@ func (r *ContactResource) Update(ctx context.Context, req resource.UpdateRequest
 	}
 
 	// Update record fields.
-	if commonrecordcontact.UpdateHasMutations(plan, state) {
-		cmd := commonrecordcontact.BuildUpdateCommand(uid, plan, state)
+	if commonrecordcontact.UpdateHasMutations(plan.ContactModel, state.ContactModel) {
+		cmd := commonrecordcontact.BuildUpdateCommand(uid, plan.ContactModel, state.ContactModel)
 		if _, err := r.ApiManager.ExecuteCommand(ctx, cmd, ErrDetailUpdateFailed); err != nil {
 			resp.Diagnostics.AddError(ErrSummaryUpdateFailed, err.Error())
 			return

@@ -8,7 +8,7 @@ import (
 	"strings"
 
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/classic_share"
-	commonrecordwifi "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/classic/generic/wifi"
+	commonrecordwifi "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/generic/wifi"
 	commonrecordsutils "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/utils"
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/utils"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -45,8 +45,8 @@ func (r *WifiResource) Update(ctx context.Context, req resource.UpdateRequest, r
 		return
 	}
 
-	if commonrecordwifi.UpdateHasMutations(plan, state) {
-		cmd := commonrecordwifi.BuildUpdateCommand(uid, plan, state)
+	if commonrecordwifi.UpdateHasMutations(plan.WifiModel, state.WifiModel) {
+		cmd := commonrecordwifi.BuildUpdateCommand(uid, plan.WifiModel, state.WifiModel)
 		if _, err := r.ApiManager.ExecuteCommand(ctx, cmd, ErrDetailUpdateFailed); err != nil {
 			resp.Diagnostics.AddError(ErrSummaryUpdateFailed, err.Error())
 			return

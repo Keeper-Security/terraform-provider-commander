@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/classic_share"
+	commonrecordwifi "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/generic/wifi"
 	commonrecordsutils "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/utils"
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/utils"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -21,18 +22,19 @@ func (r *WifiResource) ImportState(ctx context.Context, req resource.ImportState
 		return
 	}
 	m := WifiResourceModel{
-		BaseVaultRecordModel: commonrecordsutils.BaseVaultRecordModel{
-			Id:             types.StringValue(id),
-			Title:          types.StringNull(),
-			Notes:          types.StringNull(),
-			FolderLocation: types.StringNull(),
+		WifiModel: commonrecordwifi.WifiModel{
+			BaseVaultRecordModel: commonrecordsutils.BaseVaultRecordModel{
+				Id:             types.StringValue(id),
+				Title:          types.StringNull(),
+				Notes:          types.StringNull(),
+				FolderLocation: types.StringNull(),
+			},
+			Custom:       nil,
+			SSID:         types.StringNull(),
+			Password:     types.StringNull(),
+			Encryption:   types.StringNull(),
+			IsSSIDHidden: types.BoolNull(),
 		},
-		Custom:       nil,
-		SSID:         types.StringNull(),
-		Password:     types.StringNull(),
-		Encryption:   types.StringNull(),
-		IsSSIDHidden: types.BoolNull(),
-
 		ShareModel: classic_share.ShareModel{
 			Share: types.MapNull(classic_share.ShareEntryAttrType),
 		},

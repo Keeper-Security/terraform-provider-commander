@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/classic_share"
+	commonrecordcontact "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/generic/contact"
 	commonrecordsutils "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/utils"
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/utils"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -21,19 +22,20 @@ func (r *ContactResource) ImportState(ctx context.Context, req resource.ImportSt
 		return
 	}
 	m := ContactResourceModel{
-		BaseVaultRecordModel: commonrecordsutils.BaseVaultRecordModel{
-			Id:             types.StringValue(id),
-			Title:          types.StringNull(),
-			Notes:          types.StringNull(),
-			FolderLocation: types.StringNull(),
+		ContactModel: commonrecordcontact.ContactModel{
+			BaseVaultRecordModel: commonrecordsutils.BaseVaultRecordModel{
+				Id:             types.StringValue(id),
+				Title:          types.StringNull(),
+				Notes:          types.StringNull(),
+				FolderLocation: types.StringNull(),
+			},
+			Custom:     nil,
+			Name:       nil,
+			Company:    types.StringNull(),
+			Email:      types.StringNull(),
+			Phone:      nil,
+			AddressRef: types.StringNull(),
 		},
-		Custom:     nil,
-		Name:       nil,
-		Company:    types.StringNull(),
-		Email:      types.StringNull(),
-		Phone:      nil,
-		AddressRef: types.StringNull(),
-
 		ShareModel: classic_share.ShareModel{
 			Share: types.MapNull(classic_share.ShareEntryAttrType),
 		},

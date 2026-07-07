@@ -29,8 +29,9 @@ func FormatFieldAssignment(key, value string, useJSON bool) string {
 }
 
 // BuildRecordAdd builds a record-add command (standard fields as extraParts, then custom, then notes).
-func BuildRecordAdd(folder types.String, title, recordType string, extraParts []string, custom []CustomFieldModel, notes types.String) string {
-	parts := []string{utils.CmdRecordAdd}
+// cmd is the CLI verb to use, e.g. utils.CmdRecordAdd or utils.CmdNsfRecordAdd.
+func BuildRecordAdd(cmd, recordType, title string, folder types.String, extraParts []string, custom []CustomFieldModel, notes types.String) string {
+	parts := []string{cmd}
 	if !folder.IsNull() && !folder.IsUnknown() && strings.TrimSpace(folder.ValueString()) != "" {
 		parts = append(parts, fmt.Sprintf("%s %s", utils.FlagFolder, utils.QuoteShellSingle(strings.TrimSpace(folder.ValueString()))))
 	}
@@ -45,10 +46,11 @@ func BuildRecordAdd(folder types.String, title, recordType string, extraParts []
 	return strings.Join(parts, " ")
 }
 
-// BuildRecordUpdate builds record-update with changed title, extra field parts, custom, notes.
-func BuildRecordUpdate(recordUID string, titlePlan, titleState types.String, extraParts []string, customPlan, customState []CustomFieldModel, notesPlan, notesState types.String) string {
+// BuildRecordUpdate builds a record-update command with changed title, extra field parts, custom, and notes.
+// cmd is the CLI verb to use, e.g. utils.CmdRecordUpdate or utils.CmdNsfRecordUpdate.
+func BuildRecordUpdate(cmd, recordUID string, titlePlan, titleState types.String, extraParts []string, customPlan, customState []CustomFieldModel, notesPlan, notesState types.String) string {
 	parts := []string{
-		utils.CmdRecordUpdate,
+		cmd,
 		fmt.Sprintf("%s %s", utils.FlagRecord, utils.QuoteShellSingle(strings.TrimSpace(recordUID))),
 	}
 	if !titlePlan.Equal(titleState) && !titlePlan.IsNull() && !titlePlan.IsUnknown() {
