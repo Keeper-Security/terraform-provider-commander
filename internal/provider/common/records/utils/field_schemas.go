@@ -169,11 +169,17 @@ func HostNestedSchema() schema.SingleNestedAttribute {
 				Optional:            true,
 				Description:         "Hostname or IP address.",
 				MarkdownDescription: "Hostname or IP address.",
+				Validators: []validator.String{
+					utils.StringMinLengthValidator("Hostname", 1, true),
+				},
 			},
 			"port": schema.StringAttribute{
 				Optional:            true,
 				Description:         "Port (string per Keeper API).",
 				MarkdownDescription: "Port (string per Keeper API).",
+				Validators: []validator.String{
+					utils.NumericStringValidator("Port", true),
+				},
 			},
 		},
 	}

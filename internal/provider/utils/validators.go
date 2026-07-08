@@ -175,6 +175,55 @@ func (v int32NonNegativeValidator) ValidateInt32(ctx context.Context, req valida
 	}
 }
 
+// ----- GENERIC: NUMERIC STRING --------------------------------
+// NumericStringValidator validates that a string contains only digits (e.g. "22", "8080").
+// DisplayName is used in error messages (e.g. "Port"). AllowNull: if true, null values are skipped.
+func NumericStringValidator(displayName string, allowNull bool) numericStringValidator {
+	return numericStringValidator{DisplayName: displayName, AllowNull: allowNull}
+}
+
+type numericStringValidator struct {
+	DisplayName string
+	AllowNull   bool
+}
+
+func (v numericStringValidator) Description(_ context.Context) string {
+	return v.DisplayName + " must be a numeric string containing only digits (e.g. \"22\")."
+}
+
+func (v numericStringValidator) MarkdownDescription(ctx context.Context) string {
+	return v.Description(ctx)
+}
+
+func (v numericStringValidator) ValidateString(_ context.Context, req validator.StringRequest, resp *validator.StringResponse) {
+	if req.ConfigValue.IsUnknown() {
+		return
+	}
+	if v.AllowNull && req.ConfigValue.IsNull() {
+		return
+	}
+	value := req.ConfigValue.ValueString()
+	if !isDigitsOnly(value) {
+		resp.Diagnostics.AddAttributeError(
+			req.Path,
+			"Invalid "+v.DisplayName,
+			v.DisplayName+" must be a numeric string containing only digits (e.g. \"22\").",
+		)
+	}
+}
+
+func isDigitsOnly(s string) bool {
+	if s == "" {
+		return false
+	}
+	for i := 0; i < len(s); i++ {
+		if s[i] < '0' || s[i] > '9' {
+			return false
+		}
+	}
+	return true
+}
+
 // ----- GENERIC: STRING ONE-OF --------------------------------
 // StringOneOfValidator validates that a string value is one of the allowed values.
 // DisplayName is used in error messages. AllowNull: if true, null values are skipped.

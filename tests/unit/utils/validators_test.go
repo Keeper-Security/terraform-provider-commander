@@ -546,3 +546,48 @@ func TestMapValuesStringOneOfValidator_NullOrUnknown(t *testing.T) {
 		}
 	}
 }
+
+func TestNumericStringValidator_Valid(t *testing.T) {
+	v := utils.NumericStringValidator("Port", true)
+	ctx := context.Background()
+	for _, value := range []string{"1", "22", "8080"} {
+		req := validator.StringRequest{
+			ConfigValue: types.StringValue(value),
+			Path:        path.Root("port"),
+		}
+		var resp validator.StringResponse
+		v.ValidateString(ctx, req, &resp)
+		if resp.Diagnostics.HasError() {
+			t.Errorf("expected no diagnostics for %q, got: %v", value, resp.Diagnostics)
+		}
+	}
+}
+
+func TestNumericStringValidator_Invalid(t *testing.T) {
+	v := utils.NumericStringValidator("Port", true)
+	ctx := context.Background()
+	for _, value := range []string{"", "abc", "22a", " 22", "22 ", "22.5"} {
+		req := validator.StringRequest{
+			ConfigValue: types.StringValue(value),
+			Path:        path.Root("port"),
+		}
+		var resp validator.StringResponse
+		v.ValidateString(ctx, req, &resp)
+		if !resp.Diagnostics.HasError() {
+			t.Errorf("expected diagnostics for %q", value)
+		}
+	}
+}
+
+func TestNumericStringValidator_NullOrUnknown(t *testing.T) {
+	v := utils.NumericStringValidator("Port", true)
+	ctx := context.Background()
+	for _, value := range []types.String{types.StringNull(), types.StringUnknown()} {
+		req := validator.StringRequest{ConfigValue: value, Path: path.Root("port")}
+		var resp validator.StringResponse
+		v.ValidateString(ctx, req, &resp)
+		if resp.Diagnostics.HasError() {
+			t.Errorf("expected no diagnostics for null/unknown, got: %v", resp.Diagnostics)
+		}
+	}
+}

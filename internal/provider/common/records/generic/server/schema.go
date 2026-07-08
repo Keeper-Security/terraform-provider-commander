@@ -1,7 +1,7 @@
 // Copyright Keeper Security, Inc. 2026
 // SPDX-License-Identifier: MPL-2.0
 
-package sshkeys
+package server
 
 import (
 	commonrecordsutils "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/utils"
@@ -11,8 +11,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 )
 
-// SharedAttributes returns the sshKeys resource attribute map shared between classic
-// and new resources. Callers add any share-extension attribute separately.
+// SharedAttributes returns the serverCredentials resource attribute map shared between
+// classic and new resources. Callers add any share-extension attribute separately.
 func SharedAttributes() map[string]schema.Attribute {
 	return utils.MergeResourceAttributes(
 		commonrecordsutils.BaseRecordAttributes(),
@@ -25,13 +25,13 @@ func SharedAttributes() map[string]schema.Attribute {
 					utils.StringMinLengthValidator("Login", 1, true),
 				},
 			},
-			"passphrase": schema.StringAttribute{
+			"password": schema.StringAttribute{
 				Optional:            true,
 				Sensitive:           true,
-				Description:         PassphraseDescription,
-				MarkdownDescription: PassphraseMarkdownDescription,
+				Description:         PasswordDescription,
+				MarkdownDescription: PasswordMarkdownDescription,
 				Validators: []validator.String{
-					utils.StringMinLengthValidator("Passphrase", 1, true),
+					utils.StringMinLengthValidator("Password", 1, true),
 				},
 			},
 			"hostname": schema.StringAttribute{
@@ -50,31 +50,13 @@ func SharedAttributes() map[string]schema.Attribute {
 					utils.NumericStringValidator("Port", true),
 				},
 			},
-			"public_key": schema.StringAttribute{
-				Optional:            true,
-				Sensitive:           true,
-				Description:         PublicKeyDescription,
-				MarkdownDescription: PublicKeyMarkdownDescription,
-				Validators: []validator.String{
-					utils.StringMinLengthValidator("Public key", 1, true),
-				},
-			},
-			"private_key": schema.StringAttribute{
-				Optional:            true,
-				Sensitive:           true,
-				Description:         PrivateKeyDescription,
-				MarkdownDescription: PrivateKeyMarkdownDescription,
-				Validators: []validator.String{
-					utils.StringMinLengthValidator("Private key", 1, true),
-				},
-			},
 			"custom": commonrecordsutils.CustomFieldAttributeSchema(),
 		},
 	)
 }
 
-// SharedDataSourceAttributes returns computed sshKeys data source attributes shared
-// between classic and new data sources.
+// SharedDataSourceAttributes returns computed serverCredentials data source attributes
+// shared between classic and new data sources.
 func SharedDataSourceAttributes() map[string]dschema.Attribute {
 	return utils.MergeDataSourceAttributes(
 		commonrecordsutils.DataSourceBaseRecordAttributes(),
@@ -84,11 +66,11 @@ func SharedDataSourceAttributes() map[string]dschema.Attribute {
 				Description:         LoginDescription,
 				MarkdownDescription: LoginMarkdownDescription,
 			},
-			"passphrase": dschema.StringAttribute{
+			"password": dschema.StringAttribute{
 				Computed:            true,
 				Sensitive:           true,
-				Description:         PassphraseDescription,
-				MarkdownDescription: PassphraseMarkdownDescription,
+				Description:         PasswordDescription,
+				MarkdownDescription: PasswordMarkdownDescription,
 			},
 			"hostname": dschema.StringAttribute{
 				Computed:            true,
@@ -99,18 +81,6 @@ func SharedDataSourceAttributes() map[string]dschema.Attribute {
 				Computed:            true,
 				Description:         PortDescription,
 				MarkdownDescription: PortMarkdownDescription,
-			},
-			"public_key": dschema.StringAttribute{
-				Computed:            true,
-				Sensitive:           true,
-				Description:         PublicKeyDescription,
-				MarkdownDescription: PublicKeyMarkdownDescription,
-			},
-			"private_key": dschema.StringAttribute{
-				Computed:            true,
-				Sensitive:           true,
-				Description:         PrivateKeyDescription,
-				MarkdownDescription: PrivateKeyMarkdownDescription,
 			},
 			"custom": commonrecordsutils.CustomFieldDataSourceAttributeSchema(),
 		},

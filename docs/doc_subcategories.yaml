@@ -73,12 +73,14 @@ categories:
       - classic_wifi
       - classic_ssh_keys
       - classic_saas_configuration
+      - classic_server
     data_sources:
       - classic_contact
       - classic_login
       - classic_wifi
       - classic_ssh_keys
       - classic_saas_configuration
+      - classic_server
 
   Endpoint Privilege Manager (EPM):
     resources:
