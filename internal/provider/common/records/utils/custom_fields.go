@@ -38,41 +38,46 @@ const (
 	DSCustomSensitiveMarkdownDescription = "Whether the value should be treated as **sensitive**."
 )
 
+// CustomFieldNestedAttributeObject returns the nested object schema for one custom field entry.
+func CustomFieldNestedAttributeObject() schema.NestedAttributeObject {
+	return schema.NestedAttributeObject{
+		Attributes: map[string]schema.Attribute{
+			"type": schema.StringAttribute{
+				Required:            true,
+				Description:         CustomTypeDescription,
+				MarkdownDescription: CustomTypeMarkdownDescription,
+			},
+			"label": schema.StringAttribute{
+				Required:            true,
+				Description:         CustomLabelDescription,
+				MarkdownDescription: CustomLabelMarkdownDescription,
+				Validators: []validator.String{
+					utils.StringMinLengthValidator("Custom field label", 1, false),
+				},
+			},
+			"value": schema.StringAttribute{
+				Required:            true,
+				Description:         CustomValueDescription,
+				MarkdownDescription: CustomValueMarkdownDescription,
+			},
+			"sensitive": schema.BoolAttribute{
+				Optional:            true,
+				Computed:            true,
+				Description:         CustomSensitiveDescription,
+				MarkdownDescription: CustomSensitiveMarkdownDescription,
+				Default:             booldefault.StaticBool(false),
+			},
+		},
+	}
+}
+
 // CustomFieldAttributeSchema returns the list nested attribute schema for `custom` on resources.
 func CustomFieldAttributeSchema() schema.ListNestedAttribute {
 	return schema.ListNestedAttribute{
 		Optional:            true,
 		Description:         CustomDescription,
 		MarkdownDescription: CustomMarkdownDescription,
-		NestedObject: schema.NestedAttributeObject{
-			Attributes: map[string]schema.Attribute{
-				"type": schema.StringAttribute{
-					Required:            true,
-					Description:         CustomTypeDescription,
-					MarkdownDescription: CustomTypeMarkdownDescription,
-				},
-				"label": schema.StringAttribute{
-					Required:            true,
-					Description:         CustomLabelDescription,
-					MarkdownDescription: CustomLabelMarkdownDescription,
-					Validators: []validator.String{
-						utils.StringMinLengthValidator("Custom field label", 1, false),
-					},
-				},
-				"value": schema.StringAttribute{
-					Required:            true,
-					Description:         CustomValueDescription,
-					MarkdownDescription: CustomValueMarkdownDescription,
-				},
-				"sensitive": schema.BoolAttribute{
-					Optional:            true,
-					Computed:            true,
-					Description:         CustomSensitiveDescription,
-					MarkdownDescription: CustomSensitiveMarkdownDescription,
-					Default:             booldefault.StaticBool(false),
-				},
-			},
-		},
+		NestedObject:        CustomFieldNestedAttributeObject(),
 	}
 }
 
@@ -188,9 +193,25 @@ func fieldTypeSensitive(t string) bool {
 	}
 }
 
-// customFieldKey returns Commander argument key c.<type>.<label> (no leading segment).
+// customFieldKey returns the Commander CLI assignment key for a custom field.
+// The full key is single-quoted because labels may contain spaces (e.g. 'c.text.AppName updated').
 func customFieldKey(typ, label string) string {
-	return "c." + typ + "." + label
+	return utils.QuoteShellSingle("c." + typ + "." + label)
+}
+
+// customFieldCLIKey returns the quoted CLI key for a CustomFieldModel.
+func customFieldCLIKey(c *CustomFieldModel) string {
+	return customFieldKey(c.Type.ValueString(), c.Label.ValueString())
+}
+
+// customFieldIdentityKey returns a stable identity for matching plan/state custom fields.
+// Commander identifies custom fields by type+label; renames change the label but are the same
+// logical field from Terraform's perspective when the user edits one list entry.
+func customFieldIdentityKey(c *CustomFieldModel) string {
+	if c == nil || c.Type.IsNull() || c.Type.IsUnknown() || c.Label.IsNull() || c.Label.IsUnknown() {
+		return ""
+	}
+	return c.Type.ValueString() + "\x00" + c.Label.ValueString()
 }
 
 // AppendCustomFieldsAdd appends custom field arguments for record-add.
@@ -203,7 +224,7 @@ func AppendCustomFieldsAdd(parts *[]string, custom []CustomFieldModel) {
 		if c.Value.IsNull() || c.Value.IsUnknown() {
 			continue
 		}
-		key := customFieldKey(c.Type.ValueString(), c.Label.ValueString())
+		key := customFieldCLIKey(c)
 		val := strings.TrimSpace(c.Value.ValueString())
 		if val == "" {
 			continue
@@ -213,23 +234,51 @@ func AppendCustomFieldsAdd(parts *[]string, custom []CustomFieldModel) {
 }
 
 // AppendCustomFieldsUpdate appends changed custom field arguments for record-update.
+//
+// Commander matches custom fields by type+label. A label rename without clearing the old key
+// creates a duplicate field in the vault (old label remains, new label is added). To avoid that:
+//  1. Clear any state field whose (type, label) is absent from plan — removed fields and renames.
+//  2. Apply all plan fields — set values (or clear when plan value is null).
+//
+// Example — rename "AppName" to "AppName updated":
+//
+//	'c.text.AppName'=''  'c.text.AppName updated'='Example SaaS App updated'
 func AppendCustomFieldsUpdate(parts *[]string, plan, state []CustomFieldModel) {
-	// Simple approach: compare serialized list; if custom block changed, re-emit all plan custom fields.
 	if customFieldsEqual(plan, state) {
 		return
 	}
+
+	planKeys := make(map[string]struct{}, len(plan))
+	for i := range plan {
+		if key := customFieldIdentityKey(&plan[i]); key != "" {
+			planKeys[key] = struct{}{}
+		}
+	}
+
+	// Step 1: clear stale custom fields still present in state but not in plan.
+	for i := range state {
+		identity := customFieldIdentityKey(&state[i])
+		if identity == "" {
+			continue
+		}
+		if _, kept := planKeys[identity]; kept {
+			continue
+		}
+		*parts = append(*parts, FormatFieldAssignment(customFieldCLIKey(&state[i]), "", false))
+	}
+
+	// Step 2: apply desired custom fields from plan.
 	for i := range plan {
 		c := &plan[i]
 		if c.Type.IsNull() || c.Type.IsUnknown() || c.Label.IsNull() || c.Label.IsUnknown() {
 			continue
 		}
 		if c.Value.IsNull() || c.Value.IsUnknown() {
-			*parts = append(*parts, FormatFieldAssignment(customFieldKey(c.Type.ValueString(), c.Label.ValueString()), "", false))
+			*parts = append(*parts, FormatFieldAssignment(customFieldCLIKey(c), "", false))
 			continue
 		}
 		val := strings.TrimSpace(c.Value.ValueString())
-		key := customFieldKey(c.Type.ValueString(), c.Label.ValueString())
-		*parts = append(*parts, FormatFieldAssignment(key, val, customValueNeedsJSON(c.Type.ValueString(), val)))
+		*parts = append(*parts, FormatFieldAssignment(customFieldCLIKey(c), val, customValueNeedsJSON(c.Type.ValueString(), val)))
 	}
 }
 

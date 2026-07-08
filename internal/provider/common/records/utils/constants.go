@@ -61,4 +61,5 @@ const (
 	RecordTypeSsnCard             = "ssnCard"
 	RecordTypeSshKeys             = "sshKeys"
 	RecordTypeWifiCredentials     = "wifiCredentials"
+	RecordTypeSaasConfiguration   = "saasConfiguration"
 )
