@@ -8,7 +8,6 @@ import (
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/utils"
 	dschema "github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
-	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 )
 
 // SharedAttributes returns the serverCredentials resource attribute map shared between
@@ -17,40 +16,11 @@ func SharedAttributes() map[string]schema.Attribute {
 	return utils.MergeResourceAttributes(
 		commonrecordsutils.BaseRecordAttributes(),
 		map[string]schema.Attribute{
-			"login": schema.StringAttribute{
-				Optional:            true,
-				Description:         LoginDescription,
-				MarkdownDescription: LoginMarkdownDescription,
-				Validators: []validator.String{
-					utils.StringMinLengthValidator("Login", 1, true),
-				},
-			},
-			"password": schema.StringAttribute{
-				Optional:            true,
-				Sensitive:           true,
-				Description:         PasswordDescription,
-				MarkdownDescription: PasswordMarkdownDescription,
-				Validators: []validator.String{
-					utils.StringMinLengthValidator("Password", 1, true),
-				},
-			},
-			"hostname": schema.StringAttribute{
-				Optional:            true,
-				Description:         HostnameDescription,
-				MarkdownDescription: HostnameMarkdownDescription,
-				Validators: []validator.String{
-					utils.StringMinLengthValidator("Hostname", 1, true),
-				},
-			},
-			"port": schema.StringAttribute{
-				Optional:            true,
-				Description:         PortDescription,
-				MarkdownDescription: PortMarkdownDescription,
-				Validators: []validator.String{
-					utils.NumericStringValidator("Port", true),
-				},
-			},
-			"custom": commonrecordsutils.CustomFieldAttributeSchema(),
+			"login":    commonrecordsutils.OptionalLoginField(),
+			"password": commonrecordsutils.OptionalPasswordField(),
+			"hostname": commonrecordsutils.OptionalHostnameField(),
+			"port":     commonrecordsutils.OptionalPortField(),
+			"custom":   commonrecordsutils.CustomFieldAttributeSchema(),
 		},
 	)
 }
@@ -61,28 +31,11 @@ func SharedDataSourceAttributes() map[string]dschema.Attribute {
 	return utils.MergeDataSourceAttributes(
 		commonrecordsutils.DataSourceBaseRecordAttributes(),
 		map[string]dschema.Attribute{
-			"login": dschema.StringAttribute{
-				Computed:            true,
-				Description:         LoginDescription,
-				MarkdownDescription: LoginMarkdownDescription,
-			},
-			"password": dschema.StringAttribute{
-				Computed:            true,
-				Sensitive:           true,
-				Description:         PasswordDescription,
-				MarkdownDescription: PasswordMarkdownDescription,
-			},
-			"hostname": dschema.StringAttribute{
-				Computed:            true,
-				Description:         HostnameDescription,
-				MarkdownDescription: HostnameMarkdownDescription,
-			},
-			"port": dschema.StringAttribute{
-				Computed:            true,
-				Description:         PortDescription,
-				MarkdownDescription: PortMarkdownDescription,
-			},
-			"custom": commonrecordsutils.CustomFieldDataSourceAttributeSchema(),
+			"login":    commonrecordsutils.ComputedLoginField(),
+			"password": commonrecordsutils.ComputedPasswordField(),
+			"hostname": commonrecordsutils.ComputedHostnameField(),
+			"port":     commonrecordsutils.ComputedPortField(),
+			"custom":   commonrecordsutils.CustomFieldDataSourceAttributeSchema(),
 		},
 	)
 }

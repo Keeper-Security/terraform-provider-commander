@@ -5,13 +5,11 @@ package utils
 
 import (
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/utils"
-	"github.com/hashicorp/terraform-plugin-framework/attr"
 	dschema "github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
-	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
 // BaseRecordAttributes returns id, title, notes, folder shared by all standard vault record resources.
@@ -220,19 +218,8 @@ func BankAccountNestedSchema() schema.SingleNestedAttribute {
 		Description:         "Bank account details.",
 		MarkdownDescription: "Bank account details (`bankAccount` field).",
 		Attributes: map[string]schema.Attribute{
-			"account_type": schema.StringAttribute{
-				Optional:            true,
-				Description:         "Checking, Savings, or Other.",
-				MarkdownDescription: "`Checking`, `Savings`, or `Other`.",
-				Validators: []validator.String{
-					utils.StringOneOfValidator("Account type", []string{"Checking", "Savings", "Other"}, true),
-				},
-			},
-			"other_type": schema.StringAttribute{
-				Optional:            true,
-				Description:         "Description when account_type is Other.",
-				MarkdownDescription: "Description when `account_type` is `Other`.",
-			},
+			"account_type":   stringField(true, false, false, false, "Account type", "Checking, Savings, or Other.", "**Account type**: `Checking`, `Savings`, or `Other`.").withValidators(utils.StringOneOfValidator("Account type", []string{"Checking", "Savings", "Other"}, true)).resource(),
+			"other_type":     stringField(true, false, false, false, "Other type", "Description when account_type is Other.", "Description when **account_type** is **Other**.").resource(),
 			"routing_number": schema.StringAttribute{Optional: true, Description: "Routing number.", MarkdownDescription: "Routing number."},
 			"account_number": schema.StringAttribute{
 				Optional:            true,
@@ -249,15 +236,10 @@ func SecurityQuestionNestedSchema() schema.SingleNestedAttribute {
 	return schema.SingleNestedAttribute{
 		Optional:            true,
 		Description:         "Security question and answer.",
-		MarkdownDescription: "Security question and answer (`securityQuestion` field).",
+		MarkdownDescription: "**Security question** and **answer**.",
 		Attributes: map[string]schema.Attribute{
-			"question": schema.StringAttribute{Optional: true, Description: "Question.", MarkdownDescription: "Question."},
-			"answer": schema.StringAttribute{
-				Optional:            true,
-				Sensitive:           true,
-				Description:         "Answer.",
-				MarkdownDescription: "Answer.",
-			},
+			"question": stringField(true, false, false, false, "Question", "Question.", "**Question**.").resource(),
+			"answer":   stringField(true, false, true, false, "Answer", "Answer.", "**Answer**.").resource(),
 		},
 	}
 }
@@ -269,101 +251,328 @@ func KeyPairNestedSchema() schema.SingleNestedAttribute {
 		Description:         "SSH public/private key pair.",
 		MarkdownDescription: "SSH public/private key pair (`keyPair` field).",
 		Attributes: map[string]schema.Attribute{
-			"public_key": schema.StringAttribute{
-				Optional:            true,
-				Description:         "Public key.",
-				MarkdownDescription: "Public key.",
-			},
-			"private_key": schema.StringAttribute{
-				Optional:            true,
-				Sensitive:           true,
-				Description:         "Private key.",
-				MarkdownDescription: "Private key.",
-			},
+			"public_key":  stringField(true, false, false, false, "Public key", "Public key.", "**Public key**.").resource(),
+			"private_key": stringField(true, false, true, false, "Private key", "Private key.", "**Private key**.").resource(),
 		},
 	}
 }
 
-// OptionalStringField is a reusable optional string attribute with min length 1 when set.
-func OptionalStringField(name, desc, md string) schema.StringAttribute {
-	return schema.StringAttribute{
-		Optional:            true,
-		Description:         desc,
-		MarkdownDescription: md,
-		Validators: []validator.String{
-			utils.StringMinLengthValidator(name, 1, true),
-		},
+// ---------------------------------------------------------------------------
+// stringField builder
+//
+// Reusable string attribute factory for generic vault record schemas. Callers
+// compose attributes with stringField(...).resource() or .dataSource() instead
+// of duplicating Optional/Required/Sensitive/Computed flags and validators.
+//
+// Typical usage:
+//
+//	// Optional resource field with default min-length validation:
+//	stringField(true, false, false, false, "Login", "Login identifier.", "**Login** identifier.").resource()
+//
+//	// Required resource field:
+//	stringField(false, true, false, false, "SSID", "...", "...").resource()
+//
+//	// Custom validator (overrides default min-length):
+//	stringField(true, false, false, false, "Port", "...", "...").
+//	    withValidators(utils.NumericStringValidator("Port", true)).resource()
+//
+//	// Computed data-source field (name is unused; pass ""):
+//	stringField(false, false, false, true, "", "...", "...").dataSource()
+// ---------------------------------------------------------------------------
+
+// stringFieldConfig holds shared string attribute settings for resource and data-source builders.
+type stringFieldConfig struct {
+	// Terraform schema flags (resource fields use optional/required; data-source fields use computed).
+	optional  bool
+	required  bool
+	sensitive bool
+	computed  bool
+
+	// validatorDisplayName is shown in validation error messages (e.g. "Login must be at least 1
+	// character(s) long."). This is NOT the Terraform attribute key—that is set separately in
+	// each record's schema map (e.g. "login": OptionalLoginField()). Ignored by dataSource().
+	name string
+
+	// Provider documentation strings surfaced in Terraform registry docs and IDE tooling.
+	desc string
+	md   string
+
+	// Optional custom validators. When set, these replace the default min-length validator.
+	validators []validator.String
+}
+
+// stringField builds a stringFieldConfig from schema flags and documentation.
+//
+// Parameters:
+//   - optional:  true for optional resource attributes (null/omitted allowed).
+//   - required:  true for required resource attributes (mutually exclusive with optional for resources).
+//   - sensitive: true to mask the value in Terraform plan/output (passwords, keys, etc.).
+//   - computed:  true for read-only data-source attributes; should be false for resources.
+//   - name:      validator display name for default min-length errors on resources; pass "" for
+//     data-source fields or when using withValidators.
+//   - desc, md:  plain-text and markdown descriptions for provider documentation.
+func stringField(optional, required, sensitive, computed bool, name, desc, md string) stringFieldConfig {
+	return stringFieldConfig{
+		optional:  optional,
+		required:  required,
+		sensitive: sensitive,
+		computed:  computed,
+		name:      name,
+		desc:      desc,
+		md:        md,
 	}
 }
 
-// OptionalSensitiveStringField is like OptionalStringField but sensitive.
-func OptionalSensitiveStringField(name, desc, md string) schema.StringAttribute {
-	return schema.StringAttribute{
-		Optional:            true,
-		Sensitive:           true,
+// withValidators attaches custom validators, overriding the default min-length rule applied in resource().
+// Use for fields that need NumericStringValidator, StringOneOfValidator, etc.
+func (c stringFieldConfig) withValidators(validators ...validator.String) stringFieldConfig {
+	c.validators = validators
+	return c
+}
+
+// resource returns a Terraform resource schema.StringAttribute.
+//
+// Validator selection (first match wins):
+//  1. If withValidators was called, use those validators as-is.
+//  2. Else if name is non-empty, apply StringMinLengthValidator(name, 1, optional):
+//     - required fields (optional=false): empty string fails validation.
+//     - optional fields (optional=true): null/omitted is allowed, but a set value must be non-empty.
+//  3. Else no validators are attached.
+func (c stringFieldConfig) resource() schema.StringAttribute {
+	attr := schema.StringAttribute{
+		Optional:            c.optional,
+		Required:            c.required,
+		Sensitive:           c.sensitive,
+		Description:         c.desc,
+		MarkdownDescription: c.md,
+	}
+	if len(c.validators) > 0 {
+		attr.Validators = c.validators
+	} else if c.name != "" {
+		attr.Validators = []validator.String{
+			utils.StringMinLengthValidator(c.name, 1, c.optional),
+		}
+	}
+	return attr
+}
+
+// dataSource returns a Terraform data-source schema.StringAttribute.
+// Data-source string fields are always computed and read-only; name and validators are not used.
+func (c stringFieldConfig) dataSource() dschema.StringAttribute {
+	return dschema.StringAttribute{
+		Computed:            c.computed,
+		Sensitive:           c.sensitive,
+		Description:         c.desc,
+		MarkdownDescription: c.md,
+	}
+}
+
+// computedBoolField builds a computed bool attribute for data sources.
+func computedBoolField(desc, md string) dschema.BoolAttribute {
+	return dschema.BoolAttribute{
+		Computed:            true,
 		Description:         desc,
 		MarkdownDescription: md,
-		Validators: []validator.String{
-			utils.StringMinLengthValidator(name, 1, true),
-		},
 	}
+}
+
+// ---------------------------------------------------------------------------
+// Named string field helpers for generic vault record schemas.
+// Each helper wraps stringField with fixed descriptions and the correct
+// optional/required/sensitive/computed combination for that Keeper field.
+// ---------------------------------------------------------------------------
+
+// RequiredLoginField is a required login/username string attribute.
+func RequiredLoginField() schema.StringAttribute {
+	return stringField(false, true, false, false, "Login", "Login identifier.", "**Login** identifier.").resource()
+}
+
+// OptionalLoginField is an optional login/username string attribute.
+func OptionalLoginField() schema.StringAttribute {
+	return stringField(true, false, false, false, "Login", "Login identifier.", "**Login** identifier.").resource()
+}
+
+// OptionalPasswordField is an optional sensitive password string attribute.
+func OptionalPasswordField() schema.StringAttribute {
+	return stringField(true, false, true, false, "Password", "Password.", "**Password**.").resource()
+}
+
+// OptionalWebsiteAddressField is an optional website address string attribute.
+func OptionalWebsiteAddressField() schema.StringAttribute {
+	return stringField(true, false, false, false, "Website address", "Website address.", "**Website address**.").resource()
+}
+
+// OptionalCompanyField is an optional company name string attribute.
+func OptionalCompanyField() schema.StringAttribute {
+	return stringField(true, false, false, false, "Company", "Company name.", "**Company name**.").resource()
+}
+
+// OptionalEmailField is an optional email address string attribute.
+func OptionalEmailField() schema.StringAttribute {
+	return stringField(true, false, false, false, "Email", "Email address.", "**Email address**.").resource()
+}
+
+// OptionalAddressRefField is an optional linked record UID string attribute.
+func OptionalAddressRefField() schema.StringAttribute {
+	return stringField(true, false, false, false, "Record UID", "Existing address record UID.", "Existing address record **UID**.").resource()
+}
+
+// OptionalHostnameField is an optional hostname or IP address string attribute.
+func OptionalHostnameField() schema.StringAttribute {
+	return stringField(true, false, false, false, "Hostname", "Hostname or IP address.", "**Hostname** or **IP address**.").resource()
+}
+
+// OptionalPortField is an optional port string attribute (digits only).
+// Uses NumericStringValidator instead of the default min-length rule.
+func OptionalPortField() schema.StringAttribute {
+	return stringField(true, false, false, false, "port", "Port.", "**Port** (numeric string) eg: \"22\".").
+		withValidators(utils.NumericStringValidator("Port", true)).
+		resource()
+}
+
+// OptionalPassphraseField is an optional sensitive passphrase string attribute.
+func OptionalPassphraseField() schema.StringAttribute {
+	return stringField(true, false, true, false, "Passphrase", "Passphrase.", "**Passphrase**.").resource()
+}
+
+// OptionalPublicKeyField is an optional sensitive public key string attribute.
+func OptionalPublicKeyField() schema.StringAttribute {
+	return stringField(true, false, true, false, "Public key", "Public key.", "**Public key**.").resource()
+}
+
+// OptionalPrivateKeyField is an optional sensitive private key string attribute.
+func OptionalPrivateKeyField() schema.StringAttribute {
+	return stringField(true, false, true, false, "Private key", "Private key.", "**Private key**.").resource()
+}
+
+// RequiredSSIDField is a required network SSID string attribute.
+func RequiredSSIDField() schema.StringAttribute {
+	return stringField(false, true, false, false, "SSID", "Network SSID (network name).", "**Network SSID** (network name).").resource()
+}
+
+// OptionalWifiEncryptionField is an optional WiFi encryption type string attribute.
+// allowed must list valid Keeper wifiEncryption values (e.g. wep, wpa, noEncryption).
+func OptionalWifiEncryptionField(allowed []string) schema.StringAttribute {
+	return stringField(true, false, false, false, "Encryption", "Encryption type.", "**Encryption type**.").
+		withValidators(utils.StringOneOfValidator("Encryption", allowed, true)).
+		resource()
+}
+
+// OptionalSSIDHiddenField is an optional bool for hidden SSID.
+func OptionalSSIDHiddenField() schema.BoolAttribute {
+	return schema.BoolAttribute{
+		Optional:            true,
+		Description:         "Whether the SSID is hidden.",
+		MarkdownDescription: "Whether the SSID is hidden (not broadcast).",
+	}
+}
+
+// ---------------------------------------------------------------------------
+// Computed string/bool field helpers for generic vault record data sources.
+// ---------------------------------------------------------------------------
+
+// ComputedLoginField is a computed login/username string attribute for data sources.
+func ComputedLoginField() dschema.StringAttribute {
+	return stringField(false, false, false, true, "", "Username or login identifier.", "**Username** or **login** identifier.").dataSource()
+}
+
+// ComputedPasswordField is a computed sensitive password string attribute for data sources.
+func ComputedPasswordField() dschema.StringAttribute {
+	return stringField(false, false, true, true, "", "Password.", "**Password**.").dataSource()
+}
+
+// ComputedWebsiteAddressField is a computed website address string attribute for data sources.
+func ComputedWebsiteAddressField() dschema.StringAttribute {
+	return stringField(false, false, false, true, "", "Website address.", "**Website address**.").dataSource()
+}
+
+// ComputedCompanyField is a computed company name string attribute for data sources.
+func ComputedCompanyField() dschema.StringAttribute {
+	return stringField(false, false, false, true, "", "Company name.", "**Company name**.").dataSource()
+}
+
+// ComputedEmailField is a computed email address string attribute for data sources.
+func ComputedEmailField() dschema.StringAttribute {
+	return stringField(false, false, false, true, "", "Email address.", "**Email address**.").dataSource()
+}
+
+// ComputedAddressRefField is a computed linked record UID string attribute for data sources.
+func ComputedAddressRefField() dschema.StringAttribute {
+	return stringField(false, false, false, true, "", "Linked record UID.", "**UID** of a linked record.").dataSource()
+}
+
+// ComputedHostnameField is a computed hostname or IP address string attribute for data sources.
+func ComputedHostnameField() dschema.StringAttribute {
+	return stringField(false, false, false, true, "", "Hostname or IP address.", "**Hostname** or **IP address**.").dataSource()
+}
+
+// ComputedPortField is a computed port string attribute for data sources.
+func ComputedPortField() dschema.StringAttribute {
+	return stringField(false, false, false, true, "", "Port.", "**Port** (numeric string).").dataSource()
+}
+
+// ComputedPassphraseField is a computed sensitive passphrase string attribute for data sources.
+func ComputedPassphraseField() dschema.StringAttribute {
+	return stringField(false, false, true, true, "", "Passphrase.", "**Passphrase**.").dataSource()
+}
+
+// ComputedPublicKeyField is a computed sensitive public key string attribute for data sources.
+func ComputedPublicKeyField() dschema.StringAttribute {
+	return stringField(false, false, true, true, "", "Public key.", "**Public key**.").dataSource()
+}
+
+// ComputedPrivateKeyField is a computed sensitive private key string attribute for data sources.
+func ComputedPrivateKeyField() dschema.StringAttribute {
+	return stringField(false, false, true, true, "", "Private key.", "**Private key**.").dataSource()
+}
+
+// ComputedSSIDField is a computed network SSID string attribute for data sources.
+func ComputedSSIDField() dschema.StringAttribute {
+	return stringField(false, false, false, true, "", "Network SSID (network name).", "**Network SSID** (network name).").dataSource()
+}
+
+// ComputedWifiEncryptionField is a computed WiFi encryption type string attribute for data sources.
+func ComputedWifiEncryptionField() dschema.StringAttribute {
+	return stringField(false, false, false, true, "", "Encryption type.", "**Encryption type**.").dataSource()
+}
+
+// ComputedSSIDHiddenField is a computed bool for hidden SSID on data sources.
+func ComputedSSIDHiddenField() dschema.BoolAttribute {
+	return computedBoolField("Whether the SSID is hidden.", "Whether the **SSID** is hidden (not broadcast).")
 }
 
 // OptionalDateStringField stores Keeper date/birthDate/expirationDate as RFC3339 or YYYY-MM-DD.
-func OptionalDateStringField(name, desc, md string) schema.StringAttribute {
-	return schema.StringAttribute{
-		Optional:            true,
-		Description:         desc,
-		MarkdownDescription: md,
-		Validators: []validator.String{
-			utils.StringMinLengthValidator(name, 1, true),
+func OptionalDateStringField(name string) schema.StringAttribute {
+	return stringField(true, false, false, false, name, "Date value.", "**Date value** (RFC3339 or YYYY-MM-DD).").resource()
+}
+
+// NameDataSourceNestedSchema is the computed name nested object for data sources.
+func NameDataSourceNestedSchema() dschema.SingleNestedAttribute {
+	return dschema.SingleNestedAttribute{
+		Computed:            true,
+		Description:         "Person name (first, middle, last).",
+		MarkdownDescription: "Person name (`name` field): first, middle, last.",
+		Attributes: map[string]dschema.Attribute{
+			"first":  stringField(false, false, false, true, "First name", "First name.", "**First name**.").dataSource(),
+			"middle": stringField(false, false, false, true, "Middle name", "Middle name.", "**Middle name**.").dataSource(),
+			"last":   stringField(false, false, false, true, "Last name", "Last name.", "**Last name**.").dataSource(),
 		},
 	}
 }
 
-// RefUIDField is addressRef / cardRef target record UID.
-func RefUIDField(desc, md string) schema.StringAttribute {
-	return schema.StringAttribute{
-		Optional:            true,
-		Description:         desc,
-		MarkdownDescription: md,
-		Validators: []validator.String{
-			utils.StringMinLengthValidator("Record UID", 1, true),
-		},
-	}
-}
-
-// ShareAttribute returns the reusable map attribute for sharing records with users.
-// Keys are email addresses; values are objects with can_share and can_edit booleans.
-func ShareAttribute() schema.MapNestedAttribute {
-	return schema.MapNestedAttribute{
-		Optional:            true,
-		Description:         "Share the record with users. Map keys are email addresses; values specify permissions.",
-		MarkdownDescription: "Share the record with users. Map keys are **email addresses**; values specify `can_share` and `can_edit` permissions.",
-		NestedObject: schema.NestedAttributeObject{
-			Attributes: map[string]schema.Attribute{
-				"can_share": schema.BoolAttribute{
-					Required:            true,
-					Description:         "Allow the user to re-share the record with others.",
-					MarkdownDescription: "Allow the user to re-share the record with others.",
-				},
-				"can_edit": schema.BoolAttribute{
-					Required:            true,
-					Description:         "Allow the user to edit the record.",
-					MarkdownDescription: "Allow the user to edit the record.",
-				},
+// PhoneDataSourceListSchema is the computed phone list for data sources.
+func PhoneDataSourceListSchema() dschema.ListNestedAttribute {
+	return dschema.ListNestedAttribute{
+		Computed:            true,
+		Description:         "Phone numbers.",
+		MarkdownDescription: "Phone numbers.",
+		NestedObject: dschema.NestedAttributeObject{
+			Attributes: map[string]dschema.Attribute{
+				"region": stringField(false, false, false, true, "Region or country code", "Region or country code (e.g. US, +1).", "**Region or country code** (e.g. US, +1).").dataSource(),
+				"number": stringField(false, false, false, true, "Phone number", "Phone number.", "**Phone number**.").dataSource(),
+				"ext":    stringField(false, false, false, true, "Extension", "Extension.", "**Extension**.").dataSource(),
+				"type":   stringField(false, false, false, true, "Phone type", "Phone type: Mobile, Home, or Work.", "**Phone type**: `Mobile`, `Home`, or `Work`.").dataSource(),
 			},
 		},
-		Validators: []validator.Map{
-			utils.MapKeysEmailValidator("Email addresses"),
-		},
-	}
-}
-
-// SharePermissionsObjectType returns the ObjectType used for the share map values.
-func SharePermissionsObjectType() map[string]attr.Type {
-	return map[string]attr.Type{
-		"can_share": types.BoolType,
-		"can_edit":  types.BoolType,
 	}
 }

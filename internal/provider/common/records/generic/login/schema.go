@@ -8,7 +8,6 @@ import (
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/utils"
 	dschema "github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
-	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 )
 
 // SharedAttributes returns the Login resource attribute map shared between classic
@@ -17,32 +16,10 @@ func SharedAttributes() map[string]schema.Attribute {
 	return utils.MergeResourceAttributes(
 		commonrecordsutils.BaseRecordAttributes(),
 		map[string]schema.Attribute{
-			"login": schema.StringAttribute{
-				Required:            true,
-				Description:         LoginDescription,
-				MarkdownDescription: LoginMarkdownDescription,
-				Validators: []validator.String{
-					utils.StringMinLengthValidator("Login", 1, false),
-				},
-			},
-			"password": schema.StringAttribute{
-				Optional:            true,
-				Sensitive:           true,
-				Description:         PasswordDescription,
-				MarkdownDescription: PasswordMarkdownDescription,
-				Validators: []validator.String{
-					utils.StringMinLengthValidator("Password", 1, true),
-				},
-			},
-			"website_address": schema.StringAttribute{
-				Optional:            true,
-				Description:         WebsiteAddressDescription,
-				MarkdownDescription: WebsiteAddressMarkdownDescription,
-				Validators: []validator.String{
-					utils.StringMinLengthValidator("Website address", 1, true),
-				},
-			},
-			"custom": commonrecordsutils.CustomFieldAttributeSchema(),
+			"login":           commonrecordsutils.RequiredLoginField(),
+			"password":        commonrecordsutils.OptionalPasswordField(),
+			"website_address": commonrecordsutils.OptionalWebsiteAddressField(),
+			"custom":          commonrecordsutils.CustomFieldAttributeSchema(),
 		},
 	)
 }
@@ -54,23 +31,10 @@ func SharedDataSourceAttributes() map[string]dschema.Attribute {
 	return utils.MergeDataSourceAttributes(
 		commonrecordsutils.DataSourceBaseRecordAttributes(),
 		map[string]dschema.Attribute{
-			"login": dschema.StringAttribute{
-				Computed:            true,
-				Description:         LoginDescription,
-				MarkdownDescription: LoginMarkdownDescription,
-			},
-			"password": dschema.StringAttribute{
-				Computed:            true,
-				Sensitive:           true,
-				Description:         PasswordDescription,
-				MarkdownDescription: PasswordMarkdownDescription,
-			},
-			"website_address": dschema.StringAttribute{
-				Computed:            true,
-				Description:         WebsiteAddressDescription,
-				MarkdownDescription: WebsiteAddressMarkdownDescription,
-			},
-			"custom": commonrecordsutils.CustomFieldDataSourceAttributeSchema(),
+			"login":           commonrecordsutils.ComputedLoginField(),
+			"password":        commonrecordsutils.ComputedPasswordField(),
+			"website_address": commonrecordsutils.ComputedWebsiteAddressField(),
+			"custom":          commonrecordsutils.CustomFieldDataSourceAttributeSchema(),
 		},
 	)
 }
