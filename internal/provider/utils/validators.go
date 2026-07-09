@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -222,6 +223,54 @@ func isDigitsOnly(s string) bool {
 		}
 	}
 	return true
+}
+
+// ----- GENERIC: DATE STRING (YYYY-MM-DD) --------------------------------.
+const DateStringLayout = "2006-01-02"
+
+// DateStringValidator validates that a string is a calendar date in YYYY-MM-DD format.
+// DisplayName is used in error messages. AllowNull: if true, null values are skipped.
+func DateStringValidator(displayName string, allowNull bool) dateStringValidator {
+	return dateStringValidator{DisplayName: displayName, AllowNull: allowNull}
+}
+
+type dateStringValidator struct {
+	DisplayName string
+	AllowNull   bool
+}
+
+func (v dateStringValidator) Description(_ context.Context) string {
+	return v.DisplayName + " must be a date in YYYY-MM-DD format (e.g. 2026-07-09)."
+}
+
+func (v dateStringValidator) MarkdownDescription(ctx context.Context) string {
+	return v.Description(ctx)
+}
+
+func (v dateStringValidator) ValidateString(_ context.Context, req validator.StringRequest, resp *validator.StringResponse) {
+	if req.ConfigValue.IsUnknown() {
+		return
+	}
+	if v.AllowNull && req.ConfigValue.IsNull() {
+		return
+	}
+	value := strings.TrimSpace(req.ConfigValue.ValueString())
+	if value == "" {
+		resp.Diagnostics.AddAttributeError(
+			req.Path,
+			"Invalid "+v.DisplayName,
+			v.DisplayName+" must be a date in YYYY-MM-DD format (e.g. 2026-07-09).",
+		)
+		return
+	}
+	t, err := time.Parse(DateStringLayout, value)
+	if err != nil || t.Format(DateStringLayout) != value {
+		resp.Diagnostics.AddAttributeError(
+			req.Path,
+			"Invalid "+v.DisplayName,
+			fmt.Sprintf("%s %q must be a date in YYYY-MM-DD format (e.g. 2026-07-09).", v.DisplayName, req.ConfigValue.ValueString()),
+		)
+	}
 }
 
 // ----- GENERIC: STRING ONE-OF --------------------------------

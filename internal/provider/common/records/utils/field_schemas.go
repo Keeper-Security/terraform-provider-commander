@@ -551,9 +551,26 @@ func ComputedSSIDHiddenField() dschema.BoolAttribute {
 	return computedBoolField("Whether the SSID is hidden.", "Whether the **SSID** is hidden (not broadcast).")
 }
 
-// OptionalDateStringField stores Keeper date/birthDate/expirationDate as RFC3339 or YYYY-MM-DD.
+// OptionalDateStringField stores Keeper date/birthDate/expirationDate as YYYY-MM-DD.
 func OptionalDateStringField(name string) schema.StringAttribute {
-	return stringField(true, false, false, false, name, "Date value.", "**Date value** (RFC3339 or YYYY-MM-DD).").resource()
+	return stringField(true, false, false, false, name, "Date value (YYYY-MM-DD).", "**Date value** (`YYYY-MM-DD`).").
+		withValidators(utils.DateStringValidator(name, true)).
+		resource()
+}
+
+// ComputedDateStringField is a computed date string attribute for data sources (YYYY-MM-DD).
+func ComputedDateStringField(desc, md string) dschema.StringAttribute {
+	return stringField(false, false, false, true, "", desc, md).dataSource()
+}
+
+// OptionalSoftwareLicenseKeyField is an optional sensitive software license key string attribute.
+func OptionalSoftwareLicenseKeyField() schema.StringAttribute {
+	return stringField(true, false, true, false, "Software license key", "Software license key.", "**Software license key**.").resource()
+}
+
+// ComputedSoftwareLicenseKeyField is a computed sensitive software license key string attribute for data sources.
+func ComputedSoftwareLicenseKeyField() dschema.StringAttribute {
+	return stringField(false, false, true, true, "", "Software license key.", "**Software license key**.").dataSource()
 }
 
 // NameDataSourceNestedSchema is the computed name nested object for data sources.

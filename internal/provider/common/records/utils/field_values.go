@@ -722,7 +722,7 @@ func FirstBoolField(fields []utils.VaultRecordFieldResponse, fieldType, label st
 	return types.BoolNull()
 }
 
-// EpochMillisField reads first numeric element as int64 epoch ms → ISO date string for Terraform.
+// EpochMillisField reads first numeric element as int64 epoch ms → YYYY-MM-DD UTC for Terraform.
 func EpochMillisField(fields []utils.VaultRecordFieldResponse, fieldType, label string) types.String {
 	for i := range fields {
 		f := &fields[i]
@@ -750,12 +750,12 @@ func EpochMillisField(fields []utils.VaultRecordFieldResponse, fieldType, label 
 	return types.StringNull()
 }
 
-// epochMillisToDateString converts Keeper epoch-ms to RFC3339 UTC for Terraform.
+// epochMillisToDateString converts Keeper epoch-ms to YYYY-MM-DD UTC for Terraform.
 func epochMillisToDateString(ms int64) string {
 	if ms == 0 {
 		return ""
 	}
-	return time.UnixMilli(ms).UTC().Format(time.RFC3339)
+	return time.UnixMilli(ms).UTC().Format("2006-01-02")
 }
 
 // EpochMillisFieldUnlabeled returns the first epoch-ms field of the given type (ignores label).

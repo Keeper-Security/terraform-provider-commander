@@ -591,3 +591,48 @@ func TestNumericStringValidator_NullOrUnknown(t *testing.T) {
 		}
 	}
 }
+
+func TestDateStringValidator_Valid(t *testing.T) {
+	v := utils.DateStringValidator("Expiration date", true)
+	ctx := context.Background()
+	for _, value := range []string{"2026-07-09", "2026-05-20", "2000-01-01"} {
+		req := validator.StringRequest{
+			ConfigValue: types.StringValue(value),
+			Path:        path.Root("expiration_date"),
+		}
+		var resp validator.StringResponse
+		v.ValidateString(ctx, req, &resp)
+		if resp.Diagnostics.HasError() {
+			t.Errorf("expected no diagnostics for %q, got: %v", value, resp.Diagnostics)
+		}
+	}
+}
+
+func TestDateStringValidator_Invalid(t *testing.T) {
+	v := utils.DateStringValidator("Expiration date", true)
+	ctx := context.Background()
+	for _, value := range []string{"", "2026-7-9", "07/09/2026", "2026-07-09T00:00:00Z", "2026-13-01", "2026-02-30", "not-a-date"} {
+		req := validator.StringRequest{
+			ConfigValue: types.StringValue(value),
+			Path:        path.Root("expiration_date"),
+		}
+		var resp validator.StringResponse
+		v.ValidateString(ctx, req, &resp)
+		if !resp.Diagnostics.HasError() {
+			t.Errorf("expected diagnostics for %q", value)
+		}
+	}
+}
+
+func TestDateStringValidator_NullOrUnknown(t *testing.T) {
+	v := utils.DateStringValidator("Expiration date", true)
+	ctx := context.Background()
+	for _, value := range []types.String{types.StringNull(), types.StringUnknown()} {
+		req := validator.StringRequest{ConfigValue: value, Path: path.Root("expiration_date")}
+		var resp validator.StringResponse
+		v.ValidateString(ctx, req, &resp)
+		if resp.Diagnostics.HasError() {
+			t.Errorf("expected no diagnostics for null/unknown, got: %v", resp.Diagnostics)
+		}
+	}
+}

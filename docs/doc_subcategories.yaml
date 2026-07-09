@@ -75,6 +75,7 @@ categories:
       - classic_saas_configuration
       - classic_server
       - classic_database
+      - classic_software_license
     data_sources:
       - classic_contact
       - classic_login
@@ -83,6 +84,7 @@ categories:
       - classic_saas_configuration
       - classic_server
       - classic_database
+      - classic_software_license
 
   Endpoint Privilege Manager (EPM):
     resources:

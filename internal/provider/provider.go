@@ -27,6 +27,7 @@ import (
 	classiclogindatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/records/classic/generic/login"
 	classicsaasconfigurationdatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/records/classic/generic/saas_configuration"
 	classicserverdatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/records/classic/generic/server"
+	classicsoftwarelicensedatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/records/classic/generic/software_license"
 	classicsshkeysdatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/records/classic/generic/ssh_keys"
 	classicwifidatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/records/classic/generic/wifi"
 	classicpamdatabasedatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/records/classic/pam/pam_database"
@@ -53,6 +54,7 @@ import (
 	classiclogin "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/records/classic/generic/login"
 	classicsaasconfiguration "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/records/classic/generic/saas_configuration"
 	classicserver "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/records/classic/generic/server"
+	classicsoftwarelicense "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/records/classic/generic/software_license"
 	classicsshkeys "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/records/classic/generic/ssh_keys"
 	classicwifi "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/records/classic/generic/wifi"
 	classicpamdatabase "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/records/classic/pam/pam_database"
@@ -226,6 +228,7 @@ func (p *CommanderProvider) Resources(ctx context.Context) []func() resource.Res
 		classicsaasconfiguration.NewSaasConfigurationResource,
 		classicserver.NewServerResource,
 		classicdatabase.NewDatabaseResource,
+		classicsoftwarelicense.NewSoftwareLicenseResource,
 		classicsharedfolder.NewClassicSharedFolderResource,
 		newfolder.NewNewFolderResource,
 		secretsmanager.NewSecretsManagerAppResource,
@@ -257,6 +260,7 @@ func (p *CommanderProvider) DataSources(ctx context.Context) []func() datasource
 		classicsaasconfigurationdatasource.NewSaasConfigurationDataSource,
 		classicserverdatasource.NewServerDataSource,
 		classicdatabasedatasource.NewDatabaseDataSource,
+		classicsoftwarelicensedatasource.NewSoftwareLicenseDataSource,
 		pamconfigurationdatasource.NewPamConfigurationDataSource,
 		classicpamdatabasedatasource.NewPamDatabaseDataSource,
 		classicpamdirectorydatasource.NewPamDirectoryDataSource,
