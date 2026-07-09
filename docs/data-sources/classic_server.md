@@ -64,12 +64,12 @@ output "server_share" {
 
 - `custom` (Attributes List) Custom fields stored in the record's `custom` array. (see [below for nested schema](#nestedatt--custom))
 - `folder_location` (String) Folder `path` or `UID` where the record is to be stored.
-- `hostname` (String) Server host name or IP address. Maps to `host.hostName` in the record's `host` field.
+- `hostname` (String) **Hostname** or **IP address**.
 - `id` (String) Unique identifier (UID) of the vault record.
-- `login` (String) Server login or username. Maps to the record's `login` field.
+- `login` (String) **Username** or **login** identifier.
 - `notes` (String) Note of the record.
-- `password` (String, Sensitive) Server password. Maps to the record's `password` field.
-- `port` (String) Server port. Maps to `host.port` in the record's `host` field.
+- `password` (String, Sensitive) **Password**.
+- `port` (String) **Port** (numeric string).
 - `share` (Attributes Map) Mapping of share permissions for this record. Each map **key** is a **user email**; each **value** is an object with `can_share` and `can_edit` booleans. (see [below for nested schema](#nestedatt--share))
 - `title` (String) Record title.
 

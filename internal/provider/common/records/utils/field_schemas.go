@@ -407,6 +407,11 @@ func OptionalCompanyField() schema.StringAttribute {
 	return stringField(true, false, false, false, "Company", "Company name.", "**Company name**.").resource()
 }
 
+// OptionalDatabaseTypeField is an optional database type string attribute (f.text.type).
+func OptionalDatabaseTypeField() schema.StringAttribute {
+	return stringField(true, false, false, false, "Database type", "Database type (e.g. SQL).", "**Database type** (e.g. `SQL`).").resource()
+}
+
 // OptionalEmailField is an optional email address string attribute.
 func OptionalEmailField() schema.StringAttribute {
 	return stringField(true, false, false, false, "Email", "Email address.", "**Email address**.").resource()
@@ -489,6 +494,11 @@ func ComputedWebsiteAddressField() dschema.StringAttribute {
 // ComputedCompanyField is a computed company name string attribute for data sources.
 func ComputedCompanyField() dschema.StringAttribute {
 	return stringField(false, false, false, true, "", "Company name.", "**Company name**.").dataSource()
+}
+
+// ComputedDatabaseTypeField is a computed database type string attribute for data sources.
+func ComputedDatabaseTypeField() dschema.StringAttribute {
+	return stringField(false, false, false, true, "", "Database type (e.g. SQL).", "**Database type** (e.g. `SQL`).").dataSource()
 }
 
 // ComputedEmailField is a computed email address string attribute for data sources.

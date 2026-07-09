@@ -57,12 +57,12 @@ output "login_share" {
 - `custom` (Attributes List) Custom fields stored in the record's `custom` array. (see [below for nested schema](#nestedatt--custom))
 - `folder_location` (String) Folder `path` or `UID` where the record is to be stored.
 - `id` (String) Unique identifier (UID) of the vault record.
-- `login` (String) Username or login identifier. Maps to the record's `login` field.
+- `login` (String) **Username** or **login** identifier.
 - `notes` (String) Note of the record.
-- `password` (String, Sensitive) Password for the login. Maps to the record's `password` field.
+- `password` (String, Sensitive) **Password**.
 - `share` (Attributes Map) Mapping of share permissions for this record. Each map **key** is a **user email**; each **value** is an object with `can_share` and `can_edit` booleans. (see [below for nested schema](#nestedatt--share))
 - `title` (String) Record title.
-- `website_address` (String) Website address for the login. Maps to the record's `url` field.
+- `website_address` (String) **Website address**.
 
 <a id="nestedatt--custom"></a>
 ### Nested Schema for `custom`

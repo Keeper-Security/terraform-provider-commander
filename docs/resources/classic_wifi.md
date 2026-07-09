@@ -99,17 +99,17 @@ output "wifi_home_id" {
 
 ### Required
 
-- `ssid` (String) WiFi network SSID (network name). Maps to the record's `text` field with label `SSID`.
+- `ssid` (String) **Network SSID** (network name).
 - `title` (String) Record title.
 
 ### Optional
 
 - `custom` (Attributes List) Manage custom fields for the record. (see [below for nested schema](#nestedatt--custom))
-- `encryption` (String) Encryption type. One of: `wep`, `wpa`, `noEncryption`. Maps to the record's `wifiEncryption` field.
+- `encryption` (String) **Encryption type**.
 - `folder_location` (String) Folder `path` or `UID` where the record is to be stored.
-- `is_ssid_hidden` (Boolean) Whether the SSID is hidden (not broadcast). Maps to the record's `isSSIDHidden` field.
+- `is_ssid_hidden` (Boolean) Whether the SSID is hidden (not broadcast).
 - `notes` (String) Manage note for the record.
-- `password` (String, Sensitive) Password for the WiFi network. Maps to the record's `password` field.
+- `password` (String, Sensitive) **Password**.
 - `share` (Attributes Map) Mapping of share permissions for this record. Each map **key** is a **user email**; each **value** is an object with `can_share` and `can_edit` booleans. (see [below for nested schema](#nestedatt--share))
 
 ### Read-Only

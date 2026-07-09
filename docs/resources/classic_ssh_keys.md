@@ -46,13 +46,13 @@ resource "commander_classic_ssh_keys" "example" {
 
 - `custom` (Attributes List) Manage custom fields for the record. (see [below for nested schema](#nestedatt--custom))
 - `folder_location` (String) Folder `path` or `UID` where the record is to be stored.
-- `hostname` (String) SSH **Hostname** or **IP address**.
-- `login` (String) SSH **login**
+- `hostname` (String) **Hostname** or **IP address**.
+- `login` (String) **Login** identifier.
 - `notes` (String) Manage note for the record.
-- `passphrase` (String, Sensitive) **Passphrase**
-- `port` (String) SSH **port**.
+- `passphrase` (String, Sensitive) **Passphrase**.
+- `port` (String) **Port** (numeric string) eg: "22".
 - `private_key` (String, Sensitive) **Private key**.
-- `public_key` (String, Sensitive) **Public key**
+- `public_key` (String, Sensitive) **Public key**.
 - `share` (Attributes Map) Mapping of share permissions for this record. Each map **key** is a **user email**; each **value** is an object with `can_share` and `can_edit` booleans. (see [below for nested schema](#nestedatt--share))
 
 ### Read-Only

@@ -86,7 +86,7 @@ resource "commander_classic_login" "full" {
 
 ### Required
 
-- `login` (String) Username or login identifier. Maps to the record's `login` field.
+- `login` (String) **Login** identifier.
 - `title` (String) Record title.
 
 ### Optional
@@ -94,9 +94,9 @@ resource "commander_classic_login" "full" {
 - `custom` (Attributes List) Manage custom fields for the record. (see [below for nested schema](#nestedatt--custom))
 - `folder_location` (String) Folder `path` or `UID` where the record is to be stored.
 - `notes` (String) Manage note for the record.
-- `password` (String, Sensitive) Password for the login. Maps to the record's `password` field.
+- `password` (String, Sensitive) **Password**.
 - `share` (Attributes Map) Mapping of share permissions for this record. Each map **key** is a **user email**; each **value** is an object with `can_share` and `can_edit` booleans. (see [below for nested schema](#nestedatt--share))
-- `website_address` (String) Website address for the login. Maps to the record's `url` field.
+- `website_address` (String) **Website address**.
 
 ### Read-Only
 

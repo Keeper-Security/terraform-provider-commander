@@ -99,10 +99,10 @@ resource "commander_classic_contact" "full" {
 
 ### Optional
 
-- `address_ref` (String) UID of an `address` record linked via `addressRef`.
-- `company` (String) Company name.
+- `address_ref` (String) Existing address record **UID**.
+- `company` (String) **Company name**.
 - `custom` (Attributes List) Manage custom fields for the record. (see [below for nested schema](#nestedatt--custom))
-- `email` (String) Email address.
+- `email` (String) **Email address**.
 - `folder_location` (String) Folder `path` or `UID` where the record is to be stored.
 - `notes` (String) Manage note for the record.
 - `phone` (Attributes List) Manage phone numbers for the record. (see [below for nested schema](#nestedatt--phone))

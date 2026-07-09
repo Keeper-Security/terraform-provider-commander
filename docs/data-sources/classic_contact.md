@@ -84,10 +84,10 @@ output "contact_share" {
 
 ### Read-Only
 
-- `address_ref` (String) UID of an `address` record linked via `addressRef`.
-- `company` (String) Company name.
+- `address_ref` (String) **UID** of a linked record.
+- `company` (String) **Company name**.
 - `custom` (Attributes List) Custom fields stored in the record's `custom` array. (see [below for nested schema](#nestedatt--custom))
-- `email` (String) Email address.
+- `email` (String) **Email address**.
 - `folder_location` (String) Folder `path` or `UID` where the record is to be stored.
 - `id` (String) Unique identifier (UID) of the vault record.
 - `name` (Attributes) Person name (`name` field): first, middle, last. (see [below for nested schema](#nestedatt--name))
@@ -112,9 +112,9 @@ Read-Only:
 
 Read-Only:
 
-- `first` (String) First name.
-- `last` (String) Last name.
-- `middle` (String) Middle name.
+- `first` (String) **First name**.
+- `last` (String) **Last name**.
+- `middle` (String) **Middle name**.
 
 
 <a id="nestedatt--phone"></a>
@@ -122,10 +122,10 @@ Read-Only:
 
 Read-Only:
 
-- `ext` (String) Extension.
-- `number` (String) Phone number.
-- `region` (String) Region or country code.
-- `type` (String) Phone type: `Mobile`, `Home`, or `Work`.
+- `ext` (String) **Extension**.
+- `number` (String) **Phone number**.
+- `region` (String) **Region or country code** (e.g. US, +1).
+- `type` (String) **Phone type**: `Mobile`, `Home`, or `Work`.
 
 
 <a id="nestedatt--share"></a>
