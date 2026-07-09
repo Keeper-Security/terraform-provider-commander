@@ -301,6 +301,35 @@ func HostEqual(a, b *HostValue) bool {
 	return a.HostName.Equal(b.HostName) && a.Port.Equal(b.Port)
 }
 
+// IsEmpty reports whether both hostname and port are unset.
+func (h *HostValue) IsEmpty() bool {
+	if h == nil {
+		return true
+	}
+	return StringUnset(h.HostName) && StringUnset(h.Port)
+}
+
+// HostFlatToJSON serializes flat hostname/port Terraform fields to Keeper host JSON.
+func HostFlatToJSON(hostname, port types.String) (string, bool) {
+	h := &HostValue{HostName: hostname, Port: port}
+	if h.IsEmpty() {
+		return "", false
+	}
+	j, err := h.ToJSON()
+	if err != nil || strings.TrimSpace(j) == "" {
+		return "", false
+	}
+	return j, true
+}
+
+// FlatHostFromFields reads a host field into flat hostname and port strings.
+func FlatHostFromFields(fields []utils.VaultRecordFieldResponse) (hostname, port types.String) {
+	if host := HostFromFields(fields, ""); host != nil {
+		return host.HostName, host.Port
+	}
+	return types.StringNull(), types.StringNull()
+}
+
 // ----- paymentCard ----------------------------------------------------------
 
 type PaymentCardValue struct {
@@ -539,7 +568,41 @@ func KeyPairEqual(a, b *KeyPairValue) bool {
 	return a.PublicKey.Equal(b.PublicKey) && a.PrivateKey.Equal(b.PrivateKey)
 }
 
+// IsEmpty reports whether both public and private keys are unset.
+func (k *KeyPairValue) IsEmpty() bool {
+	if k == nil {
+		return true
+	}
+	return StringUnset(k.PublicKey) && StringUnset(k.PrivateKey)
+}
+
+// KeyPairFlatToJSON serializes flat public/private key Terraform fields to Keeper keyPair JSON.
+func KeyPairFlatToJSON(publicKey, privateKey types.String) (string, bool) {
+	kp := &KeyPairValue{PublicKey: publicKey, PrivateKey: privateKey}
+	if kp.IsEmpty() {
+		return "", false
+	}
+	j, err := kp.ToJSON()
+	if err != nil || strings.TrimSpace(j) == "" {
+		return "", false
+	}
+	return j, true
+}
+
+// FlatKeyPairFromFields reads a keyPair field into flat public and private key strings.
+func FlatKeyPairFromFields(fields []utils.VaultRecordFieldResponse) (publicKey, privateKey types.String) {
+	if kp := KeyPairFromFields(fields, ""); kp != nil {
+		return kp.PublicKey, kp.PrivateKey
+	}
+	return types.StringNull(), types.StringNull()
+}
+
 // ----- scalar / ref helpers -------------------------------------------------
+
+// StringUnset reports whether a Terraform string is null, unknown, or blank.
+func StringUnset(s types.String) bool {
+	return s.IsNull() || s.IsUnknown() || strings.TrimSpace(s.ValueString()) == ""
+}
 
 func stringOrEmpty(s types.String) string {
 	if s.IsNull() || s.IsUnknown() {

@@ -4,8 +4,6 @@
 package sshkeys
 
 import (
-	"strings"
-
 	commonrecordsutils "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/utils"
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/utils"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
@@ -18,8 +16,8 @@ func BuildAddCommand(cmd string, data SshKeysModel) string {
 
 	commonrecordsutils.AppendOptionalScalarAdd(&extra, FlagLogin, data.Login)
 	commonrecordsutils.AppendOptionalScalarAdd(&extra, FlagPassphrase, data.Passphrase)
-	appendOptionalHostAdd(&extra, data.Hostname, data.Port)
-	appendOptionalKeyPairAdd(&extra, data.PublicKey, data.PrivateKey)
+	commonrecordsutils.AppendOptionalHostFlatAdd(&extra, FlagHost, data.Hostname, data.Port)
+	commonrecordsutils.AppendOptionalKeyPairFlatAdd(&extra, FlagKeyPair, data.PublicKey, data.PrivateKey)
 
 	custom := commonrecordsutils.NormalizeCustomFromPlan(data.Custom)
 	return commonrecordsutils.BuildRecordAdd(
@@ -54,8 +52,8 @@ func BuildUpdateCommand(cmd string, recordUID string, plan, state SshKeysModel) 
 
 	commonrecordsutils.AppendChangedStringField(&extra, FlagLogin, plan.Login, state.Login)
 	commonrecordsutils.AppendChangedStringField(&extra, FlagPassphrase, plan.Passphrase, state.Passphrase)
-	appendChangedHostUpdate(&extra, plan.Hostname, plan.Port, state.Hostname, state.Port)
-	appendChangedKeyPairUpdate(&extra, plan.PublicKey, plan.PrivateKey, state.PublicKey, state.PrivateKey)
+	commonrecordsutils.AppendChangedHostFlatUpdate(&extra, FlagHost, plan.Hostname, plan.Port, state.Hostname, state.Port)
+	commonrecordsutils.AppendChangedKeyPairFlatUpdate(&extra, FlagKeyPair, plan.PublicKey, plan.PrivateKey, state.PublicKey, state.PrivateKey)
 
 	customPlan := commonrecordsutils.NormalizeCustomFromPlan(plan.Custom)
 	customState := commonrecordsutils.NormalizeCustomFromPlan(state.Custom)
@@ -77,97 +75,8 @@ func MapVaultRecordGetResponseToSshKeysModel(rec *utils.VaultRecordGetResponse, 
 	commonrecordsutils.MapBaseVaultRecord(rec, stateFolder, &m.BaseVaultRecordModel)
 	m.Login = commonrecordsutils.FirstStringFieldAnyLabel(rec.Fields, commonrecordsutils.FieldTypeLogin)
 	m.Passphrase = commonrecordsutils.FirstStringField(rec.Fields, commonrecordsutils.FieldTypePassword, PassphraseFieldLabel)
-
-	if host := commonrecordsutils.HostFromFields(rec.Fields, ""); host != nil {
-		m.Hostname = host.HostName
-		m.Port = host.Port
-	} else {
-		m.Hostname = types.StringNull()
-		m.Port = types.StringNull()
-	}
-
-	if kp := commonrecordsutils.KeyPairFromFields(rec.Fields, ""); kp != nil {
-		m.PublicKey = kp.PublicKey
-		m.PrivateKey = kp.PrivateKey
-	} else {
-		m.PublicKey = types.StringNull()
-		m.PrivateKey = types.StringNull()
-	}
-
+	m.Hostname, m.Port = commonrecordsutils.FlatHostFromFields(rec.Fields)
+	m.PublicKey, m.PrivateKey = commonrecordsutils.FlatKeyPairFromFields(rec.Fields)
 	m.Custom = commonrecordsutils.ParseCustomFields(rec.Custom)
 	return nil
-}
-
-func appendOptionalHostAdd(parts *[]string, hostname, port types.String) {
-	if j, ok := hostJSON(hostname, port); ok {
-		commonrecordsutils.AppendOptionalJSONAdd(parts, FlagHost, j)
-	}
-}
-
-func appendOptionalKeyPairAdd(parts *[]string, publicKey, privateKey types.String) {
-	if j, ok := keyPairJSON(publicKey, privateKey); ok {
-		commonrecordsutils.AppendOptionalJSONAdd(parts, FlagKeyPair, j)
-	}
-}
-
-func appendChangedHostUpdate(parts *[]string, planHostname, planPort, stateHostname, statePort types.String) {
-	planJSON, planOK := hostJSON(planHostname, planPort)
-	stateJSON, stateOK := hostJSON(stateHostname, statePort)
-	changed := planJSON != stateJSON || planOK != stateOK
-	commonrecordsutils.AppendChangedJSONField(parts, FlagHost, planJSON, stateJSON, changed)
-}
-
-func appendChangedKeyPairUpdate(parts *[]string, planPublic, planPrivate, statePublic, statePrivate types.String) {
-	planJSON, planOK := keyPairJSON(planPublic, planPrivate)
-	stateJSON, stateOK := keyPairJSON(statePublic, statePrivate)
-	changed := planJSON != stateJSON || planOK != stateOK
-	commonrecordsutils.AppendChangedJSONField(parts, FlagKeyPair, planJSON, stateJSON, changed)
-}
-
-func hostJSON(hostname, port types.String) (string, bool) {
-	host := &commonrecordsutils.HostValue{
-		HostName: hostname,
-		Port:     port,
-	}
-	if hostValueEmpty(host) {
-		return "", false
-	}
-	j, err := host.ToJSON()
-	if err != nil || strings.TrimSpace(j) == "" {
-		return "", false
-	}
-	return j, true
-}
-
-func keyPairJSON(publicKey, privateKey types.String) (string, bool) {
-	kp := &commonrecordsutils.KeyPairValue{
-		PublicKey:  publicKey,
-		PrivateKey: privateKey,
-	}
-	if keyPairEmpty(kp) {
-		return "", false
-	}
-	j, err := kp.ToJSON()
-	if err != nil || strings.TrimSpace(j) == "" {
-		return "", false
-	}
-	return j, true
-}
-
-func hostValueEmpty(h *commonrecordsutils.HostValue) bool {
-	if h == nil {
-		return true
-	}
-	return stringUnset(h.HostName) && stringUnset(h.Port)
-}
-
-func keyPairEmpty(k *commonrecordsutils.KeyPairValue) bool {
-	if k == nil {
-		return true
-	}
-	return stringUnset(k.PublicKey) && stringUnset(k.PrivateKey)
-}
-
-func stringUnset(s types.String) bool {
-	return s.IsNull() || s.IsUnknown() || strings.TrimSpace(s.ValueString()) == ""
 }

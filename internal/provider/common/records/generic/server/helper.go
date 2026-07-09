@@ -4,8 +4,6 @@
 package server
 
 import (
-	"strings"
-
 	commonrecordsutils "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/utils"
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/utils"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
@@ -18,7 +16,7 @@ func BuildAddCommand(cmd string, data ServerModel) string {
 
 	commonrecordsutils.AppendOptionalScalarAdd(&extra, FlagLogin, data.Login)
 	commonrecordsutils.AppendOptionalScalarAdd(&extra, FlagPassword, data.Password)
-	appendOptionalHostAdd(&extra, data.Hostname, data.Port)
+	commonrecordsutils.AppendOptionalHostFlatAdd(&extra, FlagHost, data.Hostname, data.Port)
 
 	custom := commonrecordsutils.NormalizeCustomFromPlan(data.Custom)
 	return commonrecordsutils.BuildRecordAdd(
@@ -51,7 +49,7 @@ func BuildUpdateCommand(cmd string, recordUID string, plan, state ServerModel) s
 
 	commonrecordsutils.AppendChangedStringField(&extra, FlagLogin, plan.Login, state.Login)
 	commonrecordsutils.AppendChangedStringField(&extra, FlagPassword, plan.Password, state.Password)
-	appendChangedHostUpdate(&extra, plan.Hostname, plan.Port, state.Hostname, state.Port)
+	commonrecordsutils.AppendChangedHostFlatUpdate(&extra, FlagHost, plan.Hostname, plan.Port, state.Hostname, state.Port)
 
 	customPlan := commonrecordsutils.NormalizeCustomFromPlan(plan.Custom)
 	customState := commonrecordsutils.NormalizeCustomFromPlan(state.Custom)
@@ -73,54 +71,7 @@ func MapVaultRecordGetResponseToServerModel(rec *utils.VaultRecordGetResponse, s
 	commonrecordsutils.MapBaseVaultRecord(rec, stateFolder, &m.BaseVaultRecordModel)
 	m.Login = commonrecordsutils.FirstStringFieldAnyLabel(rec.Fields, commonrecordsutils.FieldTypeLogin)
 	m.Password = commonrecordsutils.FirstStringFieldAnyLabel(rec.Fields, commonrecordsutils.FieldTypePassword)
-
-	if host := commonrecordsutils.HostFromFields(rec.Fields, ""); host != nil {
-		m.Hostname = host.HostName
-		m.Port = host.Port
-	} else {
-		m.Hostname = types.StringNull()
-		m.Port = types.StringNull()
-	}
-
+	m.Hostname, m.Port = commonrecordsutils.FlatHostFromFields(rec.Fields)
 	m.Custom = commonrecordsutils.ParseCustomFields(rec.Custom)
 	return nil
-}
-
-func appendOptionalHostAdd(parts *[]string, hostname, port types.String) {
-	if j, ok := hostJSON(hostname, port); ok {
-		commonrecordsutils.AppendOptionalJSONAdd(parts, FlagHost, j)
-	}
-}
-
-func appendChangedHostUpdate(parts *[]string, planHostname, planPort, stateHostname, statePort types.String) {
-	planJSON, planOK := hostJSON(planHostname, planPort)
-	stateJSON, stateOK := hostJSON(stateHostname, statePort)
-	changed := planJSON != stateJSON || planOK != stateOK
-	commonrecordsutils.AppendChangedJSONField(parts, FlagHost, planJSON, stateJSON, changed)
-}
-
-func hostJSON(hostname, port types.String) (string, bool) {
-	host := &commonrecordsutils.HostValue{
-		HostName: hostname,
-		Port:     port,
-	}
-	if hostValueEmpty(host) {
-		return "", false
-	}
-	j, err := host.ToJSON()
-	if err != nil || strings.TrimSpace(j) == "" {
-		return "", false
-	}
-	return j, true
-}
-
-func hostValueEmpty(h *commonrecordsutils.HostValue) bool {
-	if h == nil {
-		return true
-	}
-	return stringUnset(h.HostName) && stringUnset(h.Port)
-}
-
-func stringUnset(s types.String) bool {
-	return s.IsNull() || s.IsUnknown() || strings.TrimSpace(s.ValueString()) == ""
 }

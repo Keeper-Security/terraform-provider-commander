@@ -63,8 +63,8 @@ func UpdateHasMutations(plan, state ContactModel) bool {
 func BuildUpdateCommand(cmd string, recordUID string, plan, state ContactModel) string {
 	var extra []string
 
-	planJSON, planErr := nameToJSON(plan.Name)
-	stateJSON, stateErr := nameToJSON(state.Name)
+	planJSON, planErr := plan.Name.ToJSON()
+	stateJSON, stateErr := state.Name.ToJSON()
 	changed := planJSON != stateJSON || planErr != stateErr
 	commonrecordsutils.AppendChangedJSONField(&extra, FlagName, planJSON, stateJSON, changed)
 
@@ -125,11 +125,4 @@ func MapVaultRecordGetResponseToContactModel(rec *utils.VaultRecordGetResponse, 
 	m.AddressRef = commonrecordsutils.FirstRefUID(rec.Fields, commonrecordsutils.FieldTypeAddressRef, "")
 	m.Custom = commonrecordsutils.ParseCustomFields(rec.Custom)
 	return nil
-}
-
-func nameToJSON(n *commonrecordsutils.NameValue) (string, error) {
-	if n == nil || n.IsNull() {
-		return "", nil
-	}
-	return n.ToJSON()
 }

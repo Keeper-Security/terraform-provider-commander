@@ -153,6 +153,36 @@ func AppendOptionalJSONAdd(parts *[]string, fieldKey, jsonPayload string) {
 	*parts = append(*parts, FormatFieldAssignment(fieldKey, jsonPayload, true))
 }
 
+// AppendOptionalHostFlatAdd adds f.host JSON from flat hostname/port when set.
+func AppendOptionalHostFlatAdd(parts *[]string, flag string, hostname, port types.String) {
+	if j, ok := HostFlatToJSON(hostname, port); ok {
+		AppendOptionalJSONAdd(parts, flag, j)
+	}
+}
+
+// AppendChangedHostFlatUpdate emits f.host JSON when flat hostname/port changed.
+func AppendChangedHostFlatUpdate(parts *[]string, flag string, planHostname, planPort, stateHostname, statePort types.String) {
+	planJSON, planOK := HostFlatToJSON(planHostname, planPort)
+	stateJSON, stateOK := HostFlatToJSON(stateHostname, statePort)
+	changed := planJSON != stateJSON || planOK != stateOK
+	AppendChangedJSONField(parts, flag, planJSON, stateJSON, changed)
+}
+
+// AppendOptionalKeyPairFlatAdd adds f.keyPair JSON from flat public/private keys when set.
+func AppendOptionalKeyPairFlatAdd(parts *[]string, flag string, publicKey, privateKey types.String) {
+	if j, ok := KeyPairFlatToJSON(publicKey, privateKey); ok {
+		AppendOptionalJSONAdd(parts, flag, j)
+	}
+}
+
+// AppendChangedKeyPairFlatUpdate emits f.keyPair JSON when flat keys changed.
+func AppendChangedKeyPairFlatUpdate(parts *[]string, flag string, planPublic, planPrivate, statePublic, statePrivate types.String) {
+	planJSON, planOK := KeyPairFlatToJSON(planPublic, planPrivate)
+	stateJSON, stateOK := KeyPairFlatToJSON(statePublic, statePrivate)
+	changed := planJSON != stateJSON || planOK != stateOK
+	AppendChangedJSONField(parts, flag, planJSON, stateJSON, changed)
+}
+
 // AppendOptionalEpochDateAdd adds date field as epoch number string.
 func AppendOptionalEpochDateAdd(parts *[]string, fieldKey string, dateStr types.String) {
 	if dateStr.IsNull() || dateStr.IsUnknown() || strings.TrimSpace(dateStr.ValueString()) == "" {
