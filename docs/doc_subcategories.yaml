@@ -76,6 +76,7 @@ categories:
       - classic_server
       - classic_database
       - classic_software_license
+      - classic_secure_note
     data_sources:
       - classic_contact
       - classic_login
@@ -85,6 +86,7 @@ categories:
       - classic_server
       - classic_database
       - classic_software_license
+      - classic_secure_note
 
   Endpoint Privilege Manager (EPM):
     resources:

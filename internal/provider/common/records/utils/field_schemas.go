@@ -573,6 +573,16 @@ func ComputedSoftwareLicenseKeyField() dschema.StringAttribute {
 	return stringField(false, false, true, true, "", "Software license key.", "**Software license key**.").dataSource()
 }
 
+// OptionalSecuredNoteField is an optional sensitive secured note string attribute.
+func OptionalSecuredNoteField() schema.StringAttribute {
+	return stringField(true, false, true, false, "Secured note", "Secured note content.", "**Secured note** content.").resource()
+}
+
+// ComputedSecuredNoteField is a computed sensitive secured note string attribute for data sources.
+func ComputedSecuredNoteField() dschema.StringAttribute {
+	return stringField(false, false, true, true, "", "Secured note content.", "**Secured note** content.").dataSource()
+}
+
 // NameDataSourceNestedSchema is the computed name nested object for data sources.
 func NameDataSourceNestedSchema() dschema.SingleNestedAttribute {
 	return dschema.SingleNestedAttribute{

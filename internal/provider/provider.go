@@ -26,6 +26,7 @@ import (
 	classicdatabasedatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/records/classic/generic/database"
 	classiclogindatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/records/classic/generic/login"
 	classicsaasconfigurationdatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/records/classic/generic/saas_configuration"
+	classicsecurenotedatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/records/classic/generic/secure_note"
 	classicserverdatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/records/classic/generic/server"
 	classicsoftwarelicensedatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/records/classic/generic/software_license"
 	classicsshkeysdatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/records/classic/generic/ssh_keys"
@@ -53,6 +54,7 @@ import (
 	classicdatabase "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/records/classic/generic/database"
 	classiclogin "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/records/classic/generic/login"
 	classicsaasconfiguration "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/records/classic/generic/saas_configuration"
+	classicsecurenote "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/records/classic/generic/secure_note"
 	classicserver "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/records/classic/generic/server"
 	classicsoftwarelicense "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/records/classic/generic/software_license"
 	classicsshkeys "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/records/classic/generic/ssh_keys"
@@ -229,6 +231,7 @@ func (p *CommanderProvider) Resources(ctx context.Context) []func() resource.Res
 		classicserver.NewServerResource,
 		classicdatabase.NewDatabaseResource,
 		classicsoftwarelicense.NewSoftwareLicenseResource,
+		classicsecurenote.NewSecureNoteResource,
 		classicsharedfolder.NewClassicSharedFolderResource,
 		newfolder.NewNewFolderResource,
 		secretsmanager.NewSecretsManagerAppResource,
@@ -261,6 +264,7 @@ func (p *CommanderProvider) DataSources(ctx context.Context) []func() datasource
 		classicserverdatasource.NewServerDataSource,
 		classicdatabasedatasource.NewDatabaseDataSource,
 		classicsoftwarelicensedatasource.NewSoftwareLicenseDataSource,
+		classicsecurenotedatasource.NewSecureNoteDataSource,
 		pamconfigurationdatasource.NewPamConfigurationDataSource,
 		classicpamdatabasedatasource.NewPamDatabaseDataSource,
 		classicpamdirectorydatasource.NewPamDirectoryDataSource,
