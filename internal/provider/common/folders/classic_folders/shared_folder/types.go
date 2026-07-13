@@ -22,6 +22,7 @@ type SharedFolderUserTeamEntry struct {
 	// User specific fields
 	Username string `json:"username"`
 	UserID   string `json:"user_id"`
+	Owner    bool   `json:"owner"`
 
 	// Team specific fields
 	TeamName string `json:"name"`

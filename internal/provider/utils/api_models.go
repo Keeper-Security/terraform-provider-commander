@@ -386,7 +386,7 @@ type DagDebugEdgeResponse struct {
 
 type DagDebugVertexContentResponse struct {
 	AllowedSettings     *DagDebugAllowedSettingsResponse `json:"allowedSettings,omitempty"`
-	RotateOnTermination bool                             `json:"rotateOnTermination"`
+	RotateOnTermination *bool                            `json:"rotateOnTermination,omitempty"`
 }
 
 type DagDebugAllowedSettingsResponse struct {

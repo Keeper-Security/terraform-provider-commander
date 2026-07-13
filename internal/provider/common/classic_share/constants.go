@@ -35,7 +35,7 @@ const (
 	FlagAction = "--action"
 )
 
-// share-record --action values.
+// share-record --action values. Grant is the default when --action is omitted.
 const (
 	// ActionRevoke either removes the user from the record share entirely
 	// (when no permission flags are passed) or strips the listed flags
