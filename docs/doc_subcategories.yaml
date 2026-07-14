@@ -1,0 +1,79 @@
+# Copyright Keeper Security, Inc. 2026
+# SPDX-License-Identifier: MPL-2.0
+
+# Registry documentation subcategories (DigitalOcean-style sidebar grouping).
+#
+# Add new resources/data sources under the appropriate category, then run:
+#   make generate
+#
+# Doc file names omit the commander_ prefix (enterprise_node -> commander_enterprise_node).
+# The generator fails if any registered provider type is missing from this file.
+
+categories:
+  Enterprise Management:
+    resources:
+      - enterprise_node
+      - enterprise_user
+      - enterprise_role
+      - enterprise_team
+      - enterprise_scim
+      - enterprise_push
+      - enterprise_scim_push
+    data_sources:
+      - enterprise_node
+      - enterprise_user
+      - enterprise_role
+      - enterprise_team
+      - enterprise_scim
+
+  MSP Management:
+    resources:
+      - managed_company
+    data_sources:
+      - managed_company
+
+  Classic Folders:
+    resources:
+      - non_shared_folder
+      - shared_folder
+    data_sources:
+      - non_shared_folder
+      - shared_folder
+
+  Nested Shared Folders (NSF):
+    resources:
+      - new_folder
+    data_sources:
+      - new_folder
+
+  KeeperPAM:
+    resources:
+      - pam_configuration
+    data_sources:
+      - pam_configuration
+
+  Classic PAM Records:
+    resources:
+      - classic_pam_user
+      - classic_pam_machine
+      - classic_pam_database
+      - classic_pam_directory
+      - classic_pam_remote_browser
+    data_sources:
+      - classic_pam_user
+      - classic_pam_machine
+      - classic_pam_database
+      - classic_pam_directory
+      - classic_pam_remote_browser
+
+  Endpoint Privilege Manager (EPM):
+    resources:
+      - epm_policy
+    data_sources:
+      - epm_policy
+
+  Secrets Manager:
+    resources:
+      - secrets_manager
+    data_sources:
+      - secrets_manager

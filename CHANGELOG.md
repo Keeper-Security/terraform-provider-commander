@@ -1,5 +1,25 @@
 # Changelog
 
+## 1.2.0 (YYYY-MM-DD)
+
+### Added
+
+**Resources**
+
+- **Classic Folders:** `commander_non_shared_folder`
+- **Nested Shared Folders (NSF):** `commander_new_folder`
+- **KeeperPAM:** `commander_pam_configuration`
+- **Classic PAM Records:** `commander_classic_pam_user`, `commander_classic_pam_machine`, `commander_classic_pam_database`, `commander_classic_pam_directory`, `commander_classic_pam_remote_browser`
+- **Secrets Manager:** `commander_secrets_manager`
+
+**Data sources**
+
+- **Classic Folders:** `commander_non_shared_folder`
+- **Nested Shared Folders (NSF):** `commander_new_folder`
+- **KeeperPAM:** `commander_pam_configuration`
+- **Classic PAM Records:** `commander_classic_pam_user`, `commander_classic_pam_machine`, `commander_classic_pam_database`, `commander_classic_pam_directory`, `commander_classic_pam_remote_browser`
+- **Secrets Manager:** `commander_secrets_manager`
+
 ## 1.1.0 (YYYY-MM-DD)
 
 Added new resources and data sources

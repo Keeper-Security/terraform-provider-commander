@@ -14,7 +14,9 @@ import (
 
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/api"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
+	dschema "github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
@@ -906,4 +908,62 @@ func recordIdentifierMatchesList(ref string, entries []VaultRecordListEntry) boo
 		}
 	}
 	return false
+}
+
+// ExtractFolderValue resolves the folder value from the API response against the
+// current Terraform state. If the user originally specified a UID or path that
+// matches the API response, the state value is preserved so Terraform does not
+// show a spurious diff. Otherwise the folder path from the response is used.
+// Path comparison normalizes spaces around "/" so "Test / My Folder" matches "Test/My Folder".
+func ExtractFolderValue(folderResponse *FolderLocationResponse, stateFolder types.String) types.String {
+	if folderResponse == nil || (folderResponse.UID == "" && strings.TrimSpace(folderResponse.Path) == "/") {
+		return types.StringNull()
+	}
+	if !stateFolder.IsNull() && !stateFolder.IsUnknown() {
+		sv := strings.TrimSpace(stateFolder.ValueString())
+		if sv == strings.TrimSpace(folderResponse.UID) || NormalizeFolderPath(sv) == NormalizeFolderPath(folderResponse.Path) {
+			return stateFolder
+		}
+	}
+	return types.StringValue(folderResponse.Path)
+}
+
+// NormalizeFolderPath removes spaces around "/" separators so that
+// "Test / My Folder" and "Test/My Folder" compare as equal.
+func NormalizeFolderPath(p string) string {
+	parts := strings.Split(p, "/")
+	for i, part := range parts {
+		parts[i] = strings.TrimSpace(part)
+	}
+	return strings.Join(parts, "/")
+}
+
+// StringOrNull returns types.StringValue when s is non-empty after trim, otherwise types.StringNull.
+func StringOrNull(s string) types.String {
+	if strings.TrimSpace(s) == "" {
+		return types.StringNull()
+	}
+	return types.StringValue(s)
+}
+
+// MergeResourceAttributes combines resource attribute maps; later maps override earlier keys.
+func MergeResourceAttributes(maps ...map[string]schema.Attribute) map[string]schema.Attribute {
+	result := map[string]schema.Attribute{}
+	for _, m := range maps {
+		for k, v := range m {
+			result[k] = v
+		}
+	}
+	return result
+}
+
+// MergeDataSourceAttributes combines data source attribute maps; later maps override earlier keys.
+func MergeDataSourceAttributes(maps ...map[string]dschema.Attribute) map[string]dschema.Attribute {
+	result := map[string]dschema.Attribute{}
+	for _, m := range maps {
+		for k, v := range m {
+			result[k] = v
+		}
+	}
+	return result
 }
