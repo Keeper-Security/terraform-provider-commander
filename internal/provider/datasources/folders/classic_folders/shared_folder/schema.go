@@ -1,0 +1,101 @@
+// Copyright Keeper Security, Inc. 2026
+// SPDX-License-Identifier: MPL-2.0
+
+package classicsharedfolder
+
+import (
+	"context"
+
+	folderutils "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/folders/utils"
+	sfres "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/folders/classic_folders/shared_folder"
+	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/utils"
+	"github.com/hashicorp/terraform-plugin-framework/datasource"
+	dschema "github.com/hashicorp/terraform-plugin-framework/datasource/schema"
+)
+
+func (d *ClassicSharedFolderDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
+	resp.Schema = dschema.Schema{
+		Description:         DescDataSource,
+		MarkdownDescription: DescDataSourceMD,
+		Attributes: utils.MergeDataSourceAttributes(
+			map[string]dschema.Attribute{
+				"shared_folder": dschema.StringAttribute{
+					Required:            true,
+					Description:         DescDataSourceSharedFolder,
+					MarkdownDescription: DescDataSourceSharedFolderMD,
+				},
+			},
+			folderutils.DataSourceCommonFolderAttributes(),
+			map[string]dschema.Attribute{
+				"user_permissions": dschema.SingleNestedAttribute{
+					Computed: true,
+					Attributes: map[string]dschema.Attribute{
+						"manage_users": dschema.BoolAttribute{
+							Computed:            true,
+							Description:         sfres.DescUserPermissionsManage,
+							MarkdownDescription: sfres.DescUserPermissionsManage,
+						},
+						"manage_records": dschema.BoolAttribute{
+							Computed:            true,
+							Description:         sfres.DescUserPermissionsRecords,
+							MarkdownDescription: sfres.DescUserPermissionsRecords,
+						},
+					},
+				},
+				"record_permissions": dschema.SingleNestedAttribute{
+					Computed: true,
+					Attributes: map[string]dschema.Attribute{
+						"can_share": dschema.BoolAttribute{
+							Computed:            true,
+							Description:         sfres.DescRecordPermissionsShare,
+							MarkdownDescription: sfres.DescRecordPermissionsShare,
+						},
+						"can_edit": dschema.BoolAttribute{
+							Computed:            true,
+							Description:         sfres.DescRecordPermissionsEdit,
+							MarkdownDescription: sfres.DescRecordPermissionsEdit,
+						},
+					},
+				},
+				"records": dschema.MapNestedAttribute{
+					Computed:            true,
+					Description:         sfres.DescRecords,
+					MarkdownDescription: sfres.DescRecordsMD,
+					NestedObject: dschema.NestedAttributeObject{
+						Attributes: map[string]dschema.Attribute{
+							"can_share": dschema.BoolAttribute{
+								Computed:            true,
+								Description:         sfres.DescRecordShare,
+								MarkdownDescription: sfres.DescRecordShare,
+							},
+							"can_edit": dschema.BoolAttribute{
+								Computed:            true,
+								Description:         sfres.DescRecordEdit,
+								MarkdownDescription: sfres.DescRecordEdit,
+							},
+						},
+					},
+				},
+				"users": dschema.MapNestedAttribute{
+					Computed:            true,
+					Description:         sfres.DescUsers,
+					MarkdownDescription: sfres.DescUsersMD,
+					NestedObject: dschema.NestedAttributeObject{
+						Attributes: map[string]dschema.Attribute{
+							"manage_users": dschema.BoolAttribute{
+								Computed:            true,
+								Description:         sfres.DescUserManageUsers,
+								MarkdownDescription: sfres.DescUserManageUsers,
+							},
+							"manage_records": dschema.BoolAttribute{
+								Computed:            true,
+								Description:         sfres.DescUserManageRecords,
+								MarkdownDescription: sfres.DescUserManageRecords,
+							},
+						},
+					},
+				},
+			},
+		),
+	}
+}

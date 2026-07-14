@@ -1,15 +1,16 @@
-# commander_shared_folder (data source) — read an existing shared folder from Commander.
+# commander_shared_folder (data source) — read an existing classic shared folder from Commander.
 #
 # Required:
 #   shared_folder — Shared folder UID or vault path/name (passed to Commander: get '<value>' --format json).
 #
 # Computed:
-#   id                    — Canonical shared folder UID from the API (same as resource id after create).
-#   name                  — Vault path of the folder
+#   id                    — Canonical classic shared folder UID from the API (same as resource id after create).
+#   name                  — Leaf name of the folder (without parent path).
+#   folder_location       — Parent folder path where the folder lives (empty string when at vault root).
 #   user_permissions      — Default manage_users / manage_records
 #   record_permissions    — Default can_share / can_edit
 #   records               — Map record_uid => { can_share, can_edit }
-#   users                 — Map email/uid => { manage_users, manage_records, expiration }
+#   users                 — Map User Email/UID or Team Name/UID => { manage_users, manage_records }
 
 # Look up by vault path (use the same path you use in commander_shared_folder.name, or any path Commander accepts).
 data "commander_shared_folder" "example" {
@@ -30,8 +31,13 @@ output "folder_uid" {
   value       = data.commander_shared_folder.example.id
 }
 
-output "folder_path" {
+output "folder_name" {
   value = data.commander_shared_folder.example.name
+}
+
+output "folder_location" {
+  description = "Parent folder path; empty string when at vault root."
+  value       = data.commander_shared_folder.example.folder_location
 }
 
 output "folder_default_user_permissions" {
