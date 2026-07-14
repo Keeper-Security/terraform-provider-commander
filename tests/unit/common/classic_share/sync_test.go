@@ -121,7 +121,7 @@ func TestSyncSharePermissions_RevokesRemovedAndGrantsChanged(t *testing.T) {
 
 	sort.Strings(seen)
 	mustContain(t, seen, `share-record --email 'c@x.com' 'REC1' --action revoke`)
-	mustContain(t, seen, `share-record --email 'b@x.com' 'REC1' --share --write`)
+	mustContain(t, seen, `share-record --email 'b@x.com' 'REC1' --write`)
 	mustContain(t, seen, `share-record --email 'd@x.com' 'REC1' --write`)
 
 	for _, cmd := range seen {

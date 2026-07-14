@@ -174,6 +174,11 @@ func userOrTeamEntryMapKey(e SharedFolderUserTeamEntry, priorUsers types.Map) st
 func buildUsersMapFromAPIResponse(usersEntries []SharedFolderUserTeamEntry, teamsEntries []SharedFolderUserTeamEntry, priorUsers types.Map) (types.Map, error) {
 	elements := make(map[string]attr.Value, len(usersEntries)+len(teamsEntries))
 	for _, e := range usersEntries {
+		// Skip owner from the map
+		if e.Owner {
+			continue
+		}
+
 		addUserOrTeamEntry(elements, e, priorUsers)
 	}
 	for _, e := range teamsEntries {

@@ -96,7 +96,56 @@ func ExtractPamSettingsFromResponse(rec *utils.VaultRecordGetResponse, existingS
 	result.Tunnel = extractTunnelFromResponse(raw, rec.PamSettingsEnabled)
 	result.Connection = extractConnectionFromResponse(raw, rec.PamSettingsEnabled, rec.AssociatedCredentials, rec.DagDebug, existingState)
 
+	if !connectionHasMaterialConfig(result.Connection) {
+		if existingState != nil && existingState.Connection != nil {
+			result.Connection = existingState.Connection
+		} else {
+			result.Connection = nil
+		}
+	}
+
+	if !tunnelHasMaterialConfig(result.Tunnel) {
+		if existingState != nil && existingState.Tunnel != nil {
+			result.Tunnel = existingState.Tunnel
+		} else {
+			result.Tunnel = nil
+		}
+	}
+
 	return result
+}
+
+func connectionHasMaterialConfig(c *CommonPamSettingsConnectionResourceModel) bool {
+	if c == nil {
+		return false
+	}
+	if !c.Protocol.IsNull() && !c.Protocol.IsUnknown() && strings.TrimSpace(c.Protocol.ValueString()) != "" {
+		return true
+	}
+	if !c.LaunchCredential.IsNull() && !c.LaunchCredential.IsUnknown() && strings.TrimSpace(c.LaunchCredential.ValueString()) != "" {
+		return true
+	}
+	if !c.ConnectionPort.IsNull() && !c.ConnectionPort.IsUnknown() {
+		return true
+	}
+	return c.Kubernetes != nil || c.Mysql != nil || c.PostgreSql != nil || c.SqlServer != nil ||
+		c.Rdp != nil || c.Ssh != nil || c.Telnet != nil || c.Vnc != nil || c.MariaDb != nil || c.Oracle != nil
+}
+
+func tunnelHasMaterialConfig(t *CommonPamSettingsTunnelResourceModel) bool {
+	if t == nil {
+		return false
+	}
+	if !t.RemoteTargetPort.IsNull() && !t.RemoteTargetPort.IsUnknown() {
+		return true
+	}
+	if !t.LocalPort.IsNull() && !t.LocalPort.IsUnknown() {
+		return true
+	}
+	if !t.ReUsePort.IsNull() && !t.ReUsePort.IsUnknown() && t.ReUsePort.ValueBool() {
+		return true
+	}
+	return !t.UseSpecifiedLocalPort.IsNull() && !t.UseSpecifiedLocalPort.IsUnknown() && t.UseSpecifiedLocalPort.ValueBool()
 }
 
 // extractTunnelFromResponse builds a CommonPamSettingsTunnelResourceModel from
@@ -386,7 +435,7 @@ func extractKubernetesFromResponse(
 	}
 
 	if dagDebug != nil && dagDebug.VertexContent != nil {
-		k8s.RotateOnTermination = types.BoolValue(dagDebug.VertexContent.RotateOnTermination)
+		k8s.RotateOnTermination = optionalBoolValue(dagDebug.VertexContent.RotateOnTermination)
 	} else {
 		k8s.RotateOnTermination = types.BoolNull()
 	}
@@ -428,7 +477,7 @@ func extractDatabaseConnectionFromResponse(dbConn *utils.DatabaseConnectionRespo
 	}
 
 	if dagDebug != nil && dagDebug.VertexContent != nil {
-		db.RotateOnTermination = types.BoolValue(dagDebug.VertexContent.RotateOnTermination)
+		db.RotateOnTermination = optionalBoolValue(dagDebug.VertexContent.RotateOnTermination)
 	} else {
 		db.RotateOnTermination = types.BoolNull()
 	}
@@ -466,7 +515,7 @@ func extractMariaDbOracleDatabaseConnectionFromResponse(dbConn *utils.DatabaseCo
 	}
 
 	if dagDebug != nil && dagDebug.VertexContent != nil {
-		db.RotateOnTermination = types.BoolValue(dagDebug.VertexContent.RotateOnTermination)
+		db.RotateOnTermination = optionalBoolValue(dagDebug.VertexContent.RotateOnTermination)
 	} else {
 		db.RotateOnTermination = types.BoolNull()
 	}
@@ -509,7 +558,7 @@ func extractRdpConnectionFromResponse(rdpConn *utils.RdpConnectionResponse, pamE
 	}
 
 	if dagDebug != nil && dagDebug.VertexContent != nil {
-		rdp.RotateOnTermination = types.BoolValue(dagDebug.VertexContent.RotateOnTermination)
+		rdp.RotateOnTermination = optionalBoolValue(dagDebug.VertexContent.RotateOnTermination)
 	} else {
 		rdp.RotateOnTermination = types.BoolNull()
 	}
@@ -876,51 +925,59 @@ func runPamConnectionEditCommand(ctx context.Context, apiManager *api.ApiManager
 
 	switch {
 	case connection.Kubernetes != nil:
-		parts = append(parts, fmt.Sprintf("%s=%s", utils.FlagConnectionsRecording, boolToOnOff(connection.Kubernetes.SessionRecording)))
-		parts = append(parts, fmt.Sprintf("%s=%s", utils.FlagTypescriptRecording, boolToOnOff(connection.Kubernetes.TypescriptRecording)))
-		parts = append(parts, fmt.Sprintf("%s=%s", utils.FlagKeyEvents, boolToOnOff(connection.Kubernetes.RecordingIncludeKeys)))
-		parts = append(parts, fmt.Sprintf("%s=%s", utils.FlagRotateOnTermination, boolToOnOff(connection.Kubernetes.RotateOnTermination)))
+		k := connection.Kubernetes
+		AppendOptionalOnOffFlag(&parts, utils.FlagConnectionsRecording, k.SessionRecording)
+		AppendOptionalOnOffFlag(&parts, utils.FlagTypescriptRecording, k.TypescriptRecording)
+		AppendOptionalOnOffFlag(&parts, utils.FlagKeyEvents, k.RecordingIncludeKeys)
+		AppendOptionalOnOffFlag(&parts, utils.FlagRotateOnTermination, k.RotateOnTermination)
 	case connection.Mysql != nil:
-		parts = append(parts, fmt.Sprintf("%s=%s", utils.FlagConnectionsRecording, boolToOnOff(connection.Mysql.SessionRecording)))
-		parts = append(parts, fmt.Sprintf("%s=%s", utils.FlagTypescriptRecording, boolToOnOff(connection.Mysql.TypescriptRecording)))
-		parts = append(parts, fmt.Sprintf("%s=%s", utils.FlagKeyEvents, boolToOnOff(connection.Mysql.RecordingIncludeKeys)))
-		parts = append(parts, fmt.Sprintf("%s=%s", utils.FlagRotateOnTermination, boolToOnOff(connection.Mysql.RotateOnTermination)))
+		db := connection.Mysql
+		AppendOptionalOnOffFlag(&parts, utils.FlagConnectionsRecording, db.SessionRecording)
+		AppendOptionalOnOffFlag(&parts, utils.FlagTypescriptRecording, db.TypescriptRecording)
+		AppendOptionalOnOffFlag(&parts, utils.FlagKeyEvents, db.RecordingIncludeKeys)
+		AppendOptionalOnOffFlag(&parts, utils.FlagRotateOnTermination, db.RotateOnTermination)
 	case connection.PostgreSql != nil:
-		parts = append(parts, fmt.Sprintf("%s=%s", utils.FlagConnectionsRecording, boolToOnOff(connection.PostgreSql.SessionRecording)))
-		parts = append(parts, fmt.Sprintf("%s=%s", utils.FlagTypescriptRecording, boolToOnOff(connection.PostgreSql.TypescriptRecording)))
-		parts = append(parts, fmt.Sprintf("%s=%s", utils.FlagKeyEvents, boolToOnOff(connection.PostgreSql.RecordingIncludeKeys)))
-		parts = append(parts, fmt.Sprintf("%s=%s", utils.FlagRotateOnTermination, boolToOnOff(connection.PostgreSql.RotateOnTermination)))
+		db := connection.PostgreSql
+		AppendOptionalOnOffFlag(&parts, utils.FlagConnectionsRecording, db.SessionRecording)
+		AppendOptionalOnOffFlag(&parts, utils.FlagTypescriptRecording, db.TypescriptRecording)
+		AppendOptionalOnOffFlag(&parts, utils.FlagKeyEvents, db.RecordingIncludeKeys)
+		AppendOptionalOnOffFlag(&parts, utils.FlagRotateOnTermination, db.RotateOnTermination)
 	case connection.SqlServer != nil:
-		parts = append(parts, fmt.Sprintf("%s=%s", utils.FlagConnectionsRecording, boolToOnOff(connection.SqlServer.SessionRecording)))
-		parts = append(parts, fmt.Sprintf("%s=%s", utils.FlagTypescriptRecording, boolToOnOff(connection.SqlServer.TypescriptRecording)))
-		parts = append(parts, fmt.Sprintf("%s=%s", utils.FlagKeyEvents, boolToOnOff(connection.SqlServer.RecordingIncludeKeys)))
-		parts = append(parts, fmt.Sprintf("%s=%s", utils.FlagRotateOnTermination, boolToOnOff(connection.SqlServer.RotateOnTermination)))
+		db := connection.SqlServer
+		AppendOptionalOnOffFlag(&parts, utils.FlagConnectionsRecording, db.SessionRecording)
+		AppendOptionalOnOffFlag(&parts, utils.FlagTypescriptRecording, db.TypescriptRecording)
+		AppendOptionalOnOffFlag(&parts, utils.FlagKeyEvents, db.RecordingIncludeKeys)
+		AppendOptionalOnOffFlag(&parts, utils.FlagRotateOnTermination, db.RotateOnTermination)
 	case connection.Rdp != nil:
-		parts = append(parts, fmt.Sprintf("%s=%s", utils.FlagConnectionsRecording, boolToOnOff(connection.Rdp.SessionRecording)))
-		parts = append(parts, fmt.Sprintf("%s=%s", utils.FlagKeyEvents, boolToOnOff(connection.Rdp.RecordingIncludeKeys)))
-		parts = append(parts, fmt.Sprintf("%s=%s", utils.FlagRotateOnTermination, boolToOnOff(connection.Rdp.RotateOnTermination)))
+		rdp := connection.Rdp
+		AppendOptionalOnOffFlag(&parts, utils.FlagConnectionsRecording, rdp.SessionRecording)
+		AppendOptionalOnOffFlag(&parts, utils.FlagKeyEvents, rdp.RecordingIncludeKeys)
+		AppendOptionalOnOffFlag(&parts, utils.FlagRotateOnTermination, rdp.RotateOnTermination)
 	case connection.Ssh != nil:
-		parts = append(parts, fmt.Sprintf("%s=%s", utils.FlagConnectionsRecording, boolToOnOff(connection.Ssh.SessionRecording)))
-		parts = append(parts, fmt.Sprintf("%s=%s", utils.FlagTypescriptRecording, boolToOnOff(connection.Ssh.TypescriptRecording)))
-		parts = append(parts, fmt.Sprintf("%s=%s", utils.FlagKeyEvents, boolToOnOff(connection.Ssh.RecordingIncludeKeys)))
-		parts = append(parts, fmt.Sprintf("%s=%s", utils.FlagRotateOnTermination, boolToOnOff(connection.Ssh.RotateOnTermination)))
+		ssh := connection.Ssh
+		AppendOptionalOnOffFlag(&parts, utils.FlagConnectionsRecording, ssh.SessionRecording)
+		AppendOptionalOnOffFlag(&parts, utils.FlagTypescriptRecording, ssh.TypescriptRecording)
+		AppendOptionalOnOffFlag(&parts, utils.FlagKeyEvents, ssh.RecordingIncludeKeys)
+		AppendOptionalOnOffFlag(&parts, utils.FlagRotateOnTermination, ssh.RotateOnTermination)
 	case connection.Telnet != nil:
-		parts = append(parts, fmt.Sprintf("%s=%s", utils.FlagConnectionsRecording, boolToOnOff(connection.Telnet.SessionRecording)))
-		parts = append(parts, fmt.Sprintf("%s=%s", utils.FlagTypescriptRecording, boolToOnOff(connection.Telnet.TypescriptRecording)))
-		parts = append(parts, fmt.Sprintf("%s=%s", utils.FlagKeyEvents, boolToOnOff(connection.Telnet.RecordingIncludeKeys)))
-		parts = append(parts, fmt.Sprintf("%s=%s", utils.FlagRotateOnTermination, boolToOnOff(connection.Telnet.RotateOnTermination)))
+		telnet := connection.Telnet
+		AppendOptionalOnOffFlag(&parts, utils.FlagConnectionsRecording, telnet.SessionRecording)
+		AppendOptionalOnOffFlag(&parts, utils.FlagTypescriptRecording, telnet.TypescriptRecording)
+		AppendOptionalOnOffFlag(&parts, utils.FlagKeyEvents, telnet.RecordingIncludeKeys)
+		AppendOptionalOnOffFlag(&parts, utils.FlagRotateOnTermination, telnet.RotateOnTermination)
 	case connection.Vnc != nil:
-		parts = append(parts, fmt.Sprintf("%s=%s", utils.FlagConnectionsRecording, boolToOnOff(connection.Vnc.SessionRecording)))
-		parts = append(parts, fmt.Sprintf("%s=%s", utils.FlagKeyEvents, boolToOnOff(connection.Vnc.RecordingIncludeKeys)))
-		parts = append(parts, fmt.Sprintf("%s=%s", utils.FlagRotateOnTermination, boolToOnOff(connection.Vnc.RotateOnTermination)))
+		vnc := connection.Vnc
+		AppendOptionalOnOffFlag(&parts, utils.FlagConnectionsRecording, vnc.SessionRecording)
+		AppendOptionalOnOffFlag(&parts, utils.FlagKeyEvents, vnc.RecordingIncludeKeys)
+		AppendOptionalOnOffFlag(&parts, utils.FlagRotateOnTermination, vnc.RotateOnTermination)
 	case connection.MariaDb != nil, connection.Oracle != nil:
 		db := connection.MariaDb
 		if db == nil {
 			db = connection.Oracle
 		}
-		parts = append(parts, fmt.Sprintf("%s=%s", utils.FlagConnectionsRecording, boolToOnOff(db.SessionRecording)))
-		parts = append(parts, fmt.Sprintf("%s=%s", utils.FlagKeyEvents, boolToOnOff(db.RecordingIncludeKeys)))
-		parts = append(parts, fmt.Sprintf("%s=%s", utils.FlagRotateOnTermination, boolToOnOff(db.RotateOnTermination)))
+		AppendOptionalOnOffFlag(&parts, utils.FlagConnectionsRecording, db.SessionRecording)
+		AppendOptionalOnOffFlag(&parts, utils.FlagKeyEvents, db.RecordingIncludeKeys)
+		AppendOptionalOnOffFlag(&parts, utils.FlagRotateOnTermination, db.RotateOnTermination)
 	}
 
 	if !connection.LaunchCredential.IsNull() && !connection.LaunchCredential.IsUnknown() {
@@ -1297,7 +1354,7 @@ func extractSshConnectionFromResponse(sshConn *utils.SshConnectionResponse, pamE
 	}
 
 	if dagDebug != nil && dagDebug.VertexContent != nil {
-		ssh.RotateOnTermination = types.BoolValue(dagDebug.VertexContent.RotateOnTermination)
+		ssh.RotateOnTermination = optionalBoolValue(dagDebug.VertexContent.RotateOnTermination)
 	} else {
 		ssh.RotateOnTermination = types.BoolNull()
 	}
@@ -1396,7 +1453,7 @@ func extractTelnetConnectionFromResponse(telnetConn *utils.TelnetConnectionRespo
 	}
 
 	if dagDebug != nil && dagDebug.VertexContent != nil {
-		telnet.RotateOnTermination = types.BoolValue(dagDebug.VertexContent.RotateOnTermination)
+		telnet.RotateOnTermination = optionalBoolValue(dagDebug.VertexContent.RotateOnTermination)
 	} else {
 		telnet.RotateOnTermination = types.BoolNull()
 	}
@@ -1489,7 +1546,7 @@ func extractVncConnectionFromResponse(vncConn *utils.VncConnectionResponse, pamE
 	}
 
 	if dagDebug != nil && dagDebug.VertexContent != nil {
-		vnc.RotateOnTermination = types.BoolValue(dagDebug.VertexContent.RotateOnTermination)
+		vnc.RotateOnTermination = optionalBoolValue(dagDebug.VertexContent.RotateOnTermination)
 	} else {
 		vnc.RotateOnTermination = types.BoolNull()
 	}
@@ -1596,6 +1653,13 @@ func AppendOptionalCheckboxField(parts *[]string, flag string, v types.Bool) {
 		return
 	}
 	*parts = append(*parts, fmt.Sprintf("'%s=%t'", flag, v.ValueBool()))
+}
+
+func AppendOptionalOnOffFlag(parts *[]string, flag string, v types.Bool) {
+	if v.IsNull() || v.IsUnknown() {
+		return
+	}
+	*parts = append(*parts, fmt.Sprintf("%s=%s", flag, boolToOnOff(v)))
 }
 
 func AppendChangedCheckboxField(parts *[]string, flag string, plan, state types.Bool) {

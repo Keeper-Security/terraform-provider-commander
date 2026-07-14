@@ -35,6 +35,8 @@ const (
 	RotationSettingsDescription         = "Rotation settings for the PAM User record."
 	RotationSettingsMarkdownDescription = "Rotation settings for the PAM User record.\n\n**Required:** `rotation_profile`. **Profile-specific:** `general` requires `configuration` and `resource` (do not set `saas_config`); `iam_user` and `scripts_only` require `configuration` (do not set `resource` or `saas_config`); `saas` requires `configuration` and `saas_config` (do not set `resource`).\n\n**Schedule:** when `enabled` is not `false`, set **exactly one** of `on_demand`, `use_default_rotation_schedule`, `schedule_cron`, or `schedule_json` (required and mutually exclusive). When `enabled` is `false`, do not set schedule fields or `complexity`."
 
+	RotStatusNoRotation = "RRS_NO_ROTATION"
+
 	RotProfileGeneral     = "general"
 	RotProfileIAMUser     = "iam_user"
 	RotProfileScriptsOnly = "scripts_only"

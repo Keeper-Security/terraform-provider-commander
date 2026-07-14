@@ -192,7 +192,6 @@ resource "commander_classic_pam_directory" "tunnel_only" {
 
 ### Required
 
-- `hostname_or_ip` (Attributes) **Hostname or IP address** with an optional administrative port for the PAM directory. (see [below for nested schema](#nestedatt--hostname_or_ip))
 - `title` (String) **Title** of the PAM directory record.
 
 ### Optional
@@ -202,6 +201,7 @@ resource "commander_classic_pam_directory" "tunnel_only" {
 - `directory_type` (String) **Directory type**, used for formatting of messaging. Must be one of: `active_directory`, `openldap`.
 - `domain_name` (String) **Domain managed by the directory**.
 - `folder_location` (String) Folder **UID** or path to store PAM directory record in your Keeper vault. If not provided, the record will be stored in the root path of vault.
+- `hostname_or_ip` (Attributes) **Hostname or IP address** with an optional administrative port for the PAM directory. (see [below for nested schema](#nestedatt--hostname_or_ip))
 - `notes` (String) **Notes** for this PAM directory record.
 - `pam_settings` (Block, Optional) **PAM settings** for the record, including connection, tunnel, and administrative options. (see [below for nested schema](#nestedblock--pam_settings))
 - `provider_group` (String) **Provider Group** for directories hosted in Azure.
@@ -217,13 +217,10 @@ resource "commander_classic_pam_directory" "tunnel_only" {
 <a id="nestedatt--hostname_or_ip"></a>
 ### Nested Schema for `hostname_or_ip`
 
-Required:
-
-- `hostname` (String) **Address of the directory resource**.
-
 Optional:
 
 - `administrative_port` (Number) **Administrative port number** for the PAM directory connection to connect on.
+- `hostname` (String) **Address of the directory resource**.
 
 
 <a id="nestedblock--pam_settings"></a>
@@ -232,7 +229,7 @@ Optional:
 Optional:
 
 - `administrative_credentials` (String) **Linked PAM User credential** used for connection and administrative operations.
-- `allow_supply_host` (Boolean) Whether the PAM record allows supplying a host at connection time.
+- `allow_supply_host` (Boolean) Whether the PAM record allows supplying a host at connection time. When **true**, `hostname_or_ip` must not be set. When **false** or unset, `hostname_or_ip.hostname` is required.
 - `configuration` (String) **Configuration** identifier for the PAM record.
 - `connection` (Block, Optional) **Connection** settings for the PAM record. (see [below for nested schema](#nestedblock--pam_settings--connection))
 - `tunnel` (Block, Optional) **Tunneling** (port-forward) settings for the PAM record. (see [below for nested schema](#nestedblock--pam_settings--tunnel))

@@ -13,34 +13,36 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
-// BuildGrantCommand builds the share-record command that grants/updates the
-// per-user share flags for a classic vault record:
+// BuildGrantCommand builds a share-record grant that turns on only the listed
+// permission flags. Grant is merge/update: flags passed are set to true and
+// existing permissions are left unchanged.
 //
 //	share-record --email '<email>' '<recordUID>' [--share] [--write]
 //
-// When both canShare and canEdit are false (downgrade-to-viewer case) the
-// command explicitly strips the share/write flags while keeping view access:
-//
-//	share-record --email '<email>' '<recordUID>' --action revoke --share --write
-//
-// Use this for emails present in the plan (whether new or with changed
-// permissions). Use BuildRevokeCommand for emails removed from the plan.
+// Pass neither flag for view-only on a new share.
 func BuildGrantCommand(recordUID, email string, canShare, canEdit bool) string {
-	parts := []string{
-		CmdShareRecord,
-		FlagEmail, quote(email),
-		quote(recordUID),
+	parts := shareCommandBase(recordUID, email)
+	if canShare {
+		parts = append(parts, FlagShare)
 	}
-	switch {
-	case !canShare && !canEdit:
-		parts = append(parts, FlagAction, ActionRevoke, FlagShare, FlagWrite)
-	default:
-		if canShare {
-			parts = append(parts, FlagShare)
-		}
-		if canEdit {
-			parts = append(parts, FlagWrite)
-		}
+	if canEdit {
+		parts = append(parts, FlagWrite)
+	}
+	return strings.Join(parts, " ")
+}
+
+// BuildRevokeFlagsCommand strips the listed permission flags while keeping
+// view access. Revoke is selective: only the flags passed are removed.
+//
+//	share-record --email '<email>' '<recordUID>' --action revoke [--share] [--write]
+func BuildRevokeFlagsCommand(recordUID, email string, stripShare, stripEdit bool) string {
+	parts := shareCommandBase(recordUID, email)
+	parts = append(parts, FlagAction, ActionRevoke)
+	if stripShare {
+		parts = append(parts, FlagShare)
+	}
+	if stripEdit {
+		parts = append(parts, FlagWrite)
 	}
 	return strings.Join(parts, " ")
 }
@@ -50,21 +52,60 @@ func BuildGrantCommand(recordUID, email string, canShare, canEdit bool) string {
 //
 //	share-record --email '<email>' '<recordUID>' --action revoke
 func BuildRevokeCommand(recordUID, email string) string {
-	parts := []string{
+	parts := shareCommandBase(recordUID, email)
+	parts = append(parts, FlagAction, ActionRevoke)
+	return strings.Join(parts, " ")
+}
+
+// BuildSharePermissionSyncCommands returns the minimal share-record commands
+// needed to move from state to plan for one email. Grant only adds flags;
+// revoke only removes flags — so both state and plan must be considered.
+func BuildSharePermissionSyncCommands(recordUID, email string, state, plan PermEntry, inState bool) []string {
+	// Permissions already match Terraform state — nothing to send to the API.
+	if inState && state == plan {
+		return nil
+	}
+
+	// User is new in plan: issue a single grant with the desired can_share/can_edit
+	// flags. Omitting both flags gives view-only access.
+	if !inState {
+		return []string{BuildGrantCommand(recordUID, email, plan.CanShare, plan.CanEdit)}
+	}
+
+	var cmds []string
+
+	// Existing user with changed permissions. The share-record CLI does not replace
+	// permissions in one shot: grant only turns flags on, revoke only turns flags off.
+	// Compare state vs plan and revoke any permission that was removed.
+	stripShare := state.CanShare && !plan.CanShare
+	stripEdit := state.CanEdit && !plan.CanEdit
+	if stripShare || stripEdit {
+		cmds = append(cmds, BuildRevokeFlagsCommand(recordUID, email, stripShare, stripEdit))
+	}
+
+	// Then grant any permission that was added in plan but was not in state.
+	addShare := !state.CanShare && plan.CanShare
+	addEdit := !state.CanEdit && plan.CanEdit
+	if addShare || addEdit {
+		cmds = append(cmds, BuildGrantCommand(recordUID, email, addShare, addEdit))
+	}
+	return cmds
+}
+
+func shareCommandBase(recordUID, email string) []string {
+	return []string{
 		CmdShareRecord,
 		FlagEmail, quote(email),
 		quote(recordUID),
-		FlagAction, ActionRevoke,
 	}
-	return strings.Join(parts, " ")
 }
 
 // SyncSharePermissions reconciles plan vs state for the `share` attribute
 // against the API:
 //
-//   - emails in state but not in plan -> revoke
-//   - emails in plan but not in state -> grant
-//   - emails in both, perms changed -> grant (CLI treats grant as upsert)
+//   - emails in state but not in plan -> full revoke
+//   - emails in plan but not in state -> grant desired flags
+//   - emails in both, perms changed -> revoke dropped flags, then grant new ones
 //   - emails in both, perms unchanged -> skip (no API call)
 //
 // recordUID is the classic vault record UID. If planShare or stateShare is
@@ -79,6 +120,7 @@ func SyncSharePermissions(ctx context.Context, apiManager *api.ApiManager, recor
 	planEntries := mapToPermEntries(planShare)
 	stateEntries := mapToPermEntries(stateShare)
 
+	// Revoke permissions for emails that are in state but not in plan.
 	for email := range stateEntries {
 		if _, stillPresent := planEntries[email]; !stillPresent {
 			cmd := BuildRevokeCommand(recordUID, email)
@@ -88,13 +130,20 @@ func SyncSharePermissions(ctx context.Context, apiManager *api.ApiManager, recor
 		}
 	}
 
+	// Apply adds and permission changes for every email still in plan. Users removed
+	// from plan were fully revoked in the loop above.
 	for email, planPerm := range planEntries {
-		if statePerm, inState := stateEntries[email]; inState && statePerm == planPerm {
-			continue
-		}
-		cmd := BuildGrantCommand(recordUID, email, planPerm.CanShare, planPerm.CanEdit)
-		if _, err := apiManager.ExecuteCommand(ctx, cmd, ErrOpShareGrant); err != nil {
-			return err
+		statePerm, inState := stateEntries[email]
+		for _, cmd := range BuildSharePermissionSyncCommands(recordUID, email, statePerm, planPerm, inState) {
+			// Run each generated command. Flag-stripping commands use --action revoke;
+			// grant commands have no --action. Pick the matching error label for logs.
+			errOp := ErrOpShareGrant
+			if strings.Contains(cmd, FlagAction+" "+ActionRevoke) {
+				errOp = ErrOpShareRevoke
+			}
+			if _, err := apiManager.ExecuteCommand(ctx, cmd, errOp); err != nil {
+				return err
+			}
 		}
 	}
 
@@ -145,8 +194,8 @@ func MapResponseToModel(permissions []UserPermissionEntry, m *ShareModel) error 
 	return nil
 }
 
-// permEntry is the internal Go representation of one share map element.
-type permEntry struct {
+// PermEntry is the internal Go representation of one share map element.
+type PermEntry struct {
 	CanShare bool
 	CanEdit  bool
 }
@@ -154,8 +203,8 @@ type permEntry struct {
 // mapToPermEntries converts a types.Map of nested objects into a Go
 // map[email]permEntry. Null/unknown maps and unknown element objects are
 // skipped; null bool attributes default to false.
-func mapToPermEntries(m types.Map) map[string]permEntry {
-	out := map[string]permEntry{}
+func mapToPermEntries(m types.Map) map[string]PermEntry {
+	out := map[string]PermEntry{}
 	if m.IsNull() || m.IsUnknown() {
 		return out
 	}
@@ -165,7 +214,7 @@ func mapToPermEntries(m types.Map) map[string]permEntry {
 			continue
 		}
 		attrs := obj.Attributes()
-		out[email] = permEntry{
+		out[email] = PermEntry{
 			CanShare: attrBool(attrs, AttrCanShare),
 			CanEdit:  attrBool(attrs, AttrCanEdit),
 		}

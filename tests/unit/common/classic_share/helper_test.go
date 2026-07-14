@@ -35,11 +35,51 @@ func TestBuildGrantCommand_GrantsEditOnly(t *testing.T) {
 	}
 }
 
-func TestBuildGrantCommand_DowngradeToViewerStripsShareAndWrite(t *testing.T) {
+func TestBuildGrantCommand_ViewOnlyNewShare(t *testing.T) {
 	got := classic_share.BuildGrantCommand("REC_UID_1", "user@example.com", false, false)
-	want := `share-record --email 'user@example.com' 'REC_UID_1' --action revoke --share --write`
+	want := `share-record --email 'user@example.com' 'REC_UID_1'`
 	if got != want {
 		t.Errorf("BuildGrantCommand =\n  %q\nwant\n  %q", got, want)
+	}
+}
+
+func TestBuildRevokeFlagsCommand_StripsShareAndWrite(t *testing.T) {
+	got := classic_share.BuildRevokeFlagsCommand("REC_UID_1", "user@example.com", true, true)
+	want := `share-record --email 'user@example.com' 'REC_UID_1' --action revoke --share --write`
+	if got != want {
+		t.Errorf("BuildRevokeFlagsCommand =\n  %q\nwant\n  %q", got, want)
+	}
+}
+
+func TestBuildRevokeFlagsCommand_StripsWriteOnly(t *testing.T) {
+	got := classic_share.BuildRevokeFlagsCommand("REC_UID_1", "user@example.com", false, true)
+	want := `share-record --email 'user@example.com' 'REC_UID_1' --action revoke --write`
+	if got != want {
+		t.Errorf("BuildRevokeFlagsCommand =\n  %q\nwant\n  %q", got, want)
+	}
+}
+
+func TestBuildSharePermissionSyncCommands_AddsEditOnlyWhenShareAlreadyGranted(t *testing.T) {
+	cmds := classic_share.BuildSharePermissionSyncCommands(
+		"REC1", "b@x.com",
+		classic_share.PermEntry{CanShare: true, CanEdit: false},
+		classic_share.PermEntry{CanShare: true, CanEdit: true},
+		true,
+	)
+	if len(cmds) != 1 || cmds[0] != `share-record --email 'b@x.com' 'REC1' --write` {
+		t.Fatalf("got %v, want single grant --write", cmds)
+	}
+}
+
+func TestBuildSharePermissionSyncCommands_RevokesShareWhenDowngradingToEditOnly(t *testing.T) {
+	cmds := classic_share.BuildSharePermissionSyncCommands(
+		"REC1", "a@x.com",
+		classic_share.PermEntry{CanShare: true, CanEdit: true},
+		classic_share.PermEntry{CanShare: false, CanEdit: true},
+		true,
+	)
+	if len(cmds) != 1 || cmds[0] != `share-record --email 'a@x.com' 'REC1' --action revoke --share` {
+		t.Fatalf("got %v, want single revoke --share", cmds)
 	}
 }
 

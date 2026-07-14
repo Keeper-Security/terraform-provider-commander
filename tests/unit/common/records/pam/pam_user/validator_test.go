@@ -128,6 +128,28 @@ func TestRotationProfileRequirementsValidator_GeneralRequiresConfigurationAndRes
 	}
 }
 
+func TestRotationProfileRequirementsValidator_AllowsUnknownSameApplyReferences(t *testing.T) {
+	t.Parallel()
+
+	cases := []map[string]attr.Value{
+		generalRotationSettings(map[string]attr.Value{
+			"configuration": types.StringUnknown(),
+			"resource":      types.StringUnknown(),
+		}),
+		rotationSettingsAttrs(map[string]attr.Value{
+			"rotation_profile": types.StringUnknown(),
+			"configuration":    types.StringUnknown(),
+		}),
+	}
+
+	for i, attrs := range cases {
+		resp := validateRotationSettings(t, attrs, commonpamuser.RotationProfileRequirementsValidator())
+		if resp.Diagnostics.HasError() {
+			t.Fatalf("case %d: unknown same-apply references should pass plan validation, got %v", i, resp.Diagnostics)
+		}
+	}
+}
+
 func TestRotationProfileRequirementsValidator_GeneralForbidsSaaSConfig(t *testing.T) {
 	t.Parallel()
 
