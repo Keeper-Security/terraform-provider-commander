@@ -24,6 +24,8 @@
 | `commander_enterprise_node` | Create and manage enterprise nodes (MSP or enterprise account). |
 | `commander_enterprise_user` | Create and manage enterprise users. |
 | `commander_enterprise_role` | Create and manage enterprise roles and policies. |
+| `commander_enterprise_scim` | Create and manage enterprise SCIM configurations for automated provisioning. |
+| `commander_enterprise_scim_push` | Push SCIM data to a Keeper SCIM endpoint in a single step. |
 | `commander_enterprise_team` | Create and manage enterprise teams. |
 | `commander_enterprise_scim` | Create and manage enterprise SCIM configurations for automated provisioning. |
 | `commander_enterprise_push` | Push record data from a JSON file to users' or teams' Keeper vaults. |
@@ -34,6 +36,7 @@
 | Name | Description |
 |------|-------------|
 | `commander_managed_company` | Create and manage managed companies (MSP only). |
+| `commander_shared_folder` | Create and manage shared folders. |
 
 #### Classic Folders
 
@@ -85,6 +88,7 @@
 | `commander_enterprise_node` | Look up an enterprise node by name or ID. |
 | `commander_enterprise_user` | Look up an enterprise user by email or ID. |
 | `commander_enterprise_role` | Look up an enterprise role by name or ID. |
+| `commander_enterprise_scim` | Look up an enterprise SCIM configuration by ID, node, or managed company. |
 | `commander_enterprise_team` | Look up an enterprise team by name or ID. |
 | `commander_enterprise_scim` | Look up an enterprise SCIM configuration by ID, node, or managed company. |
 
@@ -93,6 +97,7 @@
 | Name | Description |
 |------|-------------|
 | `commander_managed_company` | Look up a managed company by name or ID (MSP only). |
+| `commander_shared_folder` | Look up an existing shared folder by UID or name. |
 
 #### Classic Folders
 
