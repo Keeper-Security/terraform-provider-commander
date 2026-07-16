@@ -17,8 +17,17 @@ import (
 	enterpriseteamdatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/enterprise_team"
 	enterpriseuserdatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/enterprise_user"
 	epmpolicydatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/epm_policy"
+	nonsharedfolderdatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/folders/classic_folders/non_shared_folder"
+	classicsharedfolderdatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/folders/classic_folders/shared_folder"
+	newfolderdatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/folders/new_folder"
 	managedcompanydatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/managed_company"
-	sharedfolderdatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/shared_folder"
+	pamconfigurationdatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/pam_configuration"
+	classicpamdatabasedatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/records/classic/pam/pam_database"
+	classicpamdirectorydatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/records/classic/pam/pam_directory"
+	classicpammachinedatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/records/classic/pam/pam_machine"
+	classicpamremotebrowserdatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/records/classic/pam/pam_remote_browser"
+	classicpamuserdatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/records/classic/pam/pam_user"
+	secretsmanagerdatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/secrets_manager"
 	enterprisenode "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/enterprise_node"
 	enterprisepush "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/enterprise_push"
 	enterpriserole "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/enterprise_role"
@@ -27,8 +36,17 @@ import (
 	enterpriseteam "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/enterprise_team"
 	enterpriseuser "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/enterprise_user"
 	epmpolicy "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/epm_policy"
+	nonsharedfolder "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/folders/classic_folders/non_shared_folder"
+	classicsharedfolder "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/folders/classic_folders/shared_folder"
+	newfolder "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/folders/new_folder"
 	managedcompany "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/managed_company"
-	sharedfolder "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/shared_folder"
+	pamconfiguration "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/pam_configuration"
+	classicpamdatabase "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/records/classic/pam/pam_database"
+	classicpamdirectory "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/records/classic/pam/pam_directory"
+	classicpammachine "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/records/classic/pam/pam_machine"
+	classicpamremotebrowser "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/records/classic/pam/pam_remote_browser"
+	classicpamuser "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/records/classic/pam/pam_user"
+	secretsmanager "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/secrets_manager"
 	"github.com/hashicorp/terraform-plugin-framework/action"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/ephemeral"
@@ -181,7 +199,16 @@ func (p *CommanderProvider) Resources(ctx context.Context) []func() resource.Res
 		enterpriseteam.NewEnterpriseTeamResource,
 		enterpriserole.NewEnterpriseRoleResource,
 		enterpriseuser.NewEnterpriseUserResource,
-		sharedfolder.NewSharedFolderResource,
+		pamconfiguration.NewPamConfigurationResource,
+		classicpamremotebrowser.NewPamRemoteBrowserResource,
+		classicpamuser.NewPamUserResource,
+		classicpamdatabase.NewPamDatabaseResource,
+		classicpamdirectory.NewPamDirectoryResource,
+		classicpammachine.NewPamMachineResource,
+		classicsharedfolder.NewClassicSharedFolderResource,
+		newfolder.NewNewFolderResource,
+		secretsmanager.NewSecretsManagerAppResource,
+		nonsharedfolder.NewNonSharedFolderResource,
 	}
 }
 
@@ -198,8 +225,17 @@ func (p *CommanderProvider) DataSources(ctx context.Context) []func() datasource
 		enterprisescimdatasource.NewEnterpriseScimDataSource,
 		enterpriseteamdatasource.NewEnterpriseTeamDataSource,
 		enterpriseuserdatasource.NewEnterpriseUserDataSource,
+		secretsmanagerdatasource.NewSecretsManagerDataSource,
 		epmpolicydatasource.NewEpmPolicyDataSource,
-		sharedfolderdatasource.NewSharedFolderDataSource,
+		classicpamremotebrowserdatasource.NewPamRemoteBrowserDataSource,
+		classicpamuserdatasource.NewPamUserDataSource,
+		pamconfigurationdatasource.NewPamConfigurationDataSource,
+		classicpamdatabasedatasource.NewPamDatabaseDataSource,
+		classicpamdirectorydatasource.NewPamDirectoryDataSource,
+		classicpammachinedatasource.NewPamMachineDataSource,
+		classicsharedfolderdatasource.NewClassicSharedFolderDataSource,
+		newfolderdatasource.NewNewFolderDataSource,
+		nonsharedfolderdatasource.NewNonSharedFolderDataSource,
 	}
 }
 

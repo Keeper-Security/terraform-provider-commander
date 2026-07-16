@@ -18,5 +18,7 @@ import (
 // to ensure the documentation is formatted properly.
 //go:generate terraform fmt -recursive ../examples/
 
-// Generate documentation.
+// Generate documentation templates with Registry subcategories, then render docs.
+//go:generate sh -c "cd .. && go run ./docs/generate_doc_templates.go"
 //go:generate go run github.com/hashicorp/terraform-plugin-docs/cmd/tfplugindocs generate --provider-dir .. -provider-name commander
+//go:generate go run github.com/hashicorp/terraform-plugin-docs/cmd/tfplugindocs validate --provider-dir .. -provider-name commander --allowed-resource-subcategories-file ../docs/subcategories.txt
