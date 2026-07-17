@@ -22,9 +22,11 @@ import (
 	newfolderdatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/folders/new_folder"
 	managedcompanydatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/managed_company"
 	pamconfigurationdatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/pam_configuration"
+	classicbankaccountdatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/records/classic/generic/bank_account"
 	classiccontactdatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/records/classic/generic/contact"
 	classicdatabasedatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/records/classic/generic/database"
 	classiclogindatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/records/classic/generic/login"
+	classicpaymentcarddatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/records/classic/generic/payment_card"
 	classicsaasconfigurationdatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/records/classic/generic/saas_configuration"
 	classicsecurenotedatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/records/classic/generic/secure_note"
 	classicserverdatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/records/classic/generic/server"
@@ -50,9 +52,11 @@ import (
 	newfolder "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/folders/new_folder"
 	managedcompany "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/managed_company"
 	pamconfiguration "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/pam_configuration"
+	classicbankaccount "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/records/classic/generic/bank_account"
 	classiccontact "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/records/classic/generic/contact"
 	classicdatabase "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/records/classic/generic/database"
 	classiclogin "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/records/classic/generic/login"
+	classicpaymentcard "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/records/classic/generic/payment_card"
 	classicsaasconfiguration "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/records/classic/generic/saas_configuration"
 	classicsecurenote "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/records/classic/generic/secure_note"
 	classicserver "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/records/classic/generic/server"
@@ -226,6 +230,8 @@ func (p *CommanderProvider) Resources(ctx context.Context) []func() resource.Res
 		classiclogin.NewLoginResource,
 		classicwifi.NewWifiResource,
 		classiccontact.NewContactResource,
+		classicpaymentcard.NewPaymentCardResource,
+		classicbankaccount.NewBankAccountResource,
 		classicsshkeys.NewSshKeysResource,
 		classicsaasconfiguration.NewSaasConfigurationResource,
 		classicserver.NewServerResource,
@@ -258,6 +264,8 @@ func (p *CommanderProvider) DataSources(ctx context.Context) []func() datasource
 		classicpamuserdatasource.NewPamUserDataSource,
 		classiclogindatasource.NewLoginDataSource,
 		classiccontactdatasource.NewContactDataSource,
+		classicpaymentcarddatasource.NewPaymentCardDataSource,
+		classicbankaccountdatasource.NewBankAccountDataSource,
 		classicwifidatasource.NewWifiDataSource,
 		classicsshkeysdatasource.NewSshKeysDataSource,
 		classicsaasconfigurationdatasource.NewSaasConfigurationDataSource,
