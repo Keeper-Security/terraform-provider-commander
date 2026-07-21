@@ -66,6 +66,20 @@ categories:
       - classic_pam_directory
       - classic_pam_remote_browser
 
+  New (NSF) PAM Records:
+    resources:
+      - new_pam_user
+      - new_pam_machine
+      - new_pam_database
+      - new_pam_directory
+      - new_pam_remote_browser
+    data_sources:
+      - new_pam_user
+      - new_pam_machine
+      - new_pam_database
+      - new_pam_directory
+      - new_pam_remote_browser
+
   Endpoint Privilege Manager (EPM):
     resources:
       - epm_policy

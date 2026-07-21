@@ -27,6 +27,11 @@ import (
 	classicpammachinedatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/records/classic/pam/pam_machine"
 	classicpamremotebrowserdatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/records/classic/pam/pam_remote_browser"
 	classicpamuserdatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/records/classic/pam/pam_user"
+	newpamdatabasedatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/records/new/pam/pam_database"
+	newpamdirectorydatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/records/new/pam/pam_directory"
+	newpammachinedatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/records/new/pam/pam_machine"
+	newpamremotebrowserdatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/records/new/pam/pam_remote_browser"
+	newpamuserdatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/records/new/pam/pam_user"
 	secretsmanagerdatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/secrets_manager"
 	enterprisenode "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/enterprise_node"
 	enterprisepush "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/enterprise_push"
@@ -46,6 +51,11 @@ import (
 	classicpammachine "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/records/classic/pam/pam_machine"
 	classicpamremotebrowser "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/records/classic/pam/pam_remote_browser"
 	classicpamuser "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/records/classic/pam/pam_user"
+	newpamdatabase "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/records/new/pam/pam_database"
+	newpamdirectory "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/records/new/pam/pam_directory"
+	newpammachine "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/records/new/pam/pam_machine"
+	newpamremotebrowser "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/records/new/pam/pam_remote_browser"
+	newpamuser "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/records/new/pam/pam_user"
 	secretsmanager "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/secrets_manager"
 	"github.com/hashicorp/terraform-plugin-framework/action"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
@@ -209,6 +219,11 @@ func (p *CommanderProvider) Resources(ctx context.Context) []func() resource.Res
 		newfolder.NewNewFolderResource,
 		secretsmanager.NewSecretsManagerAppResource,
 		nonsharedfolder.NewNonSharedFolderResource,
+		newpamremotebrowser.NewPamRemoteBrowserResource,
+		newpamuser.NewPamUserResource,
+		newpamdatabase.NewPamDatabaseResource,
+		newpamdirectory.NewPamDirectoryResource,
+		newpammachine.NewPamMachineResource,
 	}
 }
 
@@ -236,6 +251,11 @@ func (p *CommanderProvider) DataSources(ctx context.Context) []func() datasource
 		classicsharedfolderdatasource.NewClassicSharedFolderDataSource,
 		newfolderdatasource.NewNewFolderDataSource,
 		nonsharedfolderdatasource.NewNonSharedFolderDataSource,
+		newpamremotebrowserdatasource.NewPamRemoteBrowserDataSource,
+		newpamuserdatasource.NewPamUserDataSource,
+		newpamdatabasedatasource.NewPamDatabaseDataSource,
+		newpamdirectorydatasource.NewPamDirectoryDataSource,
+		newpammachinedatasource.NewPamMachineDataSource,
 	}
 }
 
