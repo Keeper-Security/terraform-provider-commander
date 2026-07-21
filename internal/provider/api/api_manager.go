@@ -184,6 +184,12 @@ func handleAPIErrorResponse(resp *http.Response) error {
 // normalizeCommandForShell doubles single quotes in the command so the Commander
 // backend can parse it; ” inside single-quoted strings is one literal quote.
 // Replaces every ' with ” so apostrophes in names (e.g. O'Brien) are valid.
+// escapedApostropheUnit is the POSIX single-quote escaping sequence QuoteShellSingle
+// substitutes for each embedded apostrophe (close quote, literal ' via double quotes,
+// reopen quote). A span containing this exact sequence was already correctly quoted
+// upstream and must be passed through as-is rather than reinterpreted below.
+const escapedApostropheUnit = `'"'"'`
+
 func normalizeCommandForShell(command string) string {
 	var b strings.Builder
 	b.Grow(len(command) + 16)
@@ -196,10 +202,19 @@ func normalizeCommandForShell(command string) string {
 			continue
 		}
 		// Start of single-quoted span: find content and closing quote
+		origStart := i
 		start := i + 1
 		end := start
+		preEscaped := false
 		for end < len(command) {
 			if command[end] == '\'' {
+				// Already-escaped apostrophe unit (produced by QuoteShellSingle): not a
+				// closing quote, skip over it and keep scanning for the true end.
+				if end+len(escapedApostropheUnit) <= len(command) && command[end:end+len(escapedApostropheUnit)] == escapedApostropheUnit {
+					preEscaped = true
+					end += len(escapedApostropheUnit)
+					continue
+				}
 				// Closing delimiter if followed by space/punctuation/end; else apostrophe
 				if end+1 >= len(command) || command[end+1] == ' ' || command[end+1] == '\'' ||
 					(command[end+1] < 'a' || command[end+1] > 'z') && (command[end+1] < 'A' || command[end+1] > 'Z') && (command[end+1] < '0' || command[end+1] > '9') {
@@ -207,6 +222,13 @@ func normalizeCommandForShell(command string) string {
 				}
 			}
 			end++
+		}
+		if preEscaped {
+			// The span already contains a valid escaped apostrophe; copying it through
+			// unchanged avoids corrupting it by reprocessing it as a naive raw apostrophe.
+			b.WriteString(command[origStart : end+1])
+			i = end + 1
+			continue
 		}
 		content := command[start:end]
 		hasApostrophe := strings.ContainsRune(content, '\'')

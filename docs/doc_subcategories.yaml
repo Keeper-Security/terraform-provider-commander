@@ -71,6 +71,11 @@ categories:
       - classic_contact
       - classic_payment_card
       - classic_bank_account
+      - classic_membership
+      - classic_health_insurance
+      - classic_driver_license
+      - classic_passport
+      - classic_ssn_card
       - classic_login
       - classic_wifi
       - classic_ssh_keys
@@ -83,6 +88,11 @@ categories:
       - classic_contact
       - classic_payment_card
       - classic_bank_account
+      - classic_membership
+      - classic_health_insurance
+      - classic_driver_license
+      - classic_passport
+      - classic_ssn_card
       - classic_login
       - classic_wifi
       - classic_ssh_keys

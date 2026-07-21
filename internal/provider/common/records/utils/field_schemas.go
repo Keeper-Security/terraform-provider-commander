@@ -437,6 +437,11 @@ func OptionalPinCodeField() schema.StringAttribute {
 	return stringField(true, false, true, false, "PIN code", "PIN code.", "**PIN code**.").resource()
 }
 
+// OptionalAccountNumberField is an optional sensitive account number string attribute.
+func OptionalAccountNumberField() schema.StringAttribute {
+	return stringField(true, false, true, false, "Account number", "Account number.", "**Account number**.").resource()
+}
+
 // OptionalHostnameField is an optional hostname or IP address string attribute.
 func OptionalHostnameField() schema.StringAttribute {
 	return stringField(true, false, false, false, "Hostname", "Hostname or IP address.", "**Hostname** or **IP address**.").resource()
@@ -529,6 +534,11 @@ func ComputedCardholderNameField() dschema.StringAttribute {
 // ComputedPinCodeField is a computed sensitive PIN code string attribute for data sources.
 func ComputedPinCodeField() dschema.StringAttribute {
 	return stringField(false, false, true, true, "", "PIN code.", "**PIN code**.").dataSource()
+}
+
+// ComputedAccountNumberField is a computed sensitive account number string attribute for data sources.
+func ComputedAccountNumberField() dschema.StringAttribute {
+	return stringField(false, false, true, true, "", "Account number.", "**Account number**.").dataSource()
 }
 
 // ComputedAddressRefField is a computed linked record UID string attribute for data sources.

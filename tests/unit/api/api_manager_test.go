@@ -6,12 +6,14 @@ package api_test
 import (
 	"context"
 	"encoding/json"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 	"time"
 
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/api"
+	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/utils"
 )
 
 func TestFlexibleMessage_UnmarshalJSON_String(t *testing.T) {
@@ -90,6 +92,57 @@ func TestSubmitRequest_Success(t *testing.T) {
 	}
 	if !resp.Success {
 		t.Error("expected success true")
+	}
+}
+
+// TestSubmitRequest_NormalizesApostrophesInQuotedFields is a regression test for a bug
+// where normalizeCommandForShell reprocessed spans that utils.QuoteShellSingle had
+// already correctly escaped (close-quote, literal ' via double quotes, reopen-quote),
+// corrupting them into an unbalanced-quote string that the Commander backend rejected
+// with "500 Unexpected error: No closing quotation". It also locks in that
+// normalizeCommandForShell still fixes up naive, unescaped single-quoted spans (as
+// built by other call sites, e.g. fmt.Sprintf("'%s'", value)) that contain a raw
+// apostrophe.
+func TestSubmitRequest_NormalizesApostrophesInQuotedFields(t *testing.T) {
+	var capturedBody map[string]string
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		body, err := io.ReadAll(r.Body)
+		if err != nil {
+			t.Fatalf("failed to read request body: %v", err)
+		}
+		if err := json.Unmarshal(body, &capturedBody); err != nil {
+			t.Fatalf("failed to unmarshal request body: %v", err)
+		}
+		w.WriteHeader(http.StatusAccepted)
+		_, _ = w.Write([]byte(`{"success":true,"request_id":"req-123","status":"queued","message":"ok"}`))
+	}))
+	defer server.Close()
+
+	client := &api.ApiManager{
+		ServiceModeUrl:    server.URL,
+		ServiceModeApiKey: "test-key",
+		HttpClient:        server.Client(),
+	}
+	ctx := context.Background()
+
+	// Title/notes built the same way BuildRecordAdd/FormatFieldAssignment build them
+	// today: via the real (escaping) utils.QuoteShellSingle. A naive fragment (as
+	// produced by other, unrelated call sites that wrap values in raw single quotes
+	// without escaping) is appended to confirm that behavior is unaffected.
+	title := utils.QuoteShellSingle("California Driver's License - John Doe")
+	notes := utils.QuoteShellSingle("Personal driver's license.")
+	rawCommand := "record-add --title " + title + " --record-type driverLicense --notes " + notes +
+		" -f enterprise-role --add 'O'Brien' --node 'root'"
+
+	_, err := client.SubmitRequest(ctx, rawCommand, nil)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	wantCommand := "record-add --title " + title + " --record-type driverLicense --notes " + notes +
+		` -f enterprise-role --add "O'Brien" --node 'root'`
+	if capturedBody["command"] != wantCommand {
+		t.Errorf("normalized command mismatch:\n got:  %s\n want: %s", capturedBody["command"], wantCommand)
 	}
 }
 
