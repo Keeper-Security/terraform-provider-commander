@@ -22,7 +22,9 @@ import (
 	newfolderdatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/folders/new_folder"
 	managedcompanydatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/managed_company"
 	pamconfigurationdatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/pam_configuration"
+	classicaddressdatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/records/classic/generic/address"
 	classicbankaccountdatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/records/classic/generic/bank_account"
+	classicbirthcertificatedatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/records/classic/generic/birth_certificate"
 	classiccontactdatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/records/classic/generic/contact"
 	classicdatabasedatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/records/classic/generic/database"
 	classicdriverlicensedatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/records/classic/generic/driver_license"
@@ -57,7 +59,9 @@ import (
 	newfolder "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/folders/new_folder"
 	managedcompany "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/managed_company"
 	pamconfiguration "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/pam_configuration"
+	classicaddress "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/records/classic/generic/address"
 	classicbankaccount "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/records/classic/generic/bank_account"
+	classicbirthcertificate "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/records/classic/generic/birth_certificate"
 	classiccontact "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/records/classic/generic/contact"
 	classicdatabase "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/records/classic/generic/database"
 	classicdriverlicense "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/records/classic/generic/driver_license"
@@ -240,6 +244,7 @@ func (p *CommanderProvider) Resources(ctx context.Context) []func() resource.Res
 		classiclogin.NewLoginResource,
 		classicwifi.NewWifiResource,
 		classiccontact.NewContactResource,
+		classicaddress.NewAddressResource,
 		classicpaymentcard.NewPaymentCardResource,
 		classicbankaccount.NewBankAccountResource,
 		classicmembership.NewMembershipResource,
@@ -247,6 +252,7 @@ func (p *CommanderProvider) Resources(ctx context.Context) []func() resource.Res
 		classicdriverlicense.NewDriverLicenseResource,
 		classicpassport.NewPassportResource,
 		classicssncard.NewSsnCardResource,
+		classicbirthcertificate.NewBirthCertificateResource,
 		classicsshkeys.NewSshKeysResource,
 		classicsaasconfiguration.NewSaasConfigurationResource,
 		classicserver.NewServerResource,
@@ -279,6 +285,7 @@ func (p *CommanderProvider) DataSources(ctx context.Context) []func() datasource
 		classicpamuserdatasource.NewPamUserDataSource,
 		classiclogindatasource.NewLoginDataSource,
 		classiccontactdatasource.NewContactDataSource,
+		classicaddressdatasource.NewAddressDataSource,
 		classicpaymentcarddatasource.NewPaymentCardDataSource,
 		classicbankaccountdatasource.NewBankAccountDataSource,
 		classicmembershipdatasource.NewMembershipDataSource,
@@ -286,6 +293,7 @@ func (p *CommanderProvider) DataSources(ctx context.Context) []func() datasource
 		classicdriverlicensedatasource.NewDriverLicenseDataSource,
 		classicpassportdatasource.NewPassportDataSource,
 		classicssncarddatasource.NewSsnCardDataSource,
+		classicbirthcertificatedatasource.NewBirthCertificateDataSource,
 		classicwifidatasource.NewWifiDataSource,
 		classicsshkeysdatasource.NewSshKeysDataSource,
 		classicsaasconfigurationdatasource.NewSaasConfigurationDataSource,

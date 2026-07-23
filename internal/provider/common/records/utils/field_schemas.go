@@ -637,6 +637,23 @@ func NameDataSourceNestedSchema() dschema.SingleNestedAttribute {
 	}
 }
 
+// AddressDataSourceNestedSchema is the computed address nested object for data sources.
+func AddressDataSourceNestedSchema() dschema.SingleNestedAttribute {
+	return dschema.SingleNestedAttribute{
+		Computed:            true,
+		Description:         "Physical address.",
+		MarkdownDescription: "Physical address (`address` field).",
+		Attributes: map[string]dschema.Attribute{
+			"street1": stringField(false, false, false, true, "", "Street line 1.", "Street line 1.").dataSource(),
+			"street2": stringField(false, false, false, true, "", "Street line 2.", "Street line 2.").dataSource(),
+			"city":    stringField(false, false, false, true, "", "City.", "City.").dataSource(),
+			"state":   stringField(false, false, false, true, "", "State or province.", "State or province.").dataSource(),
+			"zip":     stringField(false, false, false, true, "", "Postal code.", "Postal code.").dataSource(),
+			"country": stringField(false, false, false, true, "", "ISO 3166-1 alpha-2 country code.", "ISO 3166-1 alpha-2 country code.").dataSource(),
+		},
+	}
+}
+
 // PaymentCardDataSourceNestedSchema is the computed payment card nested object for data sources.
 func PaymentCardDataSourceNestedSchema() dschema.SingleNestedAttribute {
 	return dschema.SingleNestedAttribute{

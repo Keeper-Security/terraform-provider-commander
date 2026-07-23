@@ -192,8 +192,17 @@ type addressJSON struct {
 	Country string `json:"country,omitempty"`
 }
 
-func (a *AddressValue) ToJSON() (string, error) {
+// IsNull reports whether all address sub-fields are unset.
+func (a *AddressValue) IsNull() bool {
 	if a == nil {
+		return true
+	}
+	return StringUnset(a.Street1) && StringUnset(a.Street2) && StringUnset(a.City) &&
+		StringUnset(a.State) && StringUnset(a.Zip) && StringUnset(a.Country)
+}
+
+func (a *AddressValue) ToJSON() (string, error) {
+	if a == nil || a.IsNull() {
 		return "", nil
 	}
 	j := addressJSON{
