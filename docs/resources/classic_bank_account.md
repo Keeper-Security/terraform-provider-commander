@@ -138,3 +138,13 @@ Optional:
 
 - `can_edit` (Boolean) Allow the user to edit this record. Defaults to `false`.
 - `can_share` (Boolean) Allow the user to re-share this record with other users. Defaults to `false`.
+
+## Import
+
+Import is supported using the following syntax:
+
+The [`terraform import` command](https://developer.hashicorp.com/terraform/cli/commands/import) can be used, for example:
+
+```shell
+terraform import commander_classic_bank_account.example <RECORD_UID>
+```

@@ -1,0 +1,1 @@
+terraform import commander_classic_bank_account.example <RECORD_UID>
