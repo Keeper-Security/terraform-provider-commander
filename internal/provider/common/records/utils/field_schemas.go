@@ -422,6 +422,26 @@ func OptionalAddressRefField() schema.StringAttribute {
 	return stringField(true, false, false, false, "Record UID", "Existing address record UID.", "Existing address record **UID**.").resource()
 }
 
+// OptionalCardRefField is an optional linked bankCard record UID string attribute.
+func OptionalCardRefField() schema.StringAttribute {
+	return stringField(true, false, false, false, "Record UID", "Existing payment card record UID.", "Existing payment card **UID**.").resource()
+}
+
+// OptionalCardholderNameField is an optional cardholder name string attribute.
+func OptionalCardholderNameField() schema.StringAttribute {
+	return stringField(true, false, false, false, "Cardholder name", "Cardholder name.", "**Cardholder name**.").resource()
+}
+
+// OptionalPinCodeField is an optional sensitive PIN code string attribute.
+func OptionalPinCodeField() schema.StringAttribute {
+	return stringField(true, false, true, false, "PIN code", "PIN code.", "**PIN code**.").resource()
+}
+
+// OptionalAccountNumberField is an optional sensitive account number string attribute.
+func OptionalAccountNumberField() schema.StringAttribute {
+	return stringField(true, false, true, false, "Account number", "Account number.", "**Account number**.").resource()
+}
+
 // OptionalHostnameField is an optional hostname or IP address string attribute.
 func OptionalHostnameField() schema.StringAttribute {
 	return stringField(true, false, false, false, "Hostname", "Hostname or IP address.", "**Hostname** or **IP address**.").resource()
@@ -506,9 +526,29 @@ func ComputedEmailField() dschema.StringAttribute {
 	return stringField(false, false, false, true, "", "Email address.", "**Email address**.").dataSource()
 }
 
+// ComputedCardholderNameField is a computed cardholder name string attribute for data sources.
+func ComputedCardholderNameField() dschema.StringAttribute {
+	return stringField(false, false, false, true, "", "Cardholder name.", "**Cardholder name**.").dataSource()
+}
+
+// ComputedPinCodeField is a computed sensitive PIN code string attribute for data sources.
+func ComputedPinCodeField() dschema.StringAttribute {
+	return stringField(false, false, true, true, "", "PIN code.", "**PIN code**.").dataSource()
+}
+
+// ComputedAccountNumberField is a computed sensitive account number string attribute for data sources.
+func ComputedAccountNumberField() dschema.StringAttribute {
+	return stringField(false, false, true, true, "", "Account number.", "**Account number**.").dataSource()
+}
+
 // ComputedAddressRefField is a computed linked record UID string attribute for data sources.
 func ComputedAddressRefField() dschema.StringAttribute {
 	return stringField(false, false, false, true, "", "Linked record UID.", "**UID** of a linked record.").dataSource()
+}
+
+// ComputedCardRefField is a computed linked bankCard record UID string attribute for data sources.
+func ComputedCardRefField() dschema.StringAttribute {
+	return stringField(false, false, false, true, "", "Linked payment card record UID.", "**UID** of a linked payment card record.").dataSource()
 }
 
 // ComputedHostnameField is a computed hostname or IP address string attribute for data sources.
@@ -593,6 +633,52 @@ func NameDataSourceNestedSchema() dschema.SingleNestedAttribute {
 			"first":  stringField(false, false, false, true, "First name", "First name.", "**First name**.").dataSource(),
 			"middle": stringField(false, false, false, true, "Middle name", "Middle name.", "**Middle name**.").dataSource(),
 			"last":   stringField(false, false, false, true, "Last name", "Last name.", "**Last name**.").dataSource(),
+		},
+	}
+}
+
+// AddressDataSourceNestedSchema is the computed address nested object for data sources.
+func AddressDataSourceNestedSchema() dschema.SingleNestedAttribute {
+	return dschema.SingleNestedAttribute{
+		Computed:            true,
+		Description:         "Physical address.",
+		MarkdownDescription: "Physical address (`address` field).",
+		Attributes: map[string]dschema.Attribute{
+			"street1": stringField(false, false, false, true, "", "Street line 1.", "Street line 1.").dataSource(),
+			"street2": stringField(false, false, false, true, "", "Street line 2.", "Street line 2.").dataSource(),
+			"city":    stringField(false, false, false, true, "", "City.", "City.").dataSource(),
+			"state":   stringField(false, false, false, true, "", "State or province.", "State or province.").dataSource(),
+			"zip":     stringField(false, false, false, true, "", "Postal code.", "Postal code.").dataSource(),
+			"country": stringField(false, false, false, true, "", "ISO 3166-1 alpha-2 country code.", "ISO 3166-1 alpha-2 country code.").dataSource(),
+		},
+	}
+}
+
+// PaymentCardDataSourceNestedSchema is the computed payment card nested object for data sources.
+func PaymentCardDataSourceNestedSchema() dschema.SingleNestedAttribute {
+	return dschema.SingleNestedAttribute{
+		Computed:            true,
+		Description:         "Payment card details.",
+		MarkdownDescription: "Payment card details (`paymentCard` field).",
+		Attributes: map[string]dschema.Attribute{
+			"card_number":          stringField(false, false, true, true, "", "Card number.", "**Card number**.").dataSource(),
+			"card_expiration_date": stringField(false, false, false, true, "", "Expiration MM/YYYY.", "Expiration `MM/YYYY`.").dataSource(),
+			"card_security_code":   stringField(false, false, true, true, "", "Security code.", "**Security code**.").dataSource(),
+		},
+	}
+}
+
+// BankAccountDataSourceNestedSchema is the computed bank account nested object for data sources.
+func BankAccountDataSourceNestedSchema() dschema.SingleNestedAttribute {
+	return dschema.SingleNestedAttribute{
+		Computed:            true,
+		Description:         "Bank account details.",
+		MarkdownDescription: "Bank account details (`bankAccount` field).",
+		Attributes: map[string]dschema.Attribute{
+			"account_type":   stringField(false, false, false, true, "", "Checking, Savings, or Other.", "**Account type**.").dataSource(),
+			"other_type":     stringField(false, false, false, true, "", "Description when account_type is Other.", "Description when **account_type** is **Other**.").dataSource(),
+			"routing_number": stringField(false, false, false, true, "", "Routing number.", "Routing number.").dataSource(),
+			"account_number": stringField(false, false, true, true, "", "Account number.", "**Account number**.").dataSource(),
 		},
 	}
 }

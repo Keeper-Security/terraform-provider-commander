@@ -192,8 +192,17 @@ type addressJSON struct {
 	Country string `json:"country,omitempty"`
 }
 
-func (a *AddressValue) ToJSON() (string, error) {
+// IsNull reports whether all address sub-fields are unset.
+func (a *AddressValue) IsNull() bool {
 	if a == nil {
+		return true
+	}
+	return StringUnset(a.Street1) && StringUnset(a.Street2) && StringUnset(a.City) &&
+		StringUnset(a.State) && StringUnset(a.Zip) && StringUnset(a.Country)
+}
+
+func (a *AddressValue) ToJSON() (string, error) {
+	if a == nil || a.IsNull() {
 		return "", nil
 	}
 	j := addressJSON{
@@ -344,8 +353,16 @@ type paymentCardJSON struct {
 	CardSecurityCode   string `json:"cardSecurityCode,omitempty"`
 }
 
-func (p *PaymentCardValue) ToJSON() (string, error) {
+// IsNull reports whether all payment card sub-fields are unset.
+func (p *PaymentCardValue) IsNull() bool {
 	if p == nil {
+		return true
+	}
+	return StringUnset(p.CardNumber) && StringUnset(p.CardExpirationDate) && StringUnset(p.CardSecurityCode)
+}
+
+func (p *PaymentCardValue) ToJSON() (string, error) {
+	if p == nil || p.IsNull() {
 		return "", nil
 	}
 	j := paymentCardJSON{
@@ -407,8 +424,16 @@ type bankAccountJSON struct {
 	AccountNumber string `json:"accountNumber,omitempty"`
 }
 
-func (b *BankAccountValue) ToJSON() (string, error) {
+// IsNull reports whether all bank account sub-fields are unset.
+func (b *BankAccountValue) IsNull() bool {
 	if b == nil {
+		return true
+	}
+	return StringUnset(b.AccountType) && StringUnset(b.OtherType) && StringUnset(b.RoutingNumber) && StringUnset(b.AccountNumber)
+}
+
+func (b *BankAccountValue) ToJSON() (string, error) {
+	if b == nil || b.IsNull() {
 		return "", nil
 	}
 	j := bankAccountJSON{
