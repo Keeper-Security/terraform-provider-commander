@@ -19,6 +19,12 @@ func FetchVaultRecord(ctx context.Context, apiManager *api.ApiManager, recordUID
 	return apiManager.ExecuteCommand(ctx, command, utils.ErrSummaryFetchVaultRecordFailed)
 }
 
+// FetchNsfVaultRecord runs `nsf-get <recordUID> --format json --include-dag`.
+func FetchNsfVaultRecord(ctx context.Context, apiManager *api.ApiManager, recordUID string) (*api.RequestResultResponse, error) {
+	command := fmt.Sprintf("%s '%s' %s %s", utils.CmdNsfGet, recordUID, utils.FlagFormatJSON, utils.FlagIncludeDag)
+	return apiManager.ExecuteCommand(ctx, command, utils.ErrSummaryFetchVaultRecordFailed)
+}
+
 // MoveRecordFromSourceToDestination moves a record when plan and state folder paths differ.
 func MoveRecordFromSourceToDestination(ctx context.Context, apiManager *api.ApiManager, recordUID string, planFolderData string, stateFolderData string) error {
 	if planFolderData == stateFolderData {

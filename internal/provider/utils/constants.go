@@ -15,6 +15,7 @@ const (
 	CmdNsfGet            = "nsf-get"
 	CmdNsfRecordAdd      = "nsf-record-add"
 	CmdNsfRecordUpdate   = "nsf-record-update"
+	CmdNsfRecordDelete   = "nsf-rm"
 )
 
 // Commander CLI command flags.

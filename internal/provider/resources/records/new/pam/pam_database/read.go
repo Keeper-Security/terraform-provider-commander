@@ -41,7 +41,7 @@ func (r *PamDatabaseResource) Read(ctx context.Context, req resource.ReadRequest
 		return
 	}
 
-	apiResp, err := commonrecordsutils.FetchVaultRecord(ctx, r.ApiManager, id)
+	apiResp, err := commonrecordsutils.FetchNsfVaultRecord(ctx, r.ApiManager, id)
 	if err != nil {
 		if errors.Is(err, api.ErrResourceNotFound) {
 			resp.State.RemoveResource(ctx)

@@ -70,7 +70,7 @@ func (r *PamDatabaseResource) Update(ctx context.Context, req resource.UpdateReq
 	}
 
 	if plan.PamSettings != nil {
-		if err := commonpamrecords.ApplyDatabasePamSettings(ctx, r.ApiManager, recordUID, plan.PamSettings, state.PamSettings); err != nil {
+		if err := commonpamrecords.ApplyDatabasePamSettings(ctx, r.ApiManager, utils.CmdNsfRecordUpdate, recordUID, plan.PamSettings, state.PamSettings); err != nil {
 			resp.Diagnostics.AddError(utils.ErrSummaryApplyPamSettingsFailed, err.Error())
 			return
 		}

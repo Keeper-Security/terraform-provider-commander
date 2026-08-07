@@ -88,6 +88,56 @@ func TestMapResponseToModel_DropsOwnerAndEmpty(t *testing.T) {
 	}
 }
 
+func TestMapResponseToModel_NSFRecordUsernameShape(t *testing.T) {
+	// NSF record get responses use username (not accessor) for the principal.
+	perms := []new_share.UserPermissionEntry{
+		{Username: "owner@example.com", Role: "owner", Shareable: true, Editable: true},
+		{Username: "viewer1@example.com", Role: "viewer", Shareable: false, Editable: false},
+		{Username: "manager@example.com", Role: "full-manager", Shareable: true, Editable: true},
+		{Username: "", Role: "viewer"},
+	}
+	var m new_share.ShareModel
+	if err := new_share.MapResponseToModel(perms, &m); err != nil {
+		t.Fatalf("MapResponseToModel: %v", err)
+	}
+	if m.Share.IsNull() || m.Share.IsUnknown() {
+		t.Fatalf("expected non-null share map from NSF record username shape, got null/unknown")
+	}
+	got := map[string]string{}
+	for k, v := range m.Share.Elements() {
+		s, ok := v.(types.String)
+		if !ok {
+			t.Fatalf("expected types.String, got %T", v)
+		}
+		got[k] = s.ValueString()
+	}
+	want := map[string]string{
+		"viewer1@example.com": "viewer",
+		"manager@example.com": "full-manager",
+	}
+	if len(got) != len(want) {
+		t.Errorf("got %d entries, want %d (got=%v want=%v)", len(got), len(want), got, want)
+	}
+	for k, v := range want {
+		if got[k] != v {
+			t.Errorf("share[%q] = %q, want %q", k, got[k], v)
+		}
+	}
+}
+
+func TestMapResponseToModel_PrefersAccessorOverUsername(t *testing.T) {
+	perms := []new_share.UserPermissionEntry{
+		{Accessor: "accessor@example.com", Username: "username@example.com", Role: "viewer"},
+	}
+	var m new_share.ShareModel
+	if err := new_share.MapResponseToModel(perms, &m); err != nil {
+		t.Fatalf("MapResponseToModel: %v", err)
+	}
+	if _, ok := m.Share.Elements()["accessor@example.com"]; !ok {
+		t.Errorf("expected key accessor@example.com, got %v", m.Share.Elements())
+	}
+}
+
 func TestMapResponseToModel_EmptyResponseProducesNullMap(t *testing.T) {
 	var m new_share.ShareModel
 	if err := new_share.MapResponseToModel(nil, &m); err != nil {
