@@ -90,6 +90,8 @@ func TestMapResponseToModel_DropsOwnerAndEmpty(t *testing.T) {
 
 func TestMapResponseToModel_NSFRecordUsernameShape(t *testing.T) {
 	// NSF record get responses use username (not accessor) for the principal.
+	// The owner row may use role "owner" and/or owner=true with a non-owner
+	// role such as full-manager (Keeper auto-adds the owner on create).
 	perms := []new_share.UserPermissionEntry{
 		{Username: "owner@example.com", Role: "owner", Shareable: true, Editable: true},
 		{Username: "viewer1@example.com", Role: "viewer", Shareable: false, Editable: false},
@@ -122,6 +124,42 @@ func TestMapResponseToModel_NSFRecordUsernameShape(t *testing.T) {
 		if got[k] != v {
 			t.Errorf("share[%q] = %q, want %q", k, got[k], v)
 		}
+	}
+}
+
+func TestMapResponseToModel_DropsNSFRecordOwnerBoolean(t *testing.T) {
+	// Regression: NSF record owner often arrives as owner=true with role
+	// full-manager (not role=owner). Without filtering owner=true, refresh
+	// puts the owner into share and the next plan tries to revoke them.
+	perms := []new_share.UserPermissionEntry{
+		{Username: "kapil@metronlabs.io", Role: "full-manager", Owner: true, Shareable: true, Editable: true},
+		{Username: "viewer@example.com", Role: "viewer"},
+	}
+	var m new_share.ShareModel
+	if err := new_share.MapResponseToModel(perms, &m); err != nil {
+		t.Fatalf("MapResponseToModel: %v", err)
+	}
+	if m.Share.IsNull() || m.Share.IsUnknown() {
+		t.Fatalf("expected non-null share map, got null/unknown")
+	}
+	if _, ok := m.Share.Elements()["kapil@metronlabs.io"]; ok {
+		t.Errorf("owner entry should be dropped, got %v", m.Share.Elements())
+	}
+	if _, ok := m.Share.Elements()["viewer@example.com"]; !ok {
+		t.Errorf("expected viewer@example.com in share, got %v", m.Share.Elements())
+	}
+}
+
+func TestMapResponseToModel_OnlyOwnerBooleanProducesNullMap(t *testing.T) {
+	perms := []new_share.UserPermissionEntry{
+		{Username: "kapil@metronlabs.io", Role: "full-manager", Owner: true},
+	}
+	var m new_share.ShareModel
+	if err := new_share.MapResponseToModel(perms, &m); err != nil {
+		t.Fatalf("MapResponseToModel: %v", err)
+	}
+	if !m.Share.IsNull() {
+		t.Errorf("expected null share map when only owner=true row is present, got %v", m.Share)
 	}
 }
 
