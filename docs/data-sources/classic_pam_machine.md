@@ -90,7 +90,7 @@ output "pam_machine_share" {
 - `pam_settings` (Attributes) **PAM settings** for the record, including connection, tunnel, and administrative options. (see [below for nested schema](#nestedatt--pam_settings))
 - `provider_group` (String) **Provider group** of the PAM machine.
 - `provider_region` (String) **AWS region** of hosted directory.
-- `share` (Attributes Map) Mapping of share permissions for this record. Each map **key** is a **user email**; each **value** is an object with `can_share` and `can_edit` booleans. (see [below for nested schema](#nestedatt--share))
+- `share` (Attributes Map) Mapping of share permissions for this record. Each map **key** is a **user email**; each **value** is an object with `can_share` and `can_edit` booleans. The owner is implicit and never present in this map; the API rejects owner entries. (see [below for nested schema](#nestedatt--share))
 - `title` (String) **Title** of the PAM machine record.
 
 <a id="nestedatt--hostname_or_ip"></a>

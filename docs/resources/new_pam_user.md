@@ -220,7 +220,7 @@ resource "commander_new_pam_user" "mysql_app_account" {
 **Required:** `rotation_profile`. **Profile-specific:** `general` requires `configuration` and `resource` (do not set `saas_config`); `iam_user` and `scripts_only` require `configuration` (do not set `resource` or `saas_config`); `saas` requires `configuration` and `saas_config` (do not set `resource`).
 
 **Schedule:** when `enabled` is not `false`, set **exactly one** of `on_demand`, `use_default_rotation_schedule`, `schedule_cron`, or `schedule_json` (required and mutually exclusive). When `enabled` is `false`, do not set schedule fields or `complexity`. (see [below for nested schema](#nestedatt--rotation_settings))
-- `share` (Map of String) Mapping of share permissions for this folder or record. For folders, keys can identify either users (**UID** or **email**) or teams (**UID** or **name**). For records, keys can identify users only (**UID** or **email**). Values specify the permission level: `viewer`, `share-manager`, `content-manager`, `content-share-manager`, or `full-manager`. Owner is implicit and never appears in this map.
+- `share` (Map of String) Mapping of share permissions for this folder or record. For folders, keys can identify either users (**UID** or **email**) or teams (**UID** or **name**). For records, keys can identify users only (**UID** or **email**). Values specify the permission level: `viewer`, `share-manager`, `content-manager`, `content-share-manager`, or `full-manager`. The owner is implicit and never present in this map; the API rejects owner entries.
 
 ### Read-Only
 

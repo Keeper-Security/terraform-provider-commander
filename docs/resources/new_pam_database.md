@@ -142,7 +142,7 @@ resource "commander_new_pam_database" "with_pam_settings" {
 - `pam_settings` (Block, Optional) **PAM settings** for the record, including connection, tunnel, and administrative options. (see [below for nested schema](#nestedblock--pam_settings))
 - `provider_group` (String) **Azure or AWS Provider Group**.
 - `provider_region` (String) **Azure or AWS Provider Region**.
-- `share` (Map of String) Mapping of share permissions for this folder or record. For folders, keys can identify either users (**UID** or **email**) or teams (**UID** or **name**). For records, keys can identify users only (**UID** or **email**). Values specify the permission level: `viewer`, `share-manager`, `content-manager`, `content-share-manager`, or `full-manager`. Owner is implicit and never appears in this map.
+- `share` (Map of String) Mapping of share permissions for this folder or record. For folders, keys can identify either users (**UID** or **email**) or teams (**UID** or **name**). For records, keys can identify users only (**UID** or **email**). Values specify the permission level: `viewer`, `share-manager`, `content-manager`, `content-share-manager`, or `full-manager`. The owner is implicit and never present in this map; the API rejects owner entries.
 - `use_ssl` (Boolean) Whether to use **SSL** while connecting to the database resource.
 
 ### Read-Only
