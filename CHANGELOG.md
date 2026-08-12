@@ -1,5 +1,17 @@
 # Changelog
 
+## 1.3.0 (YYYY-MM-DD)
+
+### Added
+
+**Resources**
+
+- **New PAM Records (NSF):** `commander_new_pam_user`, `commander_new_pam_machine`, `commander_new_pam_database`, `commander_new_pam_directory`, `commander_new_pam_remote_browser`
+
+**Data sources**
+
+- **New PAM Records (NSF):** `commander_new_pam_user`, `commander_new_pam_machine`, `commander_new_pam_database`, `commander_new_pam_directory`, `commander_new_pam_remote_browser`
+
 ## 1.2.0 (YYYY-MM-DD)
 
 ### Added

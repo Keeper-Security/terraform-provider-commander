@@ -67,6 +67,16 @@
 | `commander_classic_pam_directory` | Create and manage classic PAM directory records in the vault. |
 | `commander_classic_pam_remote_browser` | Create and manage classic PAM remote browser (RBI) records in the vault. |
 
+#### New PAM Records (NSF)
+
+| Name | Description |
+|------|-------------|
+| `commander_new_pam_user` | Create and manage NSF PAM user records in the vault. |
+| `commander_new_pam_machine` | Create and manage NSF PAM machine records in the vault. |
+| `commander_new_pam_database` | Create and manage NSF PAM database records in the vault. |
+| `commander_new_pam_directory` | Create and manage NSF PAM directory records in the vault. |
+| `commander_new_pam_remote_browser` | Create and manage NSF PAM remote browser (RBI) records in the vault. |
+
 #### Endpoint Privilege Manager (EPM)
 
 | Name | Description |
@@ -127,6 +137,16 @@
 | `commander_classic_pam_database` | Look up a classic PAM database record by record UID. |
 | `commander_classic_pam_directory` | Look up a classic PAM directory record by record UID. |
 | `commander_classic_pam_remote_browser` | Look up a classic PAM remote browser record by record UID. |
+
+#### New PAM Records (NSF)
+
+| Name | Description |
+|------|-------------|
+| `commander_new_pam_user` | Look up a NSF PAM user record by record UID. |
+| `commander_new_pam_machine` | Look up a NSF PAM machine record by record UID. |
+| `commander_new_pam_database` | Look up a NSF PAM database record by record UID. |
+| `commander_new_pam_directory` | Look up a NSF PAM directory record by record UID. |
+| `commander_new_pam_remote_browser` | Look up a NSF PAM remote browser record by record UID. |
 
 #### Endpoint Privilege Manager (EPM)
 
