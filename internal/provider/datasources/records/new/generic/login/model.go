@@ -1,0 +1,18 @@
+// Copyright Keeper Security, Inc. 2026
+// SPDX-License-Identifier: MPL-2.0
+
+package login
+
+import (
+	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/new_share"
+	commonrecordlogin "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/generic/login"
+	"github.com/hashicorp/terraform-plugin-framework/types"
+)
+
+// LoginDataSourceModel adds a lookup key (`login`) to the shared login model.
+// The lookup attribute is named login because login is the username field on the record.
+type LoginDataSourceModel struct {
+	LoginRecord types.String `tfsdk:"login"`
+	commonrecordlogin.LoginModel
+	new_share.ShareModel
+}

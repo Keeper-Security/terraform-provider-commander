@@ -45,6 +45,7 @@ import (
 	classicpammachinedatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/records/classic/pam/pam_machine"
 	classicpamremotebrowserdatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/records/classic/pam/pam_remote_browser"
 	classicpamuserdatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/records/classic/pam/pam_user"
+	newlogindatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/records/new/generic/login"
 	secretsmanagerdatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/secrets_manager"
 	enterprisenode "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/enterprise_node"
 	enterprisepush "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/enterprise_push"
@@ -82,6 +83,7 @@ import (
 	classicpammachine "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/records/classic/pam/pam_machine"
 	classicpamremotebrowser "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/records/classic/pam/pam_remote_browser"
 	classicpamuser "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/records/classic/pam/pam_user"
+	newlogin "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/records/new/generic/login"
 	secretsmanager "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/secrets_manager"
 	"github.com/hashicorp/terraform-plugin-framework/action"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
@@ -242,6 +244,7 @@ func (p *CommanderProvider) Resources(ctx context.Context) []func() resource.Res
 		classicpamdirectory.NewPamDirectoryResource,
 		classicpammachine.NewPamMachineResource,
 		classiclogin.NewLoginResource,
+		newlogin.NewLoginResource,
 		classicwifi.NewWifiResource,
 		classiccontact.NewContactResource,
 		classicaddress.NewAddressResource,
@@ -284,6 +287,7 @@ func (p *CommanderProvider) DataSources(ctx context.Context) []func() datasource
 		classicpamremotebrowserdatasource.NewPamRemoteBrowserDataSource,
 		classicpamuserdatasource.NewPamUserDataSource,
 		classiclogindatasource.NewLoginDataSource,
+		newlogindatasource.NewLoginDataSource,
 		classiccontactdatasource.NewContactDataSource,
 		classicaddressdatasource.NewAddressDataSource,
 		classicpaymentcarddatasource.NewPaymentCardDataSource,

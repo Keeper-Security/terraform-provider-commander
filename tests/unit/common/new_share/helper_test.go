@@ -88,6 +88,45 @@ func TestMapResponseToModel_DropsOwnerAndEmpty(t *testing.T) {
 	}
 }
 
+func TestMapResponseToModel_UsernameFallbackForNSFRecords(t *testing.T) {
+	perms := []new_share.UserPermissionEntry{
+		{Username: "alice@example.com", Role: "viewer"},
+		{Username: "bob@example.com", Role: "full-manager"},
+		{Username: "", Role: "viewer"},                         // dropped: no principal
+		{Accessor: "carol@example.com", Role: "share-manager"}, // accessor preferred
+		{Accessor: "dave@example.com", Username: "dave-uid", Role: "content-manager"},
+	}
+	var m new_share.ShareModel
+	if err := new_share.MapResponseToModel(perms, &m); err != nil {
+		t.Fatalf("MapResponseToModel: %v", err)
+	}
+	if m.Share.IsNull() || m.Share.IsUnknown() {
+		t.Fatalf("expected non-null share map, got null/unknown")
+	}
+	got := map[string]string{}
+	for k, v := range m.Share.Elements() {
+		s, ok := v.(types.String)
+		if !ok {
+			t.Fatalf("expected types.String, got %T", v)
+		}
+		got[k] = s.ValueString()
+	}
+	want := map[string]string{
+		"alice@example.com": "viewer",
+		"bob@example.com":   "full-manager",
+		"carol@example.com": "share-manager",
+		"dave@example.com":  "content-manager",
+	}
+	if len(got) != len(want) {
+		t.Errorf("got %d entries, want %d (got=%v want=%v)", len(got), len(want), got, want)
+	}
+	for k, v := range want {
+		if got[k] != v {
+			t.Errorf("share[%q] = %q, want %q", k, got[k], v)
+		}
+	}
+}
+
 func TestMapResponseToModel_EmptyResponseProducesNullMap(t *testing.T) {
 	var m new_share.ShareModel
 	if err := new_share.MapResponseToModel(nil, &m); err != nil {

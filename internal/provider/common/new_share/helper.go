@@ -100,8 +100,11 @@ func SyncSharePermissions(ctx context.Context, apiManager *api.ApiManager, comma
 
 // MapResponseToModel populates m.Share from the API's user_permissions array.
 // Entries with role == RoleOwner are silently dropped (owner is managed by
-// Keeper and is not tracked in Terraform state). Entries with empty accessor
+// Keeper and is not tracked in Terraform state). Entries with empty principal
 // or empty role are also dropped.
+//
+// Principal key: prefer accessor (NSF folders); fall back to username (NSF
+// records, which often return username+role rather than accessor+role).
 //
 // When the filtered set is empty (e.g. the API returned only the owner row),
 // m.Share is set to null rather than an empty map. The schema's
@@ -117,10 +120,14 @@ func MapResponseToModel(permissions []UserPermissionEntry, m *ShareModel) error 
 		if strings.EqualFold(p.Role, RoleOwner) {
 			continue
 		}
-		if strings.TrimSpace(p.Accessor) == "" || strings.TrimSpace(p.Role) == "" {
+		key := strings.TrimSpace(p.Accessor)
+		if key == "" {
+			key = strings.TrimSpace(p.Username)
+		}
+		if key == "" || strings.TrimSpace(p.Role) == "" {
 			continue
 		}
-		elements[p.Accessor] = types.StringValue(p.Role)
+		elements[key] = types.StringValue(p.Role)
 	}
 	if len(elements) == 0 {
 		m.Share = types.MapNull(types.StringType)
