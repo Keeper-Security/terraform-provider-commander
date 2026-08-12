@@ -67,7 +67,7 @@ output "rbi_share" {
 - `folder_location` (String) Folder **UID** or path to store PAM remote browser record in your Keeper vault. If not provided, the record will be stored in the root path of vault.
 - `id` (String) The PAM remote browser record **UID** assigned by Keeper after create.
 - `notes` (String) Optional **notes** for this PAM remote browser record.
-- `share` (Attributes Map) Mapping of share permissions for this record. Each map **key** is a **user email**; each **value** is an object with `can_share` and `can_edit` booleans. (see [below for nested schema](#nestedatt--share))
+- `share` (Attributes Map) Mapping of share permissions for this record. Each map **key** is a **user email**; each **value** is an object with `can_share` and `can_edit` booleans. The owner is implicit and never present in this map; the API rejects owner entries. (see [below for nested schema](#nestedatt--share))
 - `title` (String) **Title** of the PAM remote browser record.
 - `url` (String) **Target URL** for the PAM remote browser session.
 

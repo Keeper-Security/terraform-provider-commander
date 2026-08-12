@@ -40,7 +40,7 @@ func (d *PamRemoteBrowserDataSource) Read(ctx context.Context, req datasource.Re
 		return
 	}
 
-	apiResp, err := commonrecordsutils.FetchVaultRecord(ctx, d.ApiManager, recordUID)
+	apiResp, err := commonrecordsutils.FetchNsfVaultRecord(ctx, d.ApiManager, recordUID)
 	if err != nil {
 		resp.Diagnostics.AddError(errSummaryReadPamRemoteBrowserDataSource, err.Error())
 		return
