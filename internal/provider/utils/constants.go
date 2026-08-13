@@ -10,7 +10,6 @@ const (
 	CmdRecordDelete      = "rm"
 	CmdGet               = "get"
 	CmdMv                = "mv"
-	CmdShareRecord       = "share-record"
 	CmdPamTunnelEdit     = "pam tunnel edit"
 	CmdPamConnectionEdit = "pam connection edit"
 	CmdNsfGet            = "nsf-get"
