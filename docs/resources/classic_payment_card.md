@@ -79,7 +79,7 @@ resource "commander_classic_payment_card" "full" {
 - `notes` (String) Manage note for the record.
 - `payment_card` (Attributes) Payment card details (`paymentCard` field). (see [below for nested schema](#nestedatt--payment_card))
 - `pin_code` (String, Sensitive) **PIN code**.
-- `share` (Attributes Map) Mapping of share permissions for this record. Each map **key** is a **user email**; each **value** is an object with `can_share` and `can_edit` booleans. (see [below for nested schema](#nestedatt--share))
+- `share` (Attributes Map) Mapping of share permissions for this record. Each map **key** is a **user email**; each **value** is an object with `can_share` and `can_edit` booleans. The owner is implicit and never present in this map; the API rejects owner entries. (see [below for nested schema](#nestedatt--share))
 
 ### Read-Only
 

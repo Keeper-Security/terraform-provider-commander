@@ -6,4 +6,5 @@ Enterprise Management
 KeeperPAM
 MSP Management
 Nested Shared Folders (NSF)
+New (NSF) PAM Records
 Secrets Manager

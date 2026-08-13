@@ -57,4 +57,4 @@ output "new_folder_share" {
 - `id` (String) The folder **ID** assigned by Keeper.
 - `name` (String) **Folder name**.
 - `records` (Set of String) Set of record UIDs linked to this folder.
-- `share` (Map of String) Mapping of share permissions for this folder or record. For folders, keys can identify either users (**UID** or **email**) or teams (**UID** or **name**). For records, keys can identify users only (**UID** or **email**). Values specify the permission level: `viewer`, `share-manager`, `content-manager`, `content-share-manager`, or `full-manager`. Owner is implicit and never appears in this map.
+- `share` (Map of String) Mapping of share permissions for this folder or record. For folders, keys can identify either users (**UID** or **email**) or teams (**UID** or **name**). For records, keys can identify users only (**UID** or **email**). Values specify the permission level: `viewer`, `share-manager`, `content-manager`, `content-share-manager`, or `full-manager`. The owner is implicit and never present in this map; the API rejects owner entries.

@@ -53,7 +53,7 @@ resource "commander_classic_ssh_keys" "example" {
 - `port` (String) **Port** (numeric string) eg: "22".
 - `private_key` (String, Sensitive) **Private key**.
 - `public_key` (String, Sensitive) **Public key**.
-- `share` (Attributes Map) Mapping of share permissions for this record. Each map **key** is a **user email**; each **value** is an object with `can_share` and `can_edit` booleans. (see [below for nested schema](#nestedatt--share))
+- `share` (Attributes Map) Mapping of share permissions for this record. Each map **key** is a **user email**; each **value** is an object with `can_share` and `can_edit` booleans. The owner is implicit and never present in this map; the API rejects owner entries. (see [below for nested schema](#nestedatt--share))
 
 ### Read-Only
 

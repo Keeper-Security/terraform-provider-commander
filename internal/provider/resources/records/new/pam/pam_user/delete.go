@@ -36,7 +36,7 @@ func (r *PamUserResource) Delete(ctx context.Context, req resource.DeleteRequest
 		return
 	}
 
-	command := fmt.Sprintf("%s '%s' %s", utils.CmdRecordDelete, id, utils.FlagForce)
+	command := fmt.Sprintf("%s '%s' %s", utils.CmdNsfRecordDelete, id, utils.FlagForce)
 	if _, err := r.ApiManager.ExecuteCommand(ctx, command, utils.ErrDetailRecordDeleteFailed); err != nil {
 		resp.Diagnostics.AddError(utils.ErrSummaryRecordDeleteFailed, err.Error())
 		return

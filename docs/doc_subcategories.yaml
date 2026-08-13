@@ -10,6 +10,12 @@
 # The generator fails if any registered provider type is missing from this file.
 
 categories:
+  MSP Management:
+    resources:
+      - managed_company
+    data_sources:
+      - managed_company
+
   Enterprise Management:
     resources:
       - enterprise_node
@@ -26,11 +32,23 @@ categories:
       - enterprise_team
       - enterprise_scim
 
-  MSP Management:
+  Endpoint Privilege Manager (EPM):
     resources:
-      - managed_company
+      - epm_policy
     data_sources:
-      - managed_company
+      - epm_policy
+
+  Secrets Manager:
+    resources:
+      - secrets_manager
+    data_sources:
+      - secrets_manager
+
+  KeeperPAM:
+    resources:
+      - pam_configuration
+    data_sources:
+      - pam_configuration
 
   Classic Folders:
     resources:
@@ -46,12 +64,6 @@ categories:
     data_sources:
       - new_folder
 
-  KeeperPAM:
-    resources:
-      - pam_configuration
-    data_sources:
-      - pam_configuration
-
   Classic PAM Records:
     resources:
       - classic_pam_user
@@ -65,6 +77,20 @@ categories:
       - classic_pam_database
       - classic_pam_directory
       - classic_pam_remote_browser
+
+  New (NSF) PAM Records:
+    resources:
+      - new_pam_user
+      - new_pam_machine
+      - new_pam_database
+      - new_pam_directory
+      - new_pam_remote_browser
+    data_sources:
+      - new_pam_user
+      - new_pam_machine
+      - new_pam_database
+      - new_pam_directory
+      - new_pam_remote_browser
 
   Classic Records:
     resources:
@@ -105,15 +131,3 @@ categories:
       - classic_database
       - classic_software_license
       - classic_secure_note
-
-  Endpoint Privilege Manager (EPM):
-    resources:
-      - epm_policy
-    data_sources:
-      - epm_policy
-
-  Secrets Manager:
-    resources:
-      - secrets_manager
-    data_sources:
-      - secrets_manager

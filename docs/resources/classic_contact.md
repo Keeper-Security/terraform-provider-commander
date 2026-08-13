@@ -106,7 +106,7 @@ resource "commander_classic_contact" "full" {
 - `folder_location` (String) Folder `path` or `UID` where the record is to be stored.
 - `notes` (String) Manage note for the record.
 - `phone` (Attributes List) Manage phone numbers for the record. (see [below for nested schema](#nestedatt--phone))
-- `share` (Attributes Map) Mapping of share permissions for this record. Each map **key** is a **user email**; each **value** is an object with `can_share` and `can_edit` booleans. (see [below for nested schema](#nestedatt--share))
+- `share` (Attributes Map) Mapping of share permissions for this record. Each map **key** is a **user email**; each **value** is an object with `can_share` and `can_edit` booleans. The owner is implicit and never present in this map; the API rejects owner entries. (see [below for nested schema](#nestedatt--share))
 
 ### Read-Only
 
