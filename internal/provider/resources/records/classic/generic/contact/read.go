@@ -60,8 +60,8 @@ func (r *ContactResource) Read(ctx context.Context, req resource.ReadRequest, re
 		resp.Diagnostics.AddError(ErrSummaryReadFailed, err.Error())
 		return
 	}
-	if rec.Type != "" && rec.Type != utils.RecordTypeContact {
-		resp.Diagnostics.AddError(ErrSummaryReadFailed, fmt.Sprintf("vault record type is %q, expected %q", rec.Type, utils.RecordTypeContact))
+	if rec.Type != "" && rec.Type != commonrecordsutils.RecordTypeContact {
+		resp.Diagnostics.AddError(ErrSummaryReadFailed, fmt.Sprintf("vault record type is %q, expected %q", rec.Type, commonrecordsutils.RecordTypeContact))
 		return
 	}
 

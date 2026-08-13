@@ -18,12 +18,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
-// quoteShellSingle wraps s for use as a single-quoted shell argument
-// (bash-style escaping of ').
-func quoteShellSingle(s string) string {
-	return `'` + strings.ReplaceAll(s, `'`, `'"'"'`) + `'`
-}
-
 // BuildAddCommand builds a record-add style command for a PAM Remote Browser
 // record. The CLI command (`record-add` or `nsf-record-add`) is provided by
 // the caller. Settings are applied separately via BuildPamRbiEditCommand.
@@ -51,16 +45,16 @@ func BuildAddCommand(cmd string, data PamRemoteBrowserResourceModel) string {
 func BuildUpdateCommand(cmd, recordUID string, plan, state PamRemoteBrowserResourceModel) string {
 	parts := []string{
 		cmd,
-		fmt.Sprintf("%s %s", utils.FlagRecord, quoteShellSingle(recordUID)),
+		fmt.Sprintf("%s %s", utils.FlagRecord, utils.QuoteShellSingle(recordUID)),
 	}
 	if !plan.Title.Equal(state.Title) {
-		parts = append(parts, fmt.Sprintf("%s %s", utils.FlagTitle, quoteShellSingle(plan.Title.ValueString())))
+		parts = append(parts, fmt.Sprintf("%s %s", utils.FlagTitle, utils.QuoteShellSingle(plan.Title.ValueString())))
 	}
 	if !plan.Url.Equal(state.Url) {
 		parts = append(parts, fmt.Sprintf("'%s=%s'", utils.FlagRbiUrl, plan.Url.ValueString()))
 	}
 	if !plan.Notes.Equal(state.Notes) && !plan.Notes.IsNull() && !plan.Notes.IsUnknown() {
-		parts = append(parts, fmt.Sprintf("%s %s", utils.FlagNotes, quoteShellSingle(plan.Notes.ValueString())))
+		parts = append(parts, fmt.Sprintf("%s %s", utils.FlagNotes, utils.QuoteShellSingle(plan.Notes.ValueString())))
 	}
 
 	return strings.Join(parts, " ")
@@ -81,7 +75,7 @@ func RecordUpdateHasMutations(plan, state PamRemoteBrowserResourceModel) bool {
 func BuildPamRbiEditCommand(recordUID string, settings *PamRemoteBrowserSettingsModel) string {
 	parts := []string{
 		CmdPamRbiEdit,
-		fmt.Sprintf("%s %s", FlagRecord, quoteShellSingle(recordUID)),
+		fmt.Sprintf("%s %s", FlagRecord, utils.QuoteShellSingle(recordUID)),
 	}
 	AppendPamRbiEditSettingsFlags(&parts, settings)
 	return strings.Join(parts, " ")
@@ -129,10 +123,10 @@ func appendPamRbiStringFlag(parts *[]string, flag string, v types.String) {
 		return
 	}
 	if v.IsNull() {
-		*parts = append(*parts, fmt.Sprintf("%s %s", flag, quoteShellSingle("")))
+		*parts = append(*parts, fmt.Sprintf("%s %s", flag, utils.QuoteShellSingle("")))
 		return
 	}
-	*parts = append(*parts, fmt.Sprintf("%s %s", flag, quoteShellSingle(v.ValueString())))
+	*parts = append(*parts, fmt.Sprintf("%s %s", flag, utils.QuoteShellSingle(v.ValueString())))
 }
 
 // appendPamRbiBoolOnOff appends `flag on|off`. Null (attribute removed from
@@ -192,7 +186,7 @@ func appendPamRbiRepeatedStringFlags(parts *[]string, flag string, set types.Set
 		return
 	}
 	if set.IsNull() {
-		*parts = append(*parts, fmt.Sprintf("%s %s", flag, quoteShellSingle("")))
+		*parts = append(*parts, fmt.Sprintf("%s %s", flag, utils.QuoteShellSingle("")))
 		return
 	}
 	for _, s := range sortedSetStrings(set) {
@@ -200,7 +194,7 @@ func appendPamRbiRepeatedStringFlags(parts *[]string, flag string, set types.Set
 		if t == "" {
 			continue
 		}
-		*parts = append(*parts, fmt.Sprintf("%s %s", flag, quoteShellSingle(t)))
+		*parts = append(*parts, fmt.Sprintf("%s %s", flag, utils.QuoteShellSingle(t)))
 	}
 }
 

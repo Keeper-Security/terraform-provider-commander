@@ -20,22 +20,18 @@ const (
 
 // Commander CLI command flags.
 const (
-	FlagFormatJSON   = "--format json"
-	FlagForce        = "--force"
-	FlagQuiet        = "-q"
-	FlagTitle        = "--title"
-	FlagNotes        = "--notes"
-	FlagRbiUrl       = "rbiUrl"
-	FlagFolder       = "--folder"
-	FlagRecordType   = "--record-type"
-	FlagRecord       = "--record"
-	FlagIncludeDag   = "--include-dag"
-	FlagVerbose      = "--verbose"
-	FlagEmail        = "--email"
-	FlagShare        = "--share"
-	FlagWrite        = "--write"
-	FlagActionRevoke = "--action revoke"
-	FlagOperation    = "--operation"
+	FlagFormatJSON = "--format json"
+	FlagForce      = "--force"
+	FlagQuiet      = "-q"
+	FlagTitle      = "--title"
+	FlagNotes      = "--notes"
+	FlagRbiUrl     = "rbiUrl"
+	FlagFolder     = "--folder"
+	FlagRecordType = "--record-type"
+	FlagRecord     = "--record"
+	FlagIncludeDag = "--include-dag"
+	FlagVerbose    = "--verbose"
+	FlagOperation  = "--operation"
 )
 
 // PAM tunnel / connection CLI flags.
@@ -69,7 +65,6 @@ const (
 	RecordTypePamMachine       = "pamMachine"
 	RecordTypePamUser          = "pamUser"
 	RecordTypePamRemoteBrowser = "pamRemoteBrowser"
-	RecordTypeContact          = "contact"
 )
 
 // Common schema attribute descriptions.
@@ -92,14 +87,10 @@ const (
 	ErrSummaryApplyPamTunnelSettingsFailed        = "Apply PAM Tunnel Settings Failed"
 	ErrSummaryApplyPamConnectionSettingsFailed    = "Apply PAM Connection Settings Failed"
 	ErrSummaryApplyPamConnectionFieldUpdateFailed = "Apply PAM Connection Field Update Failed"
-	ErrSummaryShareRecordFailed                   = "Share Record Failed"
-	ErrSummaryRevokeShareFailed                   = "Revoke Share Failed"
 )
 
 // Error details operation messages (second argument to ExecuteCommand and AddError; short description for logs).
 const (
-	ErrDetailManagedCompany         = "Cannot update the managed_company field. Once an EPM policy is created, the managed company cannot be changed. Remove and recreate the resource to use a different managed company."
-	ErrDetailRecordDeleteFailed     = "Something went wrong when deleting the record. Check the record UID or title and try again."
-	ErrDetailFetchVaultRecordFailed = "Something went wrong when fetching the record. Check the record UID and try again."
-	ErrDetailMoveRecordFailed       = "Something went wrong when moving the record. Check the source and destination record Path / UIDs and try again."
+	ErrDetailManagedCompany     = "Cannot update the managed_company field. Once an EPM policy is created, the managed company cannot be changed. Remove and recreate the resource to use a different managed company."
+	ErrDetailRecordDeleteFailed = "Something went wrong when deleting the record. Check the record UID or title and try again."
 )
