@@ -4,14 +4,14 @@
 package login
 
 const (
-	SchemaDescription         = "Creates and manages a nested (NSF) Keeper login record in the vault."
-	SchemaMarkdownDescription = "Creates and manages a nested (NSF) Keeper `login` record in the vault via `nsf-record-add` / `nsf-record-update`."
+	SchemaDescription         = "Creates and manages a New (NSF) login record in the vault."
+	SchemaMarkdownDescription = "Creates and manages a New (NSF) `login` record in the vault."
 
-	ErrSummaryCreateFailed = "Login Record Create Failed"
-	ErrSummaryReadFailed   = "Login Record Read Failed"
-	ErrSummaryUpdateFailed = "Login Record Update Failed"
+	ErrSummaryCreateFailed = "New (NSF) Login Record Create Failed"
+	ErrSummaryReadFailed   = "New (NSF) Login Record Read Failed"
+	ErrSummaryUpdateFailed = "New (NSF) Login Record Update Failed"
 
-	ErrDetailCreateFailed = "Something went wrong when creating the Login record."
-	ErrDetailReadFailed   = "Something went wrong when reading the Login record."
-	ErrDetailUpdateFailed = "Something went wrong when updating the Login record."
+	ErrDetailCreateFailed = "Something went wrong when creating the New (NSF) Login record."
+	ErrDetailReadFailed   = "Something went wrong when reading the New (NSF) Login record."
+	ErrDetailUpdateFailed = "Something went wrong when updating the New (NSF) Login record."
 )

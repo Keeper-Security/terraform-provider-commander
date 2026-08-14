@@ -1,7 +1,7 @@
 // Copyright Keeper Security, Inc. 2026
 // SPDX-License-Identifier: MPL-2.0
 
-package login
+package database
 
 import (
 	"context"
@@ -12,8 +12,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 )
 
-func (r *LoginResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-	var state LoginResourceModel
+func (r *DatabaseResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+	var state DatabaseResourceModel
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -24,7 +24,7 @@ func (r *LoginResource) Delete(ctx context.Context, req resource.DeleteRequest, 
 	}
 	id := strings.TrimSpace(state.Id.ValueString())
 	if id == "" {
-		resp.Diagnostics.AddError(utils.ErrSummaryRecordDeleteFailed, "Login record id is empty")
+		resp.Diagnostics.AddError(utils.ErrSummaryRecordDeleteFailed, "Database record id is empty")
 		return
 	}
 	if err := utils.SyncDown(ctx, r.ApiManager); err != nil {

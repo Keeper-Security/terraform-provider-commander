@@ -4,9 +4,9 @@
 package login
 
 const (
-	SchemaDescription         = "Use this data source to look up a nested Keeper login record by title or UID."
-	SchemaMarkdownDescription = "Use this data source to look up a **nested Keeper login** record by **title** or **UID**."
+	SchemaDescription         = "Use this data source to look up a New (NSF) login record by title or UID."
+	SchemaMarkdownDescription = "Use this data source to look up a **New (NSF) login** record by **title** or **UID**."
 
-	ErrSummaryReadFailed          = "Login Data Source Read Failed"
-	ErrSummaryReadLoginDataSource = "Unable to read Login vault record"
+	ErrSummaryReadFailed          = "New (NSF) Login Data Source Read Failed"
+	ErrSummaryReadLoginDataSource = "Unable to read New (NSF) Login vault record"
 )

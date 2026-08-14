@@ -1,7 +1,7 @@
 // Copyright Keeper Security, Inc. 2026
 // SPDX-License-Identifier: MPL-2.0
 
-package login
+package database
 
 import (
 	"context"
@@ -9,14 +9,14 @@ import (
 	"strings"
 
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/new_share"
-	commonrecordlogin "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/generic/login"
+	commonrecorddatabase "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/generic/database"
 	commonrecordsutils "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/utils"
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/utils"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 )
 
-func (d *LoginDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-	var data LoginDataSourceModel
+func (d *DatabaseDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
+	var data DatabaseDataSourceModel
 
 	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
 	if resp.Diagnostics.HasError() {
@@ -28,9 +28,9 @@ func (d *LoginDataSource) Read(ctx context.Context, req datasource.ReadRequest, 
 		return
 	}
 
-	lookup := strings.TrimSpace(data.LoginRecord.ValueString())
+	lookup := strings.TrimSpace(data.Database.ValueString())
 	if lookup == "" {
-		resp.Diagnostics.AddError(ErrSummaryReadFailed, "Login record identifier is empty")
+		resp.Diagnostics.AddError(ErrSummaryReadFailed, "Database record identifier is empty")
 		return
 	}
 
@@ -45,7 +45,7 @@ func (d *LoginDataSource) Read(ctx context.Context, req datasource.ReadRequest, 
 		return
 	}
 	if apiResp == nil || apiResp.Data == nil {
-		resp.Diagnostics.AddError(ErrSummaryReadFailed, fmt.Sprintf("Login record '%s' not found", lookup))
+		resp.Diagnostics.AddError(ErrSummaryReadFailed, fmt.Sprintf("Database record '%s' not found", lookup))
 		return
 	}
 
@@ -54,18 +54,18 @@ func (d *LoginDataSource) Read(ctx context.Context, req datasource.ReadRequest, 
 		resp.Diagnostics.AddError(ErrSummaryReadFailed, err.Error())
 		return
 	}
-	if rec.Type != "" && rec.Type != commonrecordsutils.RecordTypeLogin {
-		resp.Diagnostics.AddError(ErrSummaryReadFailed, fmt.Sprintf("vault record type is %q, expected %q", rec.Type, commonrecordsutils.RecordTypeLogin))
+	if rec.Type != "" && rec.Type != commonrecordsutils.RecordTypeDatabaseCredentials {
+		resp.Diagnostics.AddError(ErrSummaryReadFailed, fmt.Sprintf("vault record type is %q, expected %q", rec.Type, commonrecordsutils.RecordTypeDatabaseCredentials))
 		return
 	}
 
-	resp.Diagnostics.Append(commonrecordlogin.MapVaultRecordGetResponseToLoginModel(&rec, data.FolderLocation, &data.LoginModel)...)
+	resp.Diagnostics.Append(commonrecorddatabase.MapVaultRecordGetResponseToDatabaseModel(&rec, data.FolderLocation, &data.DatabaseModel)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
 	if err := new_share.MapResponseToModel(rec.UserPermissions, &data.ShareModel); err != nil {
-		resp.Diagnostics.AddError(ErrSummaryReadLoginDataSource, err.Error())
+		resp.Diagnostics.AddError(ErrSummaryReadDatabaseDataSource, err.Error())
 		return
 	}
 

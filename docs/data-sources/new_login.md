@@ -3,12 +3,12 @@
 page_title: "commander_new_login Data Source - commander"
 subcategory: "New (NSF) Records"
 description: |-
-  Use this data source to look up a nested Keeper login record by title or UID.
+  Use this data source to look up a New (NSF) login record by title or UID.
 ---
 
 # commander_new_login (Data Source)
 
-Use this data source to look up a **nested Keeper login** record by **title** or **UID**.
+Use this data source to look up a **New (NSF) login** record by **title** or **UID**.
 
 ## Example Usage
 
@@ -54,7 +54,7 @@ output "login_share" {
 
 ### Required
 
-- `login` (String) Login record **title** or **UID** to look up.
+- `login` (String) New (NSF) Login record **title** or **UID** to look up.
 
 ### Read-Only
 

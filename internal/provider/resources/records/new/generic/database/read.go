@@ -1,7 +1,7 @@
 // Copyright Keeper Security, Inc. 2026
 // SPDX-License-Identifier: MPL-2.0
 
-package login
+package database
 
 import (
 	"context"
@@ -11,14 +11,14 @@ import (
 
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/api"
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/new_share"
-	commonrecordlogin "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/generic/login"
+	commonrecorddatabase "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/generic/database"
 	commonrecordsutils "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/utils"
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/utils"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 )
 
-func (r *LoginResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-	var state LoginResourceModel
+func (r *DatabaseResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+	var state DatabaseResourceModel
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -29,7 +29,7 @@ func (r *LoginResource) Read(ctx context.Context, req resource.ReadRequest, resp
 	}
 	id := strings.TrimSpace(state.Id.ValueString())
 	if id == "" {
-		resp.Diagnostics.AddError(ErrSummaryReadFailed, "Login record id is empty")
+		resp.Diagnostics.AddError(ErrSummaryReadFailed, "Database record id is empty")
 		return
 	}
 	if err := utils.SyncDown(ctx, r.ApiManager); err != nil {
@@ -56,12 +56,15 @@ func (r *LoginResource) Read(ctx context.Context, req resource.ReadRequest, resp
 		resp.Diagnostics.AddError(ErrSummaryReadFailed, err.Error())
 		return
 	}
-	if rec.Type != "" && rec.Type != commonrecordsutils.RecordTypeLogin {
-		resp.Diagnostics.AddError(ErrSummaryReadFailed, fmt.Sprintf("vault record type is %q, expected %q", rec.Type, commonrecordsutils.RecordTypeLogin))
+	if rec.Type != "" && rec.Type != commonrecordsutils.RecordTypeDatabaseCredentials {
+		resp.Diagnostics.AddError(ErrSummaryReadFailed, fmt.Sprintf("vault record type is %q, expected %q", rec.Type, commonrecordsutils.RecordTypeDatabaseCredentials))
 		return
 	}
 
-	commonrecordlogin.MapVaultRecordGetResponseToLoginModel(&rec, state.FolderLocation, &state.LoginModel)
+	resp.Diagnostics.Append(commonrecorddatabase.MapVaultRecordGetResponseToDatabaseModel(&rec, state.FolderLocation, &state.DatabaseModel)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 
 	if err := new_share.MapResponseToModel(rec.UserPermissions, &state.ShareModel); err != nil {
 		resp.Diagnostics.AddError(ErrSummaryReadFailed, err.Error())
