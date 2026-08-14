@@ -22,8 +22,6 @@ const (
 
 const (
 	FlagPamListConfig = "--config"
-	FlagFormat        = "--format"
-	FormatJSON        = "json"
 )
 
 // Error summaries (first argument to AddError).

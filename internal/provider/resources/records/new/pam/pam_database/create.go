@@ -48,7 +48,7 @@ func (r *PamDatabaseResource) Create(ctx context.Context, req resource.CreateReq
 	data.Id = types.StringValue(createdRecordUID)
 
 	if data.PamSettings != nil {
-		if err := commonpamrecords.ApplyDatabasePamSettings(ctx, r.ApiManager, createdRecordUID, data.PamSettings, nil); err != nil {
+		if err := commonpamrecords.ApplyDatabasePamSettings(ctx, r.ApiManager, utils.CmdNsfRecordUpdate, createdRecordUID, data.PamSettings, nil); err != nil {
 			resp.Diagnostics.AddError(utils.ErrSummaryApplyPamSettingsFailed, err.Error())
 			return
 		}

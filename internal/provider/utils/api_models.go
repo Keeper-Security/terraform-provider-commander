@@ -321,7 +321,7 @@ type UserPermissionEntry struct {
 	Username   string `json:"username,omitempty"`
 	Shareable  bool   `json:"shareable,omitempty"` // This is for classic records only
 	Editable   bool   `json:"editable,omitempty"`  // This is for classic records only
-	Owner      bool   `json:"owner,omitempty"`     // This is for classic records only
+	Owner      bool   `json:"owner,omitempty"`     // Classic and NSF records mark the owner row with this flag
 }
 
 // ConfigurationAllowedSettingsResponse maps the configuration_allowed_settings object from the API response.

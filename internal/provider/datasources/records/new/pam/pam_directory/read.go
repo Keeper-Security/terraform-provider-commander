@@ -40,7 +40,7 @@ func (d *PamDirectoryDataSource) Read(ctx context.Context, req datasource.ReadRe
 		return
 	}
 
-	apiResp, err := commonrecordsutils.FetchVaultRecord(ctx, d.ApiManager, recordUID)
+	apiResp, err := commonrecordsutils.FetchNsfVaultRecord(ctx, d.ApiManager, recordUID)
 	if err != nil {
 		resp.Diagnostics.AddError(errSummaryReadPamDirectoryDataSource, err.Error())
 		return

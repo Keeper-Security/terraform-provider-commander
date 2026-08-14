@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	commonpamconfiguration "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/pam_configuration"
+	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/utils"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
@@ -20,7 +21,7 @@ func appendFlagString(parts *[]string, flag string, v types.String) {
 	if val == "" {
 		return
 	}
-	*parts = append(*parts, fmt.Sprintf("%s %s", flag, commonpamconfiguration.QuoteShellSingle(val)))
+	*parts = append(*parts, fmt.Sprintf("%s %s", flag, utils.QuoteShellSingle(val)))
 }
 
 func boolToOnOff(b types.Bool) string {
@@ -56,15 +57,15 @@ func sortedSetStrings(set types.Set) []string {
 
 // appendPamConfigBodyFlags appends shared `pam config new|edit` flags (after the subcommand / UID).
 func appendPamConfigBodyFlags(parts *[]string, data *commonpamconfiguration.PamConfigurationResourceModel) {
-	*parts = append(*parts, fmt.Sprintf("%s %s", FlagEnvironment, commonpamconfiguration.QuoteShellSingle(data.Environment.ValueString())))
-	*parts = append(*parts, fmt.Sprintf("%s %s", FlagTitle, commonpamconfiguration.QuoteShellSingle(data.Title.ValueString())))
-	*parts = append(*parts, fmt.Sprintf("%s %s", FlagGateway, commonpamconfiguration.QuoteShellSingle(data.Gateway.ValueString())))
-	*parts = append(*parts, fmt.Sprintf("%s %s", FlagSharedFolder, commonpamconfiguration.QuoteShellSingle(data.ApplicationFolder.ValueString())))
+	*parts = append(*parts, fmt.Sprintf("%s %s", FlagEnvironment, utils.QuoteShellSingle(data.Environment.ValueString())))
+	*parts = append(*parts, fmt.Sprintf("%s %s", FlagTitle, utils.QuoteShellSingle(data.Title.ValueString())))
+	*parts = append(*parts, fmt.Sprintf("%s %s", FlagGateway, utils.QuoteShellSingle(data.Gateway.ValueString())))
+	*parts = append(*parts, fmt.Sprintf("%s %s", FlagSharedFolder, utils.QuoteShellSingle(data.ApplicationFolder.ValueString())))
 
 	appendFlagString(parts, FlagSchedule, data.Schedule)
 
 	for _, pm := range sortedSetStrings(data.PortMapping) {
-		*parts = append(*parts, fmt.Sprintf("%s %s", FlagPortMapping, commonpamconfiguration.QuoteShellSingle(pm)))
+		*parts = append(*parts, fmt.Sprintf("%s %s", FlagPortMapping, utils.QuoteShellSingle(pm)))
 	}
 
 	*parts = append(*parts, fmt.Sprintf("%s %s", FlagConnections, boolToOnOff(data.Connections)))
@@ -101,7 +102,7 @@ func buildPamConfigNewCommand(data *commonpamconfiguration.PamConfigurationResou
 
 // buildPamConfigEditCommand builds `pam config edit '<uid>' ...` from the resource model.
 func buildPamConfigEditCommand(uid string, data *commonpamconfiguration.PamConfigurationResourceModel) string {
-	parts := []string{commonpamconfiguration.CmdPamConfig, commonpamconfiguration.CmdPamEdit, commonpamconfiguration.QuoteShellSingle(strings.TrimSpace(uid))}
+	parts := []string{commonpamconfiguration.CmdPamConfig, commonpamconfiguration.CmdPamEdit, utils.QuoteShellSingle(strings.TrimSpace(uid))}
 	appendPamConfigBodyFlags(&parts, data)
 	return strings.Join(parts, " ")
 }
@@ -122,7 +123,7 @@ func appendAwsFlags(parts *[]string, m *commonpamconfiguration.PamAwsModel) {
 	appendFlagString(parts, FlagAccessKeyId, m.AccessKeyId)
 	appendFlagString(parts, FlagAccessSecretKey, m.AccessSecretKey)
 	for _, r := range sortedSetStrings(m.RegionNames) {
-		*parts = append(*parts, fmt.Sprintf("%s %s", FlagRegionName, commonpamconfiguration.QuoteShellSingle(r)))
+		*parts = append(*parts, fmt.Sprintf("%s %s", FlagRegionName, utils.QuoteShellSingle(r)))
 	}
 }
 
@@ -136,7 +137,7 @@ func appendAzureFlags(parts *[]string, m *commonpamconfiguration.PamAzureModel) 
 	appendFlagString(parts, FlagSubscriptionId, m.SubscriptionId)
 	appendFlagString(parts, FlagTenantId, m.TenantId)
 	for _, rg := range sortedSetStrings(m.ResourceGroups) {
-		*parts = append(*parts, fmt.Sprintf("%s %s", FlagResourceGroup, commonpamconfiguration.QuoteShellSingle(rg)))
+		*parts = append(*parts, fmt.Sprintf("%s %s", FlagResourceGroup, utils.QuoteShellSingle(rg)))
 	}
 }
 
@@ -166,5 +167,5 @@ func appendGcpFlags(parts *[]string, m *commonpamconfiguration.PamGcpModel) {
 
 // buildPamConfigRemoveCommand builds `pam config remove '<uid>'`.
 func buildPamConfigRemoveCommand(uid string) string {
-	return strings.Join([]string{commonpamconfiguration.CmdPamConfig, commonpamconfiguration.CmdPamRemove, commonpamconfiguration.QuoteShellSingle(strings.TrimSpace(uid))}, " ")
+	return strings.Join([]string{commonpamconfiguration.CmdPamConfig, commonpamconfiguration.CmdPamRemove, utils.QuoteShellSingle(strings.TrimSpace(uid))}, " ")
 }
