@@ -47,6 +47,7 @@ import (
 	classicpamuserdatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/records/classic/pam/pam_user"
 	newdatabasedatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/records/new/generic/database"
 	newlogindatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/records/new/generic/login"
+	newsaasconfigurationdatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/records/new/generic/saas_configuration"
 	newpamdatabasedatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/records/new/pam/pam_database"
 	newpamdirectorydatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/records/new/pam/pam_directory"
 	newpammachinedatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/records/new/pam/pam_machine"
@@ -91,6 +92,7 @@ import (
 	classicpamuser "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/records/classic/pam/pam_user"
 	newdatabase "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/records/new/generic/database"
 	newlogin "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/records/new/generic/login"
+	newsaasconfiguration "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/records/new/generic/saas_configuration"
 	newpamdatabase "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/records/new/pam/pam_database"
 	newpamdirectory "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/records/new/pam/pam_directory"
 	newpammachine "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/records/new/pam/pam_machine"
@@ -284,6 +286,7 @@ func (p *CommanderProvider) Resources(ctx context.Context) []func() resource.Res
 		newpamdatabase.NewPamDatabaseResource,
 		newpamdirectory.NewPamDirectoryResource,
 		newpammachine.NewPamMachineResource,
+		newsaasconfiguration.NewSaasConfigurationResource,
 	}
 }
 
@@ -336,6 +339,7 @@ func (p *CommanderProvider) DataSources(ctx context.Context) []func() datasource
 		newpamdatabasedatasource.NewPamDatabaseDataSource,
 		newpamdirectorydatasource.NewPamDirectoryDataSource,
 		newpammachinedatasource.NewPamMachineDataSource,
+		newsaasconfigurationdatasource.NewSaasConfigurationDataSource,
 	}
 }
 
