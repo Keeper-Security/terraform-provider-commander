@@ -46,7 +46,7 @@ func (r *WifiResource) Update(ctx context.Context, req resource.UpdateRequest, r
 	}
 
 	if commonrecordwifi.UpdateHasMutations(plan.WifiModel, state.WifiModel) {
-		cmd := commonrecordwifi.BuildUpdateCommand(utils.CmdRecordUpdate, uid, plan.WifiModel, state.WifiModel)
+		cmd := commonrecordwifi.BuildUpdateCommand(utils.CmdNsfRecordUpdate, uid, plan.WifiModel, state.WifiModel)
 		if _, err := r.ApiManager.ExecuteCommand(ctx, cmd, ErrDetailUpdateFailed); err != nil {
 			resp.Diagnostics.AddError(ErrSummaryUpdateFailed, err.Error())
 			return

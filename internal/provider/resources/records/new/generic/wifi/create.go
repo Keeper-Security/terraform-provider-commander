@@ -7,7 +7,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/classic_share"
+	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/new_share"
 	commonrecordwifi "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/generic/wifi"
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/utils"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -29,21 +29,25 @@ func (r *WifiResource) Create(ctx context.Context, req resource.CreateRequest, r
 		return
 	}
 
-	cmd := commonrecordwifi.BuildAddCommand(utils.CmdRecordAdd, data.WifiModel)
+	cmd := commonrecordwifi.BuildAddCommand(utils.CmdNsfRecordAdd, data.WifiModel)
 	apiResp, err := r.ApiManager.ExecuteCommand(ctx, cmd, ErrDetailCreateFailed)
 	if err != nil {
 		resp.Diagnostics.AddError(ErrSummaryCreateFailed, err.Error())
 		return
 	}
 
-	createdUID, ok := apiResp.Data.(map[string]interface{})["record_uid"].(string)
-	if !ok {
-		resp.Diagnostics.AddError(ErrSummaryCreateFailed, fmt.Sprintf("Failed to extract record_uid from response: %v", apiResp.Data))
+	// nsf-record-add returns the new record UID in Message (same as other NSF resources).
+	createdUID := string(apiResp.Message)
+	if createdUID == "" {
+		resp.Diagnostics.AddError(
+			ErrSummaryCreateFailed,
+			fmt.Sprintf("Failed to extract record UID from response. API response: %v", apiResp),
+		)
 		return
 	}
 	data.Id = types.StringValue(createdUID)
 
-	if err := classic_share.SyncSharePermissions(ctx, r.ApiManager, createdUID, data.Share, types.MapNull(classic_share.ShareEntryAttrType)); err != nil {
+	if err := new_share.SyncSharePermissions(ctx, r.ApiManager, new_share.CmdNsfShareRecord, createdUID, data.Share, types.MapNull(new_share.ShareEntryAttrType)); err != nil {
 		resp.Diagnostics.AddError(ErrSummaryCreateFailed, err.Error())
 		return
 	}
