@@ -967,3 +967,8 @@ func MergeDataSourceAttributes(maps ...map[string]dschema.Attribute) map[string]
 	}
 	return result
 }
+
+// QuoteShellSingle wraps s for use as a single-quoted shell argument (bash-style escaping of ').
+func QuoteShellSingle(s string) string {
+	return `'` + strings.ReplaceAll(s, `'`, `'"'"'`) + `'`
+}

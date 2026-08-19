@@ -6,10 +6,12 @@
 
 **Resources**
 
+- **Classic Records:** `commander_classic_login`, `commander_classic_wifi`, `commander_classic_contact`, `commander_classic_address`, `commander_classic_payment_card`, `commander_classic_bank_account`, `commander_classic_membership`, `commander_classic_health_insurance`, `commander_classic_driver_license`, `commander_classic_passport`, `commander_classic_ssn_card`, `commander_classic_birth_certificate`, `commander_classic_ssh_keys`, `commander_classic_saas_configuration`, `commander_classic_server`, `commander_classic_database`, `commander_classic_software_license`, `commander_classic_secure_note`
 - **New PAM Records (NSF):** `commander_new_pam_user`, `commander_new_pam_machine`, `commander_new_pam_database`, `commander_new_pam_directory`, `commander_new_pam_remote_browser`
 
 **Data sources**
 
+- **Classic Records:** `commander_classic_login`, `commander_classic_wifi`, `commander_classic_contact`, `commander_classic_address`, `commander_classic_payment_card`, `commander_classic_bank_account`, `commander_classic_membership`, `commander_classic_health_insurance`, `commander_classic_driver_license`, `commander_classic_passport`, `commander_classic_ssn_card`, `commander_classic_birth_certificate`, `commander_classic_ssh_keys`, `commander_classic_saas_configuration`, `commander_classic_server`, `commander_classic_database`, `commander_classic_software_license`, `commander_classic_secure_note`
 - **New PAM Records (NSF):** `commander_new_pam_user`, `commander_new_pam_machine`, `commander_new_pam_database`, `commander_new_pam_directory`, `commander_new_pam_remote_browser`
 
 ## 1.2.0 (YYYY-MM-DD)

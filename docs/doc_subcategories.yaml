@@ -10,6 +10,12 @@
 # The generator fails if any registered provider type is missing from this file.
 
 categories:
+  MSP Management:
+    resources:
+      - managed_company
+    data_sources:
+      - managed_company
+
   Enterprise Management:
     resources:
       - enterprise_node
@@ -26,11 +32,23 @@ categories:
       - enterprise_team
       - enterprise_scim
 
-  MSP Management:
+  Endpoint Privilege Manager (EPM):
     resources:
-      - managed_company
+      - epm_policy
     data_sources:
-      - managed_company
+      - epm_policy
+
+  Secrets Manager:
+    resources:
+      - secrets_manager
+    data_sources:
+      - secrets_manager
+
+  KeeperPAM:
+    resources:
+      - pam_configuration
+    data_sources:
+      - pam_configuration
 
   Classic Folders:
     resources:
@@ -45,12 +63,6 @@ categories:
       - new_folder
     data_sources:
       - new_folder
-
-  KeeperPAM:
-    resources:
-      - pam_configuration
-    data_sources:
-      - pam_configuration
 
   Classic PAM Records:
     resources:
@@ -80,14 +92,42 @@ categories:
       - new_pam_directory
       - new_pam_remote_browser
 
-  Endpoint Privilege Manager (EPM):
+  Classic Records:
     resources:
-      - epm_policy
+      - classic_contact
+      - classic_address
+      - classic_payment_card
+      - classic_bank_account
+      - classic_membership
+      - classic_health_insurance
+      - classic_driver_license
+      - classic_passport
+      - classic_ssn_card
+      - classic_birth_certificate
+      - classic_login
+      - classic_wifi
+      - classic_ssh_keys
+      - classic_saas_configuration
+      - classic_server
+      - classic_database
+      - classic_software_license
+      - classic_secure_note
     data_sources:
-      - epm_policy
-
-  Secrets Manager:
-    resources:
-      - secrets_manager
-    data_sources:
-      - secrets_manager
+      - classic_contact
+      - classic_address
+      - classic_payment_card
+      - classic_bank_account
+      - classic_membership
+      - classic_health_insurance
+      - classic_driver_license
+      - classic_passport
+      - classic_ssn_card
+      - classic_birth_certificate
+      - classic_login
+      - classic_wifi
+      - classic_ssh_keys
+      - classic_saas_configuration
+      - classic_server
+      - classic_database
+      - classic_software_license
+      - classic_secure_note

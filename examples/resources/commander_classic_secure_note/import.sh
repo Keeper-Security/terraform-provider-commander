@@ -1,0 +1,1 @@
+terraform import commander_classic_secure_note.example _REPLACE_WITH_RECORD_UID_

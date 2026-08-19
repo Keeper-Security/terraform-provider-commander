@@ -14,11 +14,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
-// quoteShellSingle wraps s for use as a single-quoted shell argument.
-func quoteShellSingle(s string) string {
-	return `'` + strings.ReplaceAll(s, `'`, `'"'"'`) + `'`
-}
-
 // BuildAddCommand builds a record-add style command for a PAM User record.
 // The CLI command (`record-add` or `nsf-record-add`) is provided by the caller.
 //
@@ -31,15 +26,15 @@ func BuildAddCommand(cmd string, data PamUserSharedModel) string {
 	parts := []string{cmd}
 
 	if !data.FolderLocation.IsNull() && !data.FolderLocation.IsUnknown() {
-		parts = append(parts, fmt.Sprintf("%s %s", utils.FlagFolder, quoteShellSingle(data.FolderLocation.ValueString())))
+		parts = append(parts, fmt.Sprintf("%s %s", utils.FlagFolder, utils.QuoteShellSingle(data.FolderLocation.ValueString())))
 	}
 
-	parts = append(parts, fmt.Sprintf("%s %s", utils.FlagTitle, quoteShellSingle(data.Title.ValueString())))
+	parts = append(parts, fmt.Sprintf("%s %s", utils.FlagTitle, utils.QuoteShellSingle(data.Title.ValueString())))
 
 	parts = append(parts, fmt.Sprintf("%s %s", utils.FlagRecordType, utils.RecordTypePamUser))
 
 	if !data.Login.IsNull() && !data.Login.IsUnknown() {
-		parts = append(parts, fmt.Sprintf("%s=%s", FieldLogin, quoteShellSingle(data.Login.ValueString())))
+		parts = append(parts, fmt.Sprintf("%s=%s", FieldLogin, utils.QuoteShellSingle(data.Login.ValueString())))
 	}
 
 	commonpamrecords.AppendOptionalTextField(&parts, FieldPassword, data.Password)
@@ -51,7 +46,7 @@ func BuildAddCommand(cmd string, data PamUserSharedModel) string {
 	commonpamrecords.AppendOptionalCheckboxField(&parts, FieldManaged, data.Managed)
 
 	if !data.Notes.IsNull() && !data.Notes.IsUnknown() {
-		parts = append(parts, fmt.Sprintf("%s %s", utils.FlagNotes, quoteShellSingle(data.Notes.ValueString())))
+		parts = append(parts, fmt.Sprintf("%s %s", utils.FlagNotes, utils.QuoteShellSingle(data.Notes.ValueString())))
 	}
 
 	return strings.Join(parts, " ")
@@ -81,15 +76,15 @@ func UpdateHasMutations(plan, state PamUserSharedModel) bool {
 func BuildUpdateCommand(cmd, recordUID string, plan, state PamUserSharedModel) string {
 	parts := []string{
 		cmd,
-		fmt.Sprintf("%s %s", utils.FlagRecord, quoteShellSingle(recordUID)),
+		fmt.Sprintf("%s %s", utils.FlagRecord, utils.QuoteShellSingle(recordUID)),
 	}
 
 	if !plan.Title.Equal(state.Title) {
-		parts = append(parts, fmt.Sprintf("%s %s", utils.FlagTitle, quoteShellSingle(plan.Title.ValueString())))
+		parts = append(parts, fmt.Sprintf("%s %s", utils.FlagTitle, utils.QuoteShellSingle(plan.Title.ValueString())))
 	}
 
 	if !plan.Login.Equal(state.Login) {
-		parts = append(parts, fmt.Sprintf("%s=%s", FieldLogin, quoteShellSingle(plan.Login.ValueString())))
+		parts = append(parts, fmt.Sprintf("%s=%s", FieldLogin, utils.QuoteShellSingle(plan.Login.ValueString())))
 	}
 
 	if !plan.Password.Equal(state.Password) {
@@ -97,7 +92,7 @@ func BuildUpdateCommand(cmd, recordUID string, plan, state PamUserSharedModel) s
 		if plan.Password.IsNull() || plan.Password.IsUnknown() {
 			parts = append(parts, fmt.Sprintf("'%s='", FieldPassword))
 		} else {
-			parts = append(parts, fmt.Sprintf("'%s=%s'", FieldPassword, quoteShellSingle(plan.Password.ValueString())))
+			parts = append(parts, fmt.Sprintf("'%s=%s'", FieldPassword, utils.QuoteShellSingle(plan.Password.ValueString())))
 		}
 	}
 
@@ -191,7 +186,7 @@ func firstBoolValue(raw json.RawMessage) types.Bool {
 func BuildPamRotationEditCommand(recordUID string, rs *PamUserRotationSettings) string {
 	parts := []string{
 		CmdPamRotationEdit,
-		fmt.Sprintf("%s %s", FlagRecordShort, quoteShellSingle(recordUID)),
+		fmt.Sprintf("%s %s", FlagRecordShort, utils.QuoteShellSingle(recordUID)),
 	}
 
 	if !rs.RotationProfile.IsNull() && !rs.RotationProfile.IsUnknown() {
@@ -205,15 +200,15 @@ func BuildPamRotationEditCommand(recordUID string, rs *PamUserRotationSettings) 
 		if rs.RotationProfile.ValueString() == RotProfileIAMUser {
 			flagToUse = FlagIamAadConfig
 		}
-		parts = append(parts, fmt.Sprintf("%s %s", flagToUse, quoteShellSingle(rs.Configuration.ValueString())))
+		parts = append(parts, fmt.Sprintf("%s %s", flagToUse, utils.QuoteShellSingle(rs.Configuration.ValueString())))
 	}
 
 	if !rs.Resource.IsNull() && !rs.Resource.IsUnknown() {
-		parts = append(parts, fmt.Sprintf("%s %s", FlagResource, quoteShellSingle(rs.Resource.ValueString())))
+		parts = append(parts, fmt.Sprintf("%s %s", FlagResource, utils.QuoteShellSingle(rs.Resource.ValueString())))
 	}
 
 	if !rs.SaaSConfig.IsNull() && !rs.SaaSConfig.IsUnknown() {
-		parts = append(parts, fmt.Sprintf("%s %s", FlagSaaSConfig, quoteShellSingle(rs.SaaSConfig.ValueString())))
+		parts = append(parts, fmt.Sprintf("%s %s", FlagSaaSConfig, utils.QuoteShellSingle(rs.SaaSConfig.ValueString())))
 	}
 
 	if !rs.Enabled.IsNull() && !rs.Enabled.IsUnknown() {
@@ -229,13 +224,13 @@ func BuildPamRotationEditCommand(recordUID string, rs *PamUserRotationSettings) 
 	} else if !rs.UseDefaultRotationSchedule.IsNull() && !rs.UseDefaultRotationSchedule.IsUnknown() && rs.UseDefaultRotationSchedule.ValueBool() {
 		parts = append(parts, FlagScheduleConfig)
 	} else if !rs.ScheduleCron.IsNull() && !rs.ScheduleCron.IsUnknown() {
-		parts = append(parts, fmt.Sprintf("%s %s", FlagScheduleCron, quoteShellSingle(rs.ScheduleCron.ValueString())))
+		parts = append(parts, fmt.Sprintf("%s %s", FlagScheduleCron, utils.QuoteShellSingle(rs.ScheduleCron.ValueString())))
 	} else if !rs.ScheduleJSON.IsNull() && !rs.ScheduleJSON.IsUnknown() {
-		parts = append(parts, fmt.Sprintf("%s %s", FlagScheduleJSON, quoteShellSingle(rs.ScheduleJSON.ValueString())))
+		parts = append(parts, fmt.Sprintf("%s %s", FlagScheduleJSON, utils.QuoteShellSingle(rs.ScheduleJSON.ValueString())))
 	}
 
 	if !rs.Complexity.IsNull() && !rs.Complexity.IsUnknown() {
-		parts = append(parts, fmt.Sprintf("%s %s", FlagComplexity, quoteShellSingle(rs.Complexity.ValueString())))
+		parts = append(parts, fmt.Sprintf("%s %s", FlagComplexity, utils.QuoteShellSingle(rs.Complexity.ValueString())))
 	}
 
 	parts = append(parts, FlagForce)

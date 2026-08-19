@@ -19,24 +19,96 @@
 
 #### Enterprise Management
 
-| Name | Description |
-|------|-------------|
-| `commander_enterprise_node` | Create and manage enterprise nodes (MSP or enterprise account). |
-| `commander_enterprise_user` | Create and manage enterprise users. |
-| `commander_enterprise_role` | Create and manage enterprise roles and policies. |
-| `commander_enterprise_scim` | Create and manage enterprise SCIM configurations for automated provisioning. |
-| `commander_enterprise_scim_push` | Push SCIM data to a Keeper SCIM endpoint in a single step. |
-| `commander_enterprise_team` | Create and manage enterprise teams. |
-| `commander_enterprise_scim` | Create and manage enterprise SCIM configurations for automated provisioning. |
-| `commander_enterprise_push` | Push record data from a JSON file to users' or teams' Keeper vaults. |
-| `commander_enterprise_scim_push` | Push SCIM data to a Keeper SCIM endpoint in a single step. |
+| Name                             | Description                                                                  |
+| -------------------------------- | ---------------------------------------------------------------------------- |
+| `commander_enterprise_node`      | Create and manage enterprise nodes (MSP or enterprise account).              |
+| `commander_enterprise_user`      | Create and manage enterprise users.                                          |
+| `commander_enterprise_role`      | Create and manage enterprise roles and policies.                             |
+| `commander_enterprise_team`      | Create and manage enterprise teams.                                          |
+| `commander_enterprise_scim`      | Create and manage enterprise SCIM configurations for automated provisioning. |
+| `commander_enterprise_push`      | Push record data from a JSON file to users' or teams' Keeper vaults.         |
+| `commander_enterprise_scim_push` | Push SCIM data to a Keeper SCIM endpoint in a single step.                   |
 
 #### MSP Management
 
-| Name | Description |
-|------|-------------|
+| Name                        | Description                                     |
+| --------------------------- | ----------------------------------------------- |
 | `commander_managed_company` | Create and manage managed companies (MSP only). |
-| `commander_shared_folder` | Create and manage shared folders. |
+| `commander_shared_folder`   | Create and manage shared folders.               |
+
+#### Classic Folders
+
+| Name                          | Description                                 |
+| ----------------------------- | ------------------------------------------- |
+| `commander_non_shared_folder` | Create and manage non-shared vault folders. |
+| `commander_shared_folder`     | Create and manage classic shared folders.   |
+
+#### Nested Shared Folders (NSF)
+
+| Name                   | Description                              |
+| ---------------------- | ---------------------------------------- |
+| `commander_new_folder` | Create and manage nested shared folders. |
+
+#### KeeperPAM
+
+| Name                          | Description                                  |
+| ----------------------------- | -------------------------------------------- |
+| `commander_pam_configuration` | Create and manage Keeper PAM configurations. |
+
+#### Endpoint Privilege Manager (EPM)
+
+| Name                   | Description                                                  |
+| ---------------------- | ------------------------------------------------------------ |
+| `commander_epm_policy` | Create and manage EPM (Endpoint Policy Management) policies. |
+
+#### Secrets Manager
+
+| Name                        | Description                                            |
+| --------------------------- | ------------------------------------------------------ |
+| `commander_secrets_manager` | Create and manage Keeper Secrets Manager applications. |
+
+#### Classic PAM Records
+
+| Name                                   | Description                                                              |
+| -------------------------------------- | ------------------------------------------------------------------------ |
+| `commander_classic_pam_user`           | Create and manage classic PAM user records in the vault.                 |
+| `commander_classic_pam_machine`        | Create and manage classic PAM machine records in the vault.              |
+| `commander_classic_pam_database`       | Create and manage classic PAM database records in the vault.             |
+| `commander_classic_pam_directory`      | Create and manage classic PAM directory records in the vault.            |
+| `commander_classic_pam_remote_browser` | Create and manage classic PAM remote browser (RBI) records in the vault. |
+
+#### New PAM Records (NSF)
+
+| Name                               | Description                                                          |
+| ---------------------------------- | -------------------------------------------------------------------- |
+| `commander_new_pam_user`           | Create and manage NSF PAM user records in the vault.                 |
+| `commander_new_pam_machine`        | Create and manage NSF PAM machine records in the vault.              |
+| `commander_new_pam_database`       | Create and manage NSF PAM database records in the vault.             |
+| `commander_new_pam_directory`      | Create and manage NSF PAM directory records in the vault.            |
+| `commander_new_pam_remote_browser` | Create and manage NSF PAM remote browser (RBI) records in the vault. |
+
+#### Classic Records
+
+| Name                                   | Description                                                          |
+| -------------------------------------- | -------------------------------------------------------------------- |
+| `commander_classic_login`              | Create and manage classic login records in the vault.                |
+| `commander_classic_wifi`               | Create and manage classic WiFi credentials records in the vault.     |
+| `commander_classic_contact`            | Create and manage classic contact records in the vault.              |
+| `commander_classic_address`            | Create and manage classic address records in the vault.              |
+| `commander_classic_payment_card`       | Create and manage classic payment card records in the vault.         |
+| `commander_classic_bank_account`       | Create and manage classic bank account records in the vault.         |
+| `commander_classic_membership`         | Create and manage classic membership records in the vault.           |
+| `commander_classic_health_insurance`   | Create and manage classic health insurance records in the vault.     |
+| `commander_classic_driver_license`     | Create and manage classic driver's license records in the vault.     |
+| `commander_classic_passport`           | Create and manage classic passport records in the vault.             |
+| `commander_classic_ssn_card`           | Create and manage classic identity (SSN) card records in the vault.  |
+| `commander_classic_birth_certificate`  | Create and manage classic birth certificate records in the vault.    |
+| `commander_classic_ssh_keys`           | Create and manage classic SSH keys records in the vault.             |
+| `commander_classic_saas_configuration` | Create and manage classic SaaS configuration records in the vault.   |
+| `commander_classic_server`             | Create and manage classic server credentials records in the vault.   |
+| `commander_classic_database`           | Create and manage classic database credentials records in the vault. |
+| `commander_classic_software_license`   | Create and manage classic software license records in the vault.     |
+| `commander_classic_secure_note`        | Create and manage classic secure note records in the vault.          |
 
 #### Classic Folders
 
@@ -93,21 +165,94 @@
 
 #### Enterprise Management
 
-| Name | Description |
-|------|-------------|
-| `commander_enterprise_node` | Look up an enterprise node by name or ID. |
-| `commander_enterprise_user` | Look up an enterprise user by email or ID. |
-| `commander_enterprise_role` | Look up an enterprise role by name or ID. |
-| `commander_enterprise_scim` | Look up an enterprise SCIM configuration by ID, node, or managed company. |
-| `commander_enterprise_team` | Look up an enterprise team by name or ID. |
+| Name                        | Description                                                               |
+| --------------------------- | ------------------------------------------------------------------------- |
+| `commander_enterprise_node` | Look up an enterprise node by name or ID.                                 |
+| `commander_enterprise_user` | Look up an enterprise user by email or ID.                                |
+| `commander_enterprise_role` | Look up an enterprise role by name or ID.                                 |
+| `commander_enterprise_team` | Look up an enterprise team by name or ID.                                 |
 | `commander_enterprise_scim` | Look up an enterprise SCIM configuration by ID, node, or managed company. |
 
 #### MSP Management
 
-| Name | Description |
-|------|-------------|
+| Name                        | Description                                         |
+| --------------------------- | --------------------------------------------------- |
 | `commander_managed_company` | Look up a managed company by name or ID (MSP only). |
-| `commander_shared_folder` | Look up an existing shared folder by UID or name. |
+| `commander_shared_folder`   | Look up an existing shared folder by UID or name.   |
+
+#### Classic Folders
+
+| Name                          | Description                             |
+| ----------------------------- | --------------------------------------- |
+| `commander_non_shared_folder` | Look up a non-shared folder by UID.     |
+| `commander_shared_folder`     | Look up a classic shared folder by UID. |
+
+#### Nested Shared Folders (NSF)
+
+| Name                   | Description                            |
+| ---------------------- | -------------------------------------- |
+| `commander_new_folder` | Look up a nested shared folder by UID. |
+
+#### KeeperPAM
+
+| Name                          | Description                         |
+| ----------------------------- | ----------------------------------- |
+| `commander_pam_configuration` | Look up a PAM configuration by UID. |
+
+#### Endpoint Privilege Manager (EPM)
+
+| Name                   | Description                                      |
+| ---------------------- | ------------------------------------------------ |
+| `commander_epm_policy` | Look up an existing EPM policy by its policy ID. |
+
+#### Secrets Manager
+
+| Name                        | Description                                           |
+| --------------------------- | ----------------------------------------------------- |
+| `commander_secrets_manager` | Look up a Secrets Manager application by name or UID. |
+
+#### Classic PAM Records
+
+| Name                                   | Description                                                |
+| -------------------------------------- | ---------------------------------------------------------- |
+| `commander_classic_pam_user`           | Look up a classic PAM user record by record UID.           |
+| `commander_classic_pam_machine`        | Look up a classic PAM machine record by record UID.        |
+| `commander_classic_pam_database`       | Look up a classic PAM database record by record UID.       |
+| `commander_classic_pam_directory`      | Look up a classic PAM directory record by record UID.      |
+| `commander_classic_pam_remote_browser` | Look up a classic PAM remote browser record by record UID. |
+
+#### New PAM Records (NSF)
+
+| Name                               | Description                                            |
+| ---------------------------------- | ------------------------------------------------------ |
+| `commander_new_pam_user`           | Look up a NSF PAM user record by record UID.           |
+| `commander_new_pam_machine`        | Look up a NSF PAM machine record by record UID.        |
+| `commander_new_pam_database`       | Look up a NSF PAM database record by record UID.       |
+| `commander_new_pam_directory`      | Look up a NSF PAM directory record by record UID.      |
+| `commander_new_pam_remote_browser` | Look up a NSF PAM remote browser record by record UID. |
+
+#### Classic Records
+
+| Name                                   | Description                                                  |
+| -------------------------------------- | ------------------------------------------------------------ |
+| `commander_classic_login`              | Look up a classic login record by record UID.                |
+| `commander_classic_wifi`               | Look up a classic WiFi credentials record by record UID.     |
+| `commander_classic_contact`            | Look up a classic contact record by record UID.              |
+| `commander_classic_address`            | Look up a classic address record by record UID.              |
+| `commander_classic_payment_card`       | Look up a classic payment card record by record UID.         |
+| `commander_classic_bank_account`       | Look up a classic bank account record by record UID.         |
+| `commander_classic_membership`         | Look up a classic membership record by record UID.           |
+| `commander_classic_health_insurance`   | Look up a classic health insurance record by record UID.     |
+| `commander_classic_driver_license`     | Look up a classic driver's license record by record UID.     |
+| `commander_classic_passport`           | Look up a classic passport record by record UID.             |
+| `commander_classic_ssn_card`           | Look up a classic identity (SSN) card record by record UID.  |
+| `commander_classic_birth_certificate`  | Look up a classic birth certificate record by record UID.    |
+| `commander_classic_ssh_keys`           | Look up a classic SSH keys record by record UID.             |
+| `commander_classic_saas_configuration` | Look up a classic SaaS configuration record by record UID.   |
+| `commander_classic_server`             | Look up a classic server credentials record by record UID.   |
+| `commander_classic_database`           | Look up a classic database credentials record by record UID. |
+| `commander_classic_software_license`   | Look up a classic software license record by record UID.     |
+| `commander_classic_secure_note`        | Look up a classic secure note record by record UID.          |
 
 #### Classic Folders
 
@@ -176,9 +321,9 @@ Commander Service Mode can run directly in the CLI, in the background on a local
 
 Note the following Important Items:
 
-1) The Request Queue System (API v2) must be enabled, e.g. `-q=y`
+1. The Request Queue System (API v2) must be enabled, e.g. `-q=y`
 
-2) Make sure the following commands are in the list:
+2. Make sure the following commands are in the list:
 
 ```
 this-device,sync-down,switch-to-mc,switch-to-msp,msp-add,msp-down,msp-info,msp-remove,msp-update,enterprise-info,enterprise-node,enterprise-user,enterprise-role,enterprise-team,enterprise-down,enterprise-push,team-approve,record-add,record-update,rm,get,list,record-type-info,share-folder,rmdir,rndir,mkdir,epm,scim,mv,pam,secrets-manager,ln,share-record,nsf-mkdir,nsf-get,nsf-rmdir,nsf-record-add,nsf-record-update,nsf-rm,nsf-rmdir,nsf-rndir,nsf-share-folder,nsf-share-record,nsf-ln
@@ -186,12 +331,13 @@ this-device,sync-down,switch-to-mc,switch-to-msp,msp-add,msp-down,msp-info,msp-r
 
 > If you encounter a 429 Too Many Requests error due to rate limiting, you can configure rate-limit for your service mode using the `-rl` or `--ratelimit flag`.
 >
->This allows you to configure the allowed number of requests per endpoint per IP address, for example:
+> This allows you to configure the allowed number of requests per endpoint per IP address, for example:
+>
 > - `1000/minute`
 > - `100000/hour`
 > - `2000000/day`
-> 
->Adjust these limits based on your expected traffic and system capacity.
+>
+> Adjust these limits based on your expected traffic and system capacity.
 
 After service creation, the API key will be displayed in the console output. Make sure to copy and store it securely. If you are using Docker, you can pull the API key from the logs with this command:
 
@@ -212,10 +358,10 @@ If the tunnel is running and the API key is correct, you should get a response l
 
 ```json
 {
-    "success": true,
-    "request_id": "550e8400-e29b-41d4-a716-446655440000",
-    "status": "queued",
-    "message": "Request queued successfully..."
+  "success": true,
+  "request_id": "550e8400-e29b-41d4-a716-446655440000",
+  "status": "queued",
+  "message": "Request queued successfully..."
 }
 ```
 
