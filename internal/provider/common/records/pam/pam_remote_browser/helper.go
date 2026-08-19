@@ -28,8 +28,8 @@ func BuildAddCommand(cmd string, data PamRemoteBrowserResourceModel) string {
 	parts = append(parts, fmt.Sprintf("%s '%s'", utils.FlagTitle, data.Title.ValueString()))
 	parts = append(parts, fmt.Sprintf("'%s=%s'", utils.FlagRbiUrl, data.Url.ValueString()))
 
-	if !data.FolderLocation.IsNull() {
-		parts = append(parts, fmt.Sprintf("%s '%s'", utils.FlagFolder, data.FolderLocation.ValueString()))
+	if !data.FolderLocation.IsNull() && !data.FolderLocation.IsUnknown() && strings.TrimSpace(data.FolderLocation.ValueString()) != "" {
+		parts = append(parts, fmt.Sprintf("%s '%s'", utils.FlagFolder, strings.TrimSpace(data.FolderLocation.ValueString())))
 	}
 
 	if !data.Notes.IsNull() {

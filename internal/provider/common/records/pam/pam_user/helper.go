@@ -25,8 +25,8 @@ import (
 func BuildAddCommand(cmd string, data PamUserSharedModel) string {
 	parts := []string{cmd}
 
-	if !data.FolderLocation.IsNull() && !data.FolderLocation.IsUnknown() {
-		parts = append(parts, fmt.Sprintf("%s %s", utils.FlagFolder, utils.QuoteShellSingle(data.FolderLocation.ValueString())))
+	if !data.FolderLocation.IsNull() && !data.FolderLocation.IsUnknown() && strings.TrimSpace(data.FolderLocation.ValueString()) != "" {
+		parts = append(parts, fmt.Sprintf("%s %s", utils.FlagFolder, utils.QuoteShellSingle(strings.TrimSpace(data.FolderLocation.ValueString()))))
 	}
 
 	parts = append(parts, fmt.Sprintf("%s %s", utils.FlagTitle, utils.QuoteShellSingle(data.Title.ValueString())))
