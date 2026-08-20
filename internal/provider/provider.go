@@ -48,6 +48,7 @@ import (
 	newdatabasedatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/records/new/generic/database"
 	newlogindatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/records/new/generic/login"
 	newsaasconfigurationdatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/records/new/generic/saas_configuration"
+	newserverdatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/records/new/generic/server"
 	newwifidatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/records/new/generic/wifi"
 	newpamdatabasedatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/records/new/pam/pam_database"
 	newpamdirectorydatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/records/new/pam/pam_directory"
@@ -94,6 +95,7 @@ import (
 	newdatabase "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/records/new/generic/database"
 	newlogin "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/records/new/generic/login"
 	newsaasconfiguration "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/records/new/generic/saas_configuration"
+	newserver "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/records/new/generic/server"
 	newwifi "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/records/new/generic/wifi"
 	newpamdatabase "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/records/new/pam/pam_database"
 	newpamdirectory "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/records/new/pam/pam_directory"
@@ -290,6 +292,7 @@ func (p *CommanderProvider) Resources(ctx context.Context) []func() resource.Res
 		newpammachine.NewPamMachineResource,
 		newsaasconfiguration.NewSaasConfigurationResource,
 		newwifi.NewWifiResource,
+		newserver.NewServerResource,
 	}
 }
 
@@ -344,6 +347,7 @@ func (p *CommanderProvider) DataSources(ctx context.Context) []func() datasource
 		newpammachinedatasource.NewPamMachineDataSource,
 		newsaasconfigurationdatasource.NewSaasConfigurationDataSource,
 		newwifidatasource.NewWifiDataSource,
+		newserverdatasource.NewServerDataSource,
 	}
 }
 

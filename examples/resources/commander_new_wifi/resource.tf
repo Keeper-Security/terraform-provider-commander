@@ -46,7 +46,7 @@ resource "commander_new_wifi" "home" {
 
   share = {
     "alice@example.com" = "full-manager"
-    
+
   }
 }
 
