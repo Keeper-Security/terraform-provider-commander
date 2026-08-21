@@ -150,7 +150,7 @@ categories:
       - new_saas_configuration
       - new_server
       - new_database
-      # - new_software_license
+      - new_software_license
       # - new_secure_note
     data_sources:
       # - new_contact
@@ -169,5 +169,5 @@ categories:
       - new_saas_configuration
       - new_server
       - new_database
-      # - new_software_license
+      - new_software_license
       # - new_secure_note

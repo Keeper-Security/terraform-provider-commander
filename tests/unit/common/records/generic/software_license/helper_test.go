@@ -46,7 +46,7 @@ func TestBuildAddCommand_IncludesSoftwareLicenseFields(t *testing.T) {
 	}
 }
 
-func TestMapVaultRecordGetResponseToSoftwareLicenseModel(t *testing.T) {
+func TestMapVaultRecordGetResponseToSoftwareLicenseModel_ClassicEpochMillis(t *testing.T) {
 	t.Parallel()
 
 	rec := &utils.VaultRecordGetResponse{
@@ -71,5 +71,34 @@ func TestMapVaultRecordGetResponseToSoftwareLicenseModel(t *testing.T) {
 	}
 	if state.DateActive.ValueString() != "2026-07-09" {
 		t.Fatalf("date_active = %q, want 2026-07-09", state.DateActive.ValueString())
+	}
+}
+
+func TestMapVaultRecordGetResponseToSoftwareLicenseModel_NSFDateStrings(t *testing.T) {
+	t.Parallel()
+
+	// NSF get responses return expirationDate / dateActive as YYYY-MM-DD strings.
+	rec := &utils.VaultRecordGetResponse{
+		RecordUID: "nsf-software-license-uid",
+		Title:     "NSF software license",
+		Type:      "softwareLicense",
+		Fields: []utils.VaultRecordFieldResponse{
+			{Type: "licenseNumber", Value: json.RawMessage(`["NSF-KEY-123"]`)},
+			{Type: "expirationDate", Value: json.RawMessage(`["2027-12-31"]`)},
+			{Type: "date", Label: "dateActive", Value: json.RawMessage(`["2026-01-15"]`)},
+		},
+	}
+
+	var state commonrecordsoftwarelicense.SoftwareLicenseModel
+	commonrecordsoftwarelicense.MapVaultRecordGetResponseToSoftwareLicenseModel(rec, types.StringNull(), &state)
+
+	if state.SoftwareLicenseKey.ValueString() != "NSF-KEY-123" {
+		t.Fatalf("software_license_key = %q", state.SoftwareLicenseKey.ValueString())
+	}
+	if state.ExpirationDate.ValueString() != "2027-12-31" {
+		t.Fatalf("expiration_date = %q, want 2027-12-31", state.ExpirationDate.ValueString())
+	}
+	if state.DateActive.ValueString() != "2026-01-15" {
+		t.Fatalf("date_active = %q, want 2026-01-15", state.DateActive.ValueString())
 	}
 }

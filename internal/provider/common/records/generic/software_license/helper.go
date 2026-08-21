@@ -66,11 +66,13 @@ func BuildUpdateCommand(cmd string, recordUID string, plan, state SoftwareLicens
 }
 
 // MapVaultRecordGetResponseToSoftwareLicenseModel fills state from a `get <uid> --format json` payload.
+// ExpirationDate and DateActive use DateOrEpochMillisField* so NSF YYYY-MM-DD strings and
+// classic epoch-ms values both map to YYYY-MM-DD without changing EpochMillisField itself.
 func MapVaultRecordGetResponseToSoftwareLicenseModel(rec *utils.VaultRecordGetResponse, stateFolder types.String, m *SoftwareLicenseModel) diag.Diagnostics {
 	commonrecordsutils.MapBaseVaultRecord(rec, stateFolder, &m.BaseVaultRecordModel)
 	m.SoftwareLicenseKey = commonrecordsutils.FirstStringFieldAnyLabel(rec.Fields, commonrecordsutils.FieldTypeLicenseNumber)
-	m.ExpirationDate = commonrecordsutils.EpochMillisFieldUnlabeled(rec.Fields, commonrecordsutils.FieldTypeExpirationDate)
-	m.DateActive = commonrecordsutils.EpochMillisField(rec.Fields, commonrecordsutils.FieldTypeDate, DateActiveLabel)
+	m.ExpirationDate = commonrecordsutils.DateOrEpochMillisFieldUnlabeled(rec.Fields, commonrecordsutils.FieldTypeExpirationDate)
+	m.DateActive = commonrecordsutils.DateOrEpochMillisField(rec.Fields, commonrecordsutils.FieldTypeDate, DateActiveLabel)
 	m.Custom = commonrecordsutils.ParseCustomFields(rec.Custom)
 	return nil
 }

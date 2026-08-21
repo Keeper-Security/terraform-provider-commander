@@ -5,6 +5,7 @@ package utils
 
 import (
 	"encoding/json"
+	"regexp"
 	"strings"
 	"time"
 
@@ -802,6 +803,47 @@ func EpochMillisFieldUnlabeled(fields []utils.VaultRecordFieldResponse, fieldTyp
 			if ms != 0 {
 				return types.StringValue(epochMillisToDateString(ms))
 			}
+		}
+	}
+	return types.StringNull()
+}
+
+// yyyyMMDDDatePattern matches Keeper NSF date strings (YYYY-MM-DD).
+var yyyyMMDDDatePattern = regexp.MustCompile(`^\d{4}-\d{2}-\d{2}$`)
+
+// DateOrEpochMillisField reads a date field as YYYY-MM-DD for Terraform.
+// If the API value is a YYYY-MM-DD string (NSF), that string is returned as-is.
+// Otherwise falls back to EpochMillisField (classic epoch milliseconds).
+func DateOrEpochMillisField(fields []utils.VaultRecordFieldResponse, fieldType, label string) types.String {
+	if v := firstYYYYMMDDStringField(fields, fieldType, label); !v.IsNull() {
+		return v
+	}
+	return EpochMillisField(fields, fieldType, label)
+}
+
+// DateOrEpochMillisFieldUnlabeled is DateOrEpochMillisField without a label filter.
+func DateOrEpochMillisFieldUnlabeled(fields []utils.VaultRecordFieldResponse, fieldType string) types.String {
+	return DateOrEpochMillisField(fields, fieldType, "")
+}
+
+// firstYYYYMMDDStringField returns the first matching field value when it is a
+// YYYY-MM-DD string (regex-validated). Returns null when no such string is found.
+func firstYYYYMMDDStringField(fields []utils.VaultRecordFieldResponse, fieldType, label string) types.String {
+	for i := range fields {
+		f := &fields[i]
+		if f.Type != fieldType {
+			continue
+		}
+		if label != "" && f.Label != label {
+			continue
+		}
+		var svals []string
+		if err := json.Unmarshal(f.Value, &svals); err != nil || len(svals) == 0 {
+			continue
+		}
+		s := strings.TrimSpace(svals[0])
+		if yyyyMMDDDatePattern.MatchString(s) {
+			return types.StringValue(s)
 		}
 	}
 	return types.StringNull()
