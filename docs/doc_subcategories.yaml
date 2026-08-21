@@ -146,7 +146,7 @@ categories:
       # - new_birth_certificate
       - new_login
       - new_wifi
-      # - new_ssh_keys
+      - new_ssh_keys  
       - new_saas_configuration
       - new_server
       - new_database
@@ -165,7 +165,7 @@ categories:
       # - new_birth_certificate
       - new_login
       - new_wifi
-      # - new_ssh_keys
+      - new_ssh_keys
       - new_saas_configuration
       - new_server
       - new_database
