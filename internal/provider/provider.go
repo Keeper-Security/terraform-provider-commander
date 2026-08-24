@@ -51,6 +51,7 @@ import (
 	newserverdatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/records/new/generic/server"
 	newsoftwarelicensedatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/records/new/generic/software_license"
 	newsshkeysdatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/records/new/generic/ssh_keys"
+	newssncarddatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/records/new/generic/ssn_card"
 	newwifidatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/records/new/generic/wifi"
 	newpamdatabasedatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/records/new/pam/pam_database"
 	newpamdirectorydatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/records/new/pam/pam_directory"
@@ -100,6 +101,7 @@ import (
 	newserver "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/records/new/generic/server"
 	newsoftwarelicense "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/records/new/generic/software_license"
 	newsshkeys "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/records/new/generic/ssh_keys"
+	newssncard "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/records/new/generic/ssn_card"
 	newwifi "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/records/new/generic/wifi"
 	newpamdatabase "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/records/new/pam/pam_database"
 	newpamdirectory "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/records/new/pam/pam_directory"
@@ -299,6 +301,7 @@ func (p *CommanderProvider) Resources(ctx context.Context) []func() resource.Res
 		newserver.NewServerResource,
 		newsoftwarelicense.NewSoftwareLicenseResource,
 		newsshkeys.NewSshKeysResource,
+		newssncard.NewSsnCardResource,
 	}
 }
 
@@ -356,6 +359,7 @@ func (p *CommanderProvider) DataSources(ctx context.Context) []func() datasource
 		newserverdatasource.NewServerDataSource,
 		newsoftwarelicensedatasource.NewSoftwareLicenseDataSource,
 		newsshkeysdatasource.NewSshKeysDataSource,
+		newssncarddatasource.NewSsnCardDataSource,
 	}
 }
 
