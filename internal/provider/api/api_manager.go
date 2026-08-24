@@ -190,12 +190,12 @@ func handleAPIErrorResponse(resp *http.Response) error {
 // upstream and must be passed through as-is rather than reinterpreted below.
 const escapedApostropheUnit = `'"'"'`
 
-// This is used to set the "min-commander-version" header in the API request.
-const minCommanderVersionHeader = "min-commander-version"
+// MinCommanderVersionHeader is used to set the "min-commander-version" header in the API request.
+const MinCommanderVersionHeader = "min-commander-version"
 
-// minCommanderVersion is the minimum Commander version that is required for terraform provider to work properly.
-// Update this latest version when there are changes in commander related to terraform provider and it is released.
-const minCommanderVersion = "18.1.1"
+// MinCommanderVersion is the minimum Commander version required for the terraform provider to work properly.
+// Update this when commander changes related to the terraform provider are released.
+const MinCommanderVersion = "18.1.2"
 
 func normalizeCommandForShell(command string) string {
 	var b strings.Builder
@@ -298,7 +298,7 @@ func (a *ApiManager) SubmitRequest(ctx context.Context, command string, fileData
 	// Set headers
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("api-key", a.ServiceModeApiKey)
-	req.Header.Set(minCommanderVersionHeader, minCommanderVersion)
+	req.Header.Set(MinCommanderVersionHeader, MinCommanderVersion)
 
 	// Make the HTTP request using the client
 	resp, err := a.HttpClient.Do(req)
@@ -394,7 +394,7 @@ func (a *ApiManager) RequestResult(ctx context.Context, requestId string) (*Requ
 
 	// Set headers
 	req.Header.Set("api-key", a.ServiceModeApiKey)
-	req.Header.Set(minCommanderVersionHeader, minCommanderVersion)
+	req.Header.Set(MinCommanderVersionHeader, MinCommanderVersion)
 
 	// Make the HTTP request using the client
 	resp, err := a.HttpClient.Do(req)

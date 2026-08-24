@@ -95,6 +95,27 @@ func TestSubmitRequest_Success(t *testing.T) {
 	}
 }
 
+func TestSubmitRequest_SetsMinCommanderVersionHeader(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		assertMinCommanderVersionHeader(t, r)
+		if got := r.Header.Get("api-key"); got != "test-key" {
+			t.Errorf("api-key = %q, want test-key", got)
+		}
+		w.WriteHeader(http.StatusAccepted)
+		_, _ = w.Write([]byte(`{"success":true,"request_id":"req-123","status":"queued","message":"ok"}`))
+	}))
+	defer server.Close()
+
+	client := &api.ApiManager{
+		ServiceModeUrl:    server.URL,
+		ServiceModeApiKey: "test-key",
+		HttpClient:        server.Client(),
+	}
+	if _, err := client.SubmitRequest(context.Background(), "enterprise-info", nil); err != nil {
+		t.Fatalf("SubmitRequest: %v", err)
+	}
+}
+
 // TestSubmitRequest_NormalizesApostrophesInQuotedFields is a regression test for a bug
 // where normalizeCommandForShell reprocessed spans that utils.QuoteShellSingle had
 // already correctly escaped (close-quote, literal ' via double quotes, reopen-quote),
@@ -332,6 +353,27 @@ func TestRequestResult_Success(t *testing.T) {
 	}
 }
 
+func TestRequestResult_SetsMinCommanderVersionHeader(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		assertMinCommanderVersionHeader(t, r)
+		if got := r.Header.Get("api-key"); got != "test-key" {
+			t.Errorf("api-key = %q, want test-key", got)
+		}
+		w.WriteHeader(http.StatusOK)
+		_, _ = w.Write([]byte(`{"data":[{"id":1}],"status":"success","message":"done","error":""}`))
+	}))
+	defer server.Close()
+
+	client := &api.ApiManager{
+		ServiceModeUrl:    server.URL,
+		ServiceModeApiKey: "test-key",
+		HttpClient:        server.Client(),
+	}
+	if _, err := client.RequestResult(context.Background(), "req-123"); err != nil {
+		t.Fatalf("RequestResult: %v", err)
+	}
+}
+
 func TestRequestResult_StillProcessing(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusAccepted)
@@ -526,5 +568,12 @@ func TestIsMspAccountType_AlreadyMsp(t *testing.T) {
 	// May be false if ExecuteCommand failed (e.g. poll timeout); test just ensures no panic.
 	if !client.IsMspAccount {
 		t.Log("IsMspAccount is false (e.g. ExecuteCommand failed or poll timeout)")
+	}
+}
+
+func assertMinCommanderVersionHeader(t *testing.T, r *http.Request) {
+	t.Helper()
+	if got := r.Header.Get(api.MinCommanderVersionHeader); got != api.MinCommanderVersion {
+		t.Errorf("%s = %q, want %q", api.MinCommanderVersionHeader, got, api.MinCommanderVersion)
 	}
 }

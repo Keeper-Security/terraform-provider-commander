@@ -110,6 +110,57 @@
 | `commander_classic_software_license`   | Create and manage classic software license records in the vault.     |
 | `commander_classic_secure_note`        | Create and manage classic secure note records in the vault.          |
 
+#### Classic Folders
+
+| Name                          | Description                                 |
+| ----------------------------- | ------------------------------------------- |
+| `commander_non_shared_folder` | Create and manage non-shared vault folders. |
+| `commander_shared_folder`     | Create and manage classic shared folders.   |
+
+#### Nested Shared Folders (NSF)
+
+| Name                   | Description                              |
+| ---------------------- | ---------------------------------------- |
+| `commander_new_folder` | Create and manage nested shared folders. |
+
+#### KeeperPAM
+
+| Name                          | Description                                  |
+| ----------------------------- | -------------------------------------------- |
+| `commander_pam_configuration` | Create and manage Keeper PAM configurations. |
+
+#### Classic PAM Records
+
+| Name                                   | Description                                                              |
+| -------------------------------------- | ------------------------------------------------------------------------ |
+| `commander_classic_pam_user`           | Create and manage classic PAM user records in the vault.                 |
+| `commander_classic_pam_machine`        | Create and manage classic PAM machine records in the vault.              |
+| `commander_classic_pam_database`       | Create and manage classic PAM database records in the vault.             |
+| `commander_classic_pam_directory`      | Create and manage classic PAM directory records in the vault.            |
+| `commander_classic_pam_remote_browser` | Create and manage classic PAM remote browser (RBI) records in the vault. |
+
+#### New PAM Records (NSF)
+
+| Name                               | Description                                                          |
+| ---------------------------------- | -------------------------------------------------------------------- |
+| `commander_new_pam_user`           | Create and manage NSF PAM user records in the vault.                 |
+| `commander_new_pam_machine`        | Create and manage NSF PAM machine records in the vault.              |
+| `commander_new_pam_database`       | Create and manage NSF PAM database records in the vault.             |
+| `commander_new_pam_directory`      | Create and manage NSF PAM directory records in the vault.            |
+| `commander_new_pam_remote_browser` | Create and manage NSF PAM remote browser (RBI) records in the vault. |
+
+#### Endpoint Privilege Manager (EPM)
+
+| Name                   | Description                                                  |
+| ---------------------- | ------------------------------------------------------------ |
+| `commander_epm_policy` | Create and manage EPM (Endpoint Policy Management) policies. |
+
+#### Secrets Manager
+
+| Name                        | Description                                            |
+| --------------------------- | ------------------------------------------------------ |
+| `commander_secrets_manager` | Create and manage Keeper Secrets Manager applications. |
+
 ### Data sources
 
 #### Enterprise Management
@@ -203,31 +254,135 @@
 | `commander_classic_software_license`   | Look up a classic software license record by record UID.     |
 | `commander_classic_secure_note`        | Look up a classic secure note record by record UID.          |
 
+#### Classic Folders
+
+| Name                          | Description                             |
+| ----------------------------- | --------------------------------------- |
+| `commander_non_shared_folder` | Look up a non-shared folder by UID.     |
+| `commander_shared_folder`     | Look up a classic shared folder by UID. |
+
+#### Nested Shared Folders (NSF)
+
+| Name                   | Description                            |
+| ---------------------- | -------------------------------------- |
+| `commander_new_folder` | Look up a nested shared folder by UID. |
+
+#### KeeperPAM
+
+| Name                          | Description                         |
+| ----------------------------- | ----------------------------------- |
+| `commander_pam_configuration` | Look up a PAM configuration by UID. |
+
+#### Classic PAM Records
+
+| Name                                   | Description                                                |
+| -------------------------------------- | ---------------------------------------------------------- |
+| `commander_classic_pam_user`           | Look up a classic PAM user record by record UID.           |
+| `commander_classic_pam_machine`        | Look up a classic PAM machine record by record UID.        |
+| `commander_classic_pam_database`       | Look up a classic PAM database record by record UID.       |
+| `commander_classic_pam_directory`      | Look up a classic PAM directory record by record UID.      |
+| `commander_classic_pam_remote_browser` | Look up a classic PAM remote browser record by record UID. |
+
+#### New PAM Records (NSF)
+
+| Name                               | Description                                            |
+| ---------------------------------- | ------------------------------------------------------ |
+| `commander_new_pam_user`           | Look up a NSF PAM user record by record UID.           |
+| `commander_new_pam_machine`        | Look up a NSF PAM machine record by record UID.        |
+| `commander_new_pam_database`       | Look up a NSF PAM database record by record UID.       |
+| `commander_new_pam_directory`      | Look up a NSF PAM directory record by record UID.      |
+| `commander_new_pam_remote_browser` | Look up a NSF PAM remote browser record by record UID. |
+
+#### Endpoint Privilege Manager (EPM)
+
+| Name                   | Description                                      |
+| ---------------------- | ------------------------------------------------ |
+| `commander_epm_policy` | Look up an existing EPM policy by its policy ID. |
+
+#### Secrets Manager
+
+| Name                        | Description                                           |
+| --------------------------- | ----------------------------------------------------- |
+| `commander_secrets_manager` | Look up a Secrets Manager application by name or UID. |
+
 ## Prerequisites
 
-- **Keeper Commander Service Mode**: A service account running latest version of Commander Service Mode REST API. Make sure you are running **Commander version 18.0.11** or **later** before starting Service Mode
+- **Keeper Commander Service Mode**: A service account running Commander Service Mode REST API using `terraform-app-setup` command.
 - [Terraform](https://developer.hashicorp.com/terraform/downloads) >= 1.0
 
 ## Setup and Installation
 
-In order to communicate between the Terraform and Keeper, the customer is responsible for hosting a Keeper Commander Service Mode instance. This can be accomplished many ways depending on your IT requirements. Commander Service Mode can run as a foreground service on any machine, or it can be run in a Docker container locally or remotely on a server.
+In order to communicate between the Terraform and Keeper, the customer is responsible for hosting a Keeper Commander Service Mode instance using `terraform-app-setup`. This can be accomplished many ways depending on your IT requirements.
+
+### Step 0. Commander Installation
+
+[Install Keeper Commander](https://docs.keeper.io/keeperpam/commander-cli/commander-installation-setup) on a workstation.
 
 ### Step 1. Commander Setup
 
-Follow the setup steps documented in the [Commander Service Mode REST API](https://docs.keeper.io/en/keeperpam/commander-cli/service-mode-rest-api) section to install Keeper Commander and start the service.<br>
-Commander Service Mode can run directly in the CLI, in the background on a local machine, on a remote server as a service, or under a Docker container. Using Docker is the recommended method.
-
-Note the following Important Items:
-
-1. The Request Queue System (API v2) must be enabled, e.g. `-q=y`
-
-2. Make sure the following commands are in the list:
+Log in to Commander with that account:
 
 ```
-this-device,sync-down,switch-to-mc,switch-to-msp,msp-add,msp-down,msp-info,msp-remove,msp-update,enterprise-info,enterprise-node,enterprise-user,enterprise-role,enterprise-team,enterprise-down,enterprise-push,team-approve,record-add,record-update,rm,get,list,record-type-info,share-folder,rmdir,rndir,mkdir,epm,scim,mv,pam,secrets-manager,ln,share-record,nsf-mkdir,nsf-get,nsf-rmdir,nsf-record-add,nsf-record-update,nsf-rm,nsf-rmdir,nsf-rndir,nsf-share-folder,nsf-share-record,nsf-ln
+keeper shell
+login serviceuser@company.com
 ```
 
-> If you encounter a 429 Too Many Requests error due to rate limiting, you can configure rate-limit for your service mode using the `-rl` or `--ratelimit flag`.
+Ensure Docker is available on the host where Service Mode will run.
+
+#### Run Terraform setup
+
+```
+My Vault> terraform-app-setup
+```
+
+The command writes a `docker-compose.yml` with a **Commander-only** service configured for the Terraform provider.
+
+##### Service Mode / Docker
+
+Creates the shared folder, Docker config record, KSM application, and client config, then prompts for:
+
+| Prompt                        | Description                                                                                          |
+| ----------------------------- | ---------------------------------------------------------------------------------------------------- |
+| **Port**                      | Local port for Commander Service Mode. Default: `8900`.                                              |
+| **Enable ngrok?**             | Optional public URL via ngrok. Default: No.                                                          |
+| **Ngrok Auth Token**          | Required if ngrok is enabled.                                                                        |
+| **Ngrok Custom Domain**       | Optional (for example `myapp.ngrok.io`). Press Enter to skip.                                        |
+| **Enable Cloudflare?**        | Asked only if ngrok is disabled. Default: No.                                                        |
+| **Cloudflare Tunnel Token**   | Required if Cloudflare is enabled.                                                                   |
+| **Cloudflare Custom Domain**  | Required if Cloudflare is enabled (for example `commander.company.com`).                             |
+| **Enable advanced security?** | Optional IP allow/deny lists, rate limiting, response encryption, and token expiration. Default: No. |
+
+> **Ngrok and Cloudflare are mutually exclusive.** The Service Mode URL must be reachable from where Terraform runs. If Commander is on a private network, enable **ngrok** or **Cloudflare Tunnel** and use that public HTTPS URL as `service_mode_url` (or `COMMANDER_SERVICE_MODE_URL`) in the provider.
+
+Queue mode (API v2) is enabled automatically. The command allowlist is fixed for Terraform-safe operations (enterprise/MSP, records, sharing, PAM, Secrets Manager, and related NSF commands). Commands are not prompted interactively.
+
+Resources created (defaults):
+
+| Resource                   | Default name                                       |
+| -------------------------- | -------------------------------------------------- |
+| Shared folder              | `Commander Service Mode - Terraform`               |
+| KSM application            | `Commander Service Mode - Terraform KSM App`       |
+| Docker config record       | `Commander Service Mode Terraform Config`          |
+| Docker service / container | `commander-terraform` / `keeper-service-terraform` |
+
+> Re-running setup rewrites `docker-compose.yml` (manual edits are lost).
+
+#### Deploy
+
+```
+My Vault> quit
+rm ~/.keeper/config.json
+docker compose up -d
+docker ps
+docker logs keeper-service-terraform
+curl http://localhost:<port>/health
+```
+
+Delete the local `config.json` before starting Docker so the container does not conflict with the same device token. Docker loads its own config through KSM.
+
+Now that the service is up and running, you can use Service Mode URL (async - */api/v2/*) and API Key in provider configuration which is present in your `keeper-service-terraform` docker container logs.
+
+> If you encounter a 429 Too Many Requests error due to rate limiting, you can configure rate-limit for your service mode in **terraform-app-setup command > Enable advanced security?** .
 >
 > This allows you to configure the allowed number of requests per endpoint per IP address, for example:
 >
@@ -236,34 +391,6 @@ this-device,sync-down,switch-to-mc,switch-to-msp,msp-add,msp-down,msp-info,msp-r
 > - `2000000/day`
 >
 > Adjust these limits based on your expected traffic and system capacity.
-
-After service creation, the API key will be displayed in the console output. Make sure to copy and store it securely. If you are using Docker, you can pull the API key from the logs with this command:
-
-```bash
-docker compose logs | grep -i "generated api key"
-```
-
-When the Commander service is up and running, you should be able to submit a curl request to the endpoint. For example:
-
-```bash
-curl -X POST 'https://localhost:8080/api/v2/executecommand-async' \
---header 'Content-Type: application/json' \
-    --header 'api-key: <your-api-key>' \
-    --data '{"command": "this-device"}'
-```
-
-If the tunnel is running and the API key is correct, you should get a response like this:
-
-```json
-{
-  "success": true,
-  "request_id": "550e8400-e29b-41d4-a716-446655440000",
-  "status": "queued",
-  "message": "Request queued successfully..."
-}
-```
-
-Now that the service is up and running, you can use Service Mode URL and API Key in provider configuration.
 
 > Keep the Commander Service Mode running in order to stay connected
 
@@ -342,7 +469,8 @@ You can omit `service_mode_url` and `service_mode_api_key` in the configuration 
 
 #### Manage Enterprise Team
 
-Below example explain how you can manage your enterprise team with help of "commander_enterprise_team" resource.<br>
+Below example explain how you can manage your enterprise team with help of "commander_enterprise_team" resource.
+
 Use this resource to create and manage teams in the MSP or Enterprise account
 
 ```hcl
@@ -374,7 +502,8 @@ resource "commander_enterprise_team" "example" {
 
 #### Read Enterprise Team
 
-Below example explain how you can read your existing enterprise team with help of "commander_enterprise_team" data source.<br>
+Below example explain how you can read your existing enterprise team with help of "commander_enterprise_team" data source.
+
 Use this data source to look up an enterprise team by name or ID. Returns the team's ID, name, users, and roles so you can reference them in other resources.
 
 ```hcl
@@ -416,4 +545,4 @@ output "team_roles" {
 
 For more examples on different resources and data sources, check out the detailed provider documentation [here](https://registry.terraform.io/providers/Keeper-Security/commander/latest/docs) .
 
-Please email commander@keepersecurity.com with any specific requirements that you have.
+Please email [commander@keepersecurity.com](mailto:commander@keepersecurity.com) with any specific requirements that you have.

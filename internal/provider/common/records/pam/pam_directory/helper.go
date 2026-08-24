@@ -35,8 +35,8 @@ func BuildAddCommand(cmd string, data PamDirectoryResourceModel) string {
 	commonpamrecords.AppendOptionalTextField(&parts, FlagProviderGroup, data.ProviderGroup)
 	commonpamrecords.AppendOptionalTextField(&parts, FlagProviderRegion, data.ProviderRegion)
 
-	if !data.FolderLocation.IsNull() {
-		parts = append(parts, fmt.Sprintf("%s '%s'", utils.FlagFolder, data.FolderLocation.ValueString()))
+	if !data.FolderLocation.IsNull() && !data.FolderLocation.IsUnknown() && strings.TrimSpace(data.FolderLocation.ValueString()) != "" {
+		parts = append(parts, fmt.Sprintf("%s '%s'", utils.FlagFolder, strings.TrimSpace(data.FolderLocation.ValueString())))
 	}
 
 	if !data.Notes.IsNull() {

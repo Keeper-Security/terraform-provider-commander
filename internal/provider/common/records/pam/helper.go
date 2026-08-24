@@ -805,12 +805,6 @@ func ApplyPamSettings(ctx context.Context, apiManager *api.ApiManager, recordUpd
 		}
 	}
 
-	// Force a sync down to ensure the latest state is reflected in the API.
-	// Sometimes nsf records are not updated correctly after a change is made.
-	if err := utils.SyncDown(ctx, apiManager); err != nil {
-		return err
-	}
-
 	return applyPamSettingsFieldUpdate(ctx, apiManager, recordUpdateCmd, recordUID, pamSettings)
 }
 
