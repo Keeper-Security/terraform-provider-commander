@@ -110,57 +110,6 @@
 | `commander_classic_software_license`   | Create and manage classic software license records in the vault.     |
 | `commander_classic_secure_note`        | Create and manage classic secure note records in the vault.          |
 
-#### Classic Folders
-
-| Name                          | Description                                 |
-| ----------------------------- | ------------------------------------------- |
-| `commander_non_shared_folder` | Create and manage non-shared vault folders. |
-| `commander_shared_folder`     | Create and manage classic shared folders.   |
-
-#### Nested Shared Folders (NSF)
-
-| Name                   | Description                              |
-| ---------------------- | ---------------------------------------- |
-| `commander_new_folder` | Create and manage nested shared folders. |
-
-#### KeeperPAM
-
-| Name                          | Description                                  |
-| ----------------------------- | -------------------------------------------- |
-| `commander_pam_configuration` | Create and manage Keeper PAM configurations. |
-
-#### Classic PAM Records
-
-| Name                                   | Description                                                              |
-| -------------------------------------- | ------------------------------------------------------------------------ |
-| `commander_classic_pam_user`           | Create and manage classic PAM user records in the vault.                 |
-| `commander_classic_pam_machine`        | Create and manage classic PAM machine records in the vault.              |
-| `commander_classic_pam_database`       | Create and manage classic PAM database records in the vault.             |
-| `commander_classic_pam_directory`      | Create and manage classic PAM directory records in the vault.            |
-| `commander_classic_pam_remote_browser` | Create and manage classic PAM remote browser (RBI) records in the vault. |
-
-#### New PAM Records (NSF)
-
-| Name                               | Description                                                          |
-| ---------------------------------- | -------------------------------------------------------------------- |
-| `commander_new_pam_user`           | Create and manage NSF PAM user records in the vault.                 |
-| `commander_new_pam_machine`        | Create and manage NSF PAM machine records in the vault.              |
-| `commander_new_pam_database`       | Create and manage NSF PAM database records in the vault.             |
-| `commander_new_pam_directory`      | Create and manage NSF PAM directory records in the vault.            |
-| `commander_new_pam_remote_browser` | Create and manage NSF PAM remote browser (RBI) records in the vault. |
-
-#### Endpoint Privilege Manager (EPM)
-
-| Name                   | Description                                                  |
-| ---------------------- | ------------------------------------------------------------ |
-| `commander_epm_policy` | Create and manage EPM (Endpoint Policy Management) policies. |
-
-#### Secrets Manager
-
-| Name                        | Description                                            |
-| --------------------------- | ------------------------------------------------------ |
-| `commander_secrets_manager` | Create and manage Keeper Secrets Manager applications. |
-
 ### Data sources
 
 #### Enterprise Management
@@ -254,60 +203,10 @@
 | `commander_classic_software_license`   | Look up a classic software license record by record UID.     |
 | `commander_classic_secure_note`        | Look up a classic secure note record by record UID.          |
 
-#### Classic Folders
-
-| Name                          | Description                             |
-| ----------------------------- | --------------------------------------- |
-| `commander_non_shared_folder` | Look up a non-shared folder by UID.     |
-| `commander_shared_folder`     | Look up a classic shared folder by UID. |
-
-#### Nested Shared Folders (NSF)
-
-| Name                   | Description                            |
-| ---------------------- | -------------------------------------- |
-| `commander_new_folder` | Look up a nested shared folder by UID. |
-
-#### KeeperPAM
-
-| Name                          | Description                         |
-| ----------------------------- | ----------------------------------- |
-| `commander_pam_configuration` | Look up a PAM configuration by UID. |
-
-#### Classic PAM Records
-
-| Name                                   | Description                                                |
-| -------------------------------------- | ---------------------------------------------------------- |
-| `commander_classic_pam_user`           | Look up a classic PAM user record by record UID.           |
-| `commander_classic_pam_machine`        | Look up a classic PAM machine record by record UID.        |
-| `commander_classic_pam_database`       | Look up a classic PAM database record by record UID.       |
-| `commander_classic_pam_directory`      | Look up a classic PAM directory record by record UID.      |
-| `commander_classic_pam_remote_browser` | Look up a classic PAM remote browser record by record UID. |
-
-#### New PAM Records (NSF)
-
-| Name                               | Description                                            |
-| ---------------------------------- | ------------------------------------------------------ |
-| `commander_new_pam_user`           | Look up a NSF PAM user record by record UID.           |
-| `commander_new_pam_machine`        | Look up a NSF PAM machine record by record UID.        |
-| `commander_new_pam_database`       | Look up a NSF PAM database record by record UID.       |
-| `commander_new_pam_directory`      | Look up a NSF PAM directory record by record UID.      |
-| `commander_new_pam_remote_browser` | Look up a NSF PAM remote browser record by record UID. |
-
-#### Endpoint Privilege Manager (EPM)
-
-| Name                   | Description                                      |
-| ---------------------- | ------------------------------------------------ |
-| `commander_epm_policy` | Look up an existing EPM policy by its policy ID. |
-
-#### Secrets Manager
-
-| Name                        | Description                                           |
-| --------------------------- | ----------------------------------------------------- |
-| `commander_secrets_manager` | Look up a Secrets Manager application by name or UID. |
-
 ## Prerequisites
 
 - **Keeper Commander Service Mode**: A service account running Commander Service Mode REST API using `terraform-app-setup` command.
+- **Docker** is the recommended method for setting up the commander service mode.
 - [Terraform](https://developer.hashicorp.com/terraform/downloads) >= 1.0
 
 ## Setup and Installation
@@ -326,8 +225,6 @@ Log in to Commander with that account:
 keeper shell
 login serviceuser@company.com
 ```
-
-Ensure Docker is available on the host where Service Mode will run.
 
 #### Run Terraform setup
 
@@ -380,7 +277,7 @@ curl http://localhost:<port>/health
 
 Delete the local `config.json` before starting Docker so the container does not conflict with the same device token. Docker loads its own config through KSM.
 
-Now that the service is up and running, you can use Service Mode URL (async - */api/v2/*) and API Key in provider configuration which is present in your `keeper-service-terraform` docker container logs.
+Now that the service is up and running, you can use Service Mode URL (async - _/api/v2/_) and API Key in provider configuration which is present in your `keeper-service-terraform` docker container logs.
 
 > If you encounter a 429 Too Many Requests error due to rate limiting, you can configure rate-limit for your service mode in **terraform-app-setup command > Enable advanced security?** .
 >
