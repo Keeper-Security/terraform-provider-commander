@@ -139,14 +139,14 @@ categories:
       # - new_payment_card
       # - new_bank_account
       # - new_membership
-      # - new_health_insurance
+      - new_health_insurance
       # - new_driver_license
       # - new_passport
       - new_ssn_card
       # - new_birth_certificate
       - new_login
       - new_wifi
-      - new_ssh_keys  
+      - new_ssh_keys
       - new_saas_configuration
       - new_server
       - new_database
@@ -158,7 +158,7 @@ categories:
       # - new_payment_card
       # - new_bank_account
       # - new_membership
-      # - new_health_insurance
+      - new_health_insurance
       # - new_driver_license
       # - new_passport
       - new_ssn_card

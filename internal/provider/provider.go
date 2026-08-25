@@ -46,6 +46,7 @@ import (
 	classicpamremotebrowserdatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/records/classic/pam/pam_remote_browser"
 	classicpamuserdatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/records/classic/pam/pam_user"
 	newdatabasedatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/records/new/generic/database"
+	newhealthinsurancedatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/records/new/generic/health_insurance"
 	newlogindatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/records/new/generic/login"
 	newsaasconfigurationdatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/records/new/generic/saas_configuration"
 	newserverdatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/records/new/generic/server"
@@ -96,6 +97,7 @@ import (
 	classicpamremotebrowser "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/records/classic/pam/pam_remote_browser"
 	classicpamuser "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/records/classic/pam/pam_user"
 	newdatabase "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/records/new/generic/database"
+	newhealthinsurance "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/records/new/generic/health_insurance"
 	newlogin "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/records/new/generic/login"
 	newsaasconfiguration "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/records/new/generic/saas_configuration"
 	newserver "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/records/new/generic/server"
@@ -302,6 +304,7 @@ func (p *CommanderProvider) Resources(ctx context.Context) []func() resource.Res
 		newsoftwarelicense.NewSoftwareLicenseResource,
 		newsshkeys.NewSshKeysResource,
 		newssncard.NewSsnCardResource,
+		newhealthinsurance.NewHealthInsuranceResource,
 	}
 }
 
@@ -360,6 +363,7 @@ func (p *CommanderProvider) DataSources(ctx context.Context) []func() datasource
 		newsoftwarelicensedatasource.NewSoftwareLicenseDataSource,
 		newsshkeysdatasource.NewSshKeysDataSource,
 		newssncarddatasource.NewSsnCardDataSource,
+		newhealthinsurancedatasource.NewHealthInsuranceDataSource,
 	}
 }
 
