@@ -69,6 +69,13 @@ func (r *PamDatabaseResource) Update(ctx context.Context, req resource.UpdateReq
 		}
 	}
 
+	// force a sync down to ensure that the record is updated in the local cache before applying PAM settings and share permissions.
+	// Bec nsf record fields are not updating with latest data
+	if err := utils.SyncDown(ctx, r.ApiManager); err != nil {
+		resp.Diagnostics.AddError(utils.ErrSummarySyncDownFailed, err.Error())
+		return
+	}
+
 	if plan.PamSettings != nil {
 		if err := commonpamrecords.ApplyDatabasePamSettings(ctx, r.ApiManager, utils.CmdNsfRecordUpdate, recordUID, plan.PamSettings, state.PamSettings); err != nil {
 			resp.Diagnostics.AddError(utils.ErrSummaryApplyPamSettingsFailed, err.Error())

@@ -136,7 +136,7 @@ categories:
     resources:
       # - new_contact
       # - new_address
-      # - new_payment_card
+      - new_payment_card
       # - new_bank_account
       # - new_membership
       - new_health_insurance
@@ -155,7 +155,7 @@ categories:
     data_sources:
       # - new_contact
       # - new_address
-      # - new_payment_card
+      - new_payment_card
       # - new_bank_account
       # - new_membership
       - new_health_insurance
