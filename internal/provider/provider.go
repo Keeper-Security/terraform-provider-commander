@@ -49,6 +49,7 @@ import (
 	newdatabasedatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/records/new/generic/database"
 	newhealthinsurancedatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/records/new/generic/health_insurance"
 	newlogindatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/records/new/generic/login"
+	newmembershiodatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/records/new/generic/membership"
 	newpaymentcarddatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/records/new/generic/payment_card"
 	newsaasconfigurationdatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/records/new/generic/saas_configuration"
 	newserverdatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/records/new/generic/server"
@@ -102,6 +103,7 @@ import (
 	newdatabase "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/records/new/generic/database"
 	newhealthinsurance "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/records/new/generic/health_insurance"
 	newlogin "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/records/new/generic/login"
+	newmembership "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/records/new/generic/membership"
 	newpaymentcard "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/records/new/generic/payment_card"
 	newsaasconfiguration "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/records/new/generic/saas_configuration"
 	newserver "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/records/new/generic/server"
@@ -311,6 +313,7 @@ func (p *CommanderProvider) Resources(ctx context.Context) []func() resource.Res
 		newssncard.NewSsnCardResource,
 		newhealthinsurance.NewHealthInsuranceResource,
 		newpaymentcard.NewPaymentCardResource,
+		newmembership.NewMembershipResource,
 	}
 }
 
@@ -372,6 +375,7 @@ func (p *CommanderProvider) DataSources(ctx context.Context) []func() datasource
 		newssncarddatasource.NewSsnCardDataSource,
 		newhealthinsurancedatasource.NewHealthInsuranceDataSource,
 		newpaymentcarddatasource.NewPaymentCardDataSource,
+		newmembershiodatasource.NewMembershipDataSource,
 	}
 }
 

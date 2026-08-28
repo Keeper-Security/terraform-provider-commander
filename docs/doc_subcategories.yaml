@@ -138,7 +138,7 @@ categories:
       # - new_address
       - new_payment_card
       - new_bank_account
-      # - new_membership
+      - new_membership
       - new_health_insurance
       # - new_driver_license
       # - new_passport
@@ -157,7 +157,7 @@ categories:
       # - new_address
       - new_payment_card
       - new_bank_account
-      # - new_membership
+      - new_membership
       - new_health_insurance
       # - new_driver_license
       # - new_passport
