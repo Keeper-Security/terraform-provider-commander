@@ -8,7 +8,7 @@ description: |-
 
 # commander_new_payment_card (Resource)
 
-Creates and manages a `New (NSF) Payment Card` record in the vault.
+Creates and manages a **New (NSF) Payment Card** record in the vault.
 
 ## Example Usage
 

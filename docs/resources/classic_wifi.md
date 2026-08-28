@@ -3,12 +3,12 @@
 page_title: "commander_classic_wifi Resource - commander"
 subcategory: "Classic Records"
 description: |-
-  Creates and manages a Keeper WiFi credentials record (wifiCredentials) in the vault.
+  Creates and manages a WiFi record in the vault.
 ---
 
 # commander_classic_wifi (Resource)
 
-Creates and manages a Keeper **WiFi credentials** record (`wifiCredentials`) in the vault.
+Creates and manages a **WiFi** record in the vault.
 
 ## Example Usage
 

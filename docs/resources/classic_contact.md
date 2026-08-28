@@ -3,12 +3,12 @@
 page_title: "commander_classic_contact Resource - commander"
 subcategory: "Classic Records"
 description: |-
-  Creates and manages a Keeper contact record in the vault.
+  Creates and manages a Contact record in the vault.
 ---
 
 # commander_classic_contact (Resource)
 
-Creates and manages a Keeper `contact` record in the vault.
+Creates and manages a **Contact** record in the vault.
 
 ## Example Usage
 
@@ -39,9 +39,9 @@ resource "commander_classic_contact" "full" {
     },
   ]
 
-  address_ref = "_REPLACE_WITH_ADDRESS_RECORD_UID_"
-  notes       = "Primary contact for Acme Corp procurement."
-  folder      = "_REPLACE_WITH_FOLDER_UID_"
+  address_ref     = "_REPLACE_WITH_ADDRESS_RECORD_UID_"
+  notes           = "Primary contact for Acme Corp procurement."
+  folder_location = "_REPLACE_WITH_FOLDER_UID_"
 
   share = {
     "alice@example.com" = {

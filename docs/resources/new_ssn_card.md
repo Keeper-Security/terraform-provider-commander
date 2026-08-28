@@ -8,7 +8,7 @@ description: |-
 
 # commander_new_ssn_card (Resource)
 
-Creates and manages a `New (NSF) SSN Card (Identity Card)` record in the vault.
+Creates and manages a **New (NSF) SSN Card (Identity Card)** record in the vault.
 
 ## Example Usage
 

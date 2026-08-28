@@ -5,7 +5,7 @@ package sshkeys
 
 const (
 	SchemaDescription         = "Creates and manages a New (NSF) SSH keys record in the vault."
-	SchemaMarkdownDescription = "Creates and manages a New (NSF) `SSH keys` record in the vault."
+	SchemaMarkdownDescription = "Creates and manages a **New (NSF) SSH keys** record in the vault."
 
 	ErrSummaryCreateFailed = "New (NSF) SSH Keys Record Create Failed"
 	ErrSummaryReadFailed   = "New (NSF) SSH Keys Record Read Failed"

@@ -3,12 +3,12 @@
 page_title: "commander_new_login Resource - commander"
 subcategory: "New (NSF) Records"
 description: |-
-  Creates and manages a New (NSF) login record in the vault.
+  Creates and manages a New (NSF) Login record in the vault.
 ---
 
 # commander_new_login (Resource)
 
-Creates and manages a New (NSF) `login` record in the vault.
+Creates and manages a **New (NSF) Login** record in the vault.
 
 ## Example Usage
 

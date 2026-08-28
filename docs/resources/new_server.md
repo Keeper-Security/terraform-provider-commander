@@ -3,12 +3,12 @@
 page_title: "commander_new_server Resource - commander"
 subcategory: "New (NSF) Records"
 description: |-
-  Creates and manages a New (NSF) server credentials record in the vault.
+  Creates and manages a New (NSF) Server record in the vault.
 ---
 
 # commander_new_server (Resource)
 
-Creates and manages a New (NSF) **server credentials** record in the vault.
+Creates and manages a **New (NSF) Server** record in the vault.
 
 ## Example Usage
 

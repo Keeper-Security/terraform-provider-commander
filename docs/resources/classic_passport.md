@@ -3,12 +3,12 @@
 page_title: "commander_classic_passport Resource - commander"
 subcategory: "Classic Records"
 description: |-
-  Creates and manages a Keeper passport (Passport) record in the vault.
+  Creates and manages a Passport record in the vault.
 ---
 
 # commander_classic_passport (Resource)
 
-Creates and manages a Keeper `passport` (Passport) record in the vault.
+Creates and manages a **Passport** record in the vault.
 
 ## Example Usage
 

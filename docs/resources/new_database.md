@@ -3,12 +3,12 @@
 page_title: "commander_new_database Resource - commander"
 subcategory: "New (NSF) Records"
 description: |-
-  Creates and manages a New (NSF) database credentials record in the vault.
+  Creates and manages a New (NSF) Database record in the vault.
 ---
 
 # commander_new_database (Resource)
 
-Creates and manages a New (NSF) **database credentials** record in the vault.
+Creates and manages a **New (NSF) Database** record in the vault.
 
 ## Example Usage
 

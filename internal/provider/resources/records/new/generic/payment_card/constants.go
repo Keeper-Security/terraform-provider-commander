@@ -5,7 +5,7 @@ package paymentcard
 
 const (
 	SchemaDescription         = "Creates and manages a New (NSF) Payment Card record in the vault."
-	SchemaMarkdownDescription = "Creates and manages a `New (NSF) Payment Card` record in the vault."
+	SchemaMarkdownDescription = "Creates and manages a **New (NSF) Payment Card** record in the vault."
 
 	ErrSummaryCreateFailed = "New (NSF) Payment Card Record Create Failed"
 	ErrSummaryReadFailed   = "New (NSF) Payment Card Record Read Failed"

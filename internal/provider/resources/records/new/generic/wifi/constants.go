@@ -4,14 +4,14 @@
 package wifi
 
 const (
-	SchemaDescription         = "Creates and manages a New (NSF) WiFi credentials record in the vault."
-	SchemaMarkdownDescription = "Creates and manages a New (NSF) **WiFi credentials** record in the vault."
+	SchemaDescription         = "Creates and manages a New (NSF) WiFi record in the vault."
+	SchemaMarkdownDescription = "Creates and manages a **New (NSF) WiFi** record in the vault."
 
 	ErrSummaryCreateFailed = "New (NSF) WiFi Record Create Failed"
 	ErrSummaryReadFailed   = "New (NSF) WiFi Record Read Failed"
 	ErrSummaryUpdateFailed = "New (NSF) WiFi Record Update Failed"
 
-	ErrDetailCreateFailed = "Something went wrong when creating the New (NSF) WiFi credentials record."
-	ErrDetailReadFailed   = "Something went wrong when reading the New (NSF) WiFi credentials record."
-	ErrDetailUpdateFailed = "Something went wrong when updating the New (NSF) WiFi credentials record."
+	ErrDetailCreateFailed = "Something went wrong when creating the New (NSF) WiFi record."
+	ErrDetailReadFailed   = "Something went wrong when reading the New (NSF) WiFi record."
+	ErrDetailUpdateFailed = "Something went wrong when updating the New (NSF) WiFi record."
 )

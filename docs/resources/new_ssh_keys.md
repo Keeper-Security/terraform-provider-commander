@@ -8,7 +8,7 @@ description: |-
 
 # commander_new_ssh_keys (Resource)
 
-Creates and manages a New (NSF) `SSH keys` record in the vault.
+Creates and manages a **New (NSF) SSH keys** record in the vault.
 
 ## Example Usage
 

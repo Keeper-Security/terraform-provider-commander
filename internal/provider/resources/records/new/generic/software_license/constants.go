@@ -4,14 +4,14 @@
 package softwarelicense
 
 const (
-	SchemaDescription         = "Creates and manages a Keeper New (NSF) software license record in the vault."
-	SchemaMarkdownDescription = "Creates and manages a Keeper New (NSF) **software license** record in the vault."
+	SchemaDescription         = "Creates and manages a New (NSF) Software License record in the vault."
+	SchemaMarkdownDescription = "Creates and manages a **New (NSF) Software License** record in the vault."
 
 	ErrSummaryCreateFailed = "New (NSF) Software License Record Create Failed"
 	ErrSummaryReadFailed   = "New (NSF) Software License Record Read Failed"
 	ErrSummaryUpdateFailed = "New (NSF) Software License Record Update Failed"
 
-	ErrDetailCreateFailed = "Something went wrong when creating the New (NSF) software license record."
-	ErrDetailReadFailed   = "Something went wrong when reading the New (NSF) software license record."
-	ErrDetailUpdateFailed = "Something went wrong when updating the New (NSF) software license record."
+	ErrDetailCreateFailed = "Something went wrong when creating the New (NSF) Software License record."
+	ErrDetailReadFailed   = "Something went wrong when reading the New (NSF) Software License record."
+	ErrDetailUpdateFailed = "Something went wrong when updating the New (NSF) Software License record."
 )

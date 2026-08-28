@@ -5,7 +5,7 @@ package ssncard
 
 const (
 	SchemaDescription         = "Creates and manages a New (NSF) SSN Card (Identity Card)  record in the vault."
-	SchemaMarkdownDescription = "Creates and manages a `New (NSF) SSN Card (Identity Card)` record in the vault."
+	SchemaMarkdownDescription = "Creates and manages a **New (NSF) SSN Card (Identity Card)** record in the vault."
 
 	ErrSummaryCreateFailed = "New (NSF) SSN Card (Identity Card) Record Create Failed"
 	ErrSummaryReadFailed   = "New (NSF) SSN Card (Identity Card) Record Read Failed"

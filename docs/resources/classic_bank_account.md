@@ -3,12 +3,12 @@
 page_title: "commander_classic_bank_account Resource - commander"
 subcategory: "Classic Records"
 description: |-
-  Creates and manages a Keeper bankAccount (Bank Account) record in the vault.
+  Creates and manages a Bank Account record in the vault.
 ---
 
 # commander_classic_bank_account (Resource)
 
-Creates and manages a Keeper `bankAccount` (Bank Account) record in the vault.
+Creates and manages a **Bank Account** record in the vault.
 
 ## Example Usage
 

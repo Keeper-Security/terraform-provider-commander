@@ -3,12 +3,12 @@
 page_title: "commander_classic_login Resource - commander"
 subcategory: "Classic Records"
 description: |-
-  Creates and manages a Keeper login record in the vault.
+  Creates and manages a Login record in the vault.
 ---
 
 # commander_classic_login (Resource)
 
-Creates and manages a Keeper `login` record in the vault.
+Creates and manages a **Login** record in the vault.
 
 ## Example Usage
 

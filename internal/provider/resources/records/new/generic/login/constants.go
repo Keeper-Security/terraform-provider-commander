@@ -4,8 +4,8 @@
 package login
 
 const (
-	SchemaDescription         = "Creates and manages a New (NSF) login record in the vault."
-	SchemaMarkdownDescription = "Creates and manages a New (NSF) `login` record in the vault."
+	SchemaDescription         = "Creates and manages a New (NSF) Login record in the vault."
+	SchemaMarkdownDescription = "Creates and manages a **New (NSF) Login** record in the vault."
 
 	ErrSummaryCreateFailed = "New (NSF) Login Record Create Failed"
 	ErrSummaryReadFailed   = "New (NSF) Login Record Read Failed"

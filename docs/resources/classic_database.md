@@ -3,12 +3,12 @@
 page_title: "commander_classic_database Resource - commander"
 subcategory: "Classic Records"
 description: |-
-  Creates and manages a Keeper database credentials record (databaseCredentials) in the vault.
+  Creates and manages a Database record in the vault.
 ---
 
 # commander_classic_database (Resource)
 
-Creates and manages a Keeper **database credentials** record (`databaseCredentials`) in the vault.
+Creates and manages a **Database** record in the vault.
 
 ## Example Usage
 

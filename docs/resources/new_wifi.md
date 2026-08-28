@@ -3,12 +3,12 @@
 page_title: "commander_new_wifi Resource - commander"
 subcategory: "New (NSF) Records"
 description: |-
-  Creates and manages a New (NSF) WiFi credentials record in the vault.
+  Creates and manages a New (NSF) WiFi record in the vault.
 ---
 
 # commander_new_wifi (Resource)
 
-Creates and manages a New (NSF) **WiFi credentials** record in the vault.
+Creates and manages a **New (NSF) WiFi** record in the vault.
 
 ## Example Usage
 

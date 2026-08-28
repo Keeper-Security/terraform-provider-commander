@@ -4,8 +4,8 @@
 package bankaccount
 
 const (
-	SchemaDescription         = "Creates and manages a Keeper Bank Account record in the vault."
-	SchemaMarkdownDescription = "Creates and manages a Keeper `bankAccount` (Bank Account) record in the vault."
+	SchemaDescription         = "Creates and manages a Bank Account record in the vault."
+	SchemaMarkdownDescription = "Creates and manages a **Bank Account** record in the vault."
 
 	ErrSummaryCreateFailed = "Bank Account Record Create Failed"
 	ErrSummaryReadFailed   = "Bank Account Record Read Failed"

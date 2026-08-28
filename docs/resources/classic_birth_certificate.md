@@ -3,12 +3,12 @@
 page_title: "commander_classic_birth_certificate Resource - commander"
 subcategory: "Classic Records"
 description: |-
-  Creates and manages a Keeper birthCertificate record in the vault.
+  Creates and manages a Birth Certificate record in the vault.
 ---
 
 # commander_classic_birth_certificate (Resource)
 
-Creates and manages a Keeper `birthCertificate` record in the vault.
+Creates and manages a **Birth Certificate** record in the vault.
 
 ## Example Usage
 

@@ -30,8 +30,8 @@ output "contact_notes" {
   value = data.commander_classic_contact.example.notes
 }
 
-output "contact_folder" {
-  value = data.commander_classic_contact.example.folder
+output "contact_folder_location" {
+  value = data.commander_classic_contact.example.folder_location
 }
 
 output "contact_name" {

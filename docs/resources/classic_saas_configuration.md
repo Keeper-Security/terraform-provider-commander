@@ -3,12 +3,12 @@
 page_title: "commander_classic_saas_configuration Resource - commander"
 subcategory: "Classic Records"
 description: |-
-  Creates and manages a Keeper SaaS configuration record (saasConfiguration) in the vault.
+  Creates and manages a SaaS Configuration record in the vault.
 ---
 
 # commander_classic_saas_configuration (Resource)
 
-Creates and manages a Keeper **SaaS configuration** record (`saasConfiguration`) in the vault.
+Creates and manages a **SaaS Configuration** record in the vault.
 
 ## Example Usage
 

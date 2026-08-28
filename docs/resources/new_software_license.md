@@ -3,12 +3,12 @@
 page_title: "commander_new_software_license Resource - commander"
 subcategory: "New (NSF) Records"
 description: |-
-  Creates and manages a Keeper New (NSF) software license record in the vault.
+  Creates and manages a New (NSF) Software License record in the vault.
 ---
 
 # commander_new_software_license (Resource)
 
-Creates and manages a Keeper New (NSF) **software license** record in the vault.
+Creates and manages a **New (NSF) Software License** record in the vault.
 
 ## Example Usage
 

@@ -4,8 +4,8 @@
 package address
 
 const (
-	SchemaDescription         = "Creates and manages a Keeper Address record in the vault."
-	SchemaMarkdownDescription = "Creates and manages a Keeper `address` record in the vault."
+	SchemaDescription         = "Creates and manages a Address record in the vault."
+	SchemaMarkdownDescription = "Creates and manages a **Address** record in the vault."
 
 	ErrSummaryCreateFailed = "Address Record Create Failed"
 	ErrSummaryReadFailed   = "Address Record Read Failed"

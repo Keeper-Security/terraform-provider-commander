@@ -3,12 +3,12 @@
 page_title: "commander_classic_health_insurance Resource - commander"
 subcategory: "Classic Records"
 description: |-
-  Creates and manages a Keeper healthInsurance (Health Insurance) record in the vault.
+  Creates and manages a Health Insurance record in the vault.
 ---
 
 # commander_classic_health_insurance (Resource)
 
-Creates and manages a Keeper `healthInsurance` (Health Insurance) record in the vault.
+Creates and manages a **Health Insurance** record in the vault.
 
 ## Example Usage
 

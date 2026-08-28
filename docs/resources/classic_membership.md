@@ -3,12 +3,12 @@
 page_title: "commander_classic_membership Resource - commander"
 subcategory: "Classic Records"
 description: |-
-  Creates and manages a Keeper membership (Membership) record in the vault.
+  Creates and manages a Membership record in the vault.
 ---
 
 # commander_classic_membership (Resource)
 
-Creates and manages a Keeper `membership` (Membership) record in the vault.
+Creates and manages a **Membership** record in the vault.
 
 ## Example Usage
 

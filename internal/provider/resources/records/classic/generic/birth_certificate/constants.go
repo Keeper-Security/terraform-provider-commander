@@ -4,8 +4,8 @@
 package birthcertificate
 
 const (
-	SchemaDescription         = "Creates and manages a Keeper Birth Certificate record in the vault."
-	SchemaMarkdownDescription = "Creates and manages a Keeper `birthCertificate` record in the vault."
+	SchemaDescription         = "Creates and manages a Birth Certificate record in the vault."
+	SchemaMarkdownDescription = "Creates and manages a **Birth Certificate** record in the vault."
 
 	ErrSummaryCreateFailed = "Birth Certificate Record Create Failed"
 	ErrSummaryReadFailed   = "Birth Certificate Record Read Failed"
