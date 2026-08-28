@@ -7,7 +7,7 @@ import (
 	"context"
 	"strings"
 
-	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/classic_share"
+	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/new_share"
 	commonrecordwifi "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/generic/wifi"
 	commonrecordsutils "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/utils"
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/utils"
@@ -53,8 +53,7 @@ func (r *WifiResource) Update(ctx context.Context, req resource.UpdateRequest, r
 		}
 	}
 
-	// Reconcile share permissions (grant new/changed, revoke removed).
-	if err := classic_share.SyncSharePermissions(ctx, r.ApiManager, uid, plan.Share, state.Share); err != nil {
+	if err := new_share.SyncSharePermissions(ctx, r.ApiManager, new_share.CmdNsfShareRecord, uid, plan.Share, state.Share); err != nil {
 		resp.Diagnostics.AddError(ErrSummaryUpdateFailed, err.Error())
 		return
 	}

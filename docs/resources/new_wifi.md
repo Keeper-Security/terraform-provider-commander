@@ -37,13 +37,13 @@ resource "commander_new_wifi" "guest" {
 ###############################################################################
 
 resource "commander_new_wifi" "home" {
-  title          = "Home WiFi"
-  folder         = "Personal"
-  ssid           = "MyHomeNetwork"
-  password       = "WiFiPassword123"
-  encryption     = "wpa"
-  is_ssid_hidden = true
-  notes          = "Living-room router"
+  title           = "Home WiFi"
+  folder_location = "Personal"
+  ssid            = "MyHomeNetwork"
+  password        = "WiFiPassword123"
+  encryption      = "wpa"
+  is_ssid_hidden  = true
+  notes           = "Living-room router"
 
 
   custom = [
@@ -70,11 +70,11 @@ resource "commander_new_wifi" "home" {
 ###############################################################################
 
 resource "commander_new_wifi" "lab" {
-  title          = "Lab Open WiFi"
-  folder         = "Lab"
-  ssid           = "lab-open"
-  encryption     = "noEncryption"
-  is_ssid_hidden = false
+  title           = "Lab Open WiFi"
+  folder_location = "Lab"
+  ssid            = "lab-open"
+  encryption      = "noEncryption"
+  is_ssid_hidden  = false
 }
 ```
 
