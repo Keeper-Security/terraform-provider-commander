@@ -140,12 +140,15 @@ func ValidateMachineDirectoryPamSettingsFieldsNotRemoved(plan, state *MachineDir
 }
 
 // ApplyDatabasePamSettings is the database-typed wrapper around ApplyPamSettings.
-func ApplyDatabasePamSettings(ctx context.Context, apiManager *api.ApiManager, recordUID string, plan, state *DatabasePamSettingsFieldResourceModel) error {
-	return ApplyPamSettings(ctx, apiManager, recordUID, databasePamSettingsToCommon(plan), databasePamSettingsToCommon(state))
+// recordUpdateCmd must be utils.CmdRecordUpdate (classic) or
+// utils.CmdNsfRecordUpdate (nested-shared).
+func ApplyDatabasePamSettings(ctx context.Context, apiManager *api.ApiManager, recordUpdateCmd, recordUID string, plan, state *DatabasePamSettingsFieldResourceModel) error {
+	return ApplyPamSettings(ctx, apiManager, recordUpdateCmd, recordUID, databasePamSettingsToCommon(plan), databasePamSettingsToCommon(state))
 }
 
 // ApplyMachineDirectoryPamSettings is the machine/directory-typed wrapper
-// around ApplyPamSettings.
-func ApplyMachineDirectoryPamSettings(ctx context.Context, apiManager *api.ApiManager, recordUID string, plan, state *MachineDirectoryPamSettingsFieldResourceModel) error {
-	return ApplyPamSettings(ctx, apiManager, recordUID, machineDirectoryPamSettingsToCommon(plan), machineDirectoryPamSettingsToCommon(state))
+// around ApplyPamSettings. recordUpdateCmd must be utils.CmdRecordUpdate
+// (classic) or utils.CmdNsfRecordUpdate (nested-shared).
+func ApplyMachineDirectoryPamSettings(ctx context.Context, apiManager *api.ApiManager, recordUpdateCmd, recordUID string, plan, state *MachineDirectoryPamSettingsFieldResourceModel) error {
+	return ApplyPamSettings(ctx, apiManager, recordUpdateCmd, recordUID, machineDirectoryPamSettingsToCommon(plan), machineDirectoryPamSettingsToCommon(state))
 }

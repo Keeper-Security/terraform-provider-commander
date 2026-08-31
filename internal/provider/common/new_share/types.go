@@ -17,9 +17,13 @@ var ShareEntryAttrType attr.Type = types.StringType
 // UserPermissionEntry aliases the canonical type in utils so all callers
 // share the same struct.
 //
-// Example JSON:
+// Example JSON (NSF folder):
 //
 //	{ "accessor": "user@example.com", "role": "viewer" }
+//
+// Example JSON (NSF record):
+//
+//	{ "username": "user@example.com", "role": "viewer", "shareable": true, "editable": false }
 type UserPermissionEntry = utils.UserPermissionEntry
 
 // ShareResponseFragment is a tiny embeddable struct exposing only the

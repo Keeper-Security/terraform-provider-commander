@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
@@ -183,6 +184,103 @@ func (v int32NonNegativeValidator) ValidateInt32(ctx context.Context, req valida
 		resp.Diagnostics.AddError(
 			"Invalid "+v.DisplayName,
 			fmt.Sprintf("%s must be a non-negative integer (>= 0), got: %d.", v.DisplayName, req.ConfigValue.ValueInt32()),
+		)
+	}
+}
+
+// ----- GENERIC: NUMERIC STRING --------------------------------
+// NumericStringValidator validates that a string contains only digits (e.g. "22", "8080").
+// DisplayName is used in error messages (e.g. "Port"). AllowNull: if true, null values are skipped.
+func NumericStringValidator(displayName string, allowNull bool) numericStringValidator {
+	return numericStringValidator{DisplayName: displayName, AllowNull: allowNull}
+}
+
+type numericStringValidator struct {
+	DisplayName string
+	AllowNull   bool
+}
+
+func (v numericStringValidator) Description(_ context.Context) string {
+	return v.DisplayName + " must be a numeric string containing only digits (e.g. \"22\")."
+}
+
+func (v numericStringValidator) MarkdownDescription(ctx context.Context) string {
+	return v.Description(ctx)
+}
+
+func (v numericStringValidator) ValidateString(_ context.Context, req validator.StringRequest, resp *validator.StringResponse) {
+	if req.ConfigValue.IsUnknown() {
+		return
+	}
+	if v.AllowNull && req.ConfigValue.IsNull() {
+		return
+	}
+	value := req.ConfigValue.ValueString()
+	if !isDigitsOnly(value) {
+		resp.Diagnostics.AddAttributeError(
+			req.Path,
+			"Invalid "+v.DisplayName,
+			v.DisplayName+" must be a numeric string containing only digits (e.g. \"22\").",
+		)
+	}
+}
+
+func isDigitsOnly(s string) bool {
+	if s == "" {
+		return false
+	}
+	for i := 0; i < len(s); i++ {
+		if s[i] < '0' || s[i] > '9' {
+			return false
+		}
+	}
+	return true
+}
+
+// ----- GENERIC: DATE STRING (YYYY-MM-DD) --------------------------------.
+const DateStringLayout = "2006-01-02"
+
+// DateStringValidator validates that a string is a calendar date in YYYY-MM-DD format.
+// DisplayName is used in error messages. AllowNull: if true, null values are skipped.
+func DateStringValidator(displayName string, allowNull bool) dateStringValidator {
+	return dateStringValidator{DisplayName: displayName, AllowNull: allowNull}
+}
+
+type dateStringValidator struct {
+	DisplayName string
+	AllowNull   bool
+}
+
+func (v dateStringValidator) Description(_ context.Context) string {
+	return v.DisplayName + " must be a date in YYYY-MM-DD format (e.g. 2026-07-09)."
+}
+
+func (v dateStringValidator) MarkdownDescription(ctx context.Context) string {
+	return v.Description(ctx)
+}
+
+func (v dateStringValidator) ValidateString(_ context.Context, req validator.StringRequest, resp *validator.StringResponse) {
+	if req.ConfigValue.IsUnknown() {
+		return
+	}
+	if v.AllowNull && req.ConfigValue.IsNull() {
+		return
+	}
+	value := strings.TrimSpace(req.ConfigValue.ValueString())
+	if value == "" {
+		resp.Diagnostics.AddAttributeError(
+			req.Path,
+			"Invalid "+v.DisplayName,
+			v.DisplayName+" must be a date in YYYY-MM-DD format (e.g. 2026-07-09).",
+		)
+		return
+	}
+	t, err := time.Parse(DateStringLayout, value)
+	if err != nil || t.Format(DateStringLayout) != value {
+		resp.Diagnostics.AddAttributeError(
+			req.Path,
+			"Invalid "+v.DisplayName,
+			fmt.Sprintf("%s %q must be a date in YYYY-MM-DD format (e.g. 2026-07-09).", v.DisplayName, req.ConfigValue.ValueString()),
 		)
 	}
 }

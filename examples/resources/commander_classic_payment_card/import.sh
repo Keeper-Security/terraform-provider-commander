@@ -1,0 +1,1 @@
+terraform import commander_classic_payment_card.example <RECORD_UID>

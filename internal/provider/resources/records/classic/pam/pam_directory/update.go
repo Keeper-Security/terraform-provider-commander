@@ -64,7 +64,7 @@ func (r *PamDirectoryResource) Update(ctx context.Context, req resource.UpdateRe
 	}
 
 	if plan.PamSettings != nil {
-		if err := commonpamrecords.ApplyMachineDirectoryPamSettings(ctx, r.ApiManager, recordUID, plan.PamSettings, state.PamSettings); err != nil {
+		if err := commonpamrecords.ApplyMachineDirectoryPamSettings(ctx, r.ApiManager, utils.CmdRecordUpdate, recordUID, plan.PamSettings, state.PamSettings); err != nil {
 			resp.Diagnostics.AddError(utils.ErrSummaryApplyPamSettingsFailed, err.Error())
 			return
 		}

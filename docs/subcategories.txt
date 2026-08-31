@@ -1,8 +1,10 @@
 Classic Folders
 Classic PAM Records
+Classic Records
 Endpoint Privilege Manager (EPM)
 Enterprise Management
 KeeperPAM
 MSP Management
 Nested Shared Folders (NSF)
+New (NSF) PAM Records
 Secrets Manager

@@ -143,7 +143,7 @@ resource "commander_classic_pam_database" "with_pam_settings" {
 - `pam_settings` (Block, Optional) **PAM settings** for the record, including connection, tunnel, and administrative options. (see [below for nested schema](#nestedblock--pam_settings))
 - `provider_group` (String) **Azure or AWS Provider Group**.
 - `provider_region` (String) **Azure or AWS Provider Region**.
-- `share` (Attributes Map) Mapping of share permissions for this record. Each map **key** is a **user email**; each **value** is an object with `can_share` and `can_edit` booleans. (see [below for nested schema](#nestedatt--share))
+- `share` (Attributes Map) Mapping of share permissions for this record. Each map **key** is a **user email**; each **value** is an object with `can_share` and `can_edit` booleans. The owner is implicit and never present in this map; the API rejects owner entries. (see [below for nested schema](#nestedatt--share))
 - `use_ssl` (Boolean) Whether to use **SSL** while connecting to the database resource.
 
 ### Read-Only

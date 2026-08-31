@@ -15,6 +15,7 @@ const (
 	CmdNsfGet            = "nsf-get"
 	CmdNsfRecordAdd      = "nsf-record-add"
 	CmdNsfRecordUpdate   = "nsf-record-update"
+	CmdNsfRecordDelete   = "nsf-rm"
 )
 
 // Commander CLI command flags.
@@ -90,8 +91,6 @@ const (
 
 // Error details operation messages (second argument to ExecuteCommand and AddError; short description for logs).
 const (
-	ErrDetailManagedCompany         = "Cannot update the managed_company field. Once an EPM policy is created, the managed company cannot be changed. Remove and recreate the resource to use a different managed company."
-	ErrDetailRecordDeleteFailed     = "Something went wrong when deleting the record. Check the record UID or title and try again."
-	ErrDetailFetchVaultRecordFailed = "Something went wrong when fetching the record. Check the record UID and try again."
-	ErrDetailMoveRecordFailed       = "Something went wrong when moving the record. Check the source and destination record Path / UIDs and try again."
+	ErrDetailManagedCompany     = "Cannot update the managed_company field. Once an EPM policy is created, the managed company cannot be changed. Remove and recreate the resource to use a different managed company."
+	ErrDetailRecordDeleteFailed = "Something went wrong when deleting the record. Check the record UID or title and try again."
 )

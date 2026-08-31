@@ -1,0 +1,60 @@
+# Look up a contact record by title or UID.
+data "commander_classic_contact" "example" {
+  contact = "_REPLACE_WITH_RECORD_TITLE_OR_UID_"
+}
+
+output "contact_id" {
+  value = data.commander_classic_contact.example.id
+}
+
+output "contact_title" {
+  value = data.commander_classic_contact.example.title
+}
+
+output "contact_notes" {
+  value = data.commander_classic_contact.example.notes
+}
+
+output "contact_folder" {
+  value = data.commander_classic_contact.example.folder
+}
+
+output "contact_name" {
+  value = data.commander_classic_contact.example.name
+}
+
+output "contact_name_first" {
+  value = data.commander_classic_contact.example.name.first
+}
+
+output "contact_name_middle" {
+  value = data.commander_classic_contact.example.name.middle
+}
+
+output "contact_name_last" {
+  value = data.commander_classic_contact.example.name.last
+}
+
+output "contact_company" {
+  value = data.commander_classic_contact.example.company
+}
+
+output "contact_email" {
+  value = data.commander_classic_contact.example.email
+}
+
+output "contact_phone" {
+  value = data.commander_classic_contact.example.phone
+}
+
+output "contact_address_ref" {
+  value = data.commander_classic_contact.example.address_ref
+}
+
+output "contact_custom" {
+  value = data.commander_classic_contact.example.custom
+}
+
+output "contact_share" {
+  value = data.commander_classic_contact.example.share
+}

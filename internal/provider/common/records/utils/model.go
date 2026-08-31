@@ -22,3 +22,11 @@ type BaseVaultRecordModel struct {
 	Notes          types.String `tfsdk:"notes"`
 	FolderLocation types.String `tfsdk:"folder_location"`
 }
+
+// CustomFieldModel is one user-defined custom field (maps to API `custom` array).
+type CustomFieldModel struct {
+	Type      types.String `tfsdk:"type"`
+	Label     types.String `tfsdk:"label"`
+	Value     types.String `tfsdk:"value"`
+	Sensitive types.Bool   `tfsdk:"sensitive"`
+}

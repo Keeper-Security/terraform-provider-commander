@@ -174,7 +174,9 @@ func userOrTeamEntryMapKey(e SharedFolderUserTeamEntry, priorUsers types.Map) st
 func buildUsersMapFromAPIResponse(usersEntries []SharedFolderUserTeamEntry, teamsEntries []SharedFolderUserTeamEntry, priorUsers types.Map) (types.Map, error) {
 	elements := make(map[string]attr.Value, len(usersEntries)+len(teamsEntries))
 	for _, e := range usersEntries {
-		// Skip owner from the map
+
+		// Skip owner entries as they are managed by Keeper and are not tracked in Terraform state.
+		// Will not add them to the share map.
 		if e.Owner {
 			continue
 		}

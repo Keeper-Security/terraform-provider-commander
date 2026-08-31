@@ -16,15 +16,10 @@ import (
 func FetchPamConfigByUIDCommand(uid string) string {
 	return strings.Join([]string{
 		CmdPamConfig, CmdPamList,
-		FlagPamListConfig, QuoteShellSingle(strings.TrimSpace(uid)),
+		FlagPamListConfig, utils.QuoteShellSingle(strings.TrimSpace(uid)),
 		utils.FlagFormatJSON,
 		utils.FlagVerbose,
 	}, " ")
-}
-
-// QuoteShellSingle wraps s for use as a single-quoted shell argument (bash-style escaping of ').
-func QuoteShellSingle(s string) string {
-	return `'` + strings.ReplaceAll(s, `'`, `'"'"'`) + `'`
 }
 
 // pamConfigTypeToEnvironment maps API config_type values to Terraform environment.

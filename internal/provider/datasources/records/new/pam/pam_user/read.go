@@ -40,7 +40,7 @@ func (d *PamUserDataSource) Read(ctx context.Context, req datasource.ReadRequest
 	}
 
 	// Phase 1: fetch the vault record
-	apiResp, err := commonrecordsutils.FetchVaultRecord(ctx, d.ApiManager, recordUID)
+	apiResp, err := commonrecordsutils.FetchNsfVaultRecord(ctx, d.ApiManager, recordUID)
 	if err != nil {
 		resp.Diagnostics.AddError(errSummaryReadPamUserDataSource, err.Error())
 		return
