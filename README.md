@@ -279,6 +279,18 @@ Delete the local `config.json` before starting Docker so the container does not 
 
 Now that the service is up and running, you can use Service Mode URL (async - _/api/v2/_) and API Key in provider configuration which is present in your `keeper-service-terraform` docker container logs.
 
+> Note: Updating the Commander and keeper-service-terraform Container
+>
+> To update Commander, stop the services, update the containers, and restart them.
+>
+> Run:
+>
+> ```docker compose down```
+>
+> ```docker compose pull```
+>
+> ```docker compose up -d```
+
 > If you encounter a 429 Too Many Requests error due to rate limiting, you can configure rate-limit for your service mode in **terraform-app-setup command > Enable advanced security?** .
 >
 > This allows you to configure the allowed number of requests per endpoint per IP address, for example:
