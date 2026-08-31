@@ -87,7 +87,7 @@ output "folder_user_overrides" {
 - `record_permissions` (Attributes) (see [below for nested schema](#nestedatt--record_permissions))
 - `records` (Attributes Map) Per-record permissions. Map key is record UID or name; value is an object with `can_share` and `can_edit`. (see [below for nested schema](#nestedatt--records))
 - `user_permissions` (Attributes) (see [below for nested schema](#nestedatt--user_permissions))
-- `users` (Attributes Map) Per-user permissions. Map key is User Email/UID or Team Name/UID; value is an object with `manage_users`, `manage_records`. (see [below for nested schema](#nestedatt--users))
+- `users` (Attributes Map) Per-user permissions. Map key is User Email/UID or Team Name/UID; value is an object with `manage_users`, `manage_records`. The owner is implicit and never present in this map; the API rejects owner entries. (see [below for nested schema](#nestedatt--users))
 
 <a id="nestedatt--record_permissions"></a>
 ### Nested Schema for `record_permissions`

@@ -758,7 +758,11 @@ func ValidatePamSettingsFieldsNotRemoved(planPamSettings, statePamSettings *Comm
 	return diags
 }
 
-func ApplyPamSettings(ctx context.Context, apiManager *api.ApiManager, recordUID string, pamSettings *CommonPamSettingsFieldResourceModel, statePamSettings *CommonPamSettingsFieldResourceModel) error {
+// ApplyPamSettings applies tunnel/connection settings and then persists the
+// full pamSettings JSON via recordUpdateCmd (CmdRecordUpdate for classic,
+// CmdNsfRecordUpdate for nested-shared records). Callers choose the command;
+// the rest of the PAM CLI surface is shared across both record styles.
+func ApplyPamSettings(ctx context.Context, apiManager *api.ApiManager, recordUpdateCmd, recordUID string, pamSettings *CommonPamSettingsFieldResourceModel, statePamSettings *CommonPamSettingsFieldResourceModel) error {
 	if pamSettings == nil || pamSettings.Configuration.IsNull() || pamSettings.Configuration.IsUnknown() || pamSettings.Configuration.ValueString() == "" {
 		return nil
 	}
@@ -801,7 +805,7 @@ func ApplyPamSettings(ctx context.Context, apiManager *api.ApiManager, recordUID
 		}
 	}
 
-	return applyPamSettingsFieldUpdate(ctx, apiManager, recordUID, pamSettings)
+	return applyPamSettingsFieldUpdate(ctx, apiManager, recordUpdateCmd, recordUID, pamSettings)
 }
 
 // applyPamConfiguration applies only the configuration via `pam connection edit`
@@ -852,18 +856,19 @@ func disablePamConnection(ctx context.Context, apiManager *api.ApiManager, recor
 	return err
 }
 
-// applyPamSettingsFieldUpdate runs a single `record-update` with the COMPLETE
-// pamSettings JSON containing all top-level keys (allowSupplyHost, portForward,
-// connection). The CLI replaces the entire pamSettings field value, so every
-// key must be present to avoid wiping sibling data.
-func applyPamSettingsFieldUpdate(ctx context.Context, apiManager *api.ApiManager, recordUID string, pamSettings *CommonPamSettingsFieldResourceModel) error {
+// applyPamSettingsFieldUpdate runs a single record-update / nsf-record-update
+// with the COMPLETE pamSettings JSON containing all top-level keys
+// (allowSupplyHost, portForward, connection). The CLI replaces the entire
+// pamSettings field value, so every key must be present to avoid wiping
+// sibling data. recordUpdateCmd is CmdRecordUpdate or CmdNsfRecordUpdate.
+func applyPamSettingsFieldUpdate(ctx context.Context, apiManager *api.ApiManager, recordUpdateCmd, recordUID string, pamSettings *CommonPamSettingsFieldResourceModel) error {
 	pamJSON := buildFullPamSettingsJSON(pamSettings)
 	if pamJSON == "" {
 		return nil
 	}
 
 	command := fmt.Sprintf("%s %s '%s' '%s=$JSON:%s'",
-		utils.CmdRecordUpdate,
+		recordUpdateCmd,
 		utils.FlagRecord,
 		recordUID,
 		utils.FlagPamSettings,

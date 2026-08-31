@@ -223,3 +223,38 @@ func TestConvertItemsToIdMap_SkipsEmpty(t *testing.T) {
 		t.Errorf("expected map[1:1] (empty skipped), got %v", result)
 	}
 }
+
+func TestExtractFolderValue_BlankOrRootPathReturnsNull(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name   string
+		folder *utils.FolderLocationResponse
+	}{
+		{name: "empty path", folder: &utils.FolderLocationResponse{UID: "uid-1", Path: ""}},
+		{name: "whitespace path", folder: &utils.FolderLocationResponse{UID: "uid-1", Path: "   "}},
+		{name: "root slash", folder: &utils.FolderLocationResponse{UID: "uid-1", Path: "/"}},
+		{name: "root slash with spaces", folder: &utils.FolderLocationResponse{UID: "uid-1", Path: " / "}},
+		{name: "empty uid and root path", folder: &utils.FolderLocationResponse{UID: "", Path: "/"}},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			result := utils.ExtractFolderValue(tt.folder, types.StringValue("any"))
+			if !result.IsNull() {
+				t.Errorf("expected null folder, got %q", result.ValueString())
+			}
+		})
+	}
+}
+
+func TestExtractFolderValue_ValidPathReturnsPath(t *testing.T) {
+	t.Parallel()
+
+	folder := &utils.FolderLocationResponse{UID: "folder-uid", Path: "NSF PAM/Resources"}
+	result := utils.ExtractFolderValue(folder, types.StringNull())
+	if result.ValueString() != "NSF PAM/Resources" {
+		t.Errorf("expected NSF PAM/Resources, got %q", result.ValueString())
+	}
+}

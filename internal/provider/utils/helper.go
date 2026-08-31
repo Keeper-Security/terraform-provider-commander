@@ -916,7 +916,7 @@ func recordIdentifierMatchesList(ref string, entries []VaultRecordListEntry) boo
 // show a spurious diff. Otherwise the folder path from the response is used.
 // Path comparison normalizes spaces around "/" so "Test / My Folder" matches "Test/My Folder".
 func ExtractFolderValue(folderResponse *FolderLocationResponse, stateFolder types.String) types.String {
-	if folderResponse == nil || (folderResponse.UID == "" && strings.TrimSpace(folderResponse.Path) == "/") {
+	if folderResponse == nil || (folderResponse.UID == "" && strings.TrimSpace(folderResponse.Path) == "/") || strings.TrimSpace(folderResponse.Path) == "/" || strings.TrimSpace(folderResponse.Path) == "" {
 		return types.StringNull()
 	}
 	if !stateFolder.IsNull() && !stateFolder.IsUnknown() {
@@ -966,4 +966,9 @@ func MergeDataSourceAttributes(maps ...map[string]dschema.Attribute) map[string]
 		}
 	}
 	return result
+}
+
+// QuoteShellSingle wraps s for use as a single-quoted shell argument (bash-style escaping of ').
+func QuoteShellSingle(s string) string {
+	return `'` + strings.ReplaceAll(s, `'`, `'"'"'`) + `'`
 }

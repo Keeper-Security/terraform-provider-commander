@@ -425,8 +425,8 @@ func TestExtractFolderValue_NilFolder(t *testing.T) {
 func TestExtractFolderValue_EmptyUIDAndPath(t *testing.T) {
 	folder := &utils.FolderLocationResponse{UID: "", Path: "  "}
 	result := utils.ExtractFolderValue(folder, types.StringValue("any"))
-	if result.ValueString() != "  " {
-		t.Errorf("expected raw path '  ' (preserved), got %q", result.ValueString())
+	if !result.IsNull() {
+		t.Errorf("expected null folder for blank path, got %q", result.ValueString())
 	}
 }
 

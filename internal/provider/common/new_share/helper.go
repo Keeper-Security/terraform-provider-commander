@@ -99,9 +99,15 @@ func SyncSharePermissions(ctx context.Context, apiManager *api.ApiManager, comma
 }
 
 // MapResponseToModel populates m.Share from the API's user_permissions array.
-// Entries with role == RoleOwner are silently dropped (owner is managed by
-// Keeper and is not tracked in Terraform state). Entries with empty accessor
-// or empty role are also dropped.
+// Owner entries are silently dropped (owner is managed by Keeper and is not
+// tracked in Terraform state). Owner is detected via role == RoleOwner
+// (for NSF folder shape) or the owner boolean (for NSF/classic record shape). Entries
+// with empty principal or empty role are also dropped.
+//
+// Principal resolution matches both NSF response shapes documented on
+// utils.UserPermissionEntry:
+//   - folders: accessor + role
+//   - records: username + role (accessor is empty)
 //
 // When the filtered set is empty (e.g. the API returned only the owner row),
 // m.Share is set to null rather than an empty map. The schema's
@@ -114,13 +120,17 @@ func MapResponseToModel(permissions []UserPermissionEntry, m *ShareModel) error 
 	}
 	elements := make(map[string]attr.Value, len(permissions))
 	for _, p := range permissions {
-		if strings.EqualFold(p.Role, RoleOwner) {
+
+		// Skip owner entries as they are managed by Keeper and are not tracked in Terraform state.
+		// Will not add them to the share map.
+		if isOwnerPermission(p) {
 			continue
 		}
-		if strings.TrimSpace(p.Accessor) == "" || strings.TrimSpace(p.Role) == "" {
+		principal := sharePrincipal(p)
+		if principal == "" || strings.TrimSpace(p.Role) == "" {
 			continue
 		}
-		elements[p.Accessor] = types.StringValue(p.Role)
+		elements[principal] = types.StringValue(p.Role)
 	}
 	if len(elements) == 0 {
 		m.Share = types.MapNull(types.StringType)
@@ -132,6 +142,22 @@ func MapResponseToModel(permissions []UserPermissionEntry, m *ShareModel) error 
 	}
 	m.Share = mv
 	return nil
+}
+
+// isOwnerPermission reports whether the entry represents the Keeper owner.
+// NSF folders use role "owner"; NSF/classic records set the owner boolean
+// (often with a non-owner role such as full-manager).
+func isOwnerPermission(p UserPermissionEntry) bool {
+	return p.Owner || strings.EqualFold(p.Role, RoleOwner)
+}
+
+// sharePrincipal returns the map key for a permission entry. NSF folders use
+// accessor; NSF records use username. Accessor wins when both are set.
+func sharePrincipal(p UserPermissionEntry) string {
+	if accessor := strings.TrimSpace(p.Accessor); accessor != "" {
+		return accessor
+	}
+	return strings.TrimSpace(p.Username)
 }
 
 // mapToStringMap converts a types.Map of StringType into a Go map[string]string.

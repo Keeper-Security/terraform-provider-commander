@@ -1,0 +1,1 @@
+terraform import commander_classic_driver_license.example <RECORD_UID>

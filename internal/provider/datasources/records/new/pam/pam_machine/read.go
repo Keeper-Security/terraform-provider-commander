@@ -40,7 +40,7 @@ func (d *PamMachineDataSource) Read(ctx context.Context, req datasource.ReadRequ
 		return
 	}
 
-	apiResp, err := commonrecordsutils.FetchVaultRecord(ctx, d.ApiManager, recordUID)
+	apiResp, err := commonrecordsutils.FetchNsfVaultRecord(ctx, d.ApiManager, recordUID)
 	if err != nil {
 		resp.Diagnostics.AddError(errSummaryReadPamMachineDataSource, err.Error())
 		return
