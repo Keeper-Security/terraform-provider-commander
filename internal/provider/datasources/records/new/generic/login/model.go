@@ -12,7 +12,7 @@ import (
 // LoginDataSourceModel adds a lookup key (`login`) to the shared login model.
 // The lookup attribute is named login because login is the username field on the record.
 type LoginDataSourceModel struct {
-	LoginRecord types.String `tfsdk:"login"`
+	LoginRecord types.String `tfsdk:"login_record"`
 	commonrecordlogin.LoginModel
 	new_share.ShareModel
 }

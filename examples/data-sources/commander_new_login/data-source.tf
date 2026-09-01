@@ -1,6 +1,6 @@
 # Look up a nested (NSF) login record by title or UID.
 data "commander_new_login" "example" {
-  login = "_REPLACE_WITH_RECORD_TITLE_OR_UID_"
+  login_record = "_REPLACE_WITH_RECORD_TITLE_OR_UID_"
 }
 
 output "login_id" {

@@ -23,7 +23,7 @@ func (d *LoginDataSource) Schema(ctx context.Context, req datasource.SchemaReque
 			commonrecordlogin.SharedDataSourceAttributes(),
 			new_share.DataSourceShareAttribute(),
 			map[string]dschema.Attribute{
-				"login": dschema.StringAttribute{
+				"login_record": dschema.StringAttribute{
 					Required:            true,
 					Description:         "New (NSF) Login record title or UID to look up.",
 					MarkdownDescription: "New (NSF) Login record **title** or **UID** to look up.",

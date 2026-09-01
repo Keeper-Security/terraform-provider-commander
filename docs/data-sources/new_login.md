@@ -15,7 +15,7 @@ Use this data source to look up a **New (NSF) login** record by **title** or **U
 ```terraform
 # Look up a nested (NSF) login record by title or UID.
 data "commander_new_login" "example" {
-  login = "_REPLACE_WITH_RECORD_TITLE_OR_UID_"
+  login_record = "_REPLACE_WITH_RECORD_TITLE_OR_UID_"
 }
 
 output "login_id" {
@@ -54,13 +54,14 @@ output "login_share" {
 
 ### Required
 
-- `login` (String) New (NSF) Login record **title** or **UID** to look up.
+- `login_record` (String) New (NSF) Login record **title** or **UID** to look up.
 
 ### Read-Only
 
 - `custom` (Attributes List) Custom fields stored in the record's `custom` array. (see [below for nested schema](#nestedatt--custom))
 - `folder_location` (String) Folder `path` or `UID` where the record is to be stored.
 - `id` (String) Unique identifier (UID) of the vault record.
+- `login` (String) **Username** or **login** identifier.
 - `notes` (String) Note of the record.
 - `password` (String, Sensitive) **Password**.
 - `share` (Map of String) Mapping of share permissions for this folder or record. For folders, keys can identify either users (**UID** or **email**) or teams (**UID** or **name**). For records, keys can identify users only (**UID** or **email**). Values specify the permission level: `viewer`, `share-manager`, `content-manager`, `content-share-manager`, or `full-manager`. The owner is implicit and never present in this map; the API rejects owner entries.
