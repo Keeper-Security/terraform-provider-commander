@@ -46,6 +46,7 @@ import (
 	classicpamremotebrowserdatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/records/classic/pam/pam_remote_browser"
 	classicpamuserdatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/records/classic/pam/pam_user"
 	newbankaccountdatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/records/new/generic/bank_account"
+	newbirthcertificatedatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/records/new/generic/birth_certificate"
 	newdatabasedatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/records/new/generic/database"
 	newdriverlicensedatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/records/new/generic/driver_license"
 	newhealthinsurancedatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/records/new/generic/health_insurance"
@@ -102,6 +103,7 @@ import (
 	classicpamremotebrowser "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/records/classic/pam/pam_remote_browser"
 	classicpamuser "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/records/classic/pam/pam_user"
 	newbankaccount "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/records/new/generic/bank_account"
+	newbirthcertificate "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/records/new/generic/birth_certificate"
 	newdatabase "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/records/new/generic/database"
 	newdriverlicense "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/records/new/generic/driver_license"
 	newhealthinsurance "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/records/new/generic/health_insurance"
@@ -320,6 +322,7 @@ func (p *CommanderProvider) Resources(ctx context.Context) []func() resource.Res
 		newmembership.NewMembershipResource,
 		newdriverlicense.NewDriverLicenseResource,
 		newpassport.NewPassportResource,
+		newbirthcertificate.NewBirthCertificateResource,
 	}
 }
 
@@ -384,6 +387,7 @@ func (p *CommanderProvider) DataSources(ctx context.Context) []func() datasource
 		newmembershiodatasource.NewMembershipDataSource,
 		newdriverlicensedatasource.NewDriverLicenseDataSource,
 		newpassportdatasource.NewPassportDataSource,
+		newbirthcertificatedatasource.NewBirthCertificateDataSource,
 	}
 }
 
