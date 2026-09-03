@@ -141,7 +141,7 @@ categories:
       - new_membership
       - new_health_insurance
       - new_driver_license
-      # - new_passport
+      - new_passport
       - new_ssn_card
       # - new_birth_certificate
       - new_login
@@ -160,7 +160,7 @@ categories:
       - new_membership
       - new_health_insurance
       - new_driver_license
-      # - new_passport
+      - new_passport
       - new_ssn_card
       # - new_birth_certificate
       - new_login
