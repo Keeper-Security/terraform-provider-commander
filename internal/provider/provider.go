@@ -45,6 +45,7 @@ import (
 	classicpammachinedatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/records/classic/pam/pam_machine"
 	classicpamremotebrowserdatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/records/classic/pam/pam_remote_browser"
 	classicpamuserdatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/records/classic/pam/pam_user"
+	newaddressdatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/records/new/generic/address"
 	newbankaccountdatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/records/new/generic/bank_account"
 	newbirthcertificatedatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/records/new/generic/birth_certificate"
 	newdatabasedatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/records/new/generic/database"
@@ -102,6 +103,7 @@ import (
 	classicpammachine "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/records/classic/pam/pam_machine"
 	classicpamremotebrowser "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/records/classic/pam/pam_remote_browser"
 	classicpamuser "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/records/classic/pam/pam_user"
+	newaddress "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/records/new/generic/address"
 	newbankaccount "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/records/new/generic/bank_account"
 	newbirthcertificate "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/records/new/generic/birth_certificate"
 	newdatabase "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/records/new/generic/database"
@@ -323,6 +325,7 @@ func (p *CommanderProvider) Resources(ctx context.Context) []func() resource.Res
 		newdriverlicense.NewDriverLicenseResource,
 		newpassport.NewPassportResource,
 		newbirthcertificate.NewBirthCertificateResource,
+		newaddress.NewAddressResource,
 	}
 }
 
@@ -388,6 +391,7 @@ func (p *CommanderProvider) DataSources(ctx context.Context) []func() datasource
 		newdriverlicensedatasource.NewDriverLicenseDataSource,
 		newpassportdatasource.NewPassportDataSource,
 		newbirthcertificatedatasource.NewBirthCertificateDataSource,
+		newaddressdatasource.NewAddressDataSource,
 	}
 }
 

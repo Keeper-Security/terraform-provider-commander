@@ -135,7 +135,7 @@ categories:
   New (NSF) Records:
     resources:
       # - new_contact
-      # - new_address
+      - new_address
       - new_payment_card
       - new_bank_account
       - new_membership
@@ -154,7 +154,7 @@ categories:
       # - new_secure_note
     data_sources:
       # - new_contact
-      # - new_address
+      - new_address
       - new_payment_card
       - new_bank_account
       - new_membership
