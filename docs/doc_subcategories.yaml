@@ -151,7 +151,7 @@ categories:
       - new_server
       - new_database
       - new_software_license
-      # - new_secure_note
+      - new_secure_note
     data_sources:
       # - new_contact
       - new_address
@@ -170,4 +170,4 @@ categories:
       - new_server
       - new_database
       - new_software_license
-      # - new_secure_note
+      - new_secure_note

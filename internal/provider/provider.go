@@ -56,6 +56,7 @@ import (
 	newpassportdatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/records/new/generic/passport"
 	newpaymentcarddatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/records/new/generic/payment_card"
 	newsaasconfigurationdatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/records/new/generic/saas_configuration"
+	newsecurenotedatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/records/new/generic/secure_note"
 	newserverdatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/records/new/generic/server"
 	newsoftwarelicensedatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/records/new/generic/software_license"
 	newsshkeysdatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/records/new/generic/ssh_keys"
@@ -114,6 +115,7 @@ import (
 	newpassport "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/records/new/generic/passport"
 	newpaymentcard "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/records/new/generic/payment_card"
 	newsaasconfiguration "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/records/new/generic/saas_configuration"
+	newsecurenote "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/records/new/generic/secure_note"
 	newserver "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/records/new/generic/server"
 	newsoftwarelicense "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/records/new/generic/software_license"
 	newsshkeys "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/records/new/generic/ssh_keys"
@@ -326,6 +328,7 @@ func (p *CommanderProvider) Resources(ctx context.Context) []func() resource.Res
 		newpassport.NewPassportResource,
 		newbirthcertificate.NewBirthCertificateResource,
 		newaddress.NewAddressResource,
+		newsecurenote.NewSecureNoteResource,
 	}
 }
 
@@ -392,6 +395,7 @@ func (p *CommanderProvider) DataSources(ctx context.Context) []func() datasource
 		newpassportdatasource.NewPassportDataSource,
 		newbirthcertificatedatasource.NewBirthCertificateDataSource,
 		newaddressdatasource.NewAddressDataSource,
+		newsecurenotedatasource.NewSecureNoteDataSource,
 	}
 }
 
