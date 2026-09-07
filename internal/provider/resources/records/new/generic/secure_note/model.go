@@ -8,7 +8,7 @@ import (
 	commonrecordsecurenote "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/generic/secure_note"
 )
 
-// SecureNoteResourceModel is the classic encryptedNotes resource state model.
+// SecureNoteResourceModel is the New (NSF) secure note resource state model.
 type SecureNoteResourceModel struct {
 	commonrecordsecurenote.SecureNoteModel
 	new_share.ShareModel

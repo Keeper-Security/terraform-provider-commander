@@ -48,6 +48,7 @@ import (
 	newaddressdatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/records/new/generic/address"
 	newbankaccountdatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/records/new/generic/bank_account"
 	newbirthcertificatedatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/records/new/generic/birth_certificate"
+	newcontactdatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/records/new/generic/contact"
 	newdatabasedatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/records/new/generic/database"
 	newdriverlicensedatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/records/new/generic/driver_license"
 	newhealthinsurancedatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/records/new/generic/health_insurance"
@@ -107,6 +108,7 @@ import (
 	newaddress "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/records/new/generic/address"
 	newbankaccount "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/records/new/generic/bank_account"
 	newbirthcertificate "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/records/new/generic/birth_certificate"
+	newcontact "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/records/new/generic/contact"
 	newdatabase "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/records/new/generic/database"
 	newdriverlicense "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/records/new/generic/driver_license"
 	newhealthinsurance "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/records/new/generic/health_insurance"
@@ -329,6 +331,7 @@ func (p *CommanderProvider) Resources(ctx context.Context) []func() resource.Res
 		newbirthcertificate.NewBirthCertificateResource,
 		newaddress.NewAddressResource,
 		newsecurenote.NewSecureNoteResource,
+		newcontact.NewContactResource,
 	}
 }
 
@@ -396,6 +399,7 @@ func (p *CommanderProvider) DataSources(ctx context.Context) []func() datasource
 		newbirthcertificatedatasource.NewBirthCertificateDataSource,
 		newaddressdatasource.NewAddressDataSource,
 		newsecurenotedatasource.NewSecureNoteDataSource,
+		newcontactdatasource.NewContactDataSource,
 	}
 }
 
