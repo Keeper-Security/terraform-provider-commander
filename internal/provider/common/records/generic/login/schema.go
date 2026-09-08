@@ -16,6 +16,7 @@ func SharedAttributes() map[string]schema.Attribute {
 	return utils.MergeResourceAttributes(
 		commonrecordsutils.BaseRecordAttributes(),
 		map[string]schema.Attribute{
+			// need to make login as optional
 			"login":           commonrecordsutils.RequiredLoginField(),
 			"password":        commonrecordsutils.OptionalPasswordField(),
 			"website_address": commonrecordsutils.OptionalWebsiteAddressField(),

@@ -9,7 +9,6 @@ import (
 
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/new_share"
 	commonrecordpaymentcard "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/generic/payment_card"
-	commonrecordsutils "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/utils"
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/utils"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 )
@@ -43,8 +42,8 @@ func (r *PaymentCardResource) Update(ctx context.Context, req resource.UpdateReq
 		return
 	}
 
-	if err := commonrecordsutils.MoveRecordFromSourceToDestination(ctx, r.ApiManager, state.Id.ValueString(), plan.FolderLocation.ValueString(), state.FolderLocation.ValueString()); err != nil {
-		resp.Diagnostics.AddError(utils.ErrSummaryMoveRecordFailed, err.Error())
+	if err := utils.MoveNsfFromSourceToDestination(ctx, r.ApiManager, state.Id.ValueString(), plan.FolderLocation.ValueString(), state.FolderLocation.ValueString()); err != nil {
+		resp.Diagnostics.AddError(utils.ErrSummaryNsfMoveRecordFailed, err.Error())
 		return
 	}
 

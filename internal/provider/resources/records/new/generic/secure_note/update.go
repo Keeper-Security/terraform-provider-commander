@@ -9,7 +9,6 @@ import (
 
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/new_share"
 	commonrecordsecurenote "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/generic/secure_note"
-	commonrecordsutils "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/utils"
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/utils"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 )
@@ -40,8 +39,8 @@ func (r *SecureNoteResource) Update(ctx context.Context, req resource.UpdateRequ
 		return
 	}
 
-	if err := commonrecordsutils.MoveRecordFromSourceToDestination(ctx, r.ApiManager, state.Id.ValueString(), plan.FolderLocation.ValueString(), state.FolderLocation.ValueString()); err != nil {
-		resp.Diagnostics.AddError(utils.ErrSummaryMoveRecordFailed, err.Error())
+	if err := utils.MoveNsfFromSourceToDestination(ctx, r.ApiManager, state.Id.ValueString(), plan.FolderLocation.ValueString(), state.FolderLocation.ValueString()); err != nil {
+		resp.Diagnostics.AddError(utils.ErrSummaryNsfMoveRecordFailed, err.Error())
 		return
 	}
 

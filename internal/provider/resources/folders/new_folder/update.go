@@ -34,18 +34,17 @@ func (r *NewFolderResource) Update(ctx context.Context, req resource.UpdateReque
 		return
 	}
 
-	// Throw error if user tries to change the folder location as it is not supported
-	if !plan.FolderLocation.Equal(state.FolderLocation) {
-		resp.Diagnostics.AddError(commonfolderutils.ErrSummaryInvalidConfig, ErrSummaryMoveNotSupported)
-		return
-	}
-
 	if err := utils.SyncDown(ctx, r.ApiManager); err != nil {
 		resp.Diagnostics.AddError(utils.ErrSummarySyncDownFailed, err.Error())
 		return
 	}
 
 	plan.Id = state.Id
+
+	if err := utils.MoveNsfFromSourceToDestination(ctx, r.ApiManager, state.Id.ValueString(), plan.FolderLocation.ValueString(), state.FolderLocation.ValueString()); err != nil {
+		resp.Diagnostics.AddError(ErrSummaryNsfMoveFolderFailed, err.Error())
+		return
+	}
 
 	if !plan.Name.Equal(state.Name) {
 		command := fmt.Sprintf(`%s "%s" %s="%s"`, CmdNsfRndir, state.Id.ValueString(), commonfolderutils.FlagName, plan.Name.ValueString())

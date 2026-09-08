@@ -9,7 +9,6 @@ import (
 
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/new_share"
 	commonrecordssncard "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/generic/ssn_card"
-	commonrecordsutils "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/utils"
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/utils"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 )
@@ -43,8 +42,8 @@ func (r *SsnCardResource) Update(ctx context.Context, req resource.UpdateRequest
 		return
 	}
 
-	if err := commonrecordsutils.MoveRecordFromSourceToDestination(ctx, r.ApiManager, state.Id.ValueString(), plan.FolderLocation.ValueString(), state.FolderLocation.ValueString()); err != nil {
-		resp.Diagnostics.AddError(utils.ErrSummaryMoveRecordFailed, err.Error())
+	if err := utils.MoveNsfFromSourceToDestination(ctx, r.ApiManager, state.Id.ValueString(), plan.FolderLocation.ValueString(), state.FolderLocation.ValueString()); err != nil {
+		resp.Diagnostics.AddError(utils.ErrSummaryNsfMoveRecordFailed, err.Error())
 		return
 	}
 
