@@ -205,6 +205,7 @@
 
 ## Prerequisites
 
+- A Keeper enterprise or MSP account with administrative privileges
 - **Keeper Commander Service Mode**: A service account running Commander Service Mode REST API using `terraform-app-setup` command.
 - **Docker** is the recommended method for setting up the commander service mode.
 - [Terraform](https://developer.hashicorp.com/terraform/downloads) >= 1.0
