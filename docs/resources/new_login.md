@@ -38,13 +38,13 @@ resource "commander_new_login" "example" {
 
 ### Required
 
-- `login` (String) **Login** identifier.
 - `title` (String) Record title.
 
 ### Optional
 
 - `custom` (Attributes List) Manage custom fields for the record. (see [below for nested schema](#nestedatt--custom))
 - `folder_location` (String) Folder `path` or `UID` where the record is to be stored.
+- `login` (String) **Login** identifier.
 - `notes` (String) Manage note for the record.
 - `password` (String, Sensitive) **Password**.
 - `share` (Map of String) Mapping of share permissions for this folder or record. For folders, keys can identify either users (**UID** or **email**) or teams (**UID** or **name**). For records, keys can identify users only (**UID** or **email**). Values specify the permission level: `viewer`, `share-manager`, `content-manager`, `content-share-manager`, or `full-manager`. The owner is implicit and never present in this map; the API rejects owner entries.
