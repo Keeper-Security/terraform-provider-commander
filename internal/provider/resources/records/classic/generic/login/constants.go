@@ -4,8 +4,8 @@
 package login
 
 const (
-	SchemaDescription         = "Creates and manages a Keeper login record in the vault."
-	SchemaMarkdownDescription = "Creates and manages a Keeper `login` record in the vault."
+	SchemaDescription         = "Creates and manages a Login record in the vault."
+	SchemaMarkdownDescription = "Creates and manages a **Login** record in the vault."
 
 	ErrSummaryCreateFailed = "Login Record Create Failed"
 	ErrSummaryReadFailed   = "Login Record Read Failed"

@@ -972,3 +972,19 @@ func MergeDataSourceAttributes(maps ...map[string]dschema.Attribute) map[string]
 func QuoteShellSingle(s string) string {
 	return `'` + strings.ReplaceAll(s, `'`, `'"'"'`) + `'`
 }
+
+// MoveNsfFromSourceToDestination move's a nsf-record/nsf-folder when plan and state folder paths differ.
+func MoveNsfFromSourceToDestination(ctx context.Context, apiManager *api.ApiManager, uID string, planFolderData string, stateFolderData string) error {
+	if planFolderData == stateFolderData {
+		return nil
+	}
+
+	dest := planFolderData
+	if dest == "" {
+		dest = "root"
+	}
+
+	command := fmt.Sprintf("%s '%s' '%s'", CmdNsfMove, uID, dest)
+	_, err := apiManager.ExecuteCommand(ctx, command, ErrSummaryNsfMoveRecordFailed)
+	return err
+}

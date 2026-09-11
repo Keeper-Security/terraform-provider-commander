@@ -22,5 +22,5 @@ const (
 )
 
 const (
-	ErrSummaryMoveNotSupported = "Move operation is not supported for Nested Share Folders."
+	ErrSummaryNsfMoveFolderFailed = "Nsf Move Folder Failed"
 )

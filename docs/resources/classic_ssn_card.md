@@ -3,12 +3,12 @@
 page_title: "commander_classic_ssn_card Resource - commander"
 subcategory: "Classic Records"
 description: |-
-  Creates and manages a Keeper ssnCard (Identity Card) record in the vault.
+  Creates and manages a SSN Card (Identity Card) record in the vault.
 ---
 
 # commander_classic_ssn_card (Resource)
 
-Creates and manages a Keeper `ssnCard` (Identity Card) record in the vault.
+Creates and manages a **SSN Card (Identity Card)** record in the vault.
 
 ## Example Usage
 

@@ -3,12 +3,12 @@
 page_title: "commander_classic_software_license Resource - commander"
 subcategory: "Classic Records"
 description: |-
-  Creates and manages a Keeper software license record (softwareLicense) in the vault.
+  Creates and manages a Software License record in the vault.
 ---
 
 # commander_classic_software_license (Resource)
 
-Creates and manages a Keeper **software license** record (`softwareLicense`) in the vault.
+Creates and manages a **Software License** record in the vault.
 
 ## Example Usage
 

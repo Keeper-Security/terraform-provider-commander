@@ -16,6 +16,7 @@ const (
 	CmdNsfRecordAdd      = "nsf-record-add"
 	CmdNsfRecordUpdate   = "nsf-record-update"
 	CmdNsfRecordDelete   = "nsf-rm"
+	CmdNsfMove           = "nsf-move"
 )
 
 // Commander CLI command flags.
@@ -83,6 +84,7 @@ const (
 	ErrSummaryRecordDeleteFailed                  = "Record Delete Failed"
 	ErrSummaryFetchVaultRecordFailed              = "Fetch Vault Record Failed"
 	ErrSummaryMoveRecordFailed                    = "Move Record Failed"
+	ErrSummaryNsfMoveRecordFailed                 = "Nsf Move Record Failed"
 	ErrSummaryApplyPamSettingsFailed              = "Apply PAM Settings Failed"
 	ErrSummaryApplyPamTunnelSettingsFailed        = "Apply PAM Tunnel Settings Failed"
 	ErrSummaryApplyPamConnectionSettingsFailed    = "Apply PAM Connection Settings Failed"

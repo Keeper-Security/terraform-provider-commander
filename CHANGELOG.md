@@ -1,5 +1,22 @@
 # Changelog
 
+## 1.4.0 (YYYY-MM-DD)
+
+### Added
+
+**Resources**
+
+- **New Records (NSF):** `commander_new_login`, `commander_new_wifi`, `commander_new_contact`, `commander_new_address`, `commander_new_payment_card`, `commander_new_bank_account`, `commander_new_membership`, `commander_new_health_insurance`, `commander_new_driver_license`, `commander_new_passport`, `commander_new_ssn_card`, `commander_new_birth_certificate`, `commander_new_ssh_keys`, `commander_new_saas_configuration`, `commander_new_server`, `commander_new_database`, `commander_new_software_license`, `commander_new_secure_note`
+
+**Data sources**
+
+- **New Records (NSF):** `commander_new_login`, `commander_new_wifi`, `commander_new_contact`, `commander_new_address`, `commander_new_payment_card`, `commander_new_bank_account`, `commander_new_membership`, `commander_new_health_insurance`, `commander_new_driver_license`, `commander_new_passport`, `commander_new_ssn_card`, `commander_new_birth_certificate`, `commander_new_ssh_keys`, `commander_new_saas_configuration`, `commander_new_server`, `commander_new_database`, `commander_new_software_license`, `commander_new_secure_note`
+
+### Changed
+
+- New (NSF) records and folder can now be moved between folder locations.
+- Bumped minimum required Keeper Commander version to `18.1.5`.
+
 ## 1.3.0 (YYYY-MM-DD)
 
 ### Added

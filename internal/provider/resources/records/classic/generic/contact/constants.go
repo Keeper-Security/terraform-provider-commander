@@ -4,8 +4,8 @@
 package contact
 
 const (
-	SchemaDescription         = "Creates and manages a Keeper Contact record in the vault."
-	SchemaMarkdownDescription = "Creates and manages a Keeper `contact` record in the vault."
+	SchemaDescription         = "Creates and manages a Contact record in the vault."
+	SchemaMarkdownDescription = "Creates and manages a **Contact** record in the vault."
 
 	ErrSummaryCreateFailed = "Contact Record Create Failed"
 	ErrSummaryReadFailed   = "Contact Record Read Failed"

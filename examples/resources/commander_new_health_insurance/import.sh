@@ -1,0 +1,1 @@
+terraform import commander_new_health_insurance.example _REPLACE_WITH_RECORD_UID_

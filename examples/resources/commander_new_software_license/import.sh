@@ -1,0 +1,1 @@
+terraform import commander_new_software_license.example _REPLACE_WITH_RECORD_UID_

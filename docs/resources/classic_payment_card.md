@@ -3,12 +3,12 @@
 page_title: "commander_classic_payment_card Resource - commander"
 subcategory: "Classic Records"
 description: |-
-  Creates and manages a Keeper bankCard (Payment Card) record in the vault.
+  Creates and manages a Payment Card record in the vault.
 ---
 
 # commander_classic_payment_card (Resource)
 
-Creates and manages a Keeper `bankCard` (Payment Card) record in the vault.
+Creates and manages a **Payment Card** record in the vault.
 
 ## Example Usage
 

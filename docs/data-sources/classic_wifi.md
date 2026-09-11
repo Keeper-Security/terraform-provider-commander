@@ -59,8 +59,8 @@ output "wifi_is_ssid_hidden" {
   value = data.commander_classic_wifi.office_guest.is_ssid_hidden
 }
 
-output "wifi_folder" {
-  value = data.commander_classic_wifi.office_guest.folder
+output "wifi_folder_location" {
+  value = data.commander_classic_wifi.office_guest.folder_location
 }
 
 output "wifi_notes" {

@@ -9,7 +9,6 @@ import (
 
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/new_share"
 	commonpamremotebrowser "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/pam/pam_remote_browser"
-	commonrecordutils "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/utils"
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/utils"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 )
@@ -32,12 +31,6 @@ func (r *PamRemoteBrowserResource) Update(ctx context.Context, req resource.Upda
 		return
 	}
 
-	// Throw error if user tries to change the folder location as it is not supported
-	if !plan.FolderLocation.Equal(state.FolderLocation) {
-		resp.Diagnostics.AddError(commonrecordutils.ErrSummaryInvalidConfig, commonrecordutils.ErrSummaryMoveNotSupported)
-		return
-	}
-
 	if err := utils.SyncDown(ctx, r.ApiManager); err != nil {
 		resp.Diagnostics.AddError(utils.ErrSummarySyncDownFailed, err.Error())
 		return
@@ -50,8 +43,8 @@ func (r *PamRemoteBrowserResource) Update(ctx context.Context, req resource.Upda
 		return
 	}
 
-	if err := commonrecordutils.MoveRecordFromSourceToDestination(ctx, r.ApiManager, state.Id.ValueString(), plan.FolderLocation.ValueString(), state.FolderLocation.ValueString()); err != nil {
-		resp.Diagnostics.AddError(utils.ErrSummaryMoveRecordFailed, err.Error())
+	if err := utils.MoveNsfFromSourceToDestination(ctx, r.ApiManager, state.Id.ValueString(), plan.FolderLocation.ValueString(), state.FolderLocation.ValueString()); err != nil {
+		resp.Diagnostics.AddError(utils.ErrSummaryNsfMoveRecordFailed, err.Error())
 		return
 	}
 

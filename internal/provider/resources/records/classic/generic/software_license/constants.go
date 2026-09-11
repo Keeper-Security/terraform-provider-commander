@@ -4,14 +4,14 @@
 package softwarelicense
 
 const (
-	SchemaDescription         = "Creates and manages a Keeper software license record (`softwareLicense`) in the vault."
-	SchemaMarkdownDescription = "Creates and manages a Keeper **software license** record (`softwareLicense`) in the vault."
+	SchemaDescription         = "Creates and manages a Software License record in the vault."
+	SchemaMarkdownDescription = "Creates and manages a **Software License** record in the vault."
 
 	ErrSummaryCreateFailed = "Software License Record Create Failed"
 	ErrSummaryReadFailed   = "Software License Record Read Failed"
 	ErrSummaryUpdateFailed = "Software License Record Update Failed"
 
-	ErrDetailCreateFailed = "Something went wrong when creating the software license record."
-	ErrDetailReadFailed   = "Something went wrong when reading the software license record."
-	ErrDetailUpdateFailed = "Something went wrong when updating the software license record."
+	ErrDetailCreateFailed = "Something went wrong when creating the Software License record."
+	ErrDetailReadFailed   = "Something went wrong when reading the Software License record."
+	ErrDetailUpdateFailed = "Something went wrong when updating the Software License record."
 )

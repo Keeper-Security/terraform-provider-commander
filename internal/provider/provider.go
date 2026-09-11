@@ -45,6 +45,24 @@ import (
 	classicpammachinedatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/records/classic/pam/pam_machine"
 	classicpamremotebrowserdatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/records/classic/pam/pam_remote_browser"
 	classicpamuserdatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/records/classic/pam/pam_user"
+	newaddressdatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/records/new/generic/address"
+	newbankaccountdatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/records/new/generic/bank_account"
+	newbirthcertificatedatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/records/new/generic/birth_certificate"
+	newcontactdatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/records/new/generic/contact"
+	newdatabasedatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/records/new/generic/database"
+	newdriverlicensedatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/records/new/generic/driver_license"
+	newhealthinsurancedatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/records/new/generic/health_insurance"
+	newlogindatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/records/new/generic/login"
+	newmembershiodatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/records/new/generic/membership"
+	newpassportdatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/records/new/generic/passport"
+	newpaymentcarddatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/records/new/generic/payment_card"
+	newsaasconfigurationdatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/records/new/generic/saas_configuration"
+	newsecurenotedatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/records/new/generic/secure_note"
+	newserverdatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/records/new/generic/server"
+	newsoftwarelicensedatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/records/new/generic/software_license"
+	newsshkeysdatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/records/new/generic/ssh_keys"
+	newssncarddatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/records/new/generic/ssn_card"
+	newwifidatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/records/new/generic/wifi"
 	newpamdatabasedatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/records/new/pam/pam_database"
 	newpamdirectorydatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/records/new/pam/pam_directory"
 	newpammachinedatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/records/new/pam/pam_machine"
@@ -87,6 +105,24 @@ import (
 	classicpammachine "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/records/classic/pam/pam_machine"
 	classicpamremotebrowser "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/records/classic/pam/pam_remote_browser"
 	classicpamuser "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/records/classic/pam/pam_user"
+	newaddress "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/records/new/generic/address"
+	newbankaccount "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/records/new/generic/bank_account"
+	newbirthcertificate "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/records/new/generic/birth_certificate"
+	newcontact "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/records/new/generic/contact"
+	newdatabase "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/records/new/generic/database"
+	newdriverlicense "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/records/new/generic/driver_license"
+	newhealthinsurance "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/records/new/generic/health_insurance"
+	newlogin "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/records/new/generic/login"
+	newmembership "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/records/new/generic/membership"
+	newpassport "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/records/new/generic/passport"
+	newpaymentcard "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/records/new/generic/payment_card"
+	newsaasconfiguration "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/records/new/generic/saas_configuration"
+	newsecurenote "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/records/new/generic/secure_note"
+	newserver "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/records/new/generic/server"
+	newsoftwarelicense "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/records/new/generic/software_license"
+	newsshkeys "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/records/new/generic/ssh_keys"
+	newssncard "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/records/new/generic/ssn_card"
+	newwifi "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/records/new/generic/wifi"
 	newpamdatabase "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/records/new/pam/pam_database"
 	newpamdirectory "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/records/new/pam/pam_directory"
 	newpammachine "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/records/new/pam/pam_machine"
@@ -252,12 +288,15 @@ func (p *CommanderProvider) Resources(ctx context.Context) []func() resource.Res
 		classicpamdirectory.NewPamDirectoryResource,
 		classicpammachine.NewPamMachineResource,
 		classiclogin.NewLoginResource,
+		newlogin.NewLoginResource,
+		newdatabase.NewDatabaseResource,
 		classicwifi.NewWifiResource,
 		classiccontact.NewContactResource,
 		classicaddress.NewAddressResource,
 		classicpaymentcard.NewPaymentCardResource,
 		classicbankaccount.NewBankAccountResource,
 		classicmembership.NewMembershipResource,
+		newbankaccount.NewBankAccountResource,
 		classichealthinsurance.NewHealthInsuranceResource,
 		classicdriverlicense.NewDriverLicenseResource,
 		classicpassport.NewPassportResource,
@@ -278,6 +317,21 @@ func (p *CommanderProvider) Resources(ctx context.Context) []func() resource.Res
 		newpamdatabase.NewPamDatabaseResource,
 		newpamdirectory.NewPamDirectoryResource,
 		newpammachine.NewPamMachineResource,
+		newsaasconfiguration.NewSaasConfigurationResource,
+		newwifi.NewWifiResource,
+		newserver.NewServerResource,
+		newsoftwarelicense.NewSoftwareLicenseResource,
+		newsshkeys.NewSshKeysResource,
+		newssncard.NewSsnCardResource,
+		newhealthinsurance.NewHealthInsuranceResource,
+		newpaymentcard.NewPaymentCardResource,
+		newmembership.NewMembershipResource,
+		newdriverlicense.NewDriverLicenseResource,
+		newpassport.NewPassportResource,
+		newbirthcertificate.NewBirthCertificateResource,
+		newaddress.NewAddressResource,
+		newsecurenote.NewSecureNoteResource,
+		newcontact.NewContactResource,
 	}
 }
 
@@ -299,11 +353,14 @@ func (p *CommanderProvider) DataSources(ctx context.Context) []func() datasource
 		classicpamremotebrowserdatasource.NewPamRemoteBrowserDataSource,
 		classicpamuserdatasource.NewPamUserDataSource,
 		classiclogindatasource.NewLoginDataSource,
+		newlogindatasource.NewLoginDataSource,
+		newdatabasedatasource.NewDatabaseDataSource,
 		classiccontactdatasource.NewContactDataSource,
 		classicaddressdatasource.NewAddressDataSource,
 		classicpaymentcarddatasource.NewPaymentCardDataSource,
 		classicbankaccountdatasource.NewBankAccountDataSource,
 		classicmembershipdatasource.NewMembershipDataSource,
+		newbankaccountdatasource.NewBankAccountDataSource,
 		classichealthinsurancedatasource.NewHealthInsuranceDataSource,
 		classicdriverlicensedatasource.NewDriverLicenseDataSource,
 		classicpassportdatasource.NewPassportDataSource,
@@ -328,6 +385,21 @@ func (p *CommanderProvider) DataSources(ctx context.Context) []func() datasource
 		newpamdatabasedatasource.NewPamDatabaseDataSource,
 		newpamdirectorydatasource.NewPamDirectoryDataSource,
 		newpammachinedatasource.NewPamMachineDataSource,
+		newsaasconfigurationdatasource.NewSaasConfigurationDataSource,
+		newwifidatasource.NewWifiDataSource,
+		newserverdatasource.NewServerDataSource,
+		newsoftwarelicensedatasource.NewSoftwareLicenseDataSource,
+		newsshkeysdatasource.NewSshKeysDataSource,
+		newssncarddatasource.NewSsnCardDataSource,
+		newhealthinsurancedatasource.NewHealthInsuranceDataSource,
+		newpaymentcarddatasource.NewPaymentCardDataSource,
+		newmembershiodatasource.NewMembershipDataSource,
+		newdriverlicensedatasource.NewDriverLicenseDataSource,
+		newpassportdatasource.NewPassportDataSource,
+		newbirthcertificatedatasource.NewBirthCertificateDataSource,
+		newaddressdatasource.NewAddressDataSource,
+		newsecurenotedatasource.NewSecureNoteDataSource,
+		newcontactdatasource.NewContactDataSource,
 	}
 }
 

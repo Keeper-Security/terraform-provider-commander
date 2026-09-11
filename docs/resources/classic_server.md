@@ -3,12 +3,12 @@
 page_title: "commander_classic_server Resource - commander"
 subcategory: "Classic Records"
 description: |-
-  Creates and manages a Keeper server credentials record (serverCredentials) in the vault.
+  Creates and manages a Server record in the vault.
 ---
 
 # commander_classic_server (Resource)
 
-Creates and manages a Keeper **server credentials** record (`serverCredentials`) in the vault.
+Creates and manages a **Server** record in the vault.
 
 ## Example Usage
 

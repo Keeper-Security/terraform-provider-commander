@@ -4,14 +4,14 @@
 package database
 
 const (
-	SchemaDescription         = "Creates and manages a Keeper database credentials record (`databaseCredentials`) in the vault."
-	SchemaMarkdownDescription = "Creates and manages a Keeper **database credentials** record (`databaseCredentials`) in the vault."
+	SchemaDescription         = "Creates and manages a Database record in the vault."
+	SchemaMarkdownDescription = "Creates and manages a **Database** record in the vault."
 
 	ErrSummaryCreateFailed = "Database Record Create Failed"
 	ErrSummaryReadFailed   = "Database Record Read Failed"
 	ErrSummaryUpdateFailed = "Database Record Update Failed"
 
-	ErrDetailCreateFailed = "Something went wrong when creating the database credentials record."
-	ErrDetailReadFailed   = "Something went wrong when reading the database credentials record."
-	ErrDetailUpdateFailed = "Something went wrong when updating the database credentials record."
+	ErrDetailCreateFailed = "Something went wrong when creating the Database record."
+	ErrDetailReadFailed   = "Something went wrong when reading the Database record."
+	ErrDetailUpdateFailed = "Something went wrong when updating the Database record."
 )

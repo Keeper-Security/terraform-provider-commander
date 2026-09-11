@@ -4,8 +4,8 @@
 package paymentcard
 
 const (
-	SchemaDescription         = "Creates and manages a Keeper Payment Card record in the vault."
-	SchemaMarkdownDescription = "Creates and manages a Keeper `bankCard` (Payment Card) record in the vault."
+	SchemaDescription         = "Creates and manages a Payment Card record in the vault."
+	SchemaMarkdownDescription = "Creates and manages a **Payment Card** record in the vault."
 
 	ErrSummaryCreateFailed = "Payment Card Record Create Failed"
 	ErrSummaryReadFailed   = "Payment Card Record Read Failed"

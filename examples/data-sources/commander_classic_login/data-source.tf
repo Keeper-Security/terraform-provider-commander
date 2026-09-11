@@ -1,6 +1,6 @@
 # Look up a classic login record by title or UID.
 data "commander_classic_login" "example" {
-  login = "_REPLACE_WITH_RECORD_TITLE_OR_UID_"
+  login_record = "_REPLACE_WITH_RECORD_TITLE_OR_UID_"
 }
 
 output "login_id" {

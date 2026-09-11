@@ -4,8 +4,8 @@
 package passport
 
 const (
-	SchemaDescription         = "Creates and manages a Keeper Passport record in the vault."
-	SchemaMarkdownDescription = "Creates and manages a Keeper `passport` (Passport) record in the vault."
+	SchemaDescription         = "Creates and manages a Passport record in the vault."
+	SchemaMarkdownDescription = "Creates and manages a **Passport** record in the vault."
 
 	ErrSummaryCreateFailed = "Passport Record Create Failed"
 	ErrSummaryReadFailed   = "Passport Record Read Failed"

@@ -4,8 +4,7 @@
 package utils
 
 const (
-	ErrSummaryInvalidConfig    = "Invalid Folder Configuration"
-	ErrSummaryMoveNotSupported = "Move operation is not supported for NSF Records"
+	ErrSummaryInvalidConfig = "Invalid Folder Configuration"
 )
 
 // Vault field type strings from `get <uid> --format json` (field.type).

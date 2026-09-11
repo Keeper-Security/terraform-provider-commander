@@ -1,0 +1,1 @@
+terraform import commander_new_bank_account.example _REPLACE_WITH_RECORD_UID_
