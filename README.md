@@ -110,7 +110,7 @@
 | `commander_classic_software_license`   | Create and manage classic software license records in the vault.     |
 | `commander_classic_secure_note`        | Create and manage classic secure note records in the vault.          |
 
-#### NSF Records
+#### New Records (NSF)
 
 | Name                               | Description                                                      |
 | ---------------------------------- | ---------------------------------------------------------------- |
@@ -226,7 +226,7 @@
 | `commander_classic_software_license`   | Look up a classic software license record by record UID.     |
 | `commander_classic_secure_note`        | Look up a classic secure note record by record UID.          |
 
-#### NSF Records
+#### New Records (NSF)
 
 | Name                               | Description                                              |
 | ---------------------------------- | -------------------------------------------------------- |
