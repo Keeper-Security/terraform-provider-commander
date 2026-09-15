@@ -3,12 +3,12 @@
 page_title: "commander_classic_secure_note Resource - commander"
 subcategory: "Classic Records"
 description: |-
-  Creates and manages a secure note record in the vault.
+  Creates and manages a Secure Note record in the vault.
 ---
 
 # commander_classic_secure_note (Resource)
 
-Creates and manages a **secure note** record in the vault.
+Creates and manages a **Secure Note** record in the vault.
 
 ## Example Usage
 

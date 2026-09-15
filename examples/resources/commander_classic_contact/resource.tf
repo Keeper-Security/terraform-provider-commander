@@ -24,9 +24,9 @@ resource "commander_classic_contact" "full" {
     },
   ]
 
-  address_ref = "_REPLACE_WITH_ADDRESS_RECORD_UID_"
-  notes       = "Primary contact for Acme Corp procurement."
-  folder      = "_REPLACE_WITH_FOLDER_UID_"
+  address_ref     = "_REPLACE_WITH_ADDRESS_RECORD_UID_"
+  notes           = "Primary contact for Acme Corp procurement."
+  folder_location = "_REPLACE_WITH_FOLDER_UID_"
 
   share = {
     "alice@example.com" = {

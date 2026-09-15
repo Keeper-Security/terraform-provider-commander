@@ -3,12 +3,12 @@
 page_title: "commander_classic_address Resource - commander"
 subcategory: "Classic Records"
 description: |-
-  Creates and manages a Keeper address record in the vault.
+  Creates and manages a Address record in the vault.
 ---
 
 # commander_classic_address (Resource)
 
-Creates and manages a Keeper `address` record in the vault.
+Creates and manages a **Address** record in the vault.
 
 ## Example Usage
 

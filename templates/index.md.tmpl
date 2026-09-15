@@ -13,8 +13,9 @@ The Keeper Commander provider enables Terraform to manage **enterprise** and **M
 ## Prerequisites
 
 1. A Keeper enterprise or MSP account with administrative privileges
-2. [Keeper Commander](https://docs.keeper.io/en/keeperpam/commander-cli) (version **17.2.9** or **later**) running in [Service Mode](https://docs.keeper.io/en/keeperpam/commander-cli/service-mode-rest-api) with a configured API key
-3. Network access from your Terraform execution environment to the Commander Service Mode endpoint
+2. **Keeper Commander Service Mode**: A service account running Commander Service Mode REST API using `terraform-app-setup` command.
+3. **Docker** is the recommended method for setting up the commander service mode.
+4. Network access from your Terraform execution environment to the Commander Service Mode endpoint
 
 ## Installation
 

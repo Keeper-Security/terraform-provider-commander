@@ -3,12 +3,12 @@
 page_title: "commander_classic_ssh_keys Resource - commander"
 subcategory: "Classic Records"
 description: |-
-  Creates and manages a Classic sshKeys record in the vault.
+  Creates and manages a SSH keys record in the vault.
 ---
 
 # commander_classic_ssh_keys (Resource)
 
-Creates and manages a Classic `sshKeys` record in the vault.
+Creates and manages a **SSH keys** record in the vault.
 
 ## Example Usage
 

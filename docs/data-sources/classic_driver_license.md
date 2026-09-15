@@ -3,12 +3,12 @@
 page_title: "commander_classic_driver_license Data Source - commander"
 subcategory: "Classic Records"
 description: |-
-  Use this data source to look up a Keeper driverLicense (Driver's License) record by UID.
+  Use this data source to look up a Driver's License record by UID.
 ---
 
 # commander_classic_driver_license (Data Source)
 
-Use this data source to look up a Keeper `driverLicense` (Driver's License) record by **UID**.
+Use this data source to look up a **Driver's License** record by **UID**.
 
 ## Example Usage
 

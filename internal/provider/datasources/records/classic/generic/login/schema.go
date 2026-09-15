@@ -19,7 +19,7 @@ func (d *LoginDataSource) Schema(ctx context.Context, req datasource.SchemaReque
 		MarkdownDescription: SchemaMarkdownDescription,
 		Attributes: utils.MergeDataSourceAttributes(
 			map[string]dschema.Attribute{
-				"login": dschema.StringAttribute{
+				"login_record": dschema.StringAttribute{
 					Required:            true,
 					Description:         "Login record title or UID to look up.",
 					MarkdownDescription: "Login record **title** or **UID** to look up.",

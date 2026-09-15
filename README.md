@@ -110,6 +110,29 @@
 | `commander_classic_software_license`   | Create and manage classic software license records in the vault.     |
 | `commander_classic_secure_note`        | Create and manage classic secure note records in the vault.          |
 
+#### New Records (NSF)
+
+| Name                               | Description                                                      |
+| ---------------------------------- | ---------------------------------------------------------------- |
+| `commander_new_login`              | Create and manage nsf login records in the vault.                |
+| `commander_new_wifi`               | Create and manage nsf WiFi credentials records in the vault.     |
+| `commander_new_contact`            | Create and manage nsf contact records in the vault.              |
+| `commander_new_address`            | Create and manage nsf address records in the vault.              |
+| `commander_new_payment_card`       | Create and manage nsf payment card records in the vault.         |
+| `commander_new_bank_account`       | Create and manage nsf bank account records in the vault.         |
+| `commander_new_membership`         | Create and manage nsf membership records in the vault.           |
+| `commander_new_health_insurance`   | Create and manage nsf health insurance records in the vault.     |
+| `commander_new_driver_license`     | Create and manage nsf driver's license records in the vault.     |
+| `commander_new_passport`           | Create and manage nsf passport records in the vault.             |
+| `commander_new_ssn_card`           | Create and manage nsf identity (SSN) card records in the vault.  |
+| `commander_new_birth_certificate`  | Create and manage nsf birth certificate records in the vault.    |
+| `commander_new_ssh_keys`           | Create and manage nsf SSH keys records in the vault.             |
+| `commander_new_saas_configuration` | Create and manage nsf SaaS configuration records in the vault.   |
+| `commander_new_server`             | Create and manage nsf server credentials records in the vault.   |
+| `commander_new_database`           | Create and manage nsf database credentials records in the vault. |
+| `commander_new_software_license`   | Create and manage nsf software license records in the vault.     |
+| `commander_new_secure_note`        | Create and manage nsf secure note records in the vault.          |
+
 ### Data sources
 
 #### Enterprise Management
@@ -203,8 +226,32 @@
 | `commander_classic_software_license`   | Look up a classic software license record by record UID.     |
 | `commander_classic_secure_note`        | Look up a classic secure note record by record UID.          |
 
+#### New Records (NSF)
+
+| Name                               | Description                                              |
+| ---------------------------------- | -------------------------------------------------------- |
+| `commander_new_login`              | Look up a nsf login record by record UID.                |
+| `commander_new_wifi`               | Look up a nsf WiFi credentials record by record UID.     |
+| `commander_new_contact`            | Look up a nsf contact record by record UID.              |
+| `commander_new_address`            | Look up a nsf address record by record UID.              |
+| `commander_new_payment_card`       | Look up a nsf payment card record by record UID.         |
+| `commander_new_bank_account`       | Look up a nsf bank account record by record UID.         |
+| `commander_new_membership`         | Look up a nsf membership record by record UID.           |
+| `commander_new_health_insurance`   | Look up a nsf health insurance record by record UID.     |
+| `commander_new_driver_license`     | Look up a nsf driver's license record by record UID.     |
+| `commander_new_passport`           | Look up a nsf passport record by record UID.             |
+| `commander_new_ssn_card`           | Look up a nsf identity (SSN) card record by record UID.  |
+| `commander_new_birth_certificate`  | Look up a nsf birth certificate record by record UID.    |
+| `commander_new_ssh_keys`           | Look up a nsf SSH keys record by record UID.             |
+| `commander_new_saas_configuration` | Look up a nsf SaaS configuration record by record UID.   |
+| `commander_new_server`             | Look up a nsf server credentials record by record UID.   |
+| `commander_new_database`           | Look up a nsf database credentials record by record UID. |
+| `commander_new_software_license`   | Look up a nsf software license record by record UID.     |
+| `commander_new_secure_note`        | Look up a nsf secure note record by record UID.          |
+
 ## Prerequisites
 
+- A Keeper enterprise or MSP account with administrative privileges
 - **Keeper Commander Service Mode**: A service account running Commander Service Mode REST API using `terraform-app-setup` command.
 - **Docker** is the recommended method for setting up the commander service mode.
 - [Terraform](https://developer.hashicorp.com/terraform/downloads) >= 1.0
@@ -285,11 +332,11 @@ Now that the service is up and running, you can use Service Mode URL (async - _/
 >
 > Run:
 >
-> ```docker compose down```
+> `docker compose down`
 >
-> ```docker compose pull```
+> `docker compose pull`
 >
-> ```docker compose up -d```
+> `docker compose up -d`
 
 > If you encounter a 429 Too Many Requests error due to rate limiting, you can configure rate-limit for your service mode in **terraform-app-setup command > Enable advanced security?** .
 >

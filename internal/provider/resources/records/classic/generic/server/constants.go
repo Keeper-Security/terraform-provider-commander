@@ -4,14 +4,14 @@
 package server
 
 const (
-	SchemaDescription         = "Creates and manages a Keeper server credentials record (`serverCredentials`) in the vault."
-	SchemaMarkdownDescription = "Creates and manages a Keeper **server credentials** record (`serverCredentials`) in the vault."
+	SchemaDescription         = "Creates and manages a Server record in the vault."
+	SchemaMarkdownDescription = "Creates and manages a **Server** record in the vault."
 
 	ErrSummaryCreateFailed = "Server Record Create Failed"
 	ErrSummaryReadFailed   = "Server Record Read Failed"
 	ErrSummaryUpdateFailed = "Server Record Update Failed"
 
-	ErrDetailCreateFailed = "Something went wrong when creating the server credentials record."
-	ErrDetailReadFailed   = "Something went wrong when reading the server credentials record."
-	ErrDetailUpdateFailed = "Something went wrong when updating the server credentials record."
+	ErrDetailCreateFailed = "Something went wrong when creating the Server record."
+	ErrDetailReadFailed   = "Something went wrong when reading the Server record."
+	ErrDetailUpdateFailed = "Something went wrong when updating the Server record."
 )

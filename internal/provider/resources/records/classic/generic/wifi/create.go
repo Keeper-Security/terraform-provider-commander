@@ -29,7 +29,7 @@ func (r *WifiResource) Create(ctx context.Context, req resource.CreateRequest, r
 		return
 	}
 
-	cmd := commonrecordwifi.BuildAddCommand(data.WifiModel)
+	cmd := commonrecordwifi.BuildAddCommand(utils.CmdRecordAdd, data.WifiModel)
 	apiResp, err := r.ApiManager.ExecuteCommand(ctx, cmd, ErrDetailCreateFailed)
 	if err != nil {
 		resp.Diagnostics.AddError(ErrSummaryCreateFailed, err.Error())

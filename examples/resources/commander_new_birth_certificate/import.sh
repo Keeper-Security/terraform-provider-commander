@@ -1,0 +1,1 @@
+terraform import commander_new_birth_certificate.example <RECORD_UID>

@@ -4,8 +4,8 @@
 package healthinsurance
 
 const (
-	SchemaDescription         = "Creates and manages a Keeper Health Insurance record in the vault."
-	SchemaMarkdownDescription = "Creates and manages a Keeper `healthInsurance` (Health Insurance) record in the vault."
+	SchemaDescription         = "Creates and manages a Health Insurance record in the vault."
+	SchemaMarkdownDescription = "Creates and manages a **Health Insurance** record in the vault."
 
 	ErrSummaryCreateFailed = "Health Insurance Record Create Failed"
 	ErrSummaryReadFailed   = "Health Insurance Record Read Failed"

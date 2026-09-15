@@ -4,8 +4,8 @@
 package membership
 
 const (
-	SchemaDescription         = "Creates and manages a Keeper Membership record in the vault."
-	SchemaMarkdownDescription = "Creates and manages a Keeper `membership` (Membership) record in the vault."
+	SchemaDescription         = "Creates and manages a Membership record in the vault."
+	SchemaMarkdownDescription = "Creates and manages a **Membership** record in the vault."
 
 	ErrSummaryCreateFailed = "Membership Record Create Failed"
 	ErrSummaryReadFailed   = "Membership Record Read Failed"

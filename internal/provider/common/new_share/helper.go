@@ -109,6 +109,9 @@ func SyncSharePermissions(ctx context.Context, apiManager *api.ApiManager, comma
 //   - folders: accessor + role
 //   - records: username + role (accessor is empty)
 //
+// Principal key: prefer accessor (NSF folders); fall back to username (NSF
+// records, which often return username+role rather than accessor+role).
+//
 // When the filtered set is empty (e.g. the API returned only the owner row),
 // m.Share is set to null rather than an empty map. The schema's
 // MapNonEmptyValidator rejects `share = {}` in config, so null is the only

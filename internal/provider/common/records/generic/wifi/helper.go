@@ -11,7 +11,7 @@ import (
 )
 
 // BuildAddCommand builds a record-add command for a WiFi credentials record.
-func BuildAddCommand(data WifiModel) string {
+func BuildAddCommand(cmd string, data WifiModel) string {
 	var extra []string
 
 	commonrecordsutils.AppendOptionalTextField(&extra, FlagSSID, data.SSID)
@@ -20,7 +20,7 @@ func BuildAddCommand(data WifiModel) string {
 	commonrecordsutils.AppendOptionalJSONBoolAdd(&extra, FlagIsSSIDHidden, data.IsSSIDHidden)
 
 	custom := commonrecordsutils.NormalizeCustomFromPlan(data.Custom)
-	return commonrecordsutils.BuildRecordAdd(utils.CmdRecordAdd, commonrecordsutils.RecordTypeWifiCredentials, data.Title.ValueString(), data.FolderLocation, extra, custom, data.Notes)
+	return commonrecordsutils.BuildRecordAdd(cmd, commonrecordsutils.RecordTypeWifiCredentials, data.Title.ValueString(), data.FolderLocation, extra, custom, data.Notes)
 }
 
 // UpdateHasMutations reports whether plan differs from state on updatable WiFi fields.
@@ -37,7 +37,7 @@ func UpdateHasMutations(plan, state WifiModel) bool {
 }
 
 // BuildUpdateCommand builds a record-update command for changed WiFi fields.
-func BuildUpdateCommand(recordUID string, plan, state WifiModel) string {
+func BuildUpdateCommand(cmd string, recordUID string, plan, state WifiModel) string {
 	var extra []string
 
 	commonrecordsutils.AppendChangedStringField(&extra, FlagSSID, plan.SSID, state.SSID)
@@ -47,7 +47,7 @@ func BuildUpdateCommand(recordUID string, plan, state WifiModel) string {
 
 	customPlan := commonrecordsutils.NormalizeCustomFromPlan(plan.Custom)
 	customState := commonrecordsutils.NormalizeCustomFromPlan(state.Custom)
-	return commonrecordsutils.BuildRecordUpdate(utils.CmdRecordUpdate, recordUID, plan.Title, state.Title, extra, customPlan, customState, plan.Notes, state.Notes)
+	return commonrecordsutils.BuildRecordUpdate(cmd, recordUID, plan.Title, state.Title, extra, customPlan, customState, plan.Notes, state.Notes)
 }
 
 // MapVaultRecordGetResponseToWifiModel fills state from a `get <uid> --format json` payload.

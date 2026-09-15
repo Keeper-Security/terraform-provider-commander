@@ -1,0 +1,1 @@
+terraform import commander_new_saas_configuration.example <RECORD_UID>
