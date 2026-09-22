@@ -224,7 +224,7 @@ const MinCommanderVersionHeader = "min-commander-version"
 
 // MinCommanderVersion is the minimum Commander version required for the terraform provider to work properly.
 // Update this when commander changes related to the terraform provider are released.
-const MinCommanderVersion = "18.1.6"
+const MinCommanderVersion = "18.1.5"
 
 func normalizeCommandForShell(command string) string {
 	var b strings.Builder
