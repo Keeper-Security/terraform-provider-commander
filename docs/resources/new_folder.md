@@ -116,7 +116,7 @@ resource "commander_new_folder" "records_managed_elsewhere" {
 ### Optional
 
 - `folder_location` (String) Parent folder path where the folder will be created. Leave empty for vault root.
-- `records` (Set of String) Set of record UIDs to link into this folder.
+- `records` (Set of String) Set of record UIDs to link into this folder. When set, Terraform enforces exactly this set. When omitted, this reflects whatever is actually linked without managing it.
 - `share` (Map of String) Mapping of share permissions for this folder or record. For folders, keys can identify either users (**UID** or **email**) or teams (**UID** or **name**). For records, keys can identify users only (**UID** or **email**). Values specify the permission level: `viewer`, `share-manager`, `content-manager`, `content-share-manager`, or `full-manager`. The owner is implicit and never present in this map; the API rejects owner entries.
 
 ### Read-Only

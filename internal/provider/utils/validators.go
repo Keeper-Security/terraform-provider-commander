@@ -442,6 +442,46 @@ func (v mapNonEmptyValidator) ValidateMap(_ context.Context, req validator.MapRe
 	}
 }
 
+// ----- GENERIC: LIST MIN LENGTH --------------------------------
+// ListMinLengthValidator validates that a list has at least MinLen elements.
+// DisplayName is used in error messages (e.g. "Phone"). AllowNull: if true,
+// null/unknown values are skipped - use this for Optional attributes where
+// omitting the attribute entirely is allowed instead of setting it to an
+// empty list (e.g. `phone = []`).
+func ListMinLengthValidator(displayName string, minLen int, allowNull bool) listMinLengthValidator {
+	return listMinLengthValidator{DisplayName: displayName, MinLen: minLen, AllowNull: allowNull}
+}
+
+type listMinLengthValidator struct {
+	DisplayName string
+	MinLen      int
+	AllowNull   bool
+}
+
+func (v listMinLengthValidator) Description(_ context.Context) string {
+	return v.DisplayName + " must have at least " + strconv.Itoa(v.MinLen) + " entry(s)."
+}
+
+func (v listMinLengthValidator) MarkdownDescription(ctx context.Context) string {
+	return v.Description(ctx)
+}
+
+func (v listMinLengthValidator) ValidateList(_ context.Context, req validator.ListRequest, resp *validator.ListResponse) {
+	if req.ConfigValue.IsUnknown() {
+		return
+	}
+	if v.AllowNull && req.ConfigValue.IsNull() {
+		return
+	}
+	if len(req.ConfigValue.Elements()) < v.MinLen {
+		resp.Diagnostics.AddAttributeError(
+			req.Path,
+			"Invalid "+v.DisplayName,
+			fmt.Sprintf("%s must have at least %d entry(s), got %d. Remove the attribute entirely if you do not want to manage it.", v.DisplayName, v.MinLen, len(req.ConfigValue.Elements())),
+		)
+	}
+}
+
 // ----- GENERIC: MAP KEYS MIN LENGTH --------------------------------
 // MapKeysMinLengthValidator validates that all keys in a map have at least MinLen characters
 // after strings.TrimSpace (whitespace-only keys are rejected).

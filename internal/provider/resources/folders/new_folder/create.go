@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"strings"
 
+	commonnewfolder "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/folders/new_folder"
 	folderutils "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/folders/utils"
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/new_share"
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/utils"
@@ -53,6 +54,22 @@ func (r *NewFolderResource) Create(ctx context.Context, req resource.CreateReque
 	if err := folderutils.LinkRecords(ctx, r.ApiManager, CmdNsfLn, data.Id.ValueString(), data.Records); err != nil {
 		resp.Diagnostics.AddError(folderutils.ErrSummaryCreateFailed, err.Error())
 		return
+	}
+
+	// `records` is Optional+Computed: resolve it to the real, known value now
+	// (re-fetch rather than trust the plan) so an omitted `records` doesn't
+	// leave the attribute unknown after apply.
+	apiData, err := commonnewfolder.FetchNsfFolderByNameOrId(ctx, r.ApiManager, data.Id.ValueString())
+	if err != nil {
+		resp.Diagnostics.AddError(folderutils.ErrSummaryCreateFailed, err.Error())
+		return
+	}
+	if err := commonnewfolder.MapResponseToModel(ctx, apiData, &data); err != nil {
+		resp.Diagnostics.AddError(folderutils.ErrSummaryCreateFailed, err.Error())
+		return
+	}
+	if data.Records.IsUnknown() {
+		data.Records = types.SetNull(types.StringType)
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)

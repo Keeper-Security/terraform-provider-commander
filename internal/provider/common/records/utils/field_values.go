@@ -134,6 +134,11 @@ func PhonesFromField(fields []utils.VaultRecordFieldResponse, label string) []Ph
 				Type:   utils.StringOrNull(v.Type),
 			})
 		}
+
+		// If all phone entries are empty, return nil to indicate no phone numbers.
+		if len(out) == 0 {
+			return nil
+		}
 		return out
 	}
 	return nil

@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -21,6 +22,26 @@ import (
 // by removing the resource from state.
 var ErrResourceNotFound = errors.New("resource not found")
 
+// notFoundPhrases are substrings (case-insensitive) Commander uses across its
+// various `get`/`nsf-get`/etc. commands to report that the requested UID or
+// name doesn't exist. "not found" alone missed real-world Commander wording
+// like "Cannot find any Nested Share Folder object with UID ...", which left
+// Read() treating an out-of-band-deleted resource as a hard error forever
+// instead of removing it from state.
+var notFoundPhrases = []string{"not found", "cannot find"}
+
+// isNotFoundMessage reports whether errorMsg indicates a missing resource,
+// matching any known Commander not-found phrasing case-insensitively.
+func isNotFoundMessage(errorMsg string) bool {
+	lower := strings.ToLower(errorMsg)
+	for _, phrase := range notFoundPhrases {
+		if strings.Contains(lower, phrase) {
+			return true
+		}
+	}
+	return false
+}
+
 // ApiManager manages API interactions with the Commander Service Mode.
 // Resources and data sources use this struct to make API calls without
 // directly accessing the service mode URL and API key.
@@ -30,6 +51,14 @@ type ApiManager struct {
 	HttpClient        *http.Client
 	IsMspAccount      bool          // true for MSP accounts, false for Enterprise accounts
 	RequestTimeout    time.Duration // used for HTTP client and for polling command result (default 60s)
+
+	// Retry knobs for transient 429/503 responses (see doWithRetry). Zero
+	// values fall back to the retry* constants; tests override these to avoid
+	// real wall-clock backoff delays.
+	RetryMaxAttempts       int
+	RetryInitialInterval   time.Duration
+	RetryBackoffMultiplier float64
+	RetryMaxInterval       time.Duration
 
 	// contextMu serializes all context-changing operations (switch-to-msp / switch-to-mc).
 	// currentContext tracks backend context: "" = MSP, non-empty = managed company name/id.
@@ -163,7 +192,7 @@ func handleAPIErrorResponse(resp *http.Response) error {
 			return fmt.Errorf("request id not found (404)")
 
 		case http.StatusInternalServerError: // 500 - Command execution failed
-			if strings.Contains(strings.ToLower(errorMsg), "not found") {
+			if isNotFoundMessage(errorMsg) {
 				return fmt.Errorf("%w: %s", ErrResourceNotFound, errorMsg)
 			}
 			return fmt.Errorf("internal server error (500): %s", errorMsg)
@@ -260,6 +289,99 @@ func normalizeCommandForShell(command string) string {
 	return b.String()
 }
 
+// Retry constants for transient backend overload (429/503). Commander itself
+// retries these internally and the underlying command often still succeeds,
+// so failing immediately on the first 429/503 was surfacing spurious
+// "X Failed" errors (and, for deletes, desyncing state from a backend delete
+// that actually went through). retryMaxAttempts bounds the total wait so a
+// persistently unavailable backend still fails instead of retrying forever.
+const (
+	retryMaxAttempts       = 5
+	retryInitialInterval   = 1 * time.Second
+	retryBackoffMultiplier = 2.0
+	retryMaxInterval       = 15 * time.Second
+)
+
+// isRetryableStatus reports whether statusCode represents a transient
+// condition (rate limiting or backend overload) worth retrying rather than
+// failing the command immediately.
+func isRetryableStatus(statusCode int) bool {
+	return statusCode == http.StatusTooManyRequests || statusCode == http.StatusServiceUnavailable
+}
+
+// retryAfterDelay reads resp's Retry-After header (seconds or HTTP-date) and
+// returns the requested delay, or ok=false if the header is absent or
+// unparseable so the caller falls back to its own backoff schedule.
+func retryAfterDelay(resp *http.Response) (time.Duration, bool) {
+	v := resp.Header.Get("Retry-After")
+	if v == "" {
+		return 0, false
+	}
+	if secs, err := strconv.Atoi(v); err == nil && secs >= 0 {
+		return time.Duration(secs) * time.Second, true
+	}
+	if t, err := http.ParseTime(v); err == nil {
+		if d := time.Until(t); d > 0 {
+			return d, true
+		}
+	}
+	return 0, false
+}
+
+// doWithRetry executes buildReq and retries on a 429/503 response with
+// exponential backoff (honoring a Retry-After header when the backend sends
+// one), up to retryMaxAttempts, before returning the final response as-is for
+// the caller's normal status handling. buildReq is a factory rather than a
+// prebuilt *http.Request because a request body reader is consumed on first
+// use and can't be replayed across retries. Non-retryable responses (2xx,
+// 4xx other than 429, etc.) and transport errors are returned immediately on
+// the first attempt.
+func (a *ApiManager) doWithRetry(ctx context.Context, buildReq func() (*http.Request, error)) (*http.Response, error) {
+	maxAttempts := retryMaxAttempts
+	if a.RetryMaxAttempts > 0 {
+		maxAttempts = a.RetryMaxAttempts
+	}
+	interval := retryInitialInterval
+	if a.RetryInitialInterval > 0 {
+		interval = a.RetryInitialInterval
+	}
+	multiplier := retryBackoffMultiplier
+	if a.RetryBackoffMultiplier > 0 {
+		multiplier = a.RetryBackoffMultiplier
+	}
+	maxInterval := retryMaxInterval
+	if a.RetryMaxInterval > 0 {
+		maxInterval = a.RetryMaxInterval
+	}
+
+	for attempt := 1; ; attempt++ {
+		req, err := buildReq()
+		if err != nil {
+			return nil, err
+		}
+		resp, err := a.HttpClient.Do(req)
+		if err != nil {
+			return nil, err
+		}
+		if !isRetryableStatus(resp.StatusCode) || attempt >= maxAttempts {
+			return resp, nil
+		}
+
+		wait := interval
+		if d, ok := retryAfterDelay(resp); ok {
+			wait = d
+		}
+		resp.Body.Close()
+
+		select {
+		case <-ctx.Done():
+			return nil, ctx.Err()
+		case <-time.After(wait):
+		}
+		interval = min(time.Duration(float64(interval)*multiplier), maxInterval)
+	}
+}
+
 // SubmitRequest creates a new API request and returns the parsed response.
 // If fileData is non-nil, it is sent in the request body as the "filedata" field.
 // fileData is dynamic: pass an object (e.g. map[string]interface{}) for "filedata": {...},
@@ -289,19 +411,17 @@ func (a *ApiManager) SubmitRequest(ctx context.Context, command string, fileData
 	// Build the full URL
 	endpoint := a.ServiceModeUrl + "/executecommand-async"
 
-	// Create a new HTTP request with context
-	req, err := http.NewRequestWithContext(ctx, "POST", endpoint, strings.NewReader(string(jsonBody)))
-	if err != nil {
-		return nil, fmt.Errorf("failed to create request: %w", err)
-	}
-
-	// Set headers
-	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("api-key", a.ServiceModeApiKey)
-	req.Header.Set(MinCommanderVersionHeader, MinCommanderVersion)
-
-	// Make the HTTP request using the client
-	resp, err := a.HttpClient.Do(req)
+	// Make the HTTP request using the client, retrying transient 429/503 responses.
+	resp, err := a.doWithRetry(ctx, func() (*http.Request, error) {
+		req, err := http.NewRequestWithContext(ctx, "POST", endpoint, strings.NewReader(string(jsonBody)))
+		if err != nil {
+			return nil, fmt.Errorf("failed to create request: %w", err)
+		}
+		req.Header.Set("Content-Type", "application/json")
+		req.Header.Set("api-key", a.ServiceModeApiKey)
+		req.Header.Set(MinCommanderVersionHeader, MinCommanderVersion)
+		return req, nil
+	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to execute request: %w", err)
 	}
@@ -341,17 +461,15 @@ func (a *ApiManager) RequestStatus(ctx context.Context, requestId string) (*Requ
 	// Build the full URL
 	endpoint := a.ServiceModeUrl + "/status/" + requestId
 
-	// Create a new HTTP request with context
-	req, err := http.NewRequestWithContext(ctx, "GET", endpoint, nil)
-	if err != nil {
-		return nil, fmt.Errorf("failed to create request: %w", err)
-	}
-
-	// Set headers
-	req.Header.Set("api-key", a.ServiceModeApiKey)
-
-	// Make the HTTP request using the client
-	resp, err := a.HttpClient.Do(req)
+	// Make the HTTP request using the client, retrying transient 429/503 responses.
+	resp, err := a.doWithRetry(ctx, func() (*http.Request, error) {
+		req, err := http.NewRequestWithContext(ctx, "GET", endpoint, nil)
+		if err != nil {
+			return nil, fmt.Errorf("failed to create request: %w", err)
+		}
+		req.Header.Set("api-key", a.ServiceModeApiKey)
+		return req, nil
+	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to execute request: %w", err)
 	}
@@ -386,18 +504,16 @@ func (a *ApiManager) RequestResult(ctx context.Context, requestId string) (*Requ
 	// Build the full URL
 	endpoint := a.ServiceModeUrl + "/result/" + requestId
 
-	// Create a new HTTP request with context
-	req, err := http.NewRequestWithContext(ctx, "GET", endpoint, nil)
-	if err != nil {
-		return nil, fmt.Errorf("failed to create request: %w", err)
-	}
-
-	// Set headers
-	req.Header.Set("api-key", a.ServiceModeApiKey)
-	req.Header.Set(MinCommanderVersionHeader, MinCommanderVersion)
-
-	// Make the HTTP request using the client
-	resp, err := a.HttpClient.Do(req)
+	// Make the HTTP request using the client, retrying transient 429/503 responses.
+	resp, err := a.doWithRetry(ctx, func() (*http.Request, error) {
+		req, err := http.NewRequestWithContext(ctx, "GET", endpoint, nil)
+		if err != nil {
+			return nil, fmt.Errorf("failed to create request: %w", err)
+		}
+		req.Header.Set("api-key", a.ServiceModeApiKey)
+		req.Header.Set(MinCommanderVersionHeader, MinCommanderVersion)
+		return req, nil
+	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to execute request: %w", err)
 	}

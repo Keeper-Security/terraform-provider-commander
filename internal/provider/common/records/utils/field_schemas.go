@@ -109,6 +109,9 @@ func PhoneListSchema() schema.ListNestedAttribute {
 		Optional:            true,
 		Description:         "Manage phone numbers for the record.",
 		MarkdownDescription: "Manage phone numbers for the record.",
+		Validators: []validator.List{
+			utils.ListMinLengthValidator("Phone", 1, true),
+		},
 		NestedObject: schema.NestedAttributeObject{
 			Attributes: map[string]schema.Attribute{
 				"region": schema.StringAttribute{

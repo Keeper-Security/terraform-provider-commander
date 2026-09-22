@@ -6,6 +6,7 @@ package api_test
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -168,6 +169,9 @@ func TestSubmitRequest_NormalizesApostrophesInQuotedFields(t *testing.T) {
 }
 
 func TestSubmitRequest_ErrorStatus(t *testing.T) {
+	// 503 is retryable, so a persistently unavailable backend now retries
+	// before failing; fast retry knobs keep this test from taking real
+	// wall-clock backoff time.
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusServiceUnavailable)
 		_, _ = w.Write([]byte(`{"error":"queue full"}`))
@@ -175,9 +179,12 @@ func TestSubmitRequest_ErrorStatus(t *testing.T) {
 	defer server.Close()
 
 	client := &api.ApiManager{
-		ServiceModeUrl:    server.URL,
-		ServiceModeApiKey: "test-key",
-		HttpClient:        server.Client(),
+		ServiceModeUrl:         server.URL,
+		ServiceModeApiKey:      "test-key",
+		HttpClient:             server.Client(),
+		RetryMaxAttempts:       2,
+		RetryInitialInterval:   1 * time.Millisecond,
+		RetryBackoffMultiplier: 1,
 	}
 	ctx := context.Background()
 	_, err := client.SubmitRequest(ctx, "cmd", nil)
@@ -251,9 +258,15 @@ func TestSubmitRequest_InternalServerError(t *testing.T) {
 	}
 }
 
-func TestSubmitRequest_TooManyRequests(t *testing.T) {
+func TestSubmitRequest_ResourceNotFound_CannotFindPhrasing(t *testing.T) {
+	// Real-world Commander wording for an out-of-band-deleted Nested Shared
+	// Folder: "Cannot find any Nested Share Folder object with UID ...".
+	// It contains no "not found" substring, so this must still classify as
+	// api.ErrResourceNotFound or Read() will treat deletion as a hard error
+	// forever instead of removing the resource from state.
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(http.StatusTooManyRequests)
+		w.WriteHeader(http.StatusInternalServerError)
+		_, _ = w.Write([]byte(`{"message":"Cannot find any Nested Share Folder object with UID abc123."}`))
 	}))
 	defer server.Close()
 
@@ -265,7 +278,107 @@ func TestSubmitRequest_TooManyRequests(t *testing.T) {
 	ctx := context.Background()
 	_, err := client.SubmitRequest(ctx, "cmd", nil)
 	if err == nil {
+		t.Fatal("expected error for 500")
+	}
+	if !errors.Is(err, api.ErrResourceNotFound) {
+		t.Errorf("expected errors.Is(err, api.ErrResourceNotFound) to be true, got: %v", err)
+	}
+}
+
+func TestSubmitRequest_TooManyRequests(t *testing.T) {
+	// A persistently rate-limited backend: doWithRetry should exhaust its
+	// retries and still surface the 429 as an error, not hang forever. Fast
+	// retry knobs keep this test from taking real wall-clock backoff time.
+	var requests int
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		requests++
+		w.WriteHeader(http.StatusTooManyRequests)
+	}))
+	defer server.Close()
+
+	client := &api.ApiManager{
+		ServiceModeUrl:         server.URL,
+		ServiceModeApiKey:      "test-key",
+		HttpClient:             server.Client(),
+		RetryMaxAttempts:       3,
+		RetryInitialInterval:   1 * time.Millisecond,
+		RetryBackoffMultiplier: 1,
+	}
+	ctx := context.Background()
+	_, err := client.SubmitRequest(ctx, "cmd", nil)
+	if err == nil {
 		t.Fatal("expected error for 429")
+	}
+	if requests != 3 {
+		t.Errorf("expected 3 attempts (RetryMaxAttempts), got %d", requests)
+	}
+}
+
+func TestSubmitRequest_TooManyRequests_RetriesThenSucceeds(t *testing.T) {
+	// Client-reported scenario: backend answers 429 a couple of times (rate
+	// limiting), then the request actually goes through. doWithRetry should
+	// absorb the transient 429s so the caller never sees an error.
+	var requests int
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		requests++
+		if requests < 3 {
+			w.WriteHeader(http.StatusTooManyRequests)
+			return
+		}
+		w.WriteHeader(http.StatusAccepted)
+		_, _ = w.Write([]byte(`{"success":true,"request_id":"req-1","status":"queued","message":"ok"}`))
+	}))
+	defer server.Close()
+
+	client := &api.ApiManager{
+		ServiceModeUrl:         server.URL,
+		ServiceModeApiKey:      "test-key",
+		HttpClient:             server.Client(),
+		RetryInitialInterval:   1 * time.Millisecond,
+		RetryBackoffMultiplier: 1,
+	}
+	ctx := context.Background()
+	resp, err := client.SubmitRequest(ctx, "cmd", nil)
+	if err != nil {
+		t.Fatalf("expected retries to absorb transient 429s, got error: %v", err)
+	}
+	if resp.RequestId != "req-1" {
+		t.Errorf("request_id = %q, want req-1", resp.RequestId)
+	}
+	if requests != 3 {
+		t.Errorf("expected 3 attempts before success, got %d", requests)
+	}
+}
+
+func TestSubmitRequest_TooManyRequests_HonorsRetryAfterHeader(t *testing.T) {
+	// A Retry-After: 0 header should be used as the wait instead of the
+	// (larger) default backoff, so this completes quickly even without
+	// overriding RetryInitialInterval.
+	var requests int
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		requests++
+		if requests < 2 {
+			w.Header().Set("Retry-After", "0")
+			w.WriteHeader(http.StatusTooManyRequests)
+			return
+		}
+		w.WriteHeader(http.StatusAccepted)
+		_, _ = w.Write([]byte(`{"success":true,"request_id":"req-1","status":"queued","message":"ok"}`))
+	}))
+	defer server.Close()
+
+	client := &api.ApiManager{
+		ServiceModeUrl:    server.URL,
+		ServiceModeApiKey: "test-key",
+		HttpClient:        server.Client(),
+	}
+	ctx := context.Background()
+	_, err := client.SubmitRequest(ctx, "cmd", nil)
+	if err != nil {
+		t.Fatalf("expected Retry-After-driven retry to succeed, got error: %v", err)
+	}
+	if requests != 2 {
+		t.Errorf("expected 2 attempts, got %d", requests)
 	}
 }
 
@@ -446,6 +559,54 @@ func TestExecuteCommand_Success(t *testing.T) {
 	}
 	if resp.Status != "success" {
 		t.Errorf("expected status success, got %s", resp.Status)
+	}
+}
+
+func TestExecuteCommand_RecoversFromTransient429OnResultPoll(t *testing.T) {
+	// Client-reported scenario: a delete command's result-poll GET hits a
+	// transient 429 (backend rate limiting), but the underlying delete
+	// already succeeded. Before the retry fix, PollRequestResult treated any
+	// non-"still queued" error as fatal and surfaced e.g. "Record Delete
+	// Failed" even though the delete went through - desyncing state. Now the
+	// 429 should be retried transparently and ExecuteCommand should succeed.
+	var resultRequests int
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/executecommand-async" {
+			w.WriteHeader(http.StatusAccepted)
+			_, _ = w.Write([]byte(`{"success":true,"request_id":"req-1","status":"queued","message":"ok"}`))
+			return
+		}
+		if r.URL.Path == "/result/req-1" {
+			resultRequests++
+			if resultRequests == 1 {
+				w.WriteHeader(http.StatusTooManyRequests)
+				return
+			}
+			w.WriteHeader(http.StatusOK)
+			_, _ = w.Write([]byte(`{"data":null,"status":"success","message":"deleted","error":""}`))
+			return
+		}
+		w.WriteHeader(http.StatusNotFound)
+	}))
+	defer server.Close()
+
+	client := &api.ApiManager{
+		ServiceModeUrl:         server.URL,
+		ServiceModeApiKey:      "test-key",
+		HttpClient:             server.Client(),
+		RetryInitialInterval:   1 * time.Millisecond,
+		RetryBackoffMultiplier: 1,
+	}
+	ctx := context.Background()
+	resp, err := client.ExecuteCommand(ctx, "record-delete", "Record Delete Failed")
+	if err != nil {
+		t.Fatalf("expected the transient 429 to be retried and the delete to succeed, got error: %v", err)
+	}
+	if resp.Status != "success" {
+		t.Errorf("expected status success, got %s", resp.Status)
+	}
+	if resultRequests != 2 {
+		t.Errorf("expected 2 result-poll requests (1 rate-limited + 1 success), got %d", resultRequests)
 	}
 }
 

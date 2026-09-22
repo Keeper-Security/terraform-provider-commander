@@ -36,6 +36,9 @@ var pamRemoteBrowserSettingsAttrTypes = map[string]tftypes.Type{
 	"audio_bit_depth":          tftypes.Number,
 	"audio_sample_rate":        tftypes.Number,
 	"session_persistence":      tftypes.String,
+	"allow_file_uploads":       tftypes.Bool,
+	"allow_file_downloads":     tftypes.Bool,
+	"allow_supply_user":        tftypes.Bool,
 }
 
 var shareElementAttrTypes = map[string]tftypes.Type{
@@ -99,6 +102,9 @@ func newSettingsValues(
 		"audio_bit_depth":          tftypes.NewValue(tftypes.Number, audioBitDepth),
 		"audio_sample_rate":        tftypes.NewValue(tftypes.Number, audioSampleRate),
 		"session_persistence":      tftypes.NewValue(tftypes.String, nil),
+		"allow_file_uploads":       tftypes.NewValue(tftypes.Bool, nil),
+		"allow_file_downloads":     tftypes.NewValue(tftypes.Bool, nil),
+		"allow_supply_user":        tftypes.NewValue(tftypes.Bool, nil),
 	}
 }
 
