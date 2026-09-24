@@ -1,6 +1,6 @@
 # Changelog
 
-## 1.4.0 (YYYY-MM-DD)
+## 1.4.0 (2026-09-24)
 
 ### Added
 
@@ -14,7 +14,17 @@
 
 ### Changed
 
-- Bumped minimum required Keeper Commander version to `18.1.5`.
+- New (NSF) records and folders can be moved between folder locations.
+- Minimum required Keeper Commander version is now `18.1.5` (previously `18.1.2`).
+- The CI test matrix now runs the full Go test suite.
+
+### Fixed
+
+- Omitted `commander_new_folder.records` no longer causes perpetual record-membership drift.
+- `commander_new_wifi` stores encryption and hidden-SSID values in their typed fields instead of duplicate custom fields; classic WiFi creation uses consistent labels.
+- Deleted folders reported as "Cannot find" are removed from Terraform state; transient Service Mode 429/503 responses are retried.
+- Enterprise node, role, and team name conflicts now provide Terraform import guidance.
+- Empty phone and custom-field lists are rejected explicitly while omitted optional fields remain valid.
 
 ## 1.3.0 (YYYY-MM-DD)
 
