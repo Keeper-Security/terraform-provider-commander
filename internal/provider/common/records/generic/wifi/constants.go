@@ -6,8 +6,8 @@ package wifi
 const (
 	FlagSSID         = "text.SSID"
 	FlagPassword     = "password"
-	FlagEncryption   = "wifiEncryption"
-	FlagIsSSIDHidden = "isSSIDHidden"
+	FlagEncryption   = "f.wifiEncryption."
+	FlagIsSSIDHidden = "f.isSSIDHidden."
 )
 
 // AllowedEncryptions lists the supported wifiEncryption values accepted by Keeper.

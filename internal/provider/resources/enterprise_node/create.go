@@ -5,7 +5,9 @@ package enterprisenode
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"strconv"
 	"strings"
 
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/api"
@@ -45,6 +47,16 @@ func (r *EnterpriseNodeResource) Create(ctx context.Context, req resource.Create
 	if err := utils.RunWithManagedCompanyContext(ctx, r.ApiManager, data.ManagedCompany, func() error {
 		return addNodeBasicAttributes(ctx, r.ApiManager, &data)
 	}, "Create Enterprise Node Failed", &resp.Diagnostics); err != nil {
+		if errors.Is(err, api.ErrAlreadyExists) {
+			existingID := ""
+			if nodeInfo, lookupErr := utils.FetchEnterpriseNodeByNameOrId(ctx, r.ApiManager, data.Name.ValueString()); lookupErr == nil && nodeInfo != nil {
+				existingID = strconv.Itoa(nodeInfo.NodeId)
+			}
+			resp.Diagnostics.AddError(
+				"Enterprise Node Already Exists",
+				utils.AlreadyExistsImportHint("commander_enterprise_node", data.Name.ValueString(), existingID),
+			)
+		}
 		return
 	}
 	if resp.Diagnostics.HasError() {

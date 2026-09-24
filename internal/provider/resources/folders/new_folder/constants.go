@@ -18,7 +18,7 @@ const (
 // and folderutils.ErrOp*).
 const (
 	DescResource = "Manages a Nested Shared Folder."
-	DescRecords  = "Set of record UIDs to link into this folder."
+	DescRecords  = "Set of record UIDs to link into this folder. When set, Terraform enforces exactly this set. When omitted, this reflects whatever is actually linked without managing it."
 )
 
 const (

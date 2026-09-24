@@ -14,8 +14,7 @@
 
 ### Changed
 
-- New (NSF) records and folder can now be moved between folder locations.
-- Bumped minimum required Keeper Commander version to `18.1.6`.
+- Bumped minimum required Keeper Commander version to `18.1.5`.
 
 ## 1.3.0 (YYYY-MM-DD)
 

@@ -62,7 +62,7 @@ func newDSConfigRaw(t *testing.T, sch dschema.Schema, loginRecord string) tftype
 
 	vals := map[string]tftypes.Value{}
 	for name, attrType := range objType.AttributeTypes {
-		if name == "login" {
+		if name == "login_record" {
 			vals[name] = tftypes.NewValue(tftypes.String, loginRecord)
 		} else {
 			vals[name] = tftypes.NewValue(attrType, nil)

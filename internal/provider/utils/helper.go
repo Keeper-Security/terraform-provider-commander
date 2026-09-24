@@ -24,6 +24,29 @@ import (
 // and has been removed from state. The caller should return without calling State.Set.
 var ErrResourceRemoved = errors.New("resource removed from state")
 
+// AlreadyExistsImportHint builds diagnostic detail text for a create-style
+// command that failed with api.ErrAlreadyExists (see that error's doc
+// comment). resourceType is the Terraform resource type, e.g.
+// "commander_enterprise_node"; name is the value the practitioner configured
+// that collided; existingID is the pre-existing object's ID/UID looked up
+// after the failure, or "" if that follow-up lookup itself failed or found
+// nothing. Guides the practitioner to `terraform import` rather than
+// silently adopting the pre-existing object, since a name collision could
+// equally be a genuine mistake rather than lost Terraform state.
+func AlreadyExistsImportHint(resourceType, name, existingID string) string {
+	if existingID == "" {
+		return fmt.Sprintf(
+			"A %s named %q already exists, but its ID could not be looked up automatically. "+
+				"Find its ID and run `terraform import %s.<local_name> <id>` to bring it under management, or choose a different name.",
+			resourceType, name, resourceType,
+		)
+	}
+	return fmt.Sprintf(
+		"A %s named %q already exists (ID: %s). Run `terraform import %s.<local_name> %s` to bring it under management, or choose a different name.",
+		resourceType, name, existingID, resourceType, existingID,
+	)
+}
+
 // SwitchToManagedCompany switches to the specified managed company.
 func SwitchToManagedCompany(ctx context.Context, apiManager *api.ApiManager, manageCompany string) error {
 	command := fmt.Sprintf("switch-to-mc '%s'", manageCompany)

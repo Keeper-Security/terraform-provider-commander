@@ -164,6 +164,35 @@ func TestNewFolderResource_Read_NotFound_RemovesResource(t *testing.T) {
 	}
 }
 
+func TestNewFolderResource_Read_NotFound_CommanderCannotFindPhrasing_RemovesResource(t *testing.T) {
+	// Real Commander wording for an out-of-band-deleted Nested Shared Folder
+	// contains no "not found" substring. Regression test for the client
+	// report where this phrasing fell through to a hard Read error instead
+	// of removing the resource from state.
+	mock := &helpers.CommandServer{}
+	server := helpers.StartCommandServerWithResultHook(mock, nil, func(cmd string, _ int) (int, []byte) {
+		if strings.HasPrefix(cmd, "nsf-get") {
+			return http.StatusInternalServerError, []byte(`{"message":"Cannot find any Nested Share Folder object with UID FID-MISSING."}`)
+		}
+		return 0, nil
+	})
+	defer server.Close()
+
+	r := newConfiguredResource(t, server)
+	sch, objType := getSchema(t)
+	rawState := tftypes.NewValue(objType, newPlanStateValues("FID-MISSING", "Name", nil))
+
+	req := resource.ReadRequest{State: tfsdk.State{Schema: sch, Raw: rawState}}
+	resp := resource.ReadResponse{State: tfsdk.State{Schema: sch, Raw: rawState}}
+	r.Read(context.Background(), req, &resp)
+	if resp.Diagnostics.HasError() {
+		t.Fatalf("Read should not add a diagnostic for Commander's 'Cannot find' phrasing (state should be removed): %v", resp.Diagnostics)
+	}
+	if !resp.State.Raw.IsNull() {
+		t.Errorf("expected state to be removed (Raw should be null), got: %v", resp.State.Raw)
+	}
+}
+
 func TestNewFolderResource_Read_EmptyIdInState(t *testing.T) {
 	mock := &helpers.CommandServer{}
 	server := startMockServer(mock, nil)

@@ -5,6 +5,7 @@ package enterpriseteam
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strings"
 
@@ -58,6 +59,16 @@ func (r *EnterpriseTeamResource) Create(ctx context.Context, req resource.Create
 		}
 		return nil
 	}, "Create Enterprise Team Failed", &resp.Diagnostics); err != nil {
+		if errors.Is(err, api.ErrAlreadyExists) {
+			existingID := ""
+			if teamInfo, lookupErr := utils.FetchEnterpriseTeamByNameOrId(ctx, r.ApiManager, data.Name.ValueString()); lookupErr == nil && teamInfo != nil {
+				existingID = teamInfo.TeamUid
+			}
+			resp.Diagnostics.AddError(
+				"Enterprise Team Already Exists",
+				utils.AlreadyExistsImportHint("commander_enterprise_team", data.Name.ValueString(), existingID),
+			)
+		}
 		return
 	}
 	if resp.Diagnostics.HasError() {

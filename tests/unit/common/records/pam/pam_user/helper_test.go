@@ -12,9 +12,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
-func TestMapRotationSettingsToState_NilRotInfoPreservesExisting(t *testing.T) {
+func TestMapRotationSettingsToState_NilRotInfoClearsRotationSettings(t *testing.T) {
 	t.Parallel()
 
+	// rotInfo == nil is treated the same as an explicit "no rotation" status:
+	// state.RotationSettings is cleared regardless of what existing held.
 	state := commonpamuser.PamUserSharedModel{
 		RotationSettings: &commonpamuser.PamUserRotationSettings{
 			RotationProfile: types.StringValue(commonpamuser.RotProfileGeneral),
@@ -24,14 +26,8 @@ func TestMapRotationSettingsToState_NilRotInfoPreservesExisting(t *testing.T) {
 
 	commonpamuser.MapRotationSettingsToState(nil, nil, state.RotationSettings, &state)
 
-	if state.RotationSettings == nil {
-		t.Fatal("expected rotation settings to be preserved")
-	}
-	if !state.RotationSettings.RotationProfile.Equal(types.StringValue(commonpamuser.RotProfileGeneral)) {
-		t.Fatalf("rotation_profile = %v, want general", state.RotationSettings.RotationProfile)
-	}
-	if !state.RotationSettings.Configuration.Equal(types.StringValue("existing-config")) {
-		t.Fatalf("configuration = %v, want existing-config", state.RotationSettings.Configuration)
+	if state.RotationSettings != nil {
+		t.Fatalf("rotation_settings = %v, want nil when rotInfo is nil", state.RotationSettings)
 	}
 }
 
@@ -153,7 +149,7 @@ func TestMapRotationSettingsToState_IAMUserProfileFromVaultRecord(t *testing.T) 
 	}
 }
 
-func TestMapRotationSettingsToState_DisabledRotationParsesScheduleAfterClear(t *testing.T) {
+func TestMapRotationSettingsToState_DisabledRotationClearsSchedule(t *testing.T) {
 	t.Parallel()
 
 	state := commonpamuser.PamUserSharedModel{}
@@ -178,9 +174,10 @@ func TestMapRotationSettingsToState_DisabledRotationParsesScheduleAfterClear(t *
 	if !state.RotationSettings.OnDemand.IsNull() {
 		t.Fatalf("on_demand = %v, want null when disabled", state.RotationSettings.OnDemand)
 	}
-	// parseScheduleValue runs after the disabled branch and repopulates schedule fields.
-	if !state.RotationSettings.ScheduleCron.Equal(types.StringValue("0 0 4 * * ?")) {
-		t.Fatalf("schedule_cron = %v, want 0 0 4 * * ?", state.RotationSettings.ScheduleCron)
+	// The disabled branch clears schedule fields and returns before
+	// parseScheduleValue runs, so ScheduleData is ignored while disabled.
+	if !state.RotationSettings.ScheduleCron.IsNull() {
+		t.Fatalf("schedule_cron = %v, want null when disabled", state.RotationSettings.ScheduleCron)
 	}
 }
 
@@ -190,7 +187,7 @@ func TestMapRotationSettingsToState_CronSchedule(t *testing.T) {
 	state := commonpamuser.PamUserSharedModel{}
 	rotInfo := &commonpamuser.PamRotationInfoResponse{
 		Disable:      false,
-		ScheduleType: "cron",
+		ScheduleType: commonpamuser.RotProfileScheduleTypeScheduled,
 		ScheduleData: `{"type":"CRON","cron":"0 0 4 * * ?","tz":"Etc/UTC"}`,
 	}
 	rec := &utils.VaultRecordGetResponse{
@@ -221,7 +218,7 @@ func TestMapRotationSettingsToState_WeeklyScheduleJSON(t *testing.T) {
 	state := commonpamuser.PamUserSharedModel{}
 	rotInfo := &commonpamuser.PamRotationInfoResponse{
 		Disable:      false,
-		ScheduleType: "weekly",
+		ScheduleType: commonpamuser.RotProfileScheduleTypeScheduled,
 		ScheduleData: scheduleJSON,
 	}
 	rec := &utils.VaultRecordGetResponse{
@@ -403,8 +400,10 @@ func TestMapRotationSettingsToState_RealSaaSDagDebugAPI(t *testing.T) {
 	if !state.RotationSettings.Enabled.Equal(types.BoolValue(false)) {
 		t.Fatalf("enabled = %v, want false", state.RotationSettings.Enabled)
 	}
-	if !state.RotationSettings.Complexity.Equal(types.StringValue("32,5,1,1,2")) {
-		t.Fatalf("complexity = %v, want 32,5,1,1,2", state.RotationSettings.Complexity)
+	// The disabled branch explicitly nulls Complexity before returning, so
+	// PasswordComplexityDetails is ignored while rotation is disabled.
+	if !state.RotationSettings.Complexity.IsNull() {
+		t.Fatalf("complexity = %v, want null when disabled", state.RotationSettings.Complexity)
 	}
 }
 

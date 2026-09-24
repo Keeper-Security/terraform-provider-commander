@@ -78,6 +78,9 @@ func CustomFieldAttributeSchema() schema.ListNestedAttribute {
 		Description:         CustomDescription,
 		MarkdownDescription: CustomMarkdownDescription,
 		NestedObject:        CustomFieldNestedAttributeObject(),
+		Validators: []validator.List{
+			utils.ListMinLengthValidator("Custom fields", 1, true),
+		},
 	}
 }
 
