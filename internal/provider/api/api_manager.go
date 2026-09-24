@@ -22,6 +22,15 @@ import (
 // by removing the resource from state.
 var ErrResourceNotFound = errors.New("resource not found")
 
+// ErrAlreadyExists is returned when the API answers a create-style command
+// with HTTP 409. Commander's own `--add` commands (enterprise-node/-role/
+// -team) treat an existing name as a harmless no-op and log a warning, but
+// Service Mode's generic response parser still surfaces that warning as a
+// 409 Conflict. Callers can use errors.Is(err, api.ErrAlreadyExists) to
+// detect this and guide the practitioner toward `terraform import` instead
+// of surfacing the raw, permanently-unrecoverable API error.
+var ErrAlreadyExists = errors.New("resource already exists")
+
 // notFoundPhrases are substrings (case-insensitive) Commander uses across its
 // various `get`/`nsf-get`/etc. commands to report that the requested UID or
 // name doesn't exist. "not found" alone missed real-world Commander wording
@@ -190,6 +199,9 @@ func handleAPIErrorResponse(resp *http.Response) error {
 
 		case http.StatusNotFound: // 404 - Request ID not found
 			return fmt.Errorf("request id not found (404)")
+
+		case http.StatusConflict: // 409 - target already exists (e.g. enterprise-node/-role/-team --add on an existing name)
+			return fmt.Errorf("%w: %s", ErrAlreadyExists, errorMsg)
 
 		case http.StatusInternalServerError: // 500 - Command execution failed
 			if isNotFoundMessage(errorMsg) {

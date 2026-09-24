@@ -14,9 +14,10 @@ import (
 )
 
 // RunWithManagedCompanyContext runs op inside ExecuteWithManagedCompanyContext.
-// If op returns an error, it is added to diags with the given summary, unless the error is ErrResourceRemoved
-// (caller should return without setting state in that case).
-// Returns the error from op so the caller can check for ErrResourceRemoved.
+// If op returns an error, it is added to diags with the given summary, unless the error is
+// ErrResourceRemoved (caller should return without setting state) or api.ErrAlreadyExists
+// (caller adds its own tailored "already exists, run terraform import" diagnostic instead).
+// Returns the error from op so the caller can check for either sentinel.
 func RunWithManagedCompanyContext(
 	ctx context.Context,
 	apiManager *api.ApiManager,
@@ -27,7 +28,7 @@ func RunWithManagedCompanyContext(
 ) error {
 	err := ExecuteWithManagedCompanyContext(ctx, apiManager, managedCompany, op)
 	if err != nil {
-		if !errors.Is(err, ErrResourceRemoved) {
+		if !errors.Is(err, ErrResourceRemoved) && !errors.Is(err, api.ErrAlreadyExists) {
 			diags.AddError(errorSummary, err.Error())
 		}
 		return err
@@ -55,7 +56,7 @@ func RunWithMspContext(
 		apiManager.SetCurrentContext("")
 	}
 	if err := op(); err != nil {
-		if !errors.Is(err, ErrResourceRemoved) {
+		if !errors.Is(err, ErrResourceRemoved) && !errors.Is(err, api.ErrAlreadyExists) {
 			diags.AddError(errorSummary, err.Error())
 		}
 		return err

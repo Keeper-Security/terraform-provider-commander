@@ -236,6 +236,33 @@ func TestSubmitRequest_NotFound(t *testing.T) {
 	}
 }
 
+func TestSubmitRequest_Conflict_ClassifiesAsAlreadyExists(t *testing.T) {
+	// Service Mode's generic response parser surfaces Commander's idempotent
+	// "already exists: Skipping" warning (e.g. from enterprise-node/-role/
+	// -team --add on an existing name) as an HTTP 409. Callers rely on
+	// errors.Is(err, api.ErrAlreadyExists) to detect this and guide the
+	// practitioner toward `terraform import` instead of a raw API error.
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusConflict)
+		_, _ = w.Write([]byte(`{"message":"Node 'Engineering' already exists: Skipping."}`))
+	}))
+	defer server.Close()
+
+	client := &api.ApiManager{
+		ServiceModeUrl:    server.URL,
+		ServiceModeApiKey: "test-key",
+		HttpClient:        server.Client(),
+	}
+	ctx := context.Background()
+	_, err := client.SubmitRequest(ctx, "cmd", nil)
+	if err == nil {
+		t.Fatal("expected error for 409")
+	}
+	if !errors.Is(err, api.ErrAlreadyExists) {
+		t.Errorf("expected errors.Is(err, api.ErrAlreadyExists) to be true, got: %v", err)
+	}
+}
+
 func TestSubmitRequest_InternalServerError(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)

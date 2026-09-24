@@ -5,7 +5,9 @@ package enterpriserole
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"strconv"
 	"strings"
 
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/api"
@@ -80,6 +82,16 @@ func (r *EnterpriseRoleResource) Create(ctx context.Context, req resource.Create
 		}
 		return nil
 	}, "Create Enterprise Role Failed", &resp.Diagnostics); err != nil {
+		if errors.Is(err, api.ErrAlreadyExists) {
+			existingID := ""
+			if roleInfo, lookupErr := utils.FetchEnterpriseRoleByNameOrId(ctx, r.ApiManager, data.Name.ValueString()); lookupErr == nil && roleInfo != nil {
+				existingID = strconv.Itoa(roleInfo.RoleId)
+			}
+			resp.Diagnostics.AddError(
+				"Enterprise Role Already Exists",
+				utils.AlreadyExistsImportHint("commander_enterprise_role", data.Name.ValueString(), existingID),
+			)
+		}
 		return
 	}
 	if resp.Diagnostics.HasError() {
