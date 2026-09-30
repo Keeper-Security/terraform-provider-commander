@@ -24,5 +24,5 @@ const (
 // and folderutils.ErrOp*).
 const (
 	DescResource = "Manages a vault folder. Use this resource to create and manage a non-shared folder."
-	DescRecords  = "Set of record UIDs to link into this folder."
+	DescRecords  = "Set of record UIDs to link into this folder. When set, Terraform enforces exactly this set. When omitted, this reflects whatever is actually linked without managing it."
 )

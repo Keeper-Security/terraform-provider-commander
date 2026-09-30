@@ -22,6 +22,7 @@ func (r *NonSharedFolderResource) Schema(ctx context.Context, req resource.Schem
 			map[string]schema.Attribute{
 				"records": schema.SetAttribute{
 					Optional:            true,
+					Computed:            true,
 					ElementType:         types.StringType,
 					Description:         DescRecords,
 					MarkdownDescription: DescRecords,
