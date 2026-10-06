@@ -5,18 +5,20 @@ package utils
 
 // Common Commander CLI commands.
 const (
-	CmdRecordAdd         = "record-add"
-	CmdRecordUpdate      = "record-update"
-	CmdRecordDelete      = "rm"
-	CmdGet               = "get"
-	CmdMv                = "mv"
-	CmdPamTunnelEdit     = "pam tunnel edit"
-	CmdPamConnectionEdit = "pam connection edit"
-	CmdNsfGet            = "nsf-get"
-	CmdNsfRecordAdd      = "nsf-record-add"
-	CmdNsfRecordUpdate   = "nsf-record-update"
-	CmdNsfRecordDelete   = "nsf-rm"
-	CmdNsfMove           = "nsf-move"
+	CmdRecordAdd           = "record-add"
+	CmdRecordUpdate        = "record-update"
+	CmdRecordDelete        = "rm"
+	CmdGet                 = "get"
+	CmdMv                  = "mv"
+	CmdPamTunnelEdit       = "pam tunnel edit"
+	CmdPamConnectionEdit   = "pam connection edit"
+	CmdNsfGet              = "nsf-get"
+	CmdNsfRecordAdd        = "nsf-record-add"
+	CmdNsfRecordUpdate     = "nsf-record-update"
+	CmdNsfRecordDelete     = "nsf-rm"
+	CmdNsfMove             = "nsf-move"
+	CmdPamActionSaaSConfig = "pam action saas config"
+	CmdPamActionSaaSUpdate = "pam action saas update"
 )
 
 // Commander CLI command flags.

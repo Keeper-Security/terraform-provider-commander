@@ -43,7 +43,9 @@ resource "commander_new_saas_configuration" "example" {
 
 ### Required
 
+- `configuration` (String) The PAM configuration `UID`. Used at create time to validate the selected **SaaS Type** (plugin) and its fields against the given gateway and configuration. Not populated on import.
 - `custom` (Attributes List) Manage custom fields for the record. (see [below for nested schema](#nestedatt--custom))
+- `gateway` (String) The configured gateway `UID` or `name`. Used at create time to validate the selected **SaaS Type** (plugin) and its fields against the given gateway and configuration. Not populated on import.
 - `title` (String) Record title.
 
 ### Optional

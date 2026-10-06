@@ -17,12 +17,29 @@ func SharedAttributes() map[string]schema.Attribute {
 	return utils.MergeResourceAttributes(
 		commonrecordsutils.BaseRecordAttributes(),
 		map[string]schema.Attribute{
+			"configuration": schema.StringAttribute{
+				Required:            true,
+				Description:         ConfigurationDescription,
+				MarkdownDescription: ConfigurationMarkdownDescription,
+				Validators: []validator.String{
+					utils.StringMinLengthValidator("configuration", 1, true),
+				},
+			},
+			"gateway": schema.StringAttribute{
+				Required:            true,
+				Description:         GatewayDescription,
+				MarkdownDescription: GatewayMarkdownDescription,
+				Validators: []validator.String{
+					utils.StringMinLengthValidator("gateway", 1, true),
+				},
+			},
 			"custom": schema.ListNestedAttribute{
 				Required:            true,
 				Description:         commonrecordsutils.CustomDescription,
 				MarkdownDescription: commonrecordsutils.CustomMarkdownDescription,
 				Validators: []validator.List{
 					RequiredSaasTypeCustomFieldValidator(),
+					RequiredActiveCustomFieldValidator(),
 				},
 				NestedObject: commonrecordsutils.CustomFieldNestedAttributeObject(),
 			},
@@ -36,6 +53,16 @@ func SharedDataSourceAttributes() map[string]dschema.Attribute {
 	return utils.MergeDataSourceAttributes(
 		commonrecordsutils.DataSourceBaseRecordAttributes(),
 		map[string]dschema.Attribute{
+			"configuration": dschema.StringAttribute{
+				Computed:            true,
+				Description:         "PAM Configuration UID used for rotation.",
+				MarkdownDescription: "The PAM configuration UID used for rotation.",
+			},
+			"gateway": dschema.StringAttribute{
+				Computed:            true,
+				Description:         "The configured gateway `UID` or `name`",
+				MarkdownDescription: "The configured gateway `UID` or `name`",
+			},
 			"custom": commonrecordsutils.CustomFieldDataSourceAttributeSchema(),
 		},
 	)

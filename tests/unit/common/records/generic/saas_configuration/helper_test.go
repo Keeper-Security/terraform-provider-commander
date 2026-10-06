@@ -4,13 +4,16 @@
 package saasconfiguration_test
 
 import (
+	"context"
 	"encoding/json"
 	"strings"
 	"testing"
 
+	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/api"
 	commonrecordsaasconfiguration "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/generic/saas_configuration"
 	commonrecordsutils "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/utils"
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/utils"
+	"github.com/Keeper-Security/terraform-provider-commander/tests/helpers"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
@@ -91,5 +94,57 @@ func TestUpdateHasMutations_CustomChanged(t *testing.T) {
 
 	if !commonrecordsaasconfiguration.UpdateHasMutations(plan, state) {
 		t.Fatal("expected custom change to be detected")
+	}
+}
+
+func TestLinkToGateway_SendsExpectedCommand(t *testing.T) {
+	t.Parallel()
+
+	mock := &helpers.CommandServer{}
+	var gotCmd string
+	server := helpers.StartCommandServer(mock, func(cmd string, _ int) (string, interface{}) {
+		gotCmd = cmd
+		return "ok", nil
+	})
+	defer server.Close()
+
+	apiManager := &api.ApiManager{
+		ServiceModeUrl:    server.URL,
+		ServiceModeApiKey: "test-key",
+		HttpClient:        server.Client(),
+	}
+
+	if err := commonrecordsaasconfiguration.LinkToGateway(context.Background(), apiManager, "gw-1", "config-uid-1", "record-uid-1"); err != nil {
+		t.Fatalf("LinkToGateway failed: %v", err)
+	}
+
+	for _, want := range []string{
+		"pam action saas update",
+		"--gateway 'gw-1'",
+		"--configuration-uid 'config-uid-1'",
+		"--config-record-uid 'record-uid-1'",
+	} {
+		if !strings.Contains(gotCmd, want) {
+			t.Errorf("command %q missing %q", gotCmd, want)
+		}
+	}
+}
+
+func TestLinkToGateway_PropagatesError(t *testing.T) {
+	t.Parallel()
+
+	server := helpers.StartCommandServerWithResultHook(&helpers.CommandServer{}, nil, func(cmd string, _ int) (int, []byte) {
+		return 500, []byte(`{"message":"gateway link failed"}`)
+	})
+	defer server.Close()
+
+	apiManager := &api.ApiManager{
+		ServiceModeUrl:    server.URL,
+		ServiceModeApiKey: "test-key",
+		HttpClient:        server.Client(),
+	}
+
+	if err := commonrecordsaasconfiguration.LinkToGateway(context.Background(), apiManager, "gw-1", "config-uid-1", "record-uid-1"); err == nil {
+		t.Fatal("expected error to propagate")
 	}
 }
