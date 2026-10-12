@@ -5,8 +5,6 @@ package saasconfiguration_test
 
 import (
 	"context"
-	"encoding/json"
-	"net/http"
 	"strings"
 	"testing"
 
@@ -17,41 +15,48 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
-// reportedPluginInfoMessage is the exact `message` array shape from the real
-// `pam action saas config --gateway xx --plugin REST --info` response.
-var reportedPluginInfoMessage = []string{
-	"REST",
-	"Type: builtin",
-	"Author: Keeper Security (pam@keepersecuirty.com)",
-	"Summary: Generic REST implementation that calls your custom webservice to rotate a user's password.",
-	"Fields",
-	"* Required: REST Url - URL endpoint.",
-	"* Required: REST Token - A Bearer token.",
-	"* Optional: REST Method - HTTP method. Either 'POST' or 'PUT'",
+// reportedPluginInfoData is the exact `data` object shape from the real
+// `pam action saas config --gateway xx --plugin REST --info --format json` response. Fields
+// callers don't use (name/type/author/email/installed/readme/summary/
+// allows_remote_management) are included to confirm they're tolerated.
+var reportedPluginInfoData = map[string]interface{}{
+	"name":                     "REST",
+	"type":                     "builtin",
+	"author":                   "Keeper Security",
+	"email":                    "pam@keepersecuirty.com",
+	"installed":                true,
+	"readme":                   "",
+	"summary":                  "Generic REST implementation that calls your custom webservice to rotate a user's password.",
+	"allows_remote_management": false,
+	"required_fields": []map[string]interface{}{
+		{"label": "REST Url", "type": "text", "required": true, "description": "URL endpoint."},
+		{"label": "REST Token", "type": "secret", "required": true, "description": "A Bearer token."},
+	},
+	"optional_fields": []map[string]interface{}{
+		{"label": "REST Method", "type": "text", "required": false, "description": "HTTP method. Either 'POST' or 'PUT'"},
+	},
 }
 
-func newApiManagerForPluginInfo(t *testing.T, gateway, plugin string, message []string) *api.ApiManager {
+func newApiManagerForPluginInfo(t *testing.T, gateway, plugin string, data interface{}) *api.ApiManager {
 	t.Helper()
 	mock := &helpers.CommandServer{}
-	server := helpers.StartCommandServerWithResultHook(mock, nil, func(cmd string, _ int) (int, []byte) {
-		if !strings.Contains(cmd, "pam action saas config") || !strings.Contains(cmd, "--info") {
-			return 0, nil
-		}
-		if !strings.Contains(cmd, "--gateway '"+gateway+"'") {
-			t.Errorf("expected command to include --gateway '%s', got: %s", gateway, cmd)
-		}
-		if !strings.Contains(cmd, "--plugin '"+plugin+"'") {
-			t.Errorf("expected command to include --plugin '%s', got: %s", plugin, cmd)
-		}
-		body, _ := json.Marshal(map[string]interface{}{
-			"data":    nil,
-			"status":  "success",
-			"message": message,
-			"error":   "",
-		})
-		return http.StatusOK, body
+	var gotCommand string
+	server := helpers.StartCommandServer(mock, func(cmd string, _ int) (string, interface{}) {
+		gotCommand = cmd
+		return "", data
 	})
 	t.Cleanup(server.Close)
+	t.Cleanup(func() {
+		if !strings.Contains(gotCommand, "pam action saas config") || !strings.Contains(gotCommand, "--info") || !strings.Contains(gotCommand, "--format json") {
+			t.Errorf("expected command to fetch plugin info as JSON, got: %s", gotCommand)
+		}
+		if !strings.Contains(gotCommand, "--gateway '"+gateway+"'") {
+			t.Errorf("expected command to include --gateway '%s', got: %s", gateway, gotCommand)
+		}
+		if !strings.Contains(gotCommand, "--plugin '"+plugin+"'") {
+			t.Errorf("expected command to include --plugin '%s', got: %s", plugin, gotCommand)
+		}
+	})
 
 	return &api.ApiManager{
 		ServiceModeUrl:    server.URL,
@@ -63,7 +68,7 @@ func newApiManagerForPluginInfo(t *testing.T, gateway, plugin string, message []
 func TestFetchSaasFieldSpecs_ParsesReportedResponseShape(t *testing.T) {
 	t.Parallel()
 
-	apiManager := newApiManagerForPluginInfo(t, "gw-1", "REST", reportedPluginInfoMessage)
+	apiManager := newApiManagerForPluginInfo(t, "gw-1", "REST", reportedPluginInfoData)
 
 	specs, err := commonrecordsaasconfiguration.FetchSaasFieldSpecs(context.Background(), apiManager, "gw-1", "REST")
 	if err != nil {
@@ -71,9 +76,9 @@ func TestFetchSaasFieldSpecs_ParsesReportedResponseShape(t *testing.T) {
 	}
 
 	want := []commonrecordsaasconfiguration.SaasFieldSpec{
-		{Label: "REST Url", Required: true, Description: "URL endpoint."},
-		{Label: "REST Token", Required: true, Description: "A Bearer token."},
-		{Label: "REST Method", Required: false, Description: "HTTP method. Either 'POST' or 'PUT'"},
+		{Label: "REST Url", Type: "text"},
+		{Label: "REST Token", Type: "secret"},
+		{Label: "REST Method", Type: "text"},
 	}
 	if len(specs) != len(want) {
 		t.Fatalf("expected %d field specs, got %d: %+v", len(want), len(specs), specs)
@@ -85,13 +90,13 @@ func TestFetchSaasFieldSpecs_ParsesReportedResponseShape(t *testing.T) {
 	}
 }
 
-func TestFetchSaasFieldSpecs_NoFieldsSectionReturnsEmpty(t *testing.T) {
+func TestFetchSaasFieldSpecs_NoFieldsReturnsEmpty(t *testing.T) {
 	t.Parallel()
 
-	apiManager := newApiManagerForPluginInfo(t, "gw-1", "NoFieldsPlugin", []string{
-		"NoFieldsPlugin",
-		"Type: builtin",
-		"Summary: A plugin with no configurable fields.",
+	apiManager := newApiManagerForPluginInfo(t, "gw-1", "NoFieldsPlugin", map[string]interface{}{
+		"name":    "NoFieldsPlugin",
+		"type":    "builtin",
+		"summary": "A plugin with no configurable fields.",
 	})
 
 	specs, err := commonrecordsaasconfiguration.FetchSaasFieldSpecs(context.Background(), apiManager, "gw-1", "NoFieldsPlugin")
@@ -100,6 +105,51 @@ func TestFetchSaasFieldSpecs_NoFieldsSectionReturnsEmpty(t *testing.T) {
 	}
 	if len(specs) != 0 {
 		t.Errorf("expected no field specs, got %+v", specs)
+	}
+}
+
+func TestFetchSaasFieldSpecs_NullDataReturnsNoSpecs(t *testing.T) {
+	t.Parallel()
+
+	mock := &helpers.CommandServer{}
+	server := helpers.StartCommandServer(mock, func(_ string, _ int) (string, interface{}) {
+		return "", nil
+	})
+	defer server.Close()
+
+	apiManager := &api.ApiManager{
+		ServiceModeUrl:    server.URL,
+		ServiceModeApiKey: "test-key",
+		HttpClient:        server.Client(),
+	}
+
+	specs, err := commonrecordsaasconfiguration.FetchSaasFieldSpecs(context.Background(), apiManager, "gw-1", "REST")
+	if err != nil {
+		t.Fatalf("FetchSaasFieldSpecs failed: %v", err)
+	}
+	if specs != nil {
+		t.Errorf("expected no specs for a null data response, got: %+v", specs)
+	}
+}
+
+func TestFetchSaasFieldSpecs_MalformedDataPropagatesError(t *testing.T) {
+	t.Parallel()
+
+	mock := &helpers.CommandServer{}
+	server := helpers.StartCommandServer(mock, func(_ string, _ int) (string, interface{}) {
+		// A string instead of the expected plugin info object.
+		return "", "not-an-object"
+	})
+	defer server.Close()
+
+	apiManager := &api.ApiManager{
+		ServiceModeUrl:    server.URL,
+		ServiceModeApiKey: "test-key",
+		HttpClient:        server.Client(),
+	}
+
+	if _, err := commonrecordsaasconfiguration.FetchSaasFieldSpecs(context.Background(), apiManager, "gw-1", "REST"); err == nil {
+		t.Fatal("expected an error when the response data isn't shaped as a plugin info object")
 	}
 }
 
@@ -115,9 +165,9 @@ func TestValidateSaasFields_AcceptsAllRequiredAndValidOptional(t *testing.T) {
 	t.Parallel()
 
 	specs := []commonrecordsaasconfiguration.SaasFieldSpec{
-		{Label: "REST Url", Required: true},
-		{Label: "REST Token", Required: true},
-		{Label: "REST Method", Required: false},
+		{Label: "REST Url"},
+		{Label: "REST Token"},
+		{Label: "REST Method"},
 	}
 	custom := []commonrecordsutils.CustomFieldModel{
 		textField("REST Url", "https://example.com"),
@@ -136,8 +186,8 @@ func TestValidateSaasFields_RejectsOptionalFieldOmittedEntirely(t *testing.T) {
 	// By product decision, every field the plugin reports (Required or Optional) is
 	// mandatory - omitting one reported "Optional" is now an error too.
 	specs := []commonrecordsaasconfiguration.SaasFieldSpec{
-		{Label: "REST Url", Required: true},
-		{Label: "REST Method", Required: false},
+		{Label: "REST Url"},
+		{Label: "REST Method"},
 	}
 	custom := []commonrecordsutils.CustomFieldModel{
 		textField("REST Url", "https://example.com"),
@@ -156,8 +206,8 @@ func TestValidateSaasFields_RejectsMissingRequiredField(t *testing.T) {
 	t.Parallel()
 
 	specs := []commonrecordsaasconfiguration.SaasFieldSpec{
-		{Label: "REST Url", Required: true},
-		{Label: "REST Token", Required: true},
+		{Label: "REST Url"},
+		{Label: "REST Token"},
 	}
 	custom := []commonrecordsutils.CustomFieldModel{
 		textField("REST Url", "https://example.com"),
@@ -176,7 +226,7 @@ func TestValidateSaasFields_ErrorNamesPluginAndShowsConfigExample(t *testing.T) 
 	t.Parallel()
 
 	specs := []commonrecordsaasconfiguration.SaasFieldSpec{
-		{Label: "REST Url", Required: true},
+		{Label: "REST Url"},
 	}
 
 	err := commonrecordsaasconfiguration.ValidateSaasFields("REST", nil, specs)
@@ -202,7 +252,7 @@ func TestValidateSaasFields_RejectsEmptyRequiredValue(t *testing.T) {
 	t.Parallel()
 
 	specs := []commonrecordsaasconfiguration.SaasFieldSpec{
-		{Label: "REST Url", Required: true},
+		{Label: "REST Url"},
 	}
 	custom := []commonrecordsutils.CustomFieldModel{
 		textField("REST Url", "   "),
@@ -217,8 +267,8 @@ func TestValidateSaasFields_RejectsEmptyOptionalValueWhenPresent(t *testing.T) {
 	t.Parallel()
 
 	specs := []commonrecordsaasconfiguration.SaasFieldSpec{
-		{Label: "REST Url", Required: true},
-		{Label: "REST Method", Required: false},
+		{Label: "REST Url"},
+		{Label: "REST Method"},
 	}
 	custom := []commonrecordsutils.CustomFieldModel{
 		textField("REST Url", "https://example.com"),
@@ -238,7 +288,7 @@ func TestValidateSaasFields_RejectsWrongFieldType(t *testing.T) {
 	t.Parallel()
 
 	specs := []commonrecordsaasconfiguration.SaasFieldSpec{
-		{Label: "REST Token", Required: true},
+		{Label: "REST Token"},
 	}
 	custom := []commonrecordsutils.CustomFieldModel{
 		{Type: types.StringValue("secret"), Label: types.StringValue("REST Token"), Value: types.StringValue("s3cr3t")},
@@ -257,7 +307,7 @@ func TestValidateSaasFields_IgnoresUnrelatedCustomFields(t *testing.T) {
 	t.Parallel()
 
 	specs := []commonrecordsaasconfiguration.SaasFieldSpec{
-		{Label: "REST Url", Required: true},
+		{Label: "REST Url"},
 	}
 	custom := []commonrecordsutils.CustomFieldModel{
 		textField("SaaS Type", "REST"),

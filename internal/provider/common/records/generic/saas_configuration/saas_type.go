@@ -8,8 +8,8 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"regexp"
 	"strings"
+	"text/tabwriter"
 
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/api"
 	commonrecordsutils "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/utils"
@@ -17,92 +17,69 @@ import (
 )
 
 // gatewayOfflineIndicator is a substring (matched case-insensitively) Commander includes in
-// the message when the gateway can't be reached to list its plugins - the response still
-// reports "status":"success", but with this notice and no actual plugin entries instead of the
-// usual list, e.g.:
+// the message when the configured gateway can't be reached - the response still reports
+// "status":"success", but with this notice and no real plugin entries, e.g.:
 //
 //	["This Gateway currently is not online.", "Did not get router response.", "Available SaaS Plugins"]
 const gatewayOfflineIndicator = "not online"
 
-// ErrGatewayOffline is returned by FetchSaasPluginList when the configured gateway didn't
-// respond, so no real plugin list is available to validate "SaaS Type" against.
+// ErrGatewayOffline is returned by FetchSaasPluginList when the configured gateway didn't respond.
 var ErrGatewayOffline = errors.New("unable to load available plugins (SaaS Types). The gateway is offline")
 
 // SaasPluginEntry describes one plugin parsed from
-// `pam action saas config --gateway <gw> --list`.
+// `pam action saas config --gateway <gw> --list --format json`.
 type SaasPluginEntry struct {
 	// Name is the value practitioners set on the "SaaS Type" custom field, e.g. "Snowflake".
-	Name string
-	// IntegrationType is "Builtin", "Catalog", or "Custom".
+	Name            string
 	IntegrationType string
 	Description     string
 }
 
-// saasPluginLinePattern matches one plugin line from the --list output, e.g.:
+// saasPluginListEntry is one element of the `data` array, e.g.:
 //
-//	"* Snowflake (Builtin) - For Snowflake, rotate the password for a user."
-//	"* My Custom Plugin (Custom) - Some description."
-var saasPluginLinePattern = regexp.MustCompile(`^\*\s*(.+?)\s*\((Builtin|Catalog|Custom)\)\s*-\s*(.*)$`)
+//	{"name": "Snowflake", "type": "builtin", "summary": "For Snowflake, rotate the password for a user.", ...}
+type saasPluginListEntry struct {
+	Name    string `json:"name"`
+	Type    string `json:"type"`
+	Summary string `json:"summary"`
+}
 
-// FetchSaasPluginList runs `pam action saas config --gateway <gw> --list` and parses the
-// plugin name/integration type/description out of each line of its response.
-//
-// Commander currently returns this as a `message` array of free-text lines, with the first
-// line being a header ("Available SaaS Plugins") rather than a plugin entry; this parses that
-// textual format. If Commander starts returning structured JSON for this command instead, only
-// this function's parsing needs to change - ValidateSaasType and its callers are unaffected.
+// FetchSaasPluginList runs `pam action saas config --gateway <gw> --list --format json`.
 func FetchSaasPluginList(ctx context.Context, apiManager *api.ApiManager, gateway string) ([]SaasPluginEntry, error) {
-	command := fmt.Sprintf("%s --gateway %s --list", utils.CmdPamActionSaaSConfig, utils.QuoteShellSingle(gateway))
+	command := fmt.Sprintf("%s --gateway %s --list %s", utils.CmdPamActionSaaSConfig, utils.QuoteShellSingle(gateway), utils.FlagFormatJSON)
 	errSummary := ErrOpListSaasPluginsForGateway(gateway)
 	apiResp, err := apiManager.ExecuteCommand(ctx, command, errSummary)
 	if err != nil {
 		return nil, err
 	}
 
-	lines, err := messageToLines(apiResp.Message.String())
+	if strings.Contains(strings.ToLower(apiResp.Message.String()), gatewayOfflineIndicator) {
+		return nil, ErrGatewayOffline
+	}
+
+	if apiResp.Data == nil {
+		return nil, nil
+	}
+
+	dataBytes, err := json.Marshal(apiResp.Data)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("%s: unable to process plugin list response: %w", errSummary, err)
 	}
 
-	for _, line := range lines {
-		if strings.Contains(strings.ToLower(line), gatewayOfflineIndicator) {
-			return nil, ErrGatewayOffline
-		}
+	var rawEntries []saasPluginListEntry
+	if err := json.Unmarshal(dataBytes, &rawEntries); err != nil {
+		return nil, fmt.Errorf("%s: unable to parse plugin list response: %w", errSummary, err)
 	}
 
-	var entries []SaasPluginEntry
-	for i, line := range lines {
-		if i == 0 {
-			// Header line (e.g. "Available SaaS Plugins"), not a plugin entry.
-			continue
-		}
-		match := saasPluginLinePattern.FindStringSubmatch(strings.TrimSpace(line))
-		if match == nil {
-			continue
-		}
+	entries := make([]SaasPluginEntry, 0, len(rawEntries))
+	for _, e := range rawEntries {
 		entries = append(entries, SaasPluginEntry{
-			Name:            strings.TrimSpace(match[1]),
-			IntegrationType: match[2],
-			Description:     strings.TrimSpace(match[3]),
+			Name:            strings.TrimSpace(e.Name),
+			IntegrationType: strings.TrimSpace(e.Type),
+			Description:     strings.TrimSpace(e.Summary),
 		})
 	}
 	return entries, nil
-}
-
-// messageToLines parses a Commander response's Message field back into its original []string
-// form. Message.String() re-serializes an array-shaped message into compact JSON text (see
-// api.FlexibleMessage.UnmarshalJSON); this reverses that for commands, like
-// `pam action saas config --list`, that return one line per array element.
-func messageToLines(message string) ([]string, error) {
-	trimmed := strings.TrimSpace(message)
-	if !strings.HasPrefix(trimmed, "[") {
-		return nil, fmt.Errorf("expected a list-shaped response, got: %s", message)
-	}
-	var lines []string
-	if err := json.Unmarshal([]byte(trimmed), &lines); err != nil {
-		return nil, fmt.Errorf("unable to parse response as a list of strings: %w", err)
-	}
-	return lines, nil
 }
 
 // ValidateSaasType reports an error if saasType doesn't exactly match any plugin name in
@@ -118,11 +95,19 @@ func ValidateSaasType(saasType string, entries []SaasPluginEntry) error {
 			return nil
 		}
 	}
-	names := make([]string, 0, len(entries))
+	return fmt.Errorf("SaaS Type %q is not supported for this gateway. Supported values:\n\n%s", saasType, formatSaasPluginEntriesTable(entries))
+}
+
+// formatSaasPluginEntriesTable renders entries as an aligned table for a diagnostic error detail.
+func formatSaasPluginEntriesTable(entries []SaasPluginEntry) string {
+	var buf strings.Builder
+	tw := tabwriter.NewWriter(&buf, 0, 0, 2, ' ', 0)
+	fmt.Fprintln(tw, "SAAS TYPE\tPLUGIN TYPE\tDESCRIPTION")
 	for _, e := range entries {
-		names = append(names, e.Name)
+		fmt.Fprintf(tw, "%s\t%s\t%s\n", e.Name, e.IntegrationType, e.Description)
 	}
-	return fmt.Errorf("SaaS Type %q is not supported for this gateway. Supported values: %s", saasType, strings.Join(names, ", "))
+	_ = tw.Flush()
+	return buf.String()
 }
 
 // SaasTypeFromCustom returns the value of the custom field labeled "SaaS Type", or "" if absent.

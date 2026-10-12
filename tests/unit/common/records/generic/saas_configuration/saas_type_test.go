@@ -5,9 +5,7 @@ package saasconfiguration_test
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
-	"net/http"
 	"strings"
 	"testing"
 
@@ -18,38 +16,25 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
-// reportedPluginListMessage is the exact `message` array shape from the real
-// `pam action saas config --gateway xx --list` response, including the
-// "Available SaaS Plugins" header line that must be skipped.
-var reportedPluginListMessage = []string{
-	"Available SaaS Plugins",
-	"* AWS Cognito (Catalog) - Change a users password in AWS Cognito.",
-	"* Cisco APIC (Catalog) - Change a user password in Cisco APIC.",
-	"* Snowflake (Builtin) - For Snowflake, rotate the password for a user.",
-	"* My Custom Plugin (Custom) - Some description.",
+// reportedPluginListData is the exact `data` array shape from the real
+// `pam action saas config --gateway xx --list --format json` response. Fields callers don't
+// use (author/email/installed/readme/used_by_count/using) are included to confirm they're
+// tolerated, not just the fields FetchSaasPluginList reads.
+var reportedPluginListData = []map[string]interface{}{
+	{"author": "Keeper Security", "email": "pam@keepersecurity.com", "installed": false, "name": "AWS Cognito", "readme": "https://example.com/aws_cognito", "summary": "Change a users password in AWS Cognito.", "type": "catalog", "used_by_count": 0, "using": false},
+	{"author": "Keeper Security", "email": "pam@keepersecurity.com", "installed": false, "name": "Cisco APIC", "readme": "https://example.com/cisco_apic", "summary": "Change a user password in Cisco APIC.", "type": "catalog", "used_by_count": 0, "using": false},
+	{"author": "Keeper Security", "email": "pam@keepersecuirty.com", "installed": true, "name": "Snowflake", "readme": "", "summary": "For Snowflake, rotate the password for a user.", "type": "builtin", "used_by_count": 0, "using": false},
+	{"author": "Keeper Security", "email": "pam@keepersecurity.com", "installed": true, "name": "My Custom Plugin", "readme": "", "summary": "Some description.", "type": "custom", "used_by_count": 0, "using": false},
 }
 
 func TestFetchSaasPluginList_ParsesReportedResponseShape(t *testing.T) {
 	t.Parallel()
 
 	mock := &helpers.CommandServer{}
-	// The message array contains embedded double quotes, which the simpler
-	// StartCommandServer helper can't represent (it naively string-wraps
-	// message), so build the raw response body via the result hook instead.
-	server := helpers.StartCommandServerWithResultHook(mock, nil, func(cmd string, _ int) (int, []byte) {
-		if !strings.Contains(cmd, "pam action saas config") || !strings.Contains(cmd, "--gateway") || !strings.Contains(cmd, "--list") {
-			return 0, nil
-		}
-		if !strings.Contains(cmd, "'gw-1'") {
-			t.Errorf("expected command to include --gateway 'gw-1', got: %s", cmd)
-		}
-		body, _ := json.Marshal(map[string]interface{}{
-			"data":    nil,
-			"status":  "success",
-			"message": reportedPluginListMessage,
-			"error":   "",
-		})
-		return http.StatusOK, body
+	var gotCommand string
+	server := helpers.StartCommandServer(mock, func(cmd string, _ int) (string, interface{}) {
+		gotCommand = cmd
+		return "", reportedPluginListData
 	})
 	defer server.Close()
 
@@ -64,16 +49,22 @@ func TestFetchSaasPluginList_ParsesReportedResponseShape(t *testing.T) {
 		t.Fatalf("FetchSaasPluginList failed: %v", err)
 	}
 
-	// The header line ("Available SaaS Plugins") must not become an entry.
+	if !strings.Contains(gotCommand, "pam action saas config") || !strings.Contains(gotCommand, "--list") || !strings.Contains(gotCommand, "--format json") {
+		t.Errorf("expected command to list plugins as JSON, got: %s", gotCommand)
+	}
+	if !strings.Contains(gotCommand, "'gw-1'") {
+		t.Errorf("expected command to include --gateway 'gw-1', got: %s", gotCommand)
+	}
+
 	if len(entries) != 4 {
-		t.Fatalf("expected 4 plugin entries (header skipped), got %d: %+v", len(entries), entries)
+		t.Fatalf("expected 4 plugin entries, got %d: %+v", len(entries), entries)
 	}
 
 	want := []commonrecordsaasconfiguration.SaasPluginEntry{
-		{Name: "AWS Cognito", IntegrationType: "Catalog", Description: "Change a users password in AWS Cognito."},
-		{Name: "Cisco APIC", IntegrationType: "Catalog", Description: "Change a user password in Cisco APIC."},
-		{Name: "Snowflake", IntegrationType: "Builtin", Description: "For Snowflake, rotate the password for a user."},
-		{Name: "My Custom Plugin", IntegrationType: "Custom", Description: "Some description."},
+		{Name: "AWS Cognito", IntegrationType: "catalog", Description: "Change a users password in AWS Cognito."},
+		{Name: "Cisco APIC", IntegrationType: "catalog", Description: "Change a user password in Cisco APIC."},
+		{Name: "Snowflake", IntegrationType: "builtin", Description: "For Snowflake, rotate the password for a user."},
+		{Name: "My Custom Plugin", IntegrationType: "custom", Description: "Some description."},
 	}
 	for i, w := range want {
 		if entries[i] != w {
@@ -82,12 +73,12 @@ func TestFetchSaasPluginList_ParsesReportedResponseShape(t *testing.T) {
 	}
 }
 
-func TestFetchSaasPluginList_NonListMessagePropagatesError(t *testing.T) {
+func TestFetchSaasPluginList_NullDataReturnsNoEntries(t *testing.T) {
 	t.Parallel()
 
 	mock := &helpers.CommandServer{}
-	server := helpers.StartCommandServer(mock, func(cmd string, _ int) (string, interface{}) {
-		return "some plain non-list message", nil
+	server := helpers.StartCommandServer(mock, func(_ string, _ int) (string, interface{}) {
+		return "", nil
 	})
 	defer server.Close()
 
@@ -97,11 +88,36 @@ func TestFetchSaasPluginList_NonListMessagePropagatesError(t *testing.T) {
 		HttpClient:        server.Client(),
 	}
 
-	// Note: this specific failure path (an unparseable message body) doesn't itself embed the
+	entries, err := commonrecordsaasconfiguration.FetchSaasPluginList(context.Background(), apiManager, "gw-1")
+	if err != nil {
+		t.Fatalf("FetchSaasPluginList failed: %v", err)
+	}
+	if entries != nil {
+		t.Errorf("expected no entries for a null data response, got: %+v", entries)
+	}
+}
+
+func TestFetchSaasPluginList_MalformedDataPropagatesError(t *testing.T) {
+	t.Parallel()
+
+	mock := &helpers.CommandServer{}
+	server := helpers.StartCommandServer(mock, func(_ string, _ int) (string, interface{}) {
+		// A string instead of the expected array of plugin objects.
+		return "", "not-an-array"
+	})
+	defer server.Close()
+
+	apiManager := &api.ApiManager{
+		ServiceModeUrl:    server.URL,
+		ServiceModeApiKey: "test-key",
+		HttpClient:        server.Client(),
+	}
+
+	// Note: this specific failure path (a malformed data payload) doesn't itself embed the
 	// gateway name in the returned error - the gateway still reaches the practitioner via the
 	// diagnostic Summary at the call site (see TestErrOpListSaasPluginsForGateway).
 	if _, err := commonrecordsaasconfiguration.FetchSaasPluginList(context.Background(), apiManager, "gw-1"); err == nil {
-		t.Fatal("expected an error when the response message isn't list-shaped")
+		t.Fatal("expected an error when the response data isn't shaped as a list of plugins")
 	}
 }
 
@@ -118,25 +134,12 @@ func TestFetchSaasPluginList_GatewayOfflineReturnsClearError(t *testing.T) {
 	t.Parallel()
 
 	// Exact reported response shape: still "status":"success" with no real plugin
-	// entries, just an offline notice followed by the usual header line.
-	offlineMessage := []string{
-		"This Gateway currently is not online.",
-		"Did not get router response.",
-		"Available SaaS Plugins",
-	}
+	// entries, just an offline notice instead of the usual list.
+	const offlineMessage = "This Gateway currently is not online. Did not get router response."
 
 	mock := &helpers.CommandServer{}
-	server := helpers.StartCommandServerWithResultHook(mock, nil, func(cmd string, _ int) (int, []byte) {
-		if !strings.Contains(cmd, "pam action saas config") || !strings.Contains(cmd, "--list") {
-			return 0, nil
-		}
-		body, _ := json.Marshal(map[string]interface{}{
-			"data":    nil,
-			"status":  "success",
-			"message": offlineMessage,
-			"error":   "",
-		})
-		return http.StatusOK, body
+	server := helpers.StartCommandServer(mock, func(_ string, _ int) (string, interface{}) {
+		return offlineMessage, nil
 	})
 	defer server.Close()
 
@@ -181,6 +184,14 @@ func TestValidateSaasType(t *testing.T) {
 	}
 	if !strings.Contains(err.Error(), "NotAPlugin") || !strings.Contains(err.Error(), "Snowflake") || !strings.Contains(err.Error(), "Okta") {
 		t.Errorf("expected error to name the invalid value and list supported values, got: %v", err)
+	}
+	// Supported values must render as a SaaS Type / Plugin Type / Description table, not a
+	// flat comma-separated list.
+	if !strings.Contains(err.Error(), "SAAS TYPE") || !strings.Contains(err.Error(), "PLUGIN TYPE") || !strings.Contains(err.Error(), "DESCRIPTION") {
+		t.Errorf("expected error to render supported values as a table with headers, got: %v", err)
+	}
+	if !strings.Contains(err.Error(), "desc") {
+		t.Errorf("expected error table to include each plugin's description, got: %v", err)
 	}
 }
 

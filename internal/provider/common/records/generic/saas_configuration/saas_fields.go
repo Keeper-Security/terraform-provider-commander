@@ -5,8 +5,8 @@ package saasconfiguration
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
-	"regexp"
 	"strings"
 
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/api"
@@ -15,85 +15,74 @@ import (
 )
 
 // SaasFieldSpec describes one plugin-specific field parsed from
-// `pam action saas config --gateway <gw> --plugin <saasType> --info`.
+// `pam action saas config --gateway <gw> --plugin <saasType> --info --format json`.
 type SaasFieldSpec struct {
-	// Label is the custom field label practitioners must use, e.g. "REST Url".
 	Label string
-	// Required reflects whether the plugin's --info response listed this field as
-	// "Required" or "Optional". ValidateSaasFields currently treats every field as
-	// mandatory regardless of this flag (by product decision); it's kept here for
-	// fidelity to the source response and potential future use.
-	Required    bool
-	Description string
+	// Type is the Keeper custom field type (e.g. "text", "secret") this field's value must
+	// use. ValidateSaasFields falls back to "text" if this is empty.
+	Type string
 }
 
-// saasFieldSectionHeader marks the start of the field list in the --info response; lines
-// before it (plugin name, Type:, Author:, Summary:) are not field entries.
-const saasFieldSectionHeader = "Fields"
-
-// saasFieldLinePattern matches one field line from the --info output, e.g.:
+// saasFieldSpecEntry is one element of the required_fields/optional_fields arrays, e.g.:
 //
-//	"* Required: REST Url - URL endpoint."
-//	"* Optional: REST Method - HTTP method. Either 'POST' or 'PUT'"
-var saasFieldLinePattern = regexp.MustCompile(`^\*\s*(Required|Optional):\s*(.+?)\s*-\s*(.*)$`)
-
-// FetchSaasFieldSpecs runs `pam action saas config --gateway <gw> --plugin <saasType> --info`
-// and parses the required/optional field labels out of the response's "Fields" section. Lines
-// before "Fields" (plugin name/Type/Author/Summary) are ignored. Returns an empty slice (no
-// error) if the plugin has no "Fields" section at all.
+//	{"label": "User Pool ID", "type": "secret", "required": true, "description": "User Pool ID."}
 //
-// Commander currently returns this as a `message` array of free-text lines; this parses that
-// textual format. If Commander starts returning structured JSON for this command instead, only
-// this function's parsing needs to change - ValidateSaasFields and its callers are unaffected.
+// required/description aren't captured: every field is mandatory regardless (by product
+// decision), and the description isn't surfaced anywhere today.
+type saasFieldSpecEntry struct {
+	Label string `json:"label"`
+	Type  string `json:"type"`
+}
+
+// saasPluginInfoResponse is the `data` object from
+// `pam action saas config --gateway <gw> --plugin <saasType> --info --format json`.
+type saasPluginInfoResponse struct {
+	RequiredFields []saasFieldSpecEntry `json:"required_fields"`
+	OptionalFields []saasFieldSpecEntry `json:"optional_fields"`
+}
+
+// FetchSaasFieldSpecs runs `pam action saas config --gateway <gw> --plugin <saasType> --info
+// --format json`. Returns an empty slice (no error) if the plugin reports no fields.
 func FetchSaasFieldSpecs(ctx context.Context, apiManager *api.ApiManager, gateway, saasType string) ([]SaasFieldSpec, error) {
-	command := fmt.Sprintf("%s --gateway %s --plugin %s --info", utils.CmdPamActionSaaSConfig, utils.QuoteShellSingle(gateway), utils.QuoteShellSingle(saasType))
+	command := fmt.Sprintf("%s --gateway %s --plugin %s --info %s", utils.CmdPamActionSaaSConfig, utils.QuoteShellSingle(gateway), utils.QuoteShellSingle(saasType), utils.FlagFormatJSON)
 	apiResp, err := apiManager.ExecuteCommand(ctx, command, ErrOpGetSaasPluginInfo)
 	if err != nil {
 		return nil, err
 	}
 
-	lines, err := messageToLines(apiResp.Message.String())
-	if err != nil {
-		return nil, fmt.Errorf("%s: %w", ErrOpGetSaasPluginInfo, err)
-	}
-
-	fieldsIdx := -1
-	for i, line := range lines {
-		if strings.TrimSpace(line) == saasFieldSectionHeader {
-			fieldsIdx = i
-			break
-		}
-	}
-	if fieldsIdx == -1 {
+	if apiResp.Data == nil {
 		return nil, nil
 	}
 
-	var specs []SaasFieldSpec
-	for _, line := range lines[fieldsIdx+1:] {
-		match := saasFieldLinePattern.FindStringSubmatch(strings.TrimSpace(line))
-		if match == nil {
-			continue
-		}
+	dataBytes, err := json.Marshal(apiResp.Data)
+	if err != nil {
+		return nil, fmt.Errorf("%s: unable to process plugin info response: %w", ErrOpGetSaasPluginInfo, err)
+	}
+
+	var info saasPluginInfoResponse
+	if err := json.Unmarshal(dataBytes, &info); err != nil {
+		return nil, fmt.Errorf("%s: unable to parse plugin info response: %w", ErrOpGetSaasPluginInfo, err)
+	}
+
+	rawEntries := make([]saasFieldSpecEntry, 0, len(info.RequiredFields)+len(info.OptionalFields))
+	rawEntries = append(rawEntries, info.RequiredFields...)
+	rawEntries = append(rawEntries, info.OptionalFields...)
+
+	specs := make([]SaasFieldSpec, 0, len(rawEntries))
+	for _, e := range rawEntries {
 		specs = append(specs, SaasFieldSpec{
-			Label:       strings.TrimSpace(match[2]),
-			Required:    strings.EqualFold(match[1], "Required"),
-			Description: strings.TrimSpace(match[3]),
+			Label: strings.TrimSpace(e.Label),
+			Type:  strings.TrimSpace(e.Type),
 		})
 	}
 	return specs, nil
 }
 
-// ValidateSaasFields checks custom against specs (the plugin's field list): every spec -
-// whether the plugin's --info response reported it as "Required" or "Optional" - must be
-// present in custom (by label, type "text") with a value at least 1 character long after
-// trimming. All of the plugin's fields are mandatory for this check; a field missing from
-// custom, or present with a blank value, is an error either way.
-//
-// saasType is only used to name the plugin in the returned error message - it's assumed
-// already validated (e.g. via ValidateSaasType).
-//
-// Custom fields with labels not in specs (e.g. the universal "SaaS Type"/"Active" fields) are
-// not this function's concern.
+// ValidateSaasFields checks custom against specs: every spec (required or optional - all
+// mandatory here, by product decision) must be present in custom by label, with the spec's
+// Type (defaulting to "text"), and a non-blank value. saasType only names the plugin in the
+// error message - it's assumed already validated via ValidateSaasType. Custom fields with
+// labels not in specs (e.g. the universal "SaaS Type"/"Active" fields) are ignored.
 func ValidateSaasFields(saasType string, custom []commonrecordsutils.CustomFieldModel, specs []SaasFieldSpec) error {
 	type fieldInfo struct {
 		fieldType string
@@ -113,7 +102,11 @@ func ValidateSaasFields(saasType string, custom []commonrecordsutils.CustomField
 
 	var problems []string
 	for _, spec := range specs {
-		example := fmt.Sprintf(`{ type = "text", label = %q, value = "<your value>" }`, spec.Label)
+		wantType := spec.Type
+		if wantType == "" {
+			wantType = commonrecordsutils.FieldTypeText
+		}
+		example := fmt.Sprintf(`{ type = %q, label = %q, value = "<your value>" }`, wantType, spec.Label)
 
 		info, present := byLabel[spec.Label]
 		if !present {
@@ -121,8 +114,8 @@ func ValidateSaasFields(saasType string, custom []commonrecordsutils.CustomField
 			continue
 		}
 
-		if info.fieldType != "" && info.fieldType != commonrecordsutils.FieldTypeText {
-			problems = append(problems, fmt.Sprintf("%q must be of type %q (got %q). Use: %s", spec.Label, commonrecordsutils.FieldTypeText, info.fieldType, example))
+		if info.fieldType != "" && info.fieldType != wantType {
+			problems = append(problems, fmt.Sprintf("%q must be of type %q (got %q). Use: %s", spec.Label, wantType, info.fieldType, example))
 			continue
 		}
 

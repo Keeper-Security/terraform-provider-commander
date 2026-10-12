@@ -4,11 +4,17 @@ page_title: "commander_classic_saas_configuration Resource - commander"
 subcategory: "Classic Records"
 description: |-
   Creates and manages a SaaS Configuration record in the vault.
+  The plugin to use must be set as the value of a custom field labeled SaaS Type. Because the list of available plugins is fetched from the gateway itself, gateway and configuration must both be set for Commander to look up and validate plugins for that gateway; see the SaaS Plugins https://docs.keeper.io/keeperpam/privileged-access-manager/password-rotation/rotation-use-cases/saas-plugins#keeperpam-saas-rotation-plugins documentation for the full list of supported plugins.
+  After importing an existing SaaS configuration record, gateway and configuration are not populated; set them manually so Commander can validate the SaaS Type against that gateway.
 ---
 
 # commander_classic_saas_configuration (Resource)
 
-Creates and manages a **SaaS Configuration** record in the vault.
+Creates and manages a **SaaS Configuration** record in the vault. 
+
+The plugin to use must be set as the value of a custom field labeled `SaaS Type`. Because the list of available plugins is fetched from the gateway itself, `gateway` and `configuration` must both be set for Commander to look up and validate plugins for that gateway; see the [SaaS Plugins](https://docs.keeper.io/keeperpam/privileged-access-manager/password-rotation/rotation-use-cases/saas-plugins#keeperpam-saas-rotation-plugins) documentation for the full list of supported plugins. 
+
+After importing an existing SaaS configuration record, `gateway` and `configuration` are not populated; set them manually so Commander can validate the `SaaS Type` against that gateway.
 
 ## Example Usage
 
