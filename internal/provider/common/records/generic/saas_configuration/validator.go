@@ -78,18 +78,18 @@ func RequiredActiveCustomFieldValidator() requiredActiveCustomFieldValidator {
 }
 
 func (requiredActiveCustomFieldValidator) Description(_ context.Context) string {
-	return fmt.Sprintf(`custom must include a %s field with label %q, with value "TRUE" or "FALSE"`, ActiveCustomFieldType, ActiveCustomFieldLabel)
+	return fmt.Sprintf(`custom must include a %s field with label %q, with value "TRUE" or "FALSE". eg: { type = "text", label = "Active", value = "TRUE" }`, ActiveCustomFieldType, ActiveCustomFieldLabel)
 }
 
 func (requiredActiveCustomFieldValidator) MarkdownDescription(_ context.Context) string {
-	return fmt.Sprintf("`custom` must include a **%s** field with label **%s**, with value `TRUE` or `FALSE`.", ActiveCustomFieldType, ActiveCustomFieldLabel)
+	return fmt.Sprintf("`custom` must include a **%s** field with label **%s**, with value `TRUE` or `FALSE`. eg: { type = \"text\", label = \"Active\", value = \"TRUE\" }", ActiveCustomFieldType, ActiveCustomFieldLabel)
 }
 
 func (requiredActiveCustomFieldValidator) ValidateList(_ context.Context, req validator.ListRequest, resp *validator.ListResponse) {
 	if req.ConfigValue.IsNull() || req.ConfigValue.IsUnknown() {
 		resp.Diagnostics.AddError(
 			"Missing required custom field",
-			fmt.Sprintf(`custom must include a %s field with label %q.`, ActiveCustomFieldType, ActiveCustomFieldLabel),
+			fmt.Sprintf(`custom must include a %s field with label %q. eg: { type = "text", label = "Active", value = "TRUE" }`, ActiveCustomFieldType, ActiveCustomFieldLabel),
 		)
 		return
 	}
@@ -116,7 +116,7 @@ func (requiredActiveCustomFieldValidator) ValidateList(_ context.Context, req va
 		if value != "TRUE" && value != "FALSE" {
 			resp.Diagnostics.AddError(
 				"Invalid custom field value",
-				fmt.Sprintf(`%s field with label %q must be "TRUE" or "FALSE", got %q.`, ActiveCustomFieldType, ActiveCustomFieldLabel, value),
+				fmt.Sprintf(`%s field with label %q must be "TRUE" or "FALSE", got %q. eg: { type = "text", label = "Active", value = "TRUE" }`, ActiveCustomFieldType, ActiveCustomFieldLabel, value),
 			)
 		}
 		return
@@ -124,7 +124,7 @@ func (requiredActiveCustomFieldValidator) ValidateList(_ context.Context, req va
 
 	resp.Diagnostics.AddError(
 		"Missing required custom field",
-		fmt.Sprintf(`custom must include a %s field with label %q.`, ActiveCustomFieldType, ActiveCustomFieldLabel),
+		fmt.Sprintf(`custom must include a %s field with label %q. eg: { type = "text", label = "Active", value = "TRUE" }`, ActiveCustomFieldType, ActiveCustomFieldLabel),
 	)
 }
 
