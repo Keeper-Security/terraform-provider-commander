@@ -9,6 +9,7 @@ import (
 
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/new_share"
 	commonrecordsaasconfiguration "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/generic/saas_configuration"
+	commonrecordsutils "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/utils"
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/utils"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 )
@@ -54,35 +55,45 @@ func (r *SaasConfigurationResource) Update(ctx context.Context, req resource.Upd
 		return
 	}
 
-	// SaaS Type/fields need (re)validating, and the record needs (re)linking to its gateway,
-	// when SaaS Type itself changed, or when gateway/configuration are being provided for the
-	// first time (e.g. right after import).
-	// Otherwise it was already validated (at create, or a prior update) and redoing it
-	// here would just be extra live Commander calls on every unrelated update.
+	// SaaS Type needs (re)validating, and the record needs (re)linking to its gateway, when
+	// SaaS Type itself changed, or when gateway/configuration are being provided for the first
+	// time (e.g. right after import). Otherwise the type was already validated (at create, or a
+	// prior update) and redoing it here would just be extra live Commander calls on every
+	// unrelated update.
+	//
+	// The plugin's fields need (re)validating any time custom changes at all, even if SaaS Type
+	// itself didn't - a practitioner can edit or remove a plugin field's value without touching
+	// the "SaaS Type" entry, and that must still be caught.
 	saasTypeChanged := commonrecordsaasconfiguration.SaasTypeFromCustom(plan.Custom) != commonrecordsaasconfiguration.SaasTypeFromCustom(state.Custom)
 	firstTimeLink := (state.Gateway.ValueString() == "" || state.Configuration.ValueString() == "") &&
 		plan.Gateway.ValueString() != "" && plan.Configuration.ValueString() != ""
+	customFieldsChanged := !commonrecordsutils.CustomFieldsEqual(plan.Custom, state.Custom)
 
 	needsSaasUpdate := saasTypeChanged || firstTimeLink
-	if saasType := commonrecordsaasconfiguration.SaasTypeFromCustom(plan.Custom); saasType != "" && needsSaasUpdate {
-		entries, err := commonrecordsaasconfiguration.FetchSaasPluginList(ctx, r.ApiManager, plan.Gateway.ValueString())
-		if err != nil {
-			resp.Diagnostics.AddError(commonrecordsaasconfiguration.ErrOpListSaasPluginsForGateway(plan.Gateway.ValueString()), err.Error())
-			return
-		}
-		if err := commonrecordsaasconfiguration.ValidateSaasType(saasType, entries); err != nil {
-			resp.Diagnostics.AddError(commonrecordsaasconfiguration.ErrSummaryInvalidSaasType, err.Error())
-			return
+	needsFieldsValidation := needsSaasUpdate || customFieldsChanged
+	if saasType := commonrecordsaasconfiguration.SaasTypeFromCustom(plan.Custom); saasType != "" {
+		if needsSaasUpdate {
+			entries, err := commonrecordsaasconfiguration.FetchSaasPluginList(ctx, r.ApiManager, plan.Gateway.ValueString())
+			if err != nil {
+				resp.Diagnostics.AddError(commonrecordsaasconfiguration.ErrOpListSaasPluginsForGateway(plan.Gateway.ValueString()), err.Error())
+				return
+			}
+			if err := commonrecordsaasconfiguration.ValidateSaasType(saasType, entries); err != nil {
+				resp.Diagnostics.AddError(commonrecordsaasconfiguration.ErrSummaryInvalidSaasType, err.Error())
+				return
+			}
 		}
 
-		specs, err := commonrecordsaasconfiguration.FetchSaasFieldSpecs(ctx, r.ApiManager, plan.Gateway.ValueString(), saasType)
-		if err != nil {
-			resp.Diagnostics.AddError(commonrecordsaasconfiguration.ErrOpGetSaasPluginInfo, err.Error())
-			return
-		}
-		if err := commonrecordsaasconfiguration.ValidateSaasFields(saasType, plan.Custom, specs); err != nil {
-			resp.Diagnostics.AddError(commonrecordsaasconfiguration.ErrSummaryInvalidSaasFields, err.Error())
-			return
+		if needsFieldsValidation {
+			specs, err := commonrecordsaasconfiguration.FetchSaasFieldSpecs(ctx, r.ApiManager, plan.Gateway.ValueString(), saasType)
+			if err != nil {
+				resp.Diagnostics.AddError(commonrecordsaasconfiguration.ErrOpGetSaasPluginInfo, err.Error())
+				return
+			}
+			if err := commonrecordsaasconfiguration.ValidateSaasFields(saasType, plan.Custom, specs); err != nil {
+				resp.Diagnostics.AddError(commonrecordsaasconfiguration.ErrSummaryInvalidSaasFields, err.Error())
+				return
+			}
 		}
 	}
 

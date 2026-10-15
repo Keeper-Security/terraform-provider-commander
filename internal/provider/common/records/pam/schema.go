@@ -63,7 +63,7 @@ func CommonPamSettingsKeeperDbSchema() map[string]schema.Attribute {
 			Optional:            true,
 			Description:         PamSettingsKeeperDbDescription,
 			MarkdownDescription: PamSettingsKeeperDbMarkdownDescription,
-			Default:             stringdefault.StaticString("both"),
+			Default:             stringdefault.StaticString("keeperDB"),
 			Validators: []validator.String{
 				utils.StringOneOfValidator("db_connection_method", []string{"both", "cli", "keeperDB"}, true),
 			},
