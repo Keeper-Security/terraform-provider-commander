@@ -82,6 +82,7 @@ func databasePamSettingsToCommon(m *DatabasePamSettingsFieldResourceModel) *Comm
 	return &CommonPamSettingsFieldResourceModel{
 		pamSettingsCommonModel: m.pamSettingsCommonModel,
 		Connection:             databaseConnectionToCommon(m.Connection),
+		KeeperDB:               m.KeeperDB,
 	}
 }
 
@@ -92,6 +93,7 @@ func commonPamSettingsToDatabase(m *CommonPamSettingsFieldResourceModel) *Databa
 	return &DatabasePamSettingsFieldResourceModel{
 		pamSettingsCommonModel: m.pamSettingsCommonModel,
 		Connection:             commonConnectionToDatabase(m.Connection),
+		KeeperDB:               m.KeeperDB,
 	}
 }
 

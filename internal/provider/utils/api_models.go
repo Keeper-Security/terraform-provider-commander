@@ -610,6 +610,20 @@ type PamSettingsPortForwardResponse struct {
 	LocalPort             string `json:"localPort"`
 }
 
+// DatabaseConnectionKeeperDbResponse peeks at the KeeperDB-specific fields nested inside
+// pamSettings.value[0].connection (dbConnectionMethod, rbiSettings.sessionPersistence) for
+// PAM Database records.
+type DatabaseConnectionKeeperDbResponse struct {
+	DbConnectionMethod string                                 `json:"dbConnectionMethod,omitempty"`
+	RbiSettings        *DatabaseConnectionRbiSettingsResponse `json:"rbiSettings,omitempty"`
+}
+
+// DatabaseConnectionRbiSettingsResponse is the "rbiSettings" object nested inside
+// pamSettings.value[0].connection for PAM Database records using KeeperDB.
+type DatabaseConnectionRbiSettingsResponse struct {
+	SessionPersistence string `json:"sessionPersistence,omitempty"`
+}
+
 // PamHostnameFieldValue is one element of the pamHostname field value array from `get <uid> --format json`.
 type PamRemoteBrowserHostnameFieldResponse struct {
 	HostName           string `json:"hostName"`

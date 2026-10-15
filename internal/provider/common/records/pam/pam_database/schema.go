@@ -170,7 +170,7 @@ func SharedDataSourceAttributes() map[string]dschema.Attribute {
 			Description:         FolderDescription,
 			MarkdownDescription: FolderMarkdownDescription,
 		},
-		"pam_settings": commonpamrecords.CommonPamSettingsDataSourceAttribute(commonpamrecords.DatabaseProtocols),
+		"pam_settings": commonpamrecords.CommonPamDatabaseSettingsDataSourceAttribute(commonpamrecords.DatabaseProtocols),
 	}
 }
 

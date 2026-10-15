@@ -167,6 +167,7 @@ Optional:
 - `allow_supply_host` (Boolean) Whether the PAM record allows supplying a host at connection time. When **true**, `hostname_or_ip` must not be set. When **false** or unset, `hostname_or_ip.hostname` is required.
 - `configuration` (String) **Configuration** identifier for the PAM record.
 - `connection` (Block, Optional) **Connection** settings for the PAM record. (see [below for nested schema](#nestedblock--pam_settings--connection))
+- `keeper_db` (Block, Optional) **Keeper DB** connection method for the PAM Database record. Valid values are: `both`, `cli`, `keeperDB`. Default is `both`. (see [below for nested schema](#nestedblock--pam_settings--keeper_db))
 - `tunnel` (Block, Optional) **Tunneling** (port-forward) settings for the PAM record. (see [below for nested schema](#nestedblock--pam_settings--tunnel))
 
 <a id="nestedblock--pam_settings--connection"></a>
@@ -281,6 +282,15 @@ Optional:
 - `session_recording` (Boolean) Whether **session recording** is enabled.
 - `typescript_recording` (Boolean) Whether **typescript recording** is enabled.
 
+
+
+<a id="nestedblock--pam_settings--keeper_db"></a>
+### Nested Schema for `pam_settings.keeper_db`
+
+Optional:
+
+- `db_connection_method` (String) **Keeper DB** connection method for the PAM Database record. Valid values are: `both`, `cli`, `keeperDB`. Default is `both`.
+- `session_persistence` (String) **Session persistence** settings for this PAM Database record. Valid values are: `none`, `user`, `resource`. Default is `none`.
 
 
 <a id="nestedblock--pam_settings--tunnel"></a>

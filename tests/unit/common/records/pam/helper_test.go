@@ -4,11 +4,15 @@
 package pamrecords_test
 
 import (
+	"context"
 	"encoding/json"
+	"strings"
 	"testing"
 
+	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/api"
 	commonpamrecords "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/pam"
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/utils"
+	"github.com/Keeper-Security/terraform-provider-commander/tests/helpers"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
@@ -156,6 +160,129 @@ func TestExtractPamSettingsFromResponse_SshRotateOnTerminationTrueWhenAPIFieldTr
 	}
 	if settings.Connection.Ssh.RotateOnTermination.IsNull() || !settings.Connection.Ssh.RotateOnTermination.ValueBool() {
 		t.Fatalf("expected true rotate_on_termination, got %v", settings.Connection.Ssh.RotateOnTermination)
+	}
+}
+
+func TestExtractPamSettingsFromResponse_ExtractsKeeperDbFromConnection(t *testing.T) {
+	rec := &utils.VaultRecordGetResponse{
+		Fields: []utils.VaultRecordFieldResponse{
+			{
+				Type: "pamSettings",
+				Value: json.RawMessage(`[{
+					"allowSupplyHost": false,
+					"connection": {
+						"protocol": "mariadb",
+						"port": "3306",
+						"recordingIncludeKeys": false,
+						"dbConnectionMethod": "keeperDB",
+						"rbiSettings": {
+							"sessionPersistence": "none"
+						}
+					},
+					"portForward": {
+						"port": "3306",
+						"reusePort": true
+					}
+				}]`),
+			},
+		},
+		PamSettingsEnabled: &utils.PamSettingsEnabledResponse{
+			Connections: boolPtr(true),
+		},
+	}
+
+	settings := commonpamrecords.ExtractPamSettingsFromResponse(rec, nil)
+	if settings == nil || settings.KeeperDB == nil {
+		t.Fatal("expected keeper_db to be extracted from connection")
+	}
+	if settings.KeeperDB.DbConnectionMethod.ValueString() != "keeperDB" {
+		t.Errorf("dbConnectionMethod = %q, want keeperDB", settings.KeeperDB.DbConnectionMethod.ValueString())
+	}
+	if settings.KeeperDB.SessionPersistence.ValueString() != "none" {
+		t.Errorf("sessionPersistence = %q, want none", settings.KeeperDB.SessionPersistence.ValueString())
+	}
+}
+
+func TestExtractPamSettingsFromResponse_NoKeeperDbWhenAbsentFromConnection(t *testing.T) {
+	rec := sshPamSettingsRecord(t, nil)
+
+	settings := commonpamrecords.ExtractPamSettingsFromResponse(rec, nil)
+	if settings == nil {
+		t.Fatal("expected pam_settings")
+	}
+	if settings.KeeperDB != nil {
+		t.Fatalf("expected nil keeper_db when connection has no KeeperDB fields, got %+v", settings.KeeperDB)
+	}
+}
+
+func TestExtractPamSettingsFromResponse_PreservesExistingKeeperDbWhenAbsentFromResponse(t *testing.T) {
+	rec := sshPamSettingsRecord(t, nil)
+
+	existing := &commonpamrecords.CommonPamSettingsFieldResourceModel{
+		KeeperDB: &commonpamrecords.DatabaseKeeperDbResourceModel{
+			DbConnectionMethod: types.StringValue("keeperDB"),
+			SessionPersistence: types.StringValue("user"),
+		},
+	}
+
+	settings := commonpamrecords.ExtractPamSettingsFromResponse(rec, existing)
+	if settings == nil || settings.KeeperDB == nil {
+		t.Fatal("expected existing keeper_db to be preserved")
+	}
+	if settings.KeeperDB.DbConnectionMethod.ValueString() != "keeperDB" || settings.KeeperDB.SessionPersistence.ValueString() != "user" {
+		t.Fatalf("expected existing keeper_db preserved, got %+v", settings.KeeperDB)
+	}
+}
+
+func TestApplyPamSettings_IncludesKeeperDbFieldsInConnectionJSON(t *testing.T) {
+	mock := &helpers.CommandServer{}
+	var capturedCommands []string
+	server := helpers.StartCommandServer(mock, func(cmd string, _ int) (string, interface{}) {
+		capturedCommands = append(capturedCommands, cmd)
+		return "", nil
+	})
+	defer server.Close()
+
+	apiManager := &api.ApiManager{
+		ServiceModeUrl:    server.URL,
+		ServiceModeApiKey: "test-key",
+		HttpClient:        server.Client(),
+	}
+
+	conn := &commonpamrecords.CommonPamSettingsConnectionResourceModel{}
+	conn.Enable = types.BoolValue(true)
+	conn.Protocol = types.StringValue(commonpamrecords.ConnectionProtocolMariaDb)
+	conn.ConnectionPort = types.Int32Value(3306)
+	conn.MariaDb = &commonpamrecords.ConnectionMariaDbOracleDatabaseModel{}
+
+	pamSettings := &commonpamrecords.CommonPamSettingsFieldResourceModel{
+		Connection: conn,
+		KeeperDB: &commonpamrecords.DatabaseKeeperDbResourceModel{
+			DbConnectionMethod: types.StringValue("keeperDB"),
+			SessionPersistence: types.StringValue("none"),
+		},
+	}
+	pamSettings.Configuration = types.StringValue("config-uid")
+
+	if err := commonpamrecords.ApplyPamSettings(context.Background(), apiManager, utils.CmdRecordUpdate, "record-uid", pamSettings, nil); err != nil {
+		t.Fatalf("ApplyPamSettings failed: %v", err)
+	}
+
+	var jsonCmd string
+	for _, c := range capturedCommands {
+		if strings.Contains(c, utils.FlagPamSettings+"=$JSON:") {
+			jsonCmd = c
+			break
+		}
+	}
+	if jsonCmd == "" {
+		t.Fatalf("expected a command setting pamSettings, got: %v", capturedCommands)
+	}
+	if !strings.Contains(jsonCmd, `"dbConnectionMethod":"keeperDB"`) {
+		t.Errorf("expected dbConnectionMethod in connection JSON, got: %s", jsonCmd)
+	}
+	if !strings.Contains(jsonCmd, `"rbiSettings":{"sessionPersistence":"none"}`) {
+		t.Errorf("expected rbiSettings.sessionPersistence in connection JSON, got: %s", jsonCmd)
 	}
 }
 

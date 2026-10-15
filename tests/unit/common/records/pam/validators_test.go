@@ -11,8 +11,11 @@ import (
 	commonpamrecords "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/pam"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/path"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
+	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
 func runProtocolValidator(t *testing.T, allowed []string, val types.String) validator.StringResponse {
@@ -293,5 +296,135 @@ func TestTunnelLocalPortRequiredValidator_AllowsUnknownLocalPort(t *testing.T) {
 	}, &resp)
 	if resp.Diagnostics.HasError() {
 		t.Fatalf("unknown local_port should be allowed during plan, got %v", resp.Diagnostics)
+	}
+}
+
+// keeperDbValidatorSchema is a minimal schema shaped like the PAM Database resource schema
+// (database_type at root, pam_settings.keeper_db nested below) - just enough for
+// KeeperDbRequiredFieldsValidator to resolve database_type via req.Config.GetAttribute.
+var keeperDbValidatorSchema = schema.Schema{
+	Attributes: map[string]schema.Attribute{
+		"database_type": schema.StringAttribute{Optional: true},
+	},
+	Blocks: map[string]schema.Block{
+		"pam_settings": schema.SingleNestedBlock{
+			Blocks: map[string]schema.Block{
+				"keeper_db": schema.SingleNestedBlock{
+					Attributes: map[string]schema.Attribute{
+						"db_connection_method": schema.StringAttribute{Optional: true},
+						"session_persistence":  schema.StringAttribute{Optional: true},
+					},
+				},
+			},
+		},
+	},
+}
+
+// buildKeeperDbValidatorRequest builds a validator.ObjectRequest for keeper_db, with
+// database_type and dbConnectionMethod set in a full tfsdk.Config (so
+// KeeperDbRequiredFieldsValidator can read database_type via req.Config.GetAttribute).
+func buildKeeperDbValidatorRequest(t *testing.T, databaseType string, dbConnectionMethod types.String) validator.ObjectRequest {
+	t.Helper()
+	ctx := context.Background()
+
+	tfType := keeperDbValidatorSchema.Type().TerraformType(ctx).(tftypes.Object)
+	pamSettingsType := tfType.AttributeTypes["pam_settings"].(tftypes.Object)
+	keeperDbType := pamSettingsType.AttributeTypes["keeper_db"].(tftypes.Object)
+
+	dbMethodRaw := tftypes.NewValue(tftypes.String, nil)
+	if !dbConnectionMethod.IsNull() && !dbConnectionMethod.IsUnknown() {
+		dbMethodRaw = tftypes.NewValue(tftypes.String, dbConnectionMethod.ValueString())
+	}
+
+	raw := tftypes.NewValue(tfType, map[string]tftypes.Value{
+		"database_type": tftypes.NewValue(tftypes.String, databaseType),
+		"pam_settings": tftypes.NewValue(pamSettingsType, map[string]tftypes.Value{
+			"keeper_db": tftypes.NewValue(keeperDbType, map[string]tftypes.Value{
+				"db_connection_method": dbMethodRaw,
+				"session_persistence":  tftypes.NewValue(tftypes.String, nil),
+			}),
+		}),
+	})
+
+	keeperDbObj, diags := types.ObjectValue(map[string]attr.Type{
+		"db_connection_method": types.StringType,
+		"session_persistence":  types.StringType,
+	}, map[string]attr.Value{
+		"db_connection_method": dbConnectionMethod,
+		"session_persistence":  types.StringNull(),
+	})
+	if diags.HasError() {
+		t.Fatalf("building keeper_db object: %v", diags)
+	}
+
+	return validator.ObjectRequest{
+		Path:        path.Root("pam_settings").AtName("keeper_db"),
+		ConfigValue: keeperDbObj,
+		Config:      tfsdk.Config{Raw: raw, Schema: keeperDbValidatorSchema},
+	}
+}
+
+func TestKeeperDbRequiredFieldsValidator_RejectsNonKeeperDbMethodForMariaDb(t *testing.T) {
+	v := commonpamrecords.KeeperDbRequiredFieldsValidator()
+	req := buildKeeperDbValidatorRequest(t, "mariadb", types.StringValue("both"))
+	var resp validator.ObjectResponse
+	v.ValidateObject(context.Background(), req, &resp)
+	if !resp.Diagnostics.HasError() {
+		t.Fatal("expected error when database_type is mariadb and dbConnectionMethod is not keeperDB")
+	}
+}
+
+func TestKeeperDbRequiredFieldsValidator_RejectsNonKeeperDbMethodForOracle(t *testing.T) {
+	v := commonpamrecords.KeeperDbRequiredFieldsValidator()
+	req := buildKeeperDbValidatorRequest(t, "oracle", types.StringValue("cli"))
+	var resp validator.ObjectResponse
+	v.ValidateObject(context.Background(), req, &resp)
+	if !resp.Diagnostics.HasError() {
+		t.Fatal("expected error when database_type is oracle and dbConnectionMethod is not keeperDB")
+	}
+}
+
+func TestKeeperDbRequiredFieldsValidator_AllowsKeeperDbMethodForMariaDb(t *testing.T) {
+	v := commonpamrecords.KeeperDbRequiredFieldsValidator()
+	req := buildKeeperDbValidatorRequest(t, "mariadb", types.StringValue("keeperDB"))
+	var resp validator.ObjectResponse
+	v.ValidateObject(context.Background(), req, &resp)
+	if resp.Diagnostics.HasError() {
+		t.Fatalf("expected no error when dbConnectionMethod is keeperDB, got %v", resp.Diagnostics)
+	}
+}
+
+func TestKeeperDbRequiredFieldsValidator_AllowsAnyMethodForUnrestrictedDatabaseType(t *testing.T) {
+	v := commonpamrecords.KeeperDbRequiredFieldsValidator()
+	req := buildKeeperDbValidatorRequest(t, "postgresql", types.StringValue("both"))
+	var resp validator.ObjectResponse
+	v.ValidateObject(context.Background(), req, &resp)
+	if resp.Diagnostics.HasError() {
+		t.Fatalf("expected no error for a database_type without a keeperDB-only restriction, got %v", resp.Diagnostics)
+	}
+}
+
+func TestKeeperDbRequiredFieldsValidator_AllowsUnsetDbConnectionMethod(t *testing.T) {
+	v := commonpamrecords.KeeperDbRequiredFieldsValidator()
+	req := buildKeeperDbValidatorRequest(t, "mariadb", types.StringNull())
+	var resp validator.ObjectResponse
+	v.ValidateObject(context.Background(), req, &resp)
+	if resp.Diagnostics.HasError() {
+		t.Fatalf("expected no error when dbConnectionMethod is not explicitly set in config, got %v", resp.Diagnostics)
+	}
+}
+
+func TestKeeperDbRequiredFieldsValidator_AllowsNullKeeperDbBlock(t *testing.T) {
+	v := commonpamrecords.KeeperDbRequiredFieldsValidator()
+	var resp validator.ObjectResponse
+	v.ValidateObject(context.Background(), validator.ObjectRequest{
+		Path: path.Root("pam_settings").AtName("keeper_db"),
+		ConfigValue: types.ObjectNull(map[string]attr.Type{
+			"db_connection_method": types.StringType,
+			"session_persistence":  types.StringType,
+		}),
+	}, &resp)
+	if resp.Diagnostics.HasError() {
+		t.Fatalf("expected no error when keeper_db block is absent, got %v", resp.Diagnostics)
 	}
 }

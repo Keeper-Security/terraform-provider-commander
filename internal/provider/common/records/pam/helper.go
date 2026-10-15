@@ -75,6 +75,7 @@ func ExtractPamSettingsFromResponse(rec *utils.VaultRecordGetResponse, existingS
 		result.Tunnel = existingState.Tunnel
 		result.Configuration = existingState.Configuration
 		result.AdministrativeCredentials = existingState.AdministrativeCredentials
+		result.KeeperDB = existingState.KeeperDB
 	}
 
 	if raw != nil {
@@ -95,6 +96,7 @@ func ExtractPamSettingsFromResponse(rec *utils.VaultRecordGetResponse, existingS
 
 	result.Tunnel = extractTunnelFromResponse(raw, rec.PamSettingsEnabled)
 	result.Connection = extractConnectionFromResponse(raw, rec.PamSettingsEnabled, rec.AssociatedCredentials, rec.DagDebug, existingState)
+	result.KeeperDB = extractKeeperDbFromConnection(raw)
 
 	if !connectionHasMaterialConfig(result.Connection) {
 		if existingState != nil && existingState.Connection != nil {
@@ -112,7 +114,55 @@ func ExtractPamSettingsFromResponse(rec *utils.VaultRecordGetResponse, existingS
 		}
 	}
 
+	if !keeperDbHasMaterialConfig(result.KeeperDB) {
+		if existingState != nil && existingState.KeeperDB != nil {
+			result.KeeperDB = existingState.KeeperDB
+		} else {
+			result.KeeperDB = nil
+		}
+	}
+
 	return result
+}
+
+// extractKeeperDbFromConnection parses dbConnectionMethod and rbiSettings.sessionPersistence
+// out of pamSettings.value[0].connection. Commander nests these KeeperDB settings inside
+// connection, even though they're a separate keeper_db block in the Terraform schema.
+func extractKeeperDbFromConnection(raw *utils.PamSettingsFieldValueResponse) *DatabaseKeeperDbResourceModel {
+	if raw == nil || len(raw.Connection) == 0 {
+		return nil
+	}
+
+	var parsed utils.DatabaseConnectionKeeperDbResponse
+	if err := json.Unmarshal(raw.Connection, &parsed); err != nil {
+		return nil
+	}
+
+	hasSessionPersistence := parsed.RbiSettings != nil && parsed.RbiSettings.SessionPersistence != ""
+	if parsed.DbConnectionMethod == "" && !hasSessionPersistence {
+		return nil
+	}
+
+	keeperDb := &DatabaseKeeperDbResourceModel{
+		DbConnectionMethod: types.StringNull(),
+		SessionPersistence: types.StringNull(),
+	}
+	if parsed.DbConnectionMethod != "" {
+		keeperDb.DbConnectionMethod = types.StringValue(parsed.DbConnectionMethod)
+	}
+	if hasSessionPersistence {
+		keeperDb.SessionPersistence = types.StringValue(parsed.RbiSettings.SessionPersistence)
+	}
+	return keeperDb
+}
+
+func keeperDbHasMaterialConfig(k *DatabaseKeeperDbResourceModel) bool {
+	if k == nil {
+		return false
+	}
+	hasMethod := !k.DbConnectionMethod.IsNull() && !k.DbConnectionMethod.IsUnknown() && strings.TrimSpace(k.DbConnectionMethod.ValueString()) != ""
+	hasSession := !k.SessionPersistence.IsNull() && !k.SessionPersistence.IsUnknown() && strings.TrimSpace(k.SessionPersistence.ValueString()) != ""
+	return hasMethod || hasSession
 }
 
 func connectionHasMaterialConfig(c *CommonPamSettingsConnectionResourceModel) bool {
@@ -1023,22 +1073,38 @@ func buildFullPamSettingsJSON(pamSettings *CommonPamSettingsFieldResourceModel) 
 		root["portForward"] = map[string]interface{}{}
 	}
 
+	connMap := map[string]interface{}{}
 	if pamSettings.Connection != nil {
-		connMap := buildConnectionMap(pamSettings.Connection)
-		if connMap != nil {
-			root["connection"] = connMap
-		} else {
-			root["connection"] = map[string]interface{}{}
+		if m := buildConnectionMap(pamSettings.Connection); m != nil {
+			connMap = m
 		}
-	} else {
-		root["connection"] = map[string]interface{}{}
 	}
+	applyKeeperDbToConnectionMap(connMap, pamSettings.KeeperDB)
+	root["connection"] = connMap
 
 	b, err := json.Marshal(root)
 	if err != nil {
 		return ""
 	}
 	return string(b)
+}
+
+// applyKeeperDbToConnectionMap merges dbConnectionMethod and rbiSettings.sessionPersistence
+// (from the keeper_db block) into connMap. Commander nests these KeeperDB settings inside
+// pamSettings.connection, even though they're a separate keeper_db block in the Terraform
+// schema.
+func applyKeeperDbToConnectionMap(connMap map[string]interface{}, keeperDb *DatabaseKeeperDbResourceModel) {
+	if keeperDb == nil {
+		return
+	}
+	if !keeperDb.DbConnectionMethod.IsNull() && !keeperDb.DbConnectionMethod.IsUnknown() {
+		connMap["dbConnectionMethod"] = keeperDb.DbConnectionMethod.ValueString()
+	}
+	if !keeperDb.SessionPersistence.IsNull() && !keeperDb.SessionPersistence.IsUnknown() {
+		connMap["rbiSettings"] = map[string]interface{}{
+			"sessionPersistence": keeperDb.SessionPersistence.ValueString(),
+		}
+	}
 }
 
 func buildPortForwardMap(tunnel *CommonPamSettingsTunnelResourceModel) map[string]interface{} {

@@ -715,3 +715,62 @@ func (v allowSupplyHostHostnameConfigValidator[T]) ValidateResource(ctx context.
 	allowSupplyHost, hostnameOrIP := v.extract(config)
 	resp.Diagnostics.Append(ValidateAllowSupplyHostHostnameConstraints(allowSupplyHost, hostnameOrIP)...)
 }
+
+// PAM Settings Keeper DB block validators
+
+// keeperDbOnlyDatabaseTypes lists database_type values that only support the
+// "keeperDB" db_connection_method.
+var keeperDbOnlyDatabaseTypes = []string{"mariadb", "oracle"}
+
+// keeperDbRequiredFieldsValidator enforces that pam_settings.keeper_db.db_connection_method
+// is "keeperDB" when the PAM Database record's database_type is one of
+// keeperDbOnlyDatabaseTypes.
+type keeperDbRequiredFieldsValidator struct{}
+
+func KeeperDbRequiredFieldsValidator() keeperDbRequiredFieldsValidator {
+	return keeperDbRequiredFieldsValidator{}
+}
+
+func (v keeperDbRequiredFieldsValidator) Description(_ context.Context) string {
+	return fmt.Sprintf("db_connection_method must be \"keeperDB\" when database_type is one of: %s.", strings.Join(keeperDbOnlyDatabaseTypes, ", "))
+}
+
+func (v keeperDbRequiredFieldsValidator) MarkdownDescription(ctx context.Context) string {
+	return v.Description(ctx)
+}
+
+func (v keeperDbRequiredFieldsValidator) ValidateObject(ctx context.Context, req validator.ObjectRequest, resp *validator.ObjectResponse) {
+	if req.ConfigValue.IsNull() || req.ConfigValue.IsUnknown() {
+		return
+	}
+
+	attrs := req.ConfigValue.Attributes()
+
+	methodAttr, ok := attrs["db_connection_method"]
+	if !ok {
+		return
+	}
+	methodVal, ok := methodAttr.(types.String)
+	if !ok || methodVal.IsNull() || methodVal.IsUnknown() || methodVal.ValueString() == "keeperDB" {
+		return
+	}
+
+	var databaseType types.String
+	diags := req.Config.GetAttribute(ctx, path.Root("database_type"), &databaseType)
+	resp.Diagnostics.Append(diags...)
+	if diags.HasError() || databaseType.IsNull() || databaseType.IsUnknown() {
+		return
+	}
+
+	for _, dt := range keeperDbOnlyDatabaseTypes {
+		if databaseType.ValueString() != dt {
+			continue
+		}
+		resp.Diagnostics.AddAttributeError(
+			req.Path.AtName("db_connection_method"),
+			"Invalid Keeper DB Connection Method",
+			fmt.Sprintf("db_connection_method must be \"keeperDB\" when database_type is %q, got %q.", dt, methodVal.ValueString()),
+		)
+		return
+	}
+}

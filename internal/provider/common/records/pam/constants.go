@@ -385,4 +385,11 @@ const (
 
 	PamSettingsTunnelLocalPortDescription         = "Local port for tunneling. Only applicable when tunneling is enabled."
 	PamSettingsTunnelLocalPortMarkdownDescription = "**Local port** for tunneling. Only applicable when tunneling is enabled."
+
+	// --- PAM Settings Keeper DB ---.
+	PamSettingsKeeperDbDescription         = "Keeper DB connection method for the PAM Database record. Valid values are: `both`, `cli`, `keeperDB`. Default is `both`."
+	PamSettingsKeeperDbMarkdownDescription = "**Keeper DB** connection method for the PAM Database record. Valid values are: `both`, `cli`, `keeperDB`. Default is `both`."
+
+	PamSettingsKeeperDbSessionPersistenceDescription         = "Session persistence settings for this PAM Database record. Valid values are: `none`, `user`, `resource`. Default is `none`."
+	PamSettingsKeeperDbSessionPersistenceMarkdownDescription = "**Session persistence** settings for this PAM Database record. Valid values are: `none`, `user`, `resource`. Default is `none`."
 )

@@ -56,6 +56,31 @@ func CommonPamSettingsTunnelSchema() map[string]schema.Attribute {
 	}
 }
 
+func CommonPamSettingsKeeperDbSchema() map[string]schema.Attribute {
+	return map[string]schema.Attribute{
+		"db_connection_method": schema.StringAttribute{
+			Computed:            true,
+			Optional:            true,
+			Description:         PamSettingsKeeperDbDescription,
+			MarkdownDescription: PamSettingsKeeperDbMarkdownDescription,
+			Default:             stringdefault.StaticString("both"),
+			Validators: []validator.String{
+				utils.StringOneOfValidator("db_connection_method", []string{"both", "cli", "keeperDB"}, true),
+			},
+		},
+		"session_persistence": schema.StringAttribute{
+			Computed:            true,
+			Optional:            true,
+			Description:         PamSettingsKeeperDbSessionPersistenceDescription,
+			MarkdownDescription: PamSettingsKeeperDbSessionPersistenceMarkdownDescription,
+			Default:             stringdefault.StaticString("none"),
+			Validators: []validator.String{
+				utils.StringOneOfValidator("session_persistence", []string{"none", "user", "resource"}, true),
+			},
+		},
+	}
+}
+
 func connectionProtocolDescription(allowed []string) string {
 	return "Connection protocol. Must be one of: " + strings.Join(allowed, ", ") + "."
 }
@@ -990,4 +1015,21 @@ func CommonPamSettingsBlock(allowedProtocols []string) schema.SingleNestedBlock 
 			},
 		},
 	}
+}
+
+// CommonPamDatabaseSettingsBlock returns the pam_settings block for PAM
+// Database records: CommonPamSettingsBlock plus the keeper_db block.
+// keeper_db (dbConnectionMethod/sessionPersistence) is only meaningful for
+// database records - KeeperDbRequiredFieldsValidator cross-checks
+// dbConnectionMethod against the record's database_type attribute, which
+// only exists on the PAM Database schema.
+func CommonPamDatabaseSettingsBlock(allowedProtocols []string) schema.SingleNestedBlock {
+	block := CommonPamSettingsBlock(allowedProtocols)
+	block.Blocks["keeper_db"] = schema.SingleNestedBlock{
+		Description:         PamSettingsKeeperDbDescription,
+		MarkdownDescription: PamSettingsKeeperDbMarkdownDescription,
+		Attributes:          CommonPamSettingsKeeperDbSchema(),
+		Validators:          []validator.Object{KeeperDbRequiredFieldsValidator()},
+	}
+	return block
 }

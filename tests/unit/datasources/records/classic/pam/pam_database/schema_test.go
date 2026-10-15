@@ -106,4 +106,18 @@ func TestPamDatabaseDataSource_SchemaPamSettingsNested(t *testing.T) {
 			t.Errorf("expected tunnel attribute %s", attr)
 		}
 	}
+
+	keeperDbAttr, ok := nested.Attributes["keeper_db"]
+	if !ok {
+		t.Fatal("keeper_db attribute missing in pam_settings")
+	}
+	keeperDbNested, ok := keeperDbAttr.(dschema.SingleNestedAttribute)
+	if !ok {
+		t.Fatalf("expected SingleNestedAttribute for keeper_db, got %T", keeperDbAttr)
+	}
+	for _, attr := range []string{"db_connection_method", "session_persistence"} {
+		if keeperDbNested.Attributes[attr] == nil {
+			t.Errorf("expected keeper_db attribute %s", attr)
+		}
+	}
 }

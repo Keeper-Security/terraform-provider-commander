@@ -20,6 +20,28 @@ func CommonPamSettingsDataSourceAttribute(allowedProtocols []string) dschema.Sin
 	}
 }
 
+// CommonPamDatabaseSettingsDataSourceAttribute returns the pam_settings data source attribute
+// for PAM Database records: CommonPamSettingsDataSourceAttribute plus the keeper_db attribute.
+// keeper_db (db_connection_method/session_persistence) is only meaningful for database
+// records, mirroring CommonPamDatabaseSettingsBlock on the resource side.
+func CommonPamDatabaseSettingsDataSourceAttribute(allowedProtocols []string) dschema.SingleNestedAttribute {
+	attr := CommonPamSettingsDataSourceAttribute(allowedProtocols)
+	attr.Attributes["keeper_db"] = dschema.SingleNestedAttribute{
+		Computed:   true,
+		Attributes: CommonPamSettingsKeeperDbDataSourceAttributes(),
+	}
+	return attr
+}
+
+// CommonPamSettingsKeeperDbDataSourceAttributes mirrors CommonPamSettingsKeeperDbSchema()
+// for data sources.
+func CommonPamSettingsKeeperDbDataSourceAttributes() map[string]dschema.Attribute {
+	return map[string]dschema.Attribute{
+		"db_connection_method": dschema.StringAttribute{Computed: true},
+		"session_persistence":  dschema.StringAttribute{Computed: true},
+	}
+}
+
 func PamSettingsDataSourceAttributes(allowedProtocols []string) map[string]dschema.Attribute {
 	return map[string]dschema.Attribute{
 		"allow_supply_host":          dschema.BoolAttribute{Computed: true},
