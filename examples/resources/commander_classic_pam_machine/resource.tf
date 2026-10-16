@@ -126,6 +126,7 @@ resource "commander_classic_pam_machine" "example" {
       #   normalize_clipboard = "preserve"           # preserve (default) | unix | windows
       #   disable_copy        = false
       #   disable_paste       = false
+      #   clipboard_data_size_limit = "10MB" # 256KB | 1MB | 10MB | 50MB
       #
       #   # Audio
       #   console_audio      = false
@@ -170,24 +171,25 @@ resource "commander_classic_pam_machine" "example" {
       # SSH
       # -----------------------------------------------------------------------
       ssh {
-        session_recording      = true
-        typescript_recording   = true
-        recording_include_keys = true
-        allow_supply_user      = true
-        read_only              = false
-        color_scheme           = "black-white" # black-white (default) | gray-black | green-black | white-black | Guacamole syntax
-        font_name              = "monospace"
-        font_size              = 12 # 8,9,10,11,12,14,18,24,30,36,48,60,72,96
-        scrollback             = 2000
-        backspace              = "127" # "127" (default) | "8"
-        terminal_type          = "xterm-256color"
-        locale                 = "en_US.UTF-8"      # default: "$LANG"
-        timezone               = "America/New_York" # default: "$TZ"
-        server_alive_interval  = 60
-        command                = "/bin/bash"
-        disable_copy           = false
-        disable_paste          = false
-        host_key               = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIExampleHostKey..."
+        session_recording         = true
+        typescript_recording      = true
+        recording_include_keys    = true
+        allow_supply_user         = true
+        read_only                 = false
+        color_scheme              = "black-white" # black-white (default) | gray-black | green-black | white-black | Guacamole syntax
+        font_name                 = "monospace"
+        font_size                 = 12 # 8,9,10,11,12,14,18,24,30,36,48,60,72,96
+        scrollback                = 2000
+        backspace                 = "127" # "127" (default) | "8"
+        terminal_type             = "xterm-256color"
+        locale                    = "en_US.UTF-8"      # default: "$LANG"
+        timezone                  = "America/New_York" # default: "$TZ"
+        server_alive_interval     = 60
+        command                   = "/bin/bash"
+        disable_copy              = false
+        disable_paste             = false
+        clipboard_data_size_limit = "10MB" # 256KB | 1MB | 10MB | 50MB
+        host_key                  = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIExampleHostKey..."
 
         sftp {
           enable_sftp = true
@@ -211,6 +213,7 @@ resource "commander_classic_pam_machine" "example" {
       #   terminal_type          = "vt100"
       #   disable_copy           = false
       #   disable_paste          = false
+      #   clipboard_data_size_limit = "10MB" # 256KB | 1MB | 10MB | 50MB
       #   username_regex         = "[Uu]sername:"
       #   password_regex         = "[Pp]assword:"
       #   login_success_regex    = ">"
@@ -230,6 +233,7 @@ resource "commander_classic_pam_machine" "example" {
       #   clipboard_encoding     = "UTF-8"          # UTF-8 (default) | UTF-16 | ISO8859-1 | CP1252
       #   disable_copy           = false
       #   disable_paste          = false
+      #   clipboard_data_size_limit = "10MB" # 256KB | 1MB | 10MB | 50MB
       #   swap_red_blue          = false
       #   force_lossless         = false
       #

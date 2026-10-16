@@ -136,6 +136,7 @@ Read-Only:
 Read-Only:
 
 - `allow_supply_user` (Boolean)
+- `clipboard_data_size_limit` (String)
 - `database` (String)
 - `disable_copy` (Boolean)
 - `disable_csv_export` (Boolean)
@@ -152,6 +153,7 @@ Read-Only:
 Read-Only:
 
 - `allow_supply_user` (Boolean)
+- `clipboard_data_size_limit` (String)
 - `color_scheme` (String)
 - `database` (String)
 - `disable_copy` (Boolean)
@@ -174,6 +176,7 @@ Read-Only:
 Read-Only:
 
 - `allow_supply_user` (Boolean)
+- `clipboard_data_size_limit` (String)
 - `database` (String)
 - `disable_copy` (Boolean)
 - `disable_csv_export` (Boolean)
@@ -190,6 +193,7 @@ Read-Only:
 Read-Only:
 
 - `allow_supply_user` (Boolean)
+- `clipboard_data_size_limit` (String)
 - `color_scheme` (String)
 - `database` (String)
 - `disable_copy` (Boolean)
@@ -212,6 +216,7 @@ Read-Only:
 Read-Only:
 
 - `allow_supply_user` (Boolean)
+- `clipboard_data_size_limit` (String)
 - `color_scheme` (String)
 - `database` (String)
 - `disable_copy` (Boolean)

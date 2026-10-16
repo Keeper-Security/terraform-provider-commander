@@ -107,6 +107,9 @@ const (
 	ConnectionDisablePasteDescription         = "Whether paste is disabled for the connection."
 	ConnectionDisablePasteMarkdownDescription = "Whether **paste** is disabled for the connection."
 
+	ConnectionClipboardDataSizeLimitDescription         = "Maximum clipboard data size allowed for copy/paste. To use default size don't set this field. Valid values are: `256KB`, `1MB`, `10MB`, `50MB`."
+	ConnectionClipboardDataSizeLimitMarkdownDescription = "Maximum **clipboard data size** allowed for copy/paste. To use default size don't set this field. Valid values are: `256KB`, `1MB`, `10MB`, `50MB`."
+
 	// --- Shared Rotate Attribute (ConnectionRotateFields) ---.
 	ConnectionRotateOnTerminationDescription         = "Rotate launch credentials upon session termination."
 	ConnectionRotateOnTerminationMarkdownDescription = "**Rotate** launch credentials upon session termination."

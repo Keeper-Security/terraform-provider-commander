@@ -501,6 +501,7 @@ type RdpConnectionResponse struct {
 	DisableCopy              *bool         `json:"disableCopy"`
 	DisablePaste             *bool         `json:"disablePaste"`
 	DriveRedirectionPath     string        `json:"driveRedirectionPath"`
+	ClipboardBufferSize      int           `json:"clipboardBufferSize"`
 }
 
 // SftpResponse is the shared SFTP nested block used by RDP and VNC.
@@ -522,6 +523,7 @@ type SshConnectionResponse struct {
 	ReadOnly             *bool            `json:"readOnly"`
 	DisableCopy          *bool            `json:"disableCopy"`
 	DisablePaste         *bool            `json:"disablePaste"`
+	ClipboardBufferSize  int              `json:"clipboardBufferSize"`
 	ColorScheme          string           `json:"colorScheme"`
 	FontName             string           `json:"fontName"`
 	FontSize             string           `json:"fontSize"`
@@ -550,6 +552,7 @@ type TelnetConnectionResponse struct {
 	ReadOnly             *bool  `json:"readOnly"`
 	DisableCopy          *bool  `json:"disableCopy"`
 	DisablePaste         *bool  `json:"disablePaste"`
+	ClipboardBufferSize  int    `json:"clipboardBufferSize"`
 	ColorScheme          string `json:"colorScheme"`
 	FontName             string `json:"fontName"`
 	FontSize             string `json:"fontSize"`
@@ -578,6 +581,7 @@ type VncConnectionResponse struct {
 	DestPort             string        `json:"destPort"`
 	DisableCopy          *bool         `json:"disableCopy"`
 	DisablePaste         *bool         `json:"disablePaste"`
+	ClipboardBufferSize  int           `json:"clipboardBufferSize"`
 	ClipboardEncoding    string        `json:"clipboardEncoding"`
 	Cursor               string        `json:"cursor"`
 	ColorDepth           string        `json:"colorDepth"`
@@ -594,6 +598,7 @@ type DatabaseConnectionResponse struct {
 	ReadOnly             *bool  `json:"readOnly"`
 	DisableCopy          *bool  `json:"disableCopy"`
 	DisablePaste         *bool  `json:"disablePaste"`
+	ClipboardBufferSize  int    `json:"clipboardBufferSize"`
 	DisableCsvExport     *bool  `json:"disableCsvExport"`
 	DisableCsvImport     *bool  `json:"disableCsvImport"`
 	Database             string `json:"database"`

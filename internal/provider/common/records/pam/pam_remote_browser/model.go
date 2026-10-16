@@ -23,6 +23,7 @@ type PamRemoteBrowserSettingsModel struct {
 	AutoFillCredentials    types.String `tfsdk:"auto_fill_credentials"`
 	AllowCopy              types.Bool   `tfsdk:"allow_copy"`
 	AllowPaste             types.Bool   `tfsdk:"allow_paste"`
+	ClipboardDataSizeLimit types.String `tfsdk:"clipboard_data_size_limit"`
 	DisableAudio           types.Bool   `tfsdk:"disable_audio"`
 	AudioChannels          types.Int32  `tfsdk:"audio_channels"`
 	AudioBitDepth          types.Int64  `tfsdk:"audio_bit_depth"`

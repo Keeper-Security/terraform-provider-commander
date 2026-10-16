@@ -163,8 +163,9 @@ func terminalFieldsDataSourceAttributes() map[string]dschema.Attribute {
 
 func clipboardFieldsDataSourceAttributes() map[string]dschema.Attribute {
 	return map[string]dschema.Attribute{
-		"disable_copy":  dschema.BoolAttribute{Computed: true},
-		"disable_paste": dschema.BoolAttribute{Computed: true},
+		"disable_copy":              dschema.BoolAttribute{Computed: true},
+		"disable_paste":             dschema.BoolAttribute{Computed: true},
+		"clipboard_data_size_limit": dschema.StringAttribute{Computed: true},
 	}
 }
 

@@ -66,8 +66,9 @@ type ConnectionTerminalFields struct {
 }
 
 type ConnectionClipboardFields struct {
-	DisableCopy  types.Bool `tfsdk:"disable_copy"`
-	DisablePaste types.Bool `tfsdk:"disable_paste"`
+	DisableCopy            types.Bool   `tfsdk:"disable_copy"`
+	DisablePaste           types.Bool   `tfsdk:"disable_paste"`
+	ClipboardDataSizeLimit types.String `tfsdk:"clipboard_data_size_limit"`
 }
 
 // ConnectionSftpModel is the shared SFTP nested block used by RDP and VNC.

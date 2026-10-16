@@ -325,6 +325,14 @@ func ConnectionClipboardSchema() map[string]schema.Attribute {
 			Description:         ConnectionDisablePasteDescription,
 			MarkdownDescription: ConnectionDisablePasteMarkdownDescription,
 		},
+		"clipboard_data_size_limit": schema.StringAttribute{
+			Optional:            true,
+			Description:         ConnectionClipboardDataSizeLimitDescription,
+			MarkdownDescription: ConnectionClipboardDataSizeLimitMarkdownDescription,
+			Validators: []validator.String{
+				utils.StringOneOfValidator("Clipboard Data Size Limit", []string{"256KB", "1MB", "10MB", "50MB"}, true),
+			},
+		},
 	}
 }
 

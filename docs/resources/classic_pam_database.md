@@ -110,17 +110,25 @@ resource "commander_classic_pam_database" "with_pam_settings" {
       launch_credential = "_REPLACE_WITH_LAUNCH_CREDENTIAL_UID_"
 
       mysql {
-        session_recording      = true
-        typescript_recording   = true
-        recording_include_keys = true
-        allow_supply_user      = false
-        read_only              = false
-        database               = "app_production"
-        disable_csv_export     = true
-        disable_csv_import     = true
-        color_scheme           = "black-white"
-        font_size              = 12
+        session_recording         = true
+        typescript_recording      = true
+        recording_include_keys    = true
+        allow_supply_user         = false
+        read_only                 = false
+        database                  = "app_production"
+        disable_csv_export        = true
+        disable_csv_import        = true
+        disable_copy              = false
+        disable_paste             = false
+        clipboard_data_size_limit = "10MB" # 256KB | 1MB | 10MB | 50MB
+        color_scheme              = "black-white"
+        font_size                 = 12
       }
+    }
+
+    keeper_db {
+      db_connection_method = "both" # both (default) | cli | keeperDB
+      session_persistence  = "user" # none (default) | user | resource
     }
   }
 }
@@ -192,6 +200,7 @@ Optional:
 Optional:
 
 - `allow_supply_user` (Boolean) Allow users to **select credentials** from their vault.
+- `clipboard_data_size_limit` (String) Maximum **clipboard data size** allowed for copy/paste. To use default size don't set this field. Valid values are: `256KB`, `1MB`, `10MB`, `50MB`.
 - `database` (String) **Database name** for the connection.
 - `disable_copy` (Boolean) Whether **copy** is disabled for the connection.
 - `disable_csv_export` (Boolean) Whether **CSV export** is disabled for the database connection.
@@ -208,6 +217,7 @@ Optional:
 Optional:
 
 - `allow_supply_user` (Boolean) Allow users to **select credentials** from their vault.
+- `clipboard_data_size_limit` (String) Maximum **clipboard data size** allowed for copy/paste. To use default size don't set this field. Valid values are: `256KB`, `1MB`, `10MB`, `50MB`.
 - `color_scheme` (String) **Color scheme** for the connection terminal. Accepts named presets (`black-white`, `gray-black`, `green-black`, `white-black`) or a Guacamole terminal color scheme string.
 - `database` (String) **Database name** for the connection.
 - `disable_copy` (Boolean) Whether **copy** is disabled for the connection.
@@ -230,6 +240,7 @@ Optional:
 Optional:
 
 - `allow_supply_user` (Boolean) Allow users to **select credentials** from their vault.
+- `clipboard_data_size_limit` (String) Maximum **clipboard data size** allowed for copy/paste. To use default size don't set this field. Valid values are: `256KB`, `1MB`, `10MB`, `50MB`.
 - `database` (String) **Database name** for the connection.
 - `disable_copy` (Boolean) Whether **copy** is disabled for the connection.
 - `disable_csv_export` (Boolean) Whether **CSV export** is disabled for the database connection.
@@ -246,6 +257,7 @@ Optional:
 Optional:
 
 - `allow_supply_user` (Boolean) Allow users to **select credentials** from their vault.
+- `clipboard_data_size_limit` (String) Maximum **clipboard data size** allowed for copy/paste. To use default size don't set this field. Valid values are: `256KB`, `1MB`, `10MB`, `50MB`.
 - `color_scheme` (String) **Color scheme** for the connection terminal. Accepts named presets (`black-white`, `gray-black`, `green-black`, `white-black`) or a Guacamole terminal color scheme string.
 - `database` (String) **Database name** for the connection.
 - `disable_copy` (Boolean) Whether **copy** is disabled for the connection.
@@ -268,6 +280,7 @@ Optional:
 Optional:
 
 - `allow_supply_user` (Boolean) Allow users to **select credentials** from their vault.
+- `clipboard_data_size_limit` (String) Maximum **clipboard data size** allowed for copy/paste. To use default size don't set this field. Valid values are: `256KB`, `1MB`, `10MB`, `50MB`.
 - `color_scheme` (String) **Color scheme** for the connection terminal. Accepts named presets (`black-white`, `gray-black`, `green-black`, `white-black`) or a Guacamole terminal color scheme string.
 - `database` (String) **Database name** for the connection.
 - `disable_copy` (Boolean) Whether **copy** is disabled for the connection.

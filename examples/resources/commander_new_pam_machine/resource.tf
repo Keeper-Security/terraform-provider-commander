@@ -64,24 +64,25 @@ resource "commander_new_pam_machine" "example" {
       # commander_classic_pam_machine example for connection variants
       # (kubernetes, rdp, ssh, telnet, vnc).
       ssh {
-        session_recording      = true
-        typescript_recording   = true
-        recording_include_keys = true
-        allow_supply_user      = true
-        read_only              = false
-        color_scheme           = "black-white"
-        font_name              = "monospace"
-        font_size              = 12
-        scrollback             = 2000
-        backspace              = "127"
-        terminal_type          = "xterm-256color"
-        locale                 = "en_US.UTF-8"
-        timezone               = "America/New_York"
-        server_alive_interval  = 60
-        command                = "/bin/bash"
-        disable_copy           = false
-        disable_paste          = false
-        host_key               = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIExampleHostKey..."
+        session_recording         = true
+        typescript_recording      = true
+        recording_include_keys    = true
+        allow_supply_user         = true
+        read_only                 = false
+        color_scheme              = "black-white"
+        font_name                 = "monospace"
+        font_size                 = 12
+        scrollback                = 2000
+        backspace                 = "127"
+        terminal_type             = "xterm-256color"
+        locale                    = "en_US.UTF-8"
+        timezone                  = "America/New_York"
+        server_alive_interval     = 60
+        command                   = "/bin/bash"
+        disable_copy              = false
+        disable_paste             = false
+        clipboard_data_size_limit = "10MB" # 256KB | 1MB | 10MB | 50MB
+        host_key                  = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIExampleHostKey..."
 
         sftp {
           enable_sftp = true

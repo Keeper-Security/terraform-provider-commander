@@ -120,6 +120,7 @@ Optional:
 - `audio_sample_rate` (Number) Audio **sample rate** in Hz (for example `48000`).
 - `auto_fill_credentials` (String) Record UID of **Credentials** attached to the PAM configuration.
 - `auto_fill_targets` (Set of String) **Browser autofill targets.**
+- `clipboard_data_size_limit` (String) Maximum **clipboard data size** allowed for copy/paste. To use default size don't set this field. Valid values are: `256KB`, `1MB`, `10MB`, `50MB`.
 - `connections_recording` (Boolean) **Manage graphical session recording**.
 - `disable_audio` (Boolean) **Disable audio**.
 - `ignore_server_cert` (Boolean) **Ignore Server Certificate**.

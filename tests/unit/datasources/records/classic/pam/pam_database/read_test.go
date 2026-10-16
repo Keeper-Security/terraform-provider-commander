@@ -17,6 +17,7 @@ import (
 	"github.com/Keeper-Security/terraform-provider-commander/tests/helpers"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	dschema "github.com/hashicorp/terraform-plugin-framework/datasource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
@@ -98,6 +99,54 @@ func TestRead_DS_Success(t *testing.T) {
 	d.Read(context.Background(), req, &resp)
 	if resp.Diagnostics.HasError() {
 		t.Fatalf("Read failed: %v", resp.Diagnostics)
+	}
+}
+
+func TestRead_DS_Success_SurfacesClipboardDataSizeLimit(t *testing.T) {
+	mock := &helpers.CommandServer{}
+	responseForCommand := func(cmd string, idx int) (string, interface{}) {
+		if strings.Contains(cmd, "get") && strings.Contains(cmd, "--format json") {
+			rec := dsVaultRecordJSON("uid-abc", "My Database", "notes", "10.0.0.1", "5432").(map[string]interface{})
+			fields := rec["fields"].([]map[string]interface{})
+			fields = append(fields, map[string]interface{}{
+				"type": "pamSettings",
+				"value": json.RawMessage(`[{
+					"allowSupplyHost": false,
+					"connection": {
+						"protocol": "mysql",
+						"port": "5432",
+						"clipboardBufferSize": 10485760
+					}
+				}]`),
+			})
+			rec["fields"] = fields
+			return "ok", rec
+		}
+		return "ok", nil
+	}
+	server := startDSMockServer(mock, responseForCommand)
+	defer server.Close()
+
+	d := newConfiguredDataSource(t, server)
+	sch := getDSSchema(t)
+
+	configRaw := newDSConfigRaw(t, sch, "uid-abc")
+	emptyState := newDSEmptyState(t, sch)
+
+	req := datasource.ReadRequest{Config: tfsdk.Config{Schema: sch, Raw: configRaw}}
+	resp := datasource.ReadResponse{State: tfsdk.State{Schema: sch, Raw: emptyState}}
+	d.Read(context.Background(), req, &resp)
+	if resp.Diagnostics.HasError() {
+		t.Fatalf("Read failed: %v", resp.Diagnostics)
+	}
+
+	var got string
+	diags := resp.State.GetAttribute(context.Background(), path.Root("pam_settings").AtName("connection").AtName("mysql").AtName("clipboard_data_size_limit"), &got)
+	if diags.HasError() {
+		t.Fatalf("GetAttribute failed: %v", diags)
+	}
+	if got != "10MB" {
+		t.Errorf("clipboard_data_size_limit = %q, want 10MB", got)
 	}
 }
 

@@ -541,6 +541,7 @@ func extractDatabaseConnectionFromResponse(dbConn *utils.DatabaseConnectionRespo
 	db.ReadOnly = optionalBoolValue(dbConn.ReadOnly)
 	db.DisableCopy = optionalBoolValueWithDefault(dbConn.DisableCopy)
 	db.DisablePaste = optionalBoolValueWithDefault(dbConn.DisablePaste)
+	db.ClipboardDataSizeLimit = clipboardDataSizeLimitFromBytes(dbConn.ClipboardBufferSize)
 	db.DisableCsvExport = optionalBoolValueWithDefault(dbConn.DisableCsvExport)
 	db.DisableCsvImport = optionalBoolValueWithDefault(dbConn.DisableCsvImport)
 	db.Database = utils.StringOrNull(dbConn.Database)
@@ -578,6 +579,7 @@ func extractMariaDbOracleDatabaseConnectionFromResponse(dbConn *utils.DatabaseCo
 	db.RecordingIncludeKeys = optionalBoolValue(dbConn.RecordingIncludeKeys)
 	db.DisableCopy = optionalBoolValueWithDefault(dbConn.DisableCopy)
 	db.DisablePaste = optionalBoolValueWithDefault(dbConn.DisablePaste)
+	db.ClipboardDataSizeLimit = clipboardDataSizeLimitFromBytes(dbConn.ClipboardBufferSize)
 	db.DisableCsvExport = optionalBoolValueWithDefault(dbConn.DisableCsvExport)
 	db.DisableCsvImport = optionalBoolValueWithDefault(dbConn.DisableCsvImport)
 	db.Database = utils.StringOrNull(dbConn.Database)
@@ -652,6 +654,7 @@ func extractRdpConnectionFromResponse(rdpConn *utils.RdpConnectionResponse, pamE
 	rdp.DisableAuth = optionalBoolValue(rdpConn.DisableAuth)
 	rdp.DisableCopy = optionalBoolValueWithDefault(rdpConn.DisableCopy)
 	rdp.DisablePaste = optionalBoolValueWithDefault(rdpConn.DisablePaste)
+	rdp.ClipboardDataSizeLimit = clipboardDataSizeLimitFromBytes(rdpConn.ClipboardBufferSize)
 
 	rdp.NormalizeClipboard = utils.StringOrNull(rdpConn.NormalizeClipboard)
 	rdp.Security = utils.StringOrNull(rdpConn.Security)
@@ -1237,6 +1240,7 @@ func buildDatabaseConnectionMap(connection *CommonPamSettingsConnectionResourceM
 	setOptionalBoolField(connMap, "readOnly", db.ReadOnly)
 	setOptionalBoolField(connMap, "disableCopy", db.DisableCopy)
 	setOptionalBoolField(connMap, "disablePaste", db.DisablePaste)
+	setClipboardDataSizeLimitField(connMap, db.ClipboardDataSizeLimit)
 	setOptionalBoolField(connMap, "disableCsvExport", db.DisableCsvExport)
 	setOptionalBoolField(connMap, "disableCsvImport", db.DisableCsvImport)
 	setOptionalStringField(connMap, "database", db.Database)
@@ -1278,6 +1282,7 @@ func buildMariaDbOracleDatabaseConnectionMap(connection *CommonPamSettingsConnec
 	setOptionalBoolField(connMap, "recordingIncludeKeys", db.RecordingIncludeKeys)
 	setOptionalBoolField(connMap, "disableCopy", db.DisableCopy)
 	setOptionalBoolField(connMap, "disablePaste", db.DisablePaste)
+	setClipboardDataSizeLimitField(connMap, db.ClipboardDataSizeLimit)
 	setOptionalBoolField(connMap, "disableCsvExport", db.DisableCsvExport)
 	setOptionalBoolField(connMap, "disableCsvImport", db.DisableCsvImport)
 	setOptionalStringField(connMap, "database", db.Database)
@@ -1326,6 +1331,7 @@ func buildRdpConnectionMap(connection *CommonPamSettingsConnectionResourceModel)
 	setOptionalBoolField(connMap, "disableAuth", rdp.DisableAuth)
 	setOptionalBoolField(connMap, "disableCopy", rdp.DisableCopy)
 	setOptionalBoolField(connMap, "disablePaste", rdp.DisablePaste)
+	setClipboardDataSizeLimitField(connMap, rdp.ClipboardDataSizeLimit)
 
 	setOptionalStringField(connMap, "normalizeClipboard", rdp.NormalizeClipboard)
 	setOptionalStringField(connMap, "security", rdp.Security)
@@ -1384,6 +1390,7 @@ func buildSshConnectionMap(connection *CommonPamSettingsConnectionResourceModel)
 	setOptionalBoolField(connMap, "readOnly", ssh.ReadOnly)
 	setOptionalBoolField(connMap, "disableCopy", ssh.DisableCopy)
 	setOptionalBoolField(connMap, "disablePaste", ssh.DisablePaste)
+	setClipboardDataSizeLimitField(connMap, ssh.ClipboardDataSizeLimit)
 	setOptionalStringField(connMap, "colorScheme", ssh.ColorScheme)
 	setOptionalStringField(connMap, "fontName", ssh.FontName)
 	setOptionalStringField(connMap, "hostKey", ssh.HostKey)
@@ -1439,6 +1446,7 @@ func extractSshConnectionFromResponse(sshConn *utils.SshConnectionResponse, pamE
 	ssh.ReadOnly = optionalBoolValue(sshConn.ReadOnly)
 	ssh.DisableCopy = optionalBoolValueWithDefault(sshConn.DisableCopy)
 	ssh.DisablePaste = optionalBoolValueWithDefault(sshConn.DisablePaste)
+	ssh.ClipboardDataSizeLimit = clipboardDataSizeLimitFromBytes(sshConn.ClipboardBufferSize)
 	ssh.ColorScheme = utils.StringOrNull(sshConn.ColorScheme)
 	ssh.FontName = utils.StringOrNull(sshConn.FontName)
 	ssh.FontSize = parseStringToInt32(sshConn.FontSize)
@@ -1491,6 +1499,7 @@ func buildTelnetConnectionMap(connection *CommonPamSettingsConnectionResourceMod
 	setOptionalBoolField(connMap, "readOnly", telnet.ReadOnly)
 	setOptionalBoolField(connMap, "disableCopy", telnet.DisableCopy)
 	setOptionalBoolField(connMap, "disablePaste", telnet.DisablePaste)
+	setClipboardDataSizeLimitField(connMap, telnet.ClipboardDataSizeLimit)
 	setOptionalStringField(connMap, "colorScheme", telnet.ColorScheme)
 	setOptionalStringField(connMap, "fontName", telnet.FontName)
 	setOptionalStringField(connMap, "usernameRegex", telnet.UsernameRegex)
@@ -1538,6 +1547,7 @@ func extractTelnetConnectionFromResponse(telnetConn *utils.TelnetConnectionRespo
 	telnet.ReadOnly = optionalBoolValue(telnetConn.ReadOnly)
 	telnet.DisableCopy = optionalBoolValueWithDefault(telnetConn.DisableCopy)
 	telnet.DisablePaste = optionalBoolValueWithDefault(telnetConn.DisablePaste)
+	telnet.ClipboardDataSizeLimit = clipboardDataSizeLimitFromBytes(telnetConn.ClipboardBufferSize)
 	telnet.ColorScheme = utils.StringOrNull(telnetConn.ColorScheme)
 	telnet.FontName = utils.StringOrNull(telnetConn.FontName)
 	telnet.FontSize = parseStringToInt32(telnetConn.FontSize)
@@ -1579,6 +1589,7 @@ func buildVncConnectionMap(connection *CommonPamSettingsConnectionResourceModel)
 	setOptionalBoolField(connMap, "readOnly", vnc.ReadOnly)
 	setOptionalBoolField(connMap, "disableCopy", vnc.DisableCopy)
 	setOptionalBoolField(connMap, "disablePaste", vnc.DisablePaste)
+	setClipboardDataSizeLimitField(connMap, vnc.ClipboardDataSizeLimit)
 	setOptionalBoolField(connMap, "swapRedBlue", vnc.SwapRedBlue)
 	setOptionalBoolField(connMap, "forceLossless", vnc.ForceLossless)
 	setOptionalBoolField(connMap, "enableAudio", vnc.EnableAudio)
@@ -1634,6 +1645,7 @@ func extractVncConnectionFromResponse(vncConn *utils.VncConnectionResponse, pamE
 	vnc.ReadOnly = optionalBoolValue(vncConn.ReadOnly)
 	vnc.DisableCopy = optionalBoolValueWithDefault(vncConn.DisableCopy)
 	vnc.DisablePaste = optionalBoolValueWithDefault(vncConn.DisablePaste)
+	vnc.ClipboardDataSizeLimit = clipboardDataSizeLimitFromBytes(vncConn.ClipboardBufferSize)
 	vnc.SwapRedBlue = optionalBoolValue(vncConn.SwapRedBlue)
 	vnc.ForceLossless = optionalBoolValue(vncConn.ForceLossless)
 	vnc.EnableAudio = optionalBoolValue(vncConn.EnableAudio)
@@ -1674,6 +1686,38 @@ func setOptionalStringField(m map[string]interface{}, key string, v types.String
 	if !v.IsNull() && !v.IsUnknown() {
 		m[key] = v.ValueString()
 	}
+}
+
+// clipboardDataSizeLimitBytes maps the clipboard_data_size_limit enum values to the
+// byte count Commander expects as connection.clipboardBufferSize.
+var clipboardDataSizeLimitBytes = map[string]int{
+	"256KB": 256 * 1024,
+	"1MB":   1024 * 1024,
+	"10MB":  10 * 1024 * 1024,
+	"50MB":  50 * 1024 * 1024,
+}
+
+// setClipboardDataSizeLimitField sets connMap["clipboardBufferSize"] (bytes) from the
+// clipboard_data_size_limit enum value.
+func setClipboardDataSizeLimitField(m map[string]interface{}, v types.String) {
+	if v.IsNull() || v.IsUnknown() {
+		return
+	}
+	if bytes, ok := clipboardDataSizeLimitBytes[v.ValueString()]; ok {
+		m["clipboardBufferSize"] = bytes
+	}
+}
+
+// clipboardDataSizeLimitFromBytes reverses setClipboardDataSizeLimitField, mapping
+// connection.clipboardBufferSize back to its enum label. Returns null if bytes doesn't
+// match one of the known sizes (e.g. not yet set).
+func clipboardDataSizeLimitFromBytes(bytes int) types.String {
+	for label, b := range clipboardDataSizeLimitBytes {
+		if b == bytes {
+			return types.StringValue(label)
+		}
+	}
+	return types.StringNull()
 }
 
 func BuildHostnameOrIPJSON(h *HostnameOrIPModel) string {

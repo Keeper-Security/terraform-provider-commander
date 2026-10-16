@@ -286,6 +286,123 @@ func TestApplyPamSettings_IncludesKeeperDbFieldsInConnectionJSON(t *testing.T) {
 	}
 }
 
+func TestExtractPamSettingsFromResponse_ExtractsClipboardDataSizeLimitFromConnection(t *testing.T) {
+	rec := &utils.VaultRecordGetResponse{
+		Fields: []utils.VaultRecordFieldResponse{
+			{
+				Type: "pamSettings",
+				Value: json.RawMessage(`[{
+					"allowSupplyHost": false,
+					"connection": {
+						"allowSupplyUser": false,
+						"colorScheme": "black-white",
+						"database": "app_production",
+						"dbConnectionMethod": "both",
+						"disableCopy": false,
+						"disableCsvExport": true,
+						"disableCsvImport": true,
+						"disablePaste": false,
+						"fontSize": "12",
+						"port": "3306",
+						"protocol": "mysql",
+						"rbiSettings": {
+							"sessionPersistence": "user"
+						},
+						"readOnly": false,
+						"recordingIncludeKeys": true,
+						"userRecords": ["nDd5kukmr1Ujg3o6HAqeYA"],
+						"clipboardBufferSize": 10485760
+					}
+				}]`),
+			},
+		},
+		PamSettingsEnabled: &utils.PamSettingsEnabledResponse{
+			Connections: boolPtr(true),
+		},
+	}
+
+	settings := commonpamrecords.ExtractPamSettingsFromResponse(rec, nil)
+	if settings == nil || settings.Connection == nil || settings.Connection.Mysql == nil {
+		t.Fatal("expected mysql connection in pam_settings")
+	}
+	if got := settings.Connection.Mysql.ClipboardDataSizeLimit.ValueString(); got != "10MB" {
+		t.Errorf("clipboard_data_size_limit = %q, want 10MB", got)
+	}
+}
+
+func TestExtractPamSettingsFromResponse_NoClipboardDataSizeLimitWhenBytesUnrecognized(t *testing.T) {
+	rec := &utils.VaultRecordGetResponse{
+		Fields: []utils.VaultRecordFieldResponse{
+			{
+				Type: "pamSettings",
+				Value: json.RawMessage(`[{
+					"allowSupplyHost": false,
+					"connection": {
+						"protocol": "mysql",
+						"port": "3306",
+						"clipboardBufferSize": 999
+					}
+				}]`),
+			},
+		},
+		PamSettingsEnabled: &utils.PamSettingsEnabledResponse{
+			Connections: boolPtr(true),
+		},
+	}
+
+	settings := commonpamrecords.ExtractPamSettingsFromResponse(rec, nil)
+	if settings == nil || settings.Connection == nil || settings.Connection.Mysql == nil {
+		t.Fatal("expected mysql connection in pam_settings")
+	}
+	if !settings.Connection.Mysql.ClipboardDataSizeLimit.IsNull() {
+		t.Errorf("expected null clipboard_data_size_limit for an unrecognized byte count, got %q", settings.Connection.Mysql.ClipboardDataSizeLimit.ValueString())
+	}
+}
+
+func TestApplyPamSettings_IncludesClipboardBufferSizeInConnectionJSON(t *testing.T) {
+	mock := &helpers.CommandServer{}
+	var capturedCommands []string
+	server := helpers.StartCommandServer(mock, func(cmd string, _ int) (string, interface{}) {
+		capturedCommands = append(capturedCommands, cmd)
+		return "", nil
+	})
+	defer server.Close()
+
+	apiManager := &api.ApiManager{
+		ServiceModeUrl:    server.URL,
+		ServiceModeApiKey: "test-key",
+		HttpClient:        server.Client(),
+	}
+
+	conn := &commonpamrecords.CommonPamSettingsConnectionResourceModel{}
+	conn.Enable = types.BoolValue(true)
+	conn.Protocol = types.StringValue(commonpamrecords.ConnectionProtocolMysql)
+	conn.ConnectionPort = types.Int32Value(3306)
+	conn.Mysql = &commonpamrecords.ConnectionDatabaseModel{}
+	conn.Mysql.ClipboardDataSizeLimit = types.StringValue("10MB")
+
+	pamSettings := &commonpamrecords.CommonPamSettingsFieldResourceModel{Connection: conn}
+	pamSettings.Configuration = types.StringValue("config-uid")
+
+	if err := commonpamrecords.ApplyPamSettings(context.Background(), apiManager, utils.CmdRecordUpdate, "record-uid", pamSettings, nil); err != nil {
+		t.Fatalf("ApplyPamSettings failed: %v", err)
+	}
+
+	var jsonCmd string
+	for _, c := range capturedCommands {
+		if strings.Contains(c, utils.FlagPamSettings+"=$JSON:") {
+			jsonCmd = c
+			break
+		}
+	}
+	if jsonCmd == "" {
+		t.Fatalf("expected a command setting pamSettings, got: %v", capturedCommands)
+	}
+	if !strings.Contains(jsonCmd, `"clipboardBufferSize":10485760`) {
+		t.Errorf("expected clipboardBufferSize in connection JSON, got: %s", jsonCmd)
+	}
+}
+
 func TestAppendOptionalOnOffFlag(t *testing.T) {
 	t.Run("null omits flag", func(t *testing.T) {
 		var parts []string
