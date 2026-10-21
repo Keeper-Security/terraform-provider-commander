@@ -43,5 +43,17 @@ func (r *PamConfigurationResource) Create(ctx context.Context, req resource.Crea
 
 	data.Id = types.StringValue(string(apiResp.Message))
 
+	// Create "Universal Secrets Sync" configuration, if the environment supports it and the
+	// universal_secrets_sync block is configured.
+	if command = buildPamNewUssConfigCommand(&data); command != "" {
+		if _, err := r.ApiManager.ExecuteCommand(ctx, command, ErrOpCreatePamUssConfig); err != nil {
+			// The PAM configuration already exists; save it (without USS) so it isn't orphaned.
+			clearUssConfig(&data)
+			resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+			resp.Diagnostics.AddError(ErrSummaryCreatePamUssConfigFailed, err.Error())
+			return
+		}
+	}
+
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }

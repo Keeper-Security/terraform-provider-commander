@@ -282,6 +282,26 @@ type PamConfigAllowedSettingsResponse struct {
 	AITerminateSessionOnDetection bool `json:"ai_terminate_session_on_detection"`
 }
 
+// PamUniversalSyncConfigFolderResponse is one element of the "folders" array from
+// `pam universal-sync-config list --network <uid> --format json`.
+type PamUniversalSyncConfigFolderResponse struct {
+	UID string `json:"uid"`
+}
+
+// PamUniversalSyncConfigResponse is the data payload from
+// `pam universal-sync-config list --network <uid> --format json`. Fields that don't apply
+// to the record's type (e.g. vault_name for a GCP config) come back as the literal string
+// "N/A" rather than being omitted.
+type PamUniversalSyncConfigResponse struct {
+	RecordUID     string                                 `json:"record_uid"`
+	RecordType    string                                 `json:"record_type"`
+	Enabled       bool                                   `json:"enabled"`
+	DryRunEnabled bool                                   `json:"dry_run_enabled"`
+	VaultName     string                                 `json:"vault_name"`
+	SyncIdentity  string                                 `json:"sync_identity"`
+	Folders       []PamUniversalSyncConfigFolderResponse `json:"folders,omitempty"`
+}
+
 // VaultRecordGetResponse is the JSON payload from `get <record_uid> --format json` for a Keeper vault record.
 type VaultRecordGetResponse struct {
 	RecordUID                    string                                `json:"record_uid"`

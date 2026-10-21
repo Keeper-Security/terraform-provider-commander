@@ -157,6 +157,18 @@ Read-Only:
 - `access_secret_key` (String, Sensitive) The secret key for the access key.
 - `aws_id` (String) A unique id for the instance of AWS.
 - `region_names` (Set of String) AWS region names used for discovery.
+- `universal_secrets_sync` (Attributes) Universal Secrets Sync configuration. (see [below for nested schema](#nestedatt--aws--universal_secrets_sync))
+
+<a id="nestedatt--aws--universal_secrets_sync"></a>
+### Nested Schema for `aws.universal_secrets_sync`
+
+Read-Only:
+
+- `dry_run` (Boolean) Run Universal Secrets Sync without pushing any changes to the cloud provider secret store.
+- `enabled` (Boolean) Whether Universal Secrets Sync is enabled.
+- `folder_location` (Set of String) Folder path(s) or UID(s) whose records are synced to the cloud provider secret store.
+- `sync_identity` (String) The identity (credential or role) Universal Secrets Sync uses to authenticate to the cloud provider.
+
 
 
 <a id="nestedatt--azure"></a>
@@ -170,6 +182,19 @@ Read-Only:
 - `resource_groups` (Set of String) A list of resource groups to be checked.
 - `subscription_id` (String) The UUID of the subscription.
 - `tenant_id` (String) The UUID of the Azure Active Directory.
+- `universal_secrets_sync` (Attributes) Universal Secrets Sync configuration. (see [below for nested schema](#nestedatt--azure--universal_secrets_sync))
+
+<a id="nestedatt--azure--universal_secrets_sync"></a>
+### Nested Schema for `azure.universal_secrets_sync`
+
+Read-Only:
+
+- `dry_run` (Boolean) Run Universal Secrets Sync without pushing any changes to the cloud provider secret store.
+- `enabled` (Boolean) Whether Universal Secrets Sync is enabled.
+- `folder_location` (Set of String) Folder path(s) or UID(s) whose records are synced to the cloud provider secret store.
+- `sync_identity` (String) The identity (credential or role) Universal Secrets Sync uses to authenticate to the cloud provider.
+- `vault_name` (String) The Azure Key Vault name secrets are synced to.
+
 
 
 <a id="nestedatt--domain"></a>
@@ -196,6 +221,18 @@ Read-Only:
 - `gcp_region` (String) GCP region names used for discovery.
 - `google_admin_email` (String) The email address for a Google Workspace administrator account.
 - `service_account_key` (String, Sensitive) The service account key in JSON format.
+- `universal_secrets_sync` (Attributes) Universal Secrets Sync configuration. (see [below for nested schema](#nestedatt--gcp--universal_secrets_sync))
+
+<a id="nestedatt--gcp--universal_secrets_sync"></a>
+### Nested Schema for `gcp.universal_secrets_sync`
+
+Read-Only:
+
+- `dry_run` (Boolean) Run Universal Secrets Sync without pushing any changes to the cloud provider secret store.
+- `enabled` (Boolean) Whether Universal Secrets Sync is enabled.
+- `folder_location` (Set of String) Folder path(s) or UID(s) whose records are synced to the cloud provider secret store.
+- `sync_identity` (String) The identity (credential or role) Universal Secrets Sync uses to authenticate to the cloud provider.
+
 
 
 <a id="nestedatt--local_network"></a>

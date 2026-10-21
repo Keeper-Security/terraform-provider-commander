@@ -51,5 +51,31 @@ func (r *PamConfigurationResource) Update(ctx context.Context, req resource.Upda
 		return
 	}
 
+	// Universal Secrets Sync: add if newly configured, remove if dropped from the plan,
+	// edit only if the block's values actually changed.
+	planUss, stateUss := ussConfigured(&plan), ussConfigured(&state)
+	switch {
+	case planUss && !stateUss:
+		if command = buildPamNewUssConfigCommand(&plan); command != "" {
+			if _, err := r.ApiManager.ExecuteCommand(ctx, command, ErrOpCreatePamUssConfig); err != nil {
+				resp.Diagnostics.AddError(ErrSummaryCreatePamUssConfigFailed, err.Error())
+				return
+			}
+		}
+	case planUss && ussChanged(&plan, &state):
+		if command = buildPamEditUssConfigCommand(&plan); command != "" {
+			if _, err := r.ApiManager.ExecuteCommand(ctx, command, ErrOpEditPamUssConfig); err != nil {
+				resp.Diagnostics.AddError(ErrSummaryUpdatePamUssConfigFailed, err.Error())
+				return
+			}
+		}
+	case !planUss && stateUss:
+		command = commonpamconfiguration.BuildPamRemoveUssConfigCommand(id)
+		if _, err := r.ApiManager.ExecuteCommand(ctx, command, ErrOpDeletePamUssConfig); err != nil {
+			resp.Diagnostics.AddError(ErrSummaryDeletePamUssConfigFailed, err.Error())
+			return
+		}
+	}
+
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }

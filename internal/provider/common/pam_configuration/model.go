@@ -17,6 +17,8 @@ type PamAwsModel struct {
 	AccessKeyId     types.String `tfsdk:"access_key_id"`
 	AccessSecretKey types.String `tfsdk:"access_secret_key"`
 	RegionNames     types.Set    `tfsdk:"region_names"`
+
+	UniversalSecretsSync *PamAwsUniversalSecretsSyncModel `tfsdk:"universal_secrets_sync"`
 }
 
 // PamAzureModel maps to Azure-specific CLI flags.
@@ -27,6 +29,8 @@ type PamAzureModel struct {
 	SubscriptionId types.String `tfsdk:"subscription_id"`
 	TenantId       types.String `tfsdk:"tenant_id"`
 	ResourceGroups types.Set    `tfsdk:"resource_groups"`
+
+	UniversalSecretsSync *PamAzureUniversalSecretsSyncModel `tfsdk:"universal_secrets_sync"`
 }
 
 // PamDomainModel maps to domain-specific CLI flags.
@@ -47,6 +51,8 @@ type PamGcpModel struct {
 	ServiceAccountKey types.String `tfsdk:"service_account_key"`
 	GoogleAdminEmail  types.String `tfsdk:"google_admin_email"`
 	GcpRegion         types.String `tfsdk:"gcp_region"`
+
+	UniversalSecretsSync *PamGcpUniversalSecretsSyncModel `tfsdk:"universal_secrets_sync"`
 }
 
 // PamConfigurationResourceModel is the Terraform state for commander_pam_configuration.
@@ -74,4 +80,28 @@ type PamConfigurationResourceModel struct {
 	Azure        *PamAzureModel        `tfsdk:"azure"`
 	Domain       *PamDomainModel       `tfsdk:"domain"`
 	Gcp          *PamGcpModel          `tfsdk:"gcp"`
+}
+
+// PAM Configuration Common “Universal Secrets Sync” Model for AWS, Azure, GCP
+type PamCommonUniversalSecretsSyncModel struct {
+	Enabled        types.Bool   `tfsdk:"enabled"`
+	FolderLocation types.Set    `tfsdk:"folder_location"`
+	DryRun         types.Bool   `tfsdk:"dry_run"`
+	SyncIdentity   types.String `tfsdk:"sync_identity"`
+}
+
+// PAM Configuration AWS “Universal Secrets Sync” Model
+type PamAwsUniversalSecretsSyncModel struct {
+	PamCommonUniversalSecretsSyncModel
+}
+
+// PAM Configuration Azure “Universal Secrets Sync” Model
+type PamAzureUniversalSecretsSyncModel struct {
+	PamCommonUniversalSecretsSyncModel
+	VaultName types.String `tfsdk:"vault_name"`
+}
+
+// PAM Configuration GCP “Universal Secrets Sync” Model
+type PamGcpUniversalSecretsSyncModel struct {
+	PamCommonUniversalSecretsSyncModel
 }
