@@ -25,7 +25,7 @@ func newAwsStateRaw(t *testing.T, sch rschema.Schema, id string, configureUss, u
 		"aws_id": stringVal("aws-1"),
 	}
 	if configureUss {
-		ussType := childObjectType(t, awsType, "universal_secrets_sync")
+		ussType := ussObjectType(t, awsType)
 		awsOverrides["universal_secrets_sync"] = nullObject(ussType, map[string]tftypes.Value{
 			"enabled": boolVal(ussEnabled),
 		})

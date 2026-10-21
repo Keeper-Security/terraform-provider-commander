@@ -82,7 +82,7 @@ type PamConfigurationResourceModel struct {
 	Gcp          *PamGcpModel          `tfsdk:"gcp"`
 }
 
-// PAM Configuration Common “Universal Secrets Sync” Model for AWS, Azure, GCP
+// PAM Configuration Common “Universal Secrets Sync” Model for AWS, Azure, GCP.
 type PamCommonUniversalSecretsSyncModel struct {
 	Enabled        types.Bool   `tfsdk:"enabled"`
 	FolderLocation types.Set    `tfsdk:"folder_location"`
@@ -90,18 +90,18 @@ type PamCommonUniversalSecretsSyncModel struct {
 	SyncIdentity   types.String `tfsdk:"sync_identity"`
 }
 
-// PAM Configuration AWS “Universal Secrets Sync” Model
+// PAM Configuration AWS “Universal Secrets Sync” Model.
 type PamAwsUniversalSecretsSyncModel struct {
 	PamCommonUniversalSecretsSyncModel
 }
 
-// PAM Configuration Azure “Universal Secrets Sync” Model
+// PAM Configuration Azure “Universal Secrets Sync” Model.
 type PamAzureUniversalSecretsSyncModel struct {
 	PamCommonUniversalSecretsSyncModel
 	VaultName types.String `tfsdk:"vault_name"`
 }
 
-// PAM Configuration GCP “Universal Secrets Sync” Model
+// PAM Configuration GCP “Universal Secrets Sync” Model.
 type PamGcpUniversalSecretsSyncModel struct {
 	PamCommonUniversalSecretsSyncModel
 }

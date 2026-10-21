@@ -33,13 +33,13 @@ func nestedObjectType(t *testing.T, sch rschema.Schema, name string) tftypes.Obj
 	return nested
 }
 
-// childObjectType returns the tftypes.Object type of a sub-block/attribute nested
-// one level inside objType (e.g. "universal_secrets_sync" inside "azure").
-func childObjectType(t *testing.T, objType tftypes.Object, name string) tftypes.Object {
+// ussObjectType returns the tftypes.Object type of the universal_secrets_sync block nested
+// inside a cloud environment block's type (aws, azure, or gcp).
+func ussObjectType(t *testing.T, envType tftypes.Object) tftypes.Object {
 	t.Helper()
-	nested, ok := objType.AttributeTypes[name].(tftypes.Object)
+	nested, ok := envType.AttributeTypes["universal_secrets_sync"].(tftypes.Object)
 	if !ok {
-		t.Fatalf("expected %q to be an object type", name)
+		t.Fatal("expected universal_secrets_sync to be an object type")
 	}
 	return nested
 }
@@ -91,7 +91,7 @@ func boolVal(b bool) tftypes.Value     { return tftypes.NewValue(tftypes.Bool, b
 func TestSchema_UniversalSecretsSyncNestedUnderCloudBlocksOnly(t *testing.T) {
 	sch := getResSchema(t)
 
-	awsUSS := childObjectType(t, nestedObjectType(t, sch, "aws"), "universal_secrets_sync")
+	awsUSS := ussObjectType(t, nestedObjectType(t, sch, "aws"))
 	if _, ok := awsUSS.AttributeTypes["vault_name"]; ok {
 		t.Error("expected aws.universal_secrets_sync to have no vault_name attribute")
 	}
@@ -99,12 +99,12 @@ func TestSchema_UniversalSecretsSyncNestedUnderCloudBlocksOnly(t *testing.T) {
 		t.Error("expected aws.universal_secrets_sync to have an enabled attribute")
 	}
 
-	gcpUSS := childObjectType(t, nestedObjectType(t, sch, "gcp"), "universal_secrets_sync")
+	gcpUSS := ussObjectType(t, nestedObjectType(t, sch, "gcp"))
 	if _, ok := gcpUSS.AttributeTypes["vault_name"]; ok {
 		t.Error("expected gcp.universal_secrets_sync to have no vault_name attribute")
 	}
 
-	azureUSS := childObjectType(t, nestedObjectType(t, sch, "azure"), "universal_secrets_sync")
+	azureUSS := ussObjectType(t, nestedObjectType(t, sch, "azure"))
 	if _, ok := azureUSS.AttributeTypes["vault_name"]; !ok {
 		t.Error("expected azure.universal_secrets_sync to have a vault_name attribute")
 	}
@@ -193,7 +193,7 @@ func TestAzureUniversalSecretsSyncRequiredFieldsValidator_AllowsAbsentBlock(t *t
 func TestEnvironmentBlocksValidator_Azure_AllowsVaultName(t *testing.T) {
 	sch := getResSchema(t)
 	azureType := nestedObjectType(t, sch, "azure")
-	ussType := childObjectType(t, azureType, "universal_secrets_sync")
+	ussType := ussObjectType(t, azureType)
 
 	raw := newValidateConfigRaw(t, sch, map[string]tftypes.Value{
 		"environment": stringVal("azure"),
@@ -240,7 +240,7 @@ func TestEnvironmentBlocksValidator_Azure_AllowsAbsentUniversalSecretsSync(t *te
 func TestEnvironmentBlocksValidator_Aws_AllowsUniversalSecretsSyncWithoutVaultName(t *testing.T) {
 	sch := getResSchema(t)
 	awsType := nestedObjectType(t, sch, "aws")
-	ussType := childObjectType(t, awsType, "universal_secrets_sync")
+	ussType := ussObjectType(t, awsType)
 
 	raw := newValidateConfigRaw(t, sch, map[string]tftypes.Value{
 		"environment": stringVal("aws"),

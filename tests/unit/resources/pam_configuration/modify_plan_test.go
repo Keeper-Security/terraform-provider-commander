@@ -18,7 +18,7 @@ func TestModifyPlan_UssFirstTimeEnabledFalse(t *testing.T) {
 	nullRaw := tftypes.NewValue(sch.Type().TerraformType(context.Background()), nil)
 
 	awsType := nestedObjectType(t, sch, "aws")
-	ussType := childObjectType(t, awsType, "universal_secrets_sync")
+	ussType := ussObjectType(t, awsType)
 	enabledOmittedPlan := newValidateConfigRaw(t, sch, map[string]tftypes.Value{
 		"id":                 stringVal(""),
 		"environment":        stringVal("aws"),

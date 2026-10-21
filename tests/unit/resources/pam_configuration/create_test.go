@@ -28,7 +28,7 @@ func newAwsPlanRaw(t *testing.T, sch rschema.Schema, configureUss, ussEnabled bo
 		"aws_id": stringVal("aws-1"),
 	}
 	if configureUss {
-		ussType := childObjectType(t, awsType, "universal_secrets_sync")
+		ussType := ussObjectType(t, awsType)
 		awsOverrides["universal_secrets_sync"] = nullObject(ussType, map[string]tftypes.Value{
 			"enabled": boolVal(ussEnabled),
 		})
