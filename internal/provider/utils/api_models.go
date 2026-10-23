@@ -678,6 +678,7 @@ type PamRemoteBrowserSettingsFieldConnectionResponse struct {
 	AllowFileUploads           bool   `json:"allowFileUploads"`
 	AllowFileDownloads         bool   `json:"allowFileDownloads"`
 	AllowSupplyUser            bool   `json:"allowSupplyUser"`
+	ClipboardBufferSize        int    `json:"clipboardBufferSize"`
 }
 
 // PamRemoteBrowserSettingsFieldResponse is one element of the pamRemoteBrowserSettings field value array.

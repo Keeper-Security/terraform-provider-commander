@@ -541,7 +541,7 @@ func extractDatabaseConnectionFromResponse(dbConn *utils.DatabaseConnectionRespo
 	db.ReadOnly = optionalBoolValue(dbConn.ReadOnly)
 	db.DisableCopy = optionalBoolValueWithDefault(dbConn.DisableCopy)
 	db.DisablePaste = optionalBoolValueWithDefault(dbConn.DisablePaste)
-	db.ClipboardDataSizeLimit = clipboardDataSizeLimitFromBytes(dbConn.ClipboardBufferSize)
+	db.ClipboardDataSizeLimit = ClipboardDataSizeLimitFromBytes(dbConn.ClipboardBufferSize)
 	db.DisableCsvExport = optionalBoolValueWithDefault(dbConn.DisableCsvExport)
 	db.DisableCsvImport = optionalBoolValueWithDefault(dbConn.DisableCsvImport)
 	db.Database = utils.StringOrNull(dbConn.Database)
@@ -579,7 +579,7 @@ func extractMariaDbOracleDatabaseConnectionFromResponse(dbConn *utils.DatabaseCo
 	db.RecordingIncludeKeys = optionalBoolValue(dbConn.RecordingIncludeKeys)
 	db.DisableCopy = optionalBoolValueWithDefault(dbConn.DisableCopy)
 	db.DisablePaste = optionalBoolValueWithDefault(dbConn.DisablePaste)
-	db.ClipboardDataSizeLimit = clipboardDataSizeLimitFromBytes(dbConn.ClipboardBufferSize)
+	db.ClipboardDataSizeLimit = ClipboardDataSizeLimitFromBytes(dbConn.ClipboardBufferSize)
 	db.DisableCsvExport = optionalBoolValueWithDefault(dbConn.DisableCsvExport)
 	db.DisableCsvImport = optionalBoolValueWithDefault(dbConn.DisableCsvImport)
 	db.Database = utils.StringOrNull(dbConn.Database)
@@ -654,7 +654,7 @@ func extractRdpConnectionFromResponse(rdpConn *utils.RdpConnectionResponse, pamE
 	rdp.DisableAuth = optionalBoolValue(rdpConn.DisableAuth)
 	rdp.DisableCopy = optionalBoolValueWithDefault(rdpConn.DisableCopy)
 	rdp.DisablePaste = optionalBoolValueWithDefault(rdpConn.DisablePaste)
-	rdp.ClipboardDataSizeLimit = clipboardDataSizeLimitFromBytes(rdpConn.ClipboardBufferSize)
+	rdp.ClipboardDataSizeLimit = ClipboardDataSizeLimitFromBytes(rdpConn.ClipboardBufferSize)
 
 	rdp.NormalizeClipboard = utils.StringOrNull(rdpConn.NormalizeClipboard)
 	rdp.Security = utils.StringOrNull(rdpConn.Security)
@@ -1446,7 +1446,7 @@ func extractSshConnectionFromResponse(sshConn *utils.SshConnectionResponse, pamE
 	ssh.ReadOnly = optionalBoolValue(sshConn.ReadOnly)
 	ssh.DisableCopy = optionalBoolValueWithDefault(sshConn.DisableCopy)
 	ssh.DisablePaste = optionalBoolValueWithDefault(sshConn.DisablePaste)
-	ssh.ClipboardDataSizeLimit = clipboardDataSizeLimitFromBytes(sshConn.ClipboardBufferSize)
+	ssh.ClipboardDataSizeLimit = ClipboardDataSizeLimitFromBytes(sshConn.ClipboardBufferSize)
 	ssh.ColorScheme = utils.StringOrNull(sshConn.ColorScheme)
 	ssh.FontName = utils.StringOrNull(sshConn.FontName)
 	ssh.FontSize = parseStringToInt32(sshConn.FontSize)
@@ -1547,7 +1547,7 @@ func extractTelnetConnectionFromResponse(telnetConn *utils.TelnetConnectionRespo
 	telnet.ReadOnly = optionalBoolValue(telnetConn.ReadOnly)
 	telnet.DisableCopy = optionalBoolValueWithDefault(telnetConn.DisableCopy)
 	telnet.DisablePaste = optionalBoolValueWithDefault(telnetConn.DisablePaste)
-	telnet.ClipboardDataSizeLimit = clipboardDataSizeLimitFromBytes(telnetConn.ClipboardBufferSize)
+	telnet.ClipboardDataSizeLimit = ClipboardDataSizeLimitFromBytes(telnetConn.ClipboardBufferSize)
 	telnet.ColorScheme = utils.StringOrNull(telnetConn.ColorScheme)
 	telnet.FontName = utils.StringOrNull(telnetConn.FontName)
 	telnet.FontSize = parseStringToInt32(telnetConn.FontSize)
@@ -1645,7 +1645,7 @@ func extractVncConnectionFromResponse(vncConn *utils.VncConnectionResponse, pamE
 	vnc.ReadOnly = optionalBoolValue(vncConn.ReadOnly)
 	vnc.DisableCopy = optionalBoolValueWithDefault(vncConn.DisableCopy)
 	vnc.DisablePaste = optionalBoolValueWithDefault(vncConn.DisablePaste)
-	vnc.ClipboardDataSizeLimit = clipboardDataSizeLimitFromBytes(vncConn.ClipboardBufferSize)
+	vnc.ClipboardDataSizeLimit = ClipboardDataSizeLimitFromBytes(vncConn.ClipboardBufferSize)
 	vnc.SwapRedBlue = optionalBoolValue(vncConn.SwapRedBlue)
 	vnc.ForceLossless = optionalBoolValue(vncConn.ForceLossless)
 	vnc.EnableAudio = optionalBoolValue(vncConn.EnableAudio)
@@ -1708,10 +1708,10 @@ func setClipboardDataSizeLimitField(m map[string]interface{}, v types.String) {
 	}
 }
 
-// clipboardDataSizeLimitFromBytes reverses setClipboardDataSizeLimitField, mapping
+// ClipboardDataSizeLimitFromBytes reverses setClipboardDataSizeLimitField, mapping
 // connection.clipboardBufferSize back to its enum label. Returns null if bytes doesn't
 // match one of the known sizes (e.g. not yet set).
-func clipboardDataSizeLimitFromBytes(bytes int) types.String {
+func ClipboardDataSizeLimitFromBytes(bytes int) types.String {
 	for label, b := range clipboardDataSizeLimitBytes {
 		if b == bytes {
 			return types.StringValue(label)

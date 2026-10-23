@@ -58,8 +58,9 @@ const (
 
 // Commander CLI command flag values.
 const (
-	ValueOn  = "on"
-	ValueOff = "off"
+	ValueOn      = "on"
+	ValueOff     = "off"
+	ValueDefault = "default"
 )
 
 // Vault Record Types.

@@ -5,12 +5,14 @@ package pamremotebrowser_test
 
 import (
 	"context"
+	"encoding/json"
 	"net/http/httptest"
 	"testing"
 
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/api"
 	commonpamremotebrowser "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/pam/pam_remote_browser"
 	pamremotebrowser "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/records/classic/pam/pam_remote_browser"
+	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/utils"
 	"github.com/Keeper-Security/terraform-provider-commander/tests/helpers"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -308,4 +310,122 @@ func joinParts(parts []string) string {
 		result += p
 	}
 	return result
+}
+
+func TestAppendPamRbiEditSettingsFlags_ClipboardBufferSize(t *testing.T) {
+	tests := []struct {
+		name    string
+		value   types.String
+		want    string
+		omitted bool
+	}{
+		{"value is lowercased", types.StringValue("10MB"), "--clipboard-buffer-size 10mb", false},
+		{"null resets to default", types.StringNull(), "--clipboard-buffer-size default", false},
+		{"unknown is omitted", types.StringUnknown(), "", true},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var parts []string
+			commonpamremotebrowser.AppendPamRbiEditSettingsFlags(&parts, &commonpamremotebrowser.PamRemoteBrowserSettingsModel{
+				ClipboardDataSizeLimit: tt.value,
+			})
+			joined := joinParts(parts)
+			if tt.omitted {
+				if contains(joined, "--clipboard-buffer-size") {
+					t.Errorf("expected --clipboard-buffer-size to be omitted: %s", joined)
+				}
+				return
+			}
+			if !contains(joined, tt.want) {
+				t.Errorf("expected %q in: %s", tt.want, joined)
+			}
+		})
+	}
+}
+
+func TestAppendPamRbiEditSettingsFlags_AllowSupplyUser(t *testing.T) {
+	tests := []struct {
+		name  string
+		value types.Bool
+		want  string
+	}{
+		{"true is on", types.BoolValue(true), "--allow-supply-user on"},
+		{"false is off", types.BoolValue(false), "--allow-supply-user off"},
+		{"null is off", types.BoolNull(), "--allow-supply-user off"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var parts []string
+			commonpamremotebrowser.AppendPamRbiEditSettingsFlags(&parts, &commonpamremotebrowser.PamRemoteBrowserSettingsModel{
+				AllowSupplyUser: tt.value,
+			})
+			if joined := joinParts(parts); !contains(joined, tt.want) {
+				t.Errorf("expected %q in: %s", tt.want, joined)
+			}
+		})
+	}
+}
+
+func TestPamRemoteBrowserSettingsNeedApply_NewAttributes(t *testing.T) {
+	base := func() *commonpamremotebrowser.PamRemoteBrowserSettingsModel {
+		return &commonpamremotebrowser.PamRemoteBrowserSettingsModel{
+			AllowedUrls:            types.SetNull(types.StringType),
+			AllowedResourceUrls:    types.SetNull(types.StringType),
+			AutoFillTargets:        types.SetNull(types.StringType),
+			AllowSupplyUser:        types.BoolValue(false),
+			ClipboardDataSizeLimit: types.StringNull(),
+		}
+	}
+
+	if commonpamremotebrowser.PamRemoteBrowserSettingsNeedApply(base(), base()) {
+		t.Error("expected no apply when settings are equal")
+	}
+
+	plan := base()
+	plan.AllowSupplyUser = types.BoolValue(true)
+	if !commonpamremotebrowser.PamRemoteBrowserSettingsNeedApply(plan, base()) {
+		t.Error("expected apply when only allow_supply_user changes")
+	}
+
+	plan = base()
+	plan.ClipboardDataSizeLimit = types.StringValue("1MB")
+	if !commonpamremotebrowser.PamRemoteBrowserSettingsNeedApply(plan, base()) {
+		t.Error("expected apply when only clipboard_data_size_limit changes")
+	}
+}
+
+func TestMapVaultRecordGetResponse_ReadsNewAttributes(t *testing.T) {
+	tests := []struct {
+		name          string
+		connection    string
+		wantClipboard types.String
+		wantSupply    bool
+	}{
+		{"both set", `{"clipboardBufferSize":1048576,"allowSupplyUser":true}`, types.StringValue("1MB"), true},
+		{"both unset", `{}`, types.StringNull(), false},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			rec := &utils.VaultRecordGetResponse{
+				Fields: []utils.VaultRecordFieldResponse{{
+					Type:  "pamRemoteBrowserSettings",
+					Value: json.RawMessage(`[{"connection":` + tt.connection + `}]`),
+				}},
+			}
+			var state commonpamremotebrowser.PamRemoteBrowserResourceModel
+			if diags := commonpamremotebrowser.MapVaultRecordGetResponseToPamRemoteBrowserModel(context.Background(), rec, &state); diags.HasError() {
+				t.Fatalf("mapping failed: %v", diags)
+			}
+			s := state.PamRemoteBrowserSettings
+			if s == nil {
+				t.Fatal("expected pam_remote_browser_settings to be set")
+			}
+			if !s.ClipboardDataSizeLimit.Equal(tt.wantClipboard) {
+				t.Errorf("clipboard_data_size_limit = %v, want %v", s.ClipboardDataSizeLimit, tt.wantClipboard)
+			}
+			if s.AllowSupplyUser.ValueBool() != tt.wantSupply {
+				t.Errorf("allow_supply_user = %v, want %v", s.AllowSupplyUser, tt.wantSupply)
+			}
+		})
+	}
 }
