@@ -13,7 +13,7 @@
 ### Changed
 
 - SaaS configuration documentation and examples now explain that the SaaS Type must be set, and that the gateway and configuration must be set manually after importing records.
-- `commander_non_shared_folder` documentation clarifies `records` attribute behavior.
+- Updated MinCommanderVersion to `18.1.9`
 
 ## 1.4.0 (2026-09-24)
 
