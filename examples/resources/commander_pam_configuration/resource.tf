@@ -48,6 +48,13 @@ resource "commander_pam_configuration" "aws_example" {
     access_key_id     = "AKIAIOSFODNN7EXAMPLE"
     access_secret_key = "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY"
     region_names      = ["us-east-1", "us-west-2", "eu-west-1"]
+
+    universal_secrets_sync {
+      enabled         = true
+      dry_run         = false
+      folder_location = ["folder-uid-1", "folder-uid-2"]
+      sync_identity   = "arn:aws:iam::123456789012:role/KeeperUSS"
+    }
   }
 }
 
@@ -78,6 +85,14 @@ resource "commander_pam_configuration" "azure_example" {
     subscription_id = "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"
     tenant_id       = "ffffffff-0000-1111-2222-333333333333"
     resource_groups = ["rg-production", "rg-staging"]
+
+    universal_secrets_sync {
+      enabled         = true
+      dry_run         = false
+      folder_location = ["folder-uid-1"]
+      sync_identity   = "uss-sync@my-project.iam.gserviceaccount.com"
+      vault_name      = "kv-keeper-prod"
+    }
   }
 }
 
@@ -131,5 +146,12 @@ resource "commander_pam_configuration" "gcp_example" {
     service_account_key = file("${path.module}/gcp-service-account.json")
     google_admin_email  = "admin@example.com"
     gcp_region          = "us-central1"
+
+    universal_secrets_sync {
+      enabled         = true
+      dry_run         = true
+      folder_location = ["folder-uid-1"]
+      sync_identity   = "uss-sync@my-project.iam.gserviceaccount.com"
+    }
   }
 }

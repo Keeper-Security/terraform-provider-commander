@@ -5,12 +5,14 @@ package pamremotebrowser_test
 
 import (
 	"context"
+	"encoding/json"
 	"net/http/httptest"
 	"testing"
 
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/api"
 	commonpamremotebrowser "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/pam/pam_remote_browser"
 	pamremotebrowser "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/records/classic/pam/pam_remote_browser"
+	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/utils"
 	"github.com/Keeper-Security/terraform-provider-commander/tests/helpers"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -19,26 +21,27 @@ import (
 )
 
 var pamRemoteBrowserSettingsAttrTypes = map[string]tftypes.Type{
-	"configuration":            tftypes.String,
-	"remote_browser_isolation": tftypes.Bool,
-	"connections_recording":    tftypes.Bool,
-	"key_events":               tftypes.Bool,
-	"allow_url_navigation":     tftypes.Bool,
-	"ignore_server_cert":       tftypes.Bool,
-	"allowed_urls":             tftypes.Set{ElementType: tftypes.String},
-	"allowed_resource_urls":    tftypes.Set{ElementType: tftypes.String},
-	"auto_fill_targets":        tftypes.Set{ElementType: tftypes.String},
-	"auto_fill_credentials":    tftypes.String,
-	"allow_copy":               tftypes.Bool,
-	"allow_paste":              tftypes.Bool,
-	"disable_audio":            tftypes.Bool,
-	"audio_channels":           tftypes.Number,
-	"audio_bit_depth":          tftypes.Number,
-	"audio_sample_rate":        tftypes.Number,
-	"session_persistence":      tftypes.String,
-	"allow_file_uploads":       tftypes.Bool,
-	"allow_file_downloads":     tftypes.Bool,
-	"allow_supply_user":        tftypes.Bool,
+	"configuration":             tftypes.String,
+	"remote_browser_isolation":  tftypes.Bool,
+	"connections_recording":     tftypes.Bool,
+	"key_events":                tftypes.Bool,
+	"allow_url_navigation":      tftypes.Bool,
+	"ignore_server_cert":        tftypes.Bool,
+	"allowed_urls":              tftypes.Set{ElementType: tftypes.String},
+	"allowed_resource_urls":     tftypes.Set{ElementType: tftypes.String},
+	"auto_fill_targets":         tftypes.Set{ElementType: tftypes.String},
+	"auto_fill_credentials":     tftypes.String,
+	"allow_copy":                tftypes.Bool,
+	"allow_paste":               tftypes.Bool,
+	"clipboard_data_size_limit": tftypes.String,
+	"disable_audio":             tftypes.Bool,
+	"audio_channels":            tftypes.Number,
+	"audio_bit_depth":           tftypes.Number,
+	"audio_sample_rate":         tftypes.Number,
+	"session_persistence":       tftypes.String,
+	"allow_file_uploads":        tftypes.Bool,
+	"allow_file_downloads":      tftypes.Bool,
+	"allow_supply_user":         tftypes.Bool,
 }
 
 var shareElementAttrTypes = map[string]tftypes.Type{
@@ -85,26 +88,27 @@ func newSettingsValues(
 	}
 
 	return map[string]tftypes.Value{
-		"configuration":            tftypes.NewValue(tftypes.String, configuration),
-		"remote_browser_isolation": tftypes.NewValue(tftypes.Bool, remoteBrowserIsolation),
-		"connections_recording":    tftypes.NewValue(tftypes.Bool, connectionsRecording),
-		"key_events":               tftypes.NewValue(tftypes.Bool, keyEvents),
-		"allow_url_navigation":     tftypes.NewValue(tftypes.Bool, allowUrlNavigation),
-		"ignore_server_cert":       tftypes.NewValue(tftypes.Bool, ignoreServerCert),
-		"allowed_urls":             makeSet(allowedUrls),
-		"allowed_resource_urls":    makeSet(allowedResourceUrls),
-		"auto_fill_targets":        makeSet(autoFillTargets),
-		"auto_fill_credentials":    tftypes.NewValue(tftypes.String, autoFillCredentials),
-		"allow_copy":               tftypes.NewValue(tftypes.Bool, allowCopy),
-		"allow_paste":              tftypes.NewValue(tftypes.Bool, allowPaste),
-		"disable_audio":            tftypes.NewValue(tftypes.Bool, disableAudio),
-		"audio_channels":           tftypes.NewValue(tftypes.Number, audioChannels),
-		"audio_bit_depth":          tftypes.NewValue(tftypes.Number, audioBitDepth),
-		"audio_sample_rate":        tftypes.NewValue(tftypes.Number, audioSampleRate),
-		"session_persistence":      tftypes.NewValue(tftypes.String, nil),
-		"allow_file_uploads":       tftypes.NewValue(tftypes.Bool, nil),
-		"allow_file_downloads":     tftypes.NewValue(tftypes.Bool, nil),
-		"allow_supply_user":        tftypes.NewValue(tftypes.Bool, nil),
+		"configuration":             tftypes.NewValue(tftypes.String, configuration),
+		"remote_browser_isolation":  tftypes.NewValue(tftypes.Bool, remoteBrowserIsolation),
+		"connections_recording":     tftypes.NewValue(tftypes.Bool, connectionsRecording),
+		"key_events":                tftypes.NewValue(tftypes.Bool, keyEvents),
+		"allow_url_navigation":      tftypes.NewValue(tftypes.Bool, allowUrlNavigation),
+		"ignore_server_cert":        tftypes.NewValue(tftypes.Bool, ignoreServerCert),
+		"allowed_urls":              makeSet(allowedUrls),
+		"allowed_resource_urls":     makeSet(allowedResourceUrls),
+		"auto_fill_targets":         makeSet(autoFillTargets),
+		"auto_fill_credentials":     tftypes.NewValue(tftypes.String, autoFillCredentials),
+		"allow_copy":                tftypes.NewValue(tftypes.Bool, allowCopy),
+		"allow_paste":               tftypes.NewValue(tftypes.Bool, allowPaste),
+		"clipboard_data_size_limit": tftypes.NewValue(tftypes.String, nil),
+		"disable_audio":             tftypes.NewValue(tftypes.Bool, disableAudio),
+		"audio_channels":            tftypes.NewValue(tftypes.Number, audioChannels),
+		"audio_bit_depth":           tftypes.NewValue(tftypes.Number, audioBitDepth),
+		"audio_sample_rate":         tftypes.NewValue(tftypes.Number, audioSampleRate),
+		"session_persistence":       tftypes.NewValue(tftypes.String, nil),
+		"allow_file_uploads":        tftypes.NewValue(tftypes.Bool, nil),
+		"allow_file_downloads":      tftypes.NewValue(tftypes.Bool, nil),
+		"allow_supply_user":         tftypes.NewValue(tftypes.Bool, nil),
 	}
 }
 
@@ -306,4 +310,122 @@ func joinParts(parts []string) string {
 		result += p
 	}
 	return result
+}
+
+func TestAppendPamRbiEditSettingsFlags_ClipboardBufferSize(t *testing.T) {
+	tests := []struct {
+		name    string
+		value   types.String
+		want    string
+		omitted bool
+	}{
+		{"value is lowercased", types.StringValue("10MB"), "--clipboard-buffer-size 10mb", false},
+		{"null resets to default", types.StringNull(), "--clipboard-buffer-size default", false},
+		{"unknown is omitted", types.StringUnknown(), "", true},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var parts []string
+			commonpamremotebrowser.AppendPamRbiEditSettingsFlags(&parts, &commonpamremotebrowser.PamRemoteBrowserSettingsModel{
+				ClipboardDataSizeLimit: tt.value,
+			})
+			joined := joinParts(parts)
+			if tt.omitted {
+				if contains(joined, "--clipboard-buffer-size") {
+					t.Errorf("expected --clipboard-buffer-size to be omitted: %s", joined)
+				}
+				return
+			}
+			if !contains(joined, tt.want) {
+				t.Errorf("expected %q in: %s", tt.want, joined)
+			}
+		})
+	}
+}
+
+func TestAppendPamRbiEditSettingsFlags_AllowSupplyUser(t *testing.T) {
+	tests := []struct {
+		name  string
+		value types.Bool
+		want  string
+	}{
+		{"true is on", types.BoolValue(true), "--allow-supply-user on"},
+		{"false is off", types.BoolValue(false), "--allow-supply-user off"},
+		{"null is off", types.BoolNull(), "--allow-supply-user off"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var parts []string
+			commonpamremotebrowser.AppendPamRbiEditSettingsFlags(&parts, &commonpamremotebrowser.PamRemoteBrowserSettingsModel{
+				AllowSupplyUser: tt.value,
+			})
+			if joined := joinParts(parts); !contains(joined, tt.want) {
+				t.Errorf("expected %q in: %s", tt.want, joined)
+			}
+		})
+	}
+}
+
+func TestPamRemoteBrowserSettingsNeedApply_NewAttributes(t *testing.T) {
+	base := func() *commonpamremotebrowser.PamRemoteBrowserSettingsModel {
+		return &commonpamremotebrowser.PamRemoteBrowserSettingsModel{
+			AllowedUrls:            types.SetNull(types.StringType),
+			AllowedResourceUrls:    types.SetNull(types.StringType),
+			AutoFillTargets:        types.SetNull(types.StringType),
+			AllowSupplyUser:        types.BoolValue(false),
+			ClipboardDataSizeLimit: types.StringNull(),
+		}
+	}
+
+	if commonpamremotebrowser.PamRemoteBrowserSettingsNeedApply(base(), base()) {
+		t.Error("expected no apply when settings are equal")
+	}
+
+	plan := base()
+	plan.AllowSupplyUser = types.BoolValue(true)
+	if !commonpamremotebrowser.PamRemoteBrowserSettingsNeedApply(plan, base()) {
+		t.Error("expected apply when only allow_supply_user changes")
+	}
+
+	plan = base()
+	plan.ClipboardDataSizeLimit = types.StringValue("1MB")
+	if !commonpamremotebrowser.PamRemoteBrowserSettingsNeedApply(plan, base()) {
+		t.Error("expected apply when only clipboard_data_size_limit changes")
+	}
+}
+
+func TestMapVaultRecordGetResponse_ReadsNewAttributes(t *testing.T) {
+	tests := []struct {
+		name          string
+		connection    string
+		wantClipboard types.String
+		wantSupply    bool
+	}{
+		{"both set", `{"clipboardBufferSize":1048576,"allowSupplyUser":true}`, types.StringValue("1MB"), true},
+		{"both unset", `{}`, types.StringNull(), false},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			rec := &utils.VaultRecordGetResponse{
+				Fields: []utils.VaultRecordFieldResponse{{
+					Type:  "pamRemoteBrowserSettings",
+					Value: json.RawMessage(`[{"connection":` + tt.connection + `}]`),
+				}},
+			}
+			var state commonpamremotebrowser.PamRemoteBrowserResourceModel
+			if diags := commonpamremotebrowser.MapVaultRecordGetResponseToPamRemoteBrowserModel(context.Background(), rec, &state); diags.HasError() {
+				t.Fatalf("mapping failed: %v", diags)
+			}
+			s := state.PamRemoteBrowserSettings
+			if s == nil {
+				t.Fatal("expected pam_remote_browser_settings to be set")
+			}
+			if !s.ClipboardDataSizeLimit.Equal(tt.wantClipboard) {
+				t.Errorf("clipboard_data_size_limit = %v, want %v", s.ClipboardDataSizeLimit, tt.wantClipboard)
+			}
+			if s.AllowSupplyUser.ValueBool() != tt.wantSupply {
+				t.Errorf("allow_supply_user = %v, want %v", s.AllowSupplyUser, tt.wantSupply)
+			}
+		})
+	}
 }

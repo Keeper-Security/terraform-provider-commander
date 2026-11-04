@@ -1,5 +1,20 @@
 # Changelog
 
+## 1.5.0 (2026-11-04)
+
+### Added
+
+- **`commander_pam_configuration`:** `universal_secrets_sync` block for the AWS, Azure, and GCP environments (`enabled`, `folder_location`, `dry_run`, `sync_identity`, plus `vault_name` for Azure).
+- **PAM connection settings:** `clipboard_data_size_limit` (256KB, 1MB, 10MB, or 50MB) for SSH, MySQL, and other PAM connection configurations.
+- **PAM remote browser:** `allow_supply_user` attribute.
+- **PAM database:** `keeper_db` support.
+- **SaaS configuration (classic and new):** required `configuration` and `gateway` attributes, computed on the data sources. The SaaS type and fields are validated against the plugins available on the gateway, and a required `Active` custom field (`TRUE` or `FALSE`) is enforced.
+
+### Changed
+
+- SaaS configuration documentation and examples now explain that the SaaS Type must be set, and that the gateway and configuration must be set manually after importing records.
+- `commander_non_shared_folder` documentation clarifies `records` attribute behavior.
+
 ## 1.4.0 (2026-09-24)
 
 ### Added

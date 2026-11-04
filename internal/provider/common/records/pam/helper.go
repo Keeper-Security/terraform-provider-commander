@@ -75,6 +75,7 @@ func ExtractPamSettingsFromResponse(rec *utils.VaultRecordGetResponse, existingS
 		result.Tunnel = existingState.Tunnel
 		result.Configuration = existingState.Configuration
 		result.AdministrativeCredentials = existingState.AdministrativeCredentials
+		result.KeeperDB = existingState.KeeperDB
 	}
 
 	if raw != nil {
@@ -95,6 +96,7 @@ func ExtractPamSettingsFromResponse(rec *utils.VaultRecordGetResponse, existingS
 
 	result.Tunnel = extractTunnelFromResponse(raw, rec.PamSettingsEnabled)
 	result.Connection = extractConnectionFromResponse(raw, rec.PamSettingsEnabled, rec.AssociatedCredentials, rec.DagDebug, existingState)
+	result.KeeperDB = extractKeeperDbFromConnection(raw)
 
 	if !connectionHasMaterialConfig(result.Connection) {
 		if existingState != nil && existingState.Connection != nil {
@@ -112,7 +114,55 @@ func ExtractPamSettingsFromResponse(rec *utils.VaultRecordGetResponse, existingS
 		}
 	}
 
+	if !keeperDbHasMaterialConfig(result.KeeperDB) {
+		if existingState != nil && existingState.KeeperDB != nil {
+			result.KeeperDB = existingState.KeeperDB
+		} else {
+			result.KeeperDB = nil
+		}
+	}
+
 	return result
+}
+
+// extractKeeperDbFromConnection parses dbConnectionMethod and rbiSettings.sessionPersistence
+// out of pamSettings.value[0].connection. Commander nests these KeeperDB settings inside
+// connection, even though they're a separate keeper_db block in the Terraform schema.
+func extractKeeperDbFromConnection(raw *utils.PamSettingsFieldValueResponse) *DatabaseKeeperDbResourceModel {
+	if raw == nil || len(raw.Connection) == 0 {
+		return nil
+	}
+
+	var parsed utils.DatabaseConnectionKeeperDbResponse
+	if err := json.Unmarshal(raw.Connection, &parsed); err != nil {
+		return nil
+	}
+
+	hasSessionPersistence := parsed.RbiSettings != nil && parsed.RbiSettings.SessionPersistence != ""
+	if parsed.DbConnectionMethod == "" && !hasSessionPersistence {
+		return nil
+	}
+
+	keeperDb := &DatabaseKeeperDbResourceModel{
+		DbConnectionMethod: types.StringNull(),
+		SessionPersistence: types.StringNull(),
+	}
+	if parsed.DbConnectionMethod != "" {
+		keeperDb.DbConnectionMethod = types.StringValue(parsed.DbConnectionMethod)
+	}
+	if hasSessionPersistence {
+		keeperDb.SessionPersistence = types.StringValue(parsed.RbiSettings.SessionPersistence)
+	}
+	return keeperDb
+}
+
+func keeperDbHasMaterialConfig(k *DatabaseKeeperDbResourceModel) bool {
+	if k == nil {
+		return false
+	}
+	hasMethod := !k.DbConnectionMethod.IsNull() && !k.DbConnectionMethod.IsUnknown() && strings.TrimSpace(k.DbConnectionMethod.ValueString()) != ""
+	hasSession := !k.SessionPersistence.IsNull() && !k.SessionPersistence.IsUnknown() && strings.TrimSpace(k.SessionPersistence.ValueString()) != ""
+	return hasMethod || hasSession
 }
 
 func connectionHasMaterialConfig(c *CommonPamSettingsConnectionResourceModel) bool {
@@ -491,6 +541,7 @@ func extractDatabaseConnectionFromResponse(dbConn *utils.DatabaseConnectionRespo
 	db.ReadOnly = optionalBoolValue(dbConn.ReadOnly)
 	db.DisableCopy = optionalBoolValueWithDefault(dbConn.DisableCopy)
 	db.DisablePaste = optionalBoolValueWithDefault(dbConn.DisablePaste)
+	db.ClipboardDataSizeLimit = ClipboardDataSizeLimitFromBytes(dbConn.ClipboardBufferSize)
 	db.DisableCsvExport = optionalBoolValueWithDefault(dbConn.DisableCsvExport)
 	db.DisableCsvImport = optionalBoolValueWithDefault(dbConn.DisableCsvImport)
 	db.Database = utils.StringOrNull(dbConn.Database)
@@ -528,6 +579,7 @@ func extractMariaDbOracleDatabaseConnectionFromResponse(dbConn *utils.DatabaseCo
 	db.RecordingIncludeKeys = optionalBoolValue(dbConn.RecordingIncludeKeys)
 	db.DisableCopy = optionalBoolValueWithDefault(dbConn.DisableCopy)
 	db.DisablePaste = optionalBoolValueWithDefault(dbConn.DisablePaste)
+	db.ClipboardDataSizeLimit = ClipboardDataSizeLimitFromBytes(dbConn.ClipboardBufferSize)
 	db.DisableCsvExport = optionalBoolValueWithDefault(dbConn.DisableCsvExport)
 	db.DisableCsvImport = optionalBoolValueWithDefault(dbConn.DisableCsvImport)
 	db.Database = utils.StringOrNull(dbConn.Database)
@@ -602,6 +654,7 @@ func extractRdpConnectionFromResponse(rdpConn *utils.RdpConnectionResponse, pamE
 	rdp.DisableAuth = optionalBoolValue(rdpConn.DisableAuth)
 	rdp.DisableCopy = optionalBoolValueWithDefault(rdpConn.DisableCopy)
 	rdp.DisablePaste = optionalBoolValueWithDefault(rdpConn.DisablePaste)
+	rdp.ClipboardDataSizeLimit = ClipboardDataSizeLimitFromBytes(rdpConn.ClipboardBufferSize)
 
 	rdp.NormalizeClipboard = utils.StringOrNull(rdpConn.NormalizeClipboard)
 	rdp.Security = utils.StringOrNull(rdpConn.Security)
@@ -1023,22 +1076,38 @@ func buildFullPamSettingsJSON(pamSettings *CommonPamSettingsFieldResourceModel) 
 		root["portForward"] = map[string]interface{}{}
 	}
 
+	connMap := map[string]interface{}{}
 	if pamSettings.Connection != nil {
-		connMap := buildConnectionMap(pamSettings.Connection)
-		if connMap != nil {
-			root["connection"] = connMap
-		} else {
-			root["connection"] = map[string]interface{}{}
+		if m := buildConnectionMap(pamSettings.Connection); m != nil {
+			connMap = m
 		}
-	} else {
-		root["connection"] = map[string]interface{}{}
 	}
+	applyKeeperDbToConnectionMap(connMap, pamSettings.KeeperDB)
+	root["connection"] = connMap
 
 	b, err := json.Marshal(root)
 	if err != nil {
 		return ""
 	}
 	return string(b)
+}
+
+// applyKeeperDbToConnectionMap merges dbConnectionMethod and rbiSettings.sessionPersistence
+// (from the keeper_db block) into connMap. Commander nests these KeeperDB settings inside
+// pamSettings.connection, even though they're a separate keeper_db block in the Terraform
+// schema.
+func applyKeeperDbToConnectionMap(connMap map[string]interface{}, keeperDb *DatabaseKeeperDbResourceModel) {
+	if keeperDb == nil {
+		return
+	}
+	if !keeperDb.DbConnectionMethod.IsNull() && !keeperDb.DbConnectionMethod.IsUnknown() {
+		connMap["dbConnectionMethod"] = keeperDb.DbConnectionMethod.ValueString()
+	}
+	if !keeperDb.SessionPersistence.IsNull() && !keeperDb.SessionPersistence.IsUnknown() {
+		connMap["rbiSettings"] = map[string]interface{}{
+			"sessionPersistence": keeperDb.SessionPersistence.ValueString(),
+		}
+	}
 }
 
 func buildPortForwardMap(tunnel *CommonPamSettingsTunnelResourceModel) map[string]interface{} {
@@ -1171,6 +1240,7 @@ func buildDatabaseConnectionMap(connection *CommonPamSettingsConnectionResourceM
 	setOptionalBoolField(connMap, "readOnly", db.ReadOnly)
 	setOptionalBoolField(connMap, "disableCopy", db.DisableCopy)
 	setOptionalBoolField(connMap, "disablePaste", db.DisablePaste)
+	setClipboardDataSizeLimitField(connMap, db.ClipboardDataSizeLimit)
 	setOptionalBoolField(connMap, "disableCsvExport", db.DisableCsvExport)
 	setOptionalBoolField(connMap, "disableCsvImport", db.DisableCsvImport)
 	setOptionalStringField(connMap, "database", db.Database)
@@ -1212,6 +1282,7 @@ func buildMariaDbOracleDatabaseConnectionMap(connection *CommonPamSettingsConnec
 	setOptionalBoolField(connMap, "recordingIncludeKeys", db.RecordingIncludeKeys)
 	setOptionalBoolField(connMap, "disableCopy", db.DisableCopy)
 	setOptionalBoolField(connMap, "disablePaste", db.DisablePaste)
+	setClipboardDataSizeLimitField(connMap, db.ClipboardDataSizeLimit)
 	setOptionalBoolField(connMap, "disableCsvExport", db.DisableCsvExport)
 	setOptionalBoolField(connMap, "disableCsvImport", db.DisableCsvImport)
 	setOptionalStringField(connMap, "database", db.Database)
@@ -1260,6 +1331,7 @@ func buildRdpConnectionMap(connection *CommonPamSettingsConnectionResourceModel)
 	setOptionalBoolField(connMap, "disableAuth", rdp.DisableAuth)
 	setOptionalBoolField(connMap, "disableCopy", rdp.DisableCopy)
 	setOptionalBoolField(connMap, "disablePaste", rdp.DisablePaste)
+	setClipboardDataSizeLimitField(connMap, rdp.ClipboardDataSizeLimit)
 
 	setOptionalStringField(connMap, "normalizeClipboard", rdp.NormalizeClipboard)
 	setOptionalStringField(connMap, "security", rdp.Security)
@@ -1318,6 +1390,7 @@ func buildSshConnectionMap(connection *CommonPamSettingsConnectionResourceModel)
 	setOptionalBoolField(connMap, "readOnly", ssh.ReadOnly)
 	setOptionalBoolField(connMap, "disableCopy", ssh.DisableCopy)
 	setOptionalBoolField(connMap, "disablePaste", ssh.DisablePaste)
+	setClipboardDataSizeLimitField(connMap, ssh.ClipboardDataSizeLimit)
 	setOptionalStringField(connMap, "colorScheme", ssh.ColorScheme)
 	setOptionalStringField(connMap, "fontName", ssh.FontName)
 	setOptionalStringField(connMap, "hostKey", ssh.HostKey)
@@ -1373,6 +1446,7 @@ func extractSshConnectionFromResponse(sshConn *utils.SshConnectionResponse, pamE
 	ssh.ReadOnly = optionalBoolValue(sshConn.ReadOnly)
 	ssh.DisableCopy = optionalBoolValueWithDefault(sshConn.DisableCopy)
 	ssh.DisablePaste = optionalBoolValueWithDefault(sshConn.DisablePaste)
+	ssh.ClipboardDataSizeLimit = ClipboardDataSizeLimitFromBytes(sshConn.ClipboardBufferSize)
 	ssh.ColorScheme = utils.StringOrNull(sshConn.ColorScheme)
 	ssh.FontName = utils.StringOrNull(sshConn.FontName)
 	ssh.FontSize = parseStringToInt32(sshConn.FontSize)
@@ -1425,6 +1499,7 @@ func buildTelnetConnectionMap(connection *CommonPamSettingsConnectionResourceMod
 	setOptionalBoolField(connMap, "readOnly", telnet.ReadOnly)
 	setOptionalBoolField(connMap, "disableCopy", telnet.DisableCopy)
 	setOptionalBoolField(connMap, "disablePaste", telnet.DisablePaste)
+	setClipboardDataSizeLimitField(connMap, telnet.ClipboardDataSizeLimit)
 	setOptionalStringField(connMap, "colorScheme", telnet.ColorScheme)
 	setOptionalStringField(connMap, "fontName", telnet.FontName)
 	setOptionalStringField(connMap, "usernameRegex", telnet.UsernameRegex)
@@ -1472,6 +1547,7 @@ func extractTelnetConnectionFromResponse(telnetConn *utils.TelnetConnectionRespo
 	telnet.ReadOnly = optionalBoolValue(telnetConn.ReadOnly)
 	telnet.DisableCopy = optionalBoolValueWithDefault(telnetConn.DisableCopy)
 	telnet.DisablePaste = optionalBoolValueWithDefault(telnetConn.DisablePaste)
+	telnet.ClipboardDataSizeLimit = ClipboardDataSizeLimitFromBytes(telnetConn.ClipboardBufferSize)
 	telnet.ColorScheme = utils.StringOrNull(telnetConn.ColorScheme)
 	telnet.FontName = utils.StringOrNull(telnetConn.FontName)
 	telnet.FontSize = parseStringToInt32(telnetConn.FontSize)
@@ -1513,6 +1589,7 @@ func buildVncConnectionMap(connection *CommonPamSettingsConnectionResourceModel)
 	setOptionalBoolField(connMap, "readOnly", vnc.ReadOnly)
 	setOptionalBoolField(connMap, "disableCopy", vnc.DisableCopy)
 	setOptionalBoolField(connMap, "disablePaste", vnc.DisablePaste)
+	setClipboardDataSizeLimitField(connMap, vnc.ClipboardDataSizeLimit)
 	setOptionalBoolField(connMap, "swapRedBlue", vnc.SwapRedBlue)
 	setOptionalBoolField(connMap, "forceLossless", vnc.ForceLossless)
 	setOptionalBoolField(connMap, "enableAudio", vnc.EnableAudio)
@@ -1568,6 +1645,7 @@ func extractVncConnectionFromResponse(vncConn *utils.VncConnectionResponse, pamE
 	vnc.ReadOnly = optionalBoolValue(vncConn.ReadOnly)
 	vnc.DisableCopy = optionalBoolValueWithDefault(vncConn.DisableCopy)
 	vnc.DisablePaste = optionalBoolValueWithDefault(vncConn.DisablePaste)
+	vnc.ClipboardDataSizeLimit = ClipboardDataSizeLimitFromBytes(vncConn.ClipboardBufferSize)
 	vnc.SwapRedBlue = optionalBoolValue(vncConn.SwapRedBlue)
 	vnc.ForceLossless = optionalBoolValue(vncConn.ForceLossless)
 	vnc.EnableAudio = optionalBoolValue(vncConn.EnableAudio)
@@ -1608,6 +1686,38 @@ func setOptionalStringField(m map[string]interface{}, key string, v types.String
 	if !v.IsNull() && !v.IsUnknown() {
 		m[key] = v.ValueString()
 	}
+}
+
+// clipboardDataSizeLimitBytes maps the clipboard_data_size_limit enum values to the
+// byte count Commander expects as connection.clipboardBufferSize.
+var clipboardDataSizeLimitBytes = map[string]int{
+	"256KB": 256 * 1024,
+	"1MB":   1024 * 1024,
+	"10MB":  10 * 1024 * 1024,
+	"50MB":  50 * 1024 * 1024,
+}
+
+// setClipboardDataSizeLimitField sets connMap["clipboardBufferSize"] (bytes) from the
+// clipboard_data_size_limit enum value.
+func setClipboardDataSizeLimitField(m map[string]interface{}, v types.String) {
+	if v.IsNull() || v.IsUnknown() {
+		return
+	}
+	if bytes, ok := clipboardDataSizeLimitBytes[v.ValueString()]; ok {
+		m["clipboardBufferSize"] = bytes
+	}
+}
+
+// ClipboardDataSizeLimitFromBytes reverses setClipboardDataSizeLimitField, mapping
+// connection.clipboardBufferSize back to its enum label. Returns null if bytes doesn't
+// match one of the known sizes (e.g. not yet set).
+func ClipboardDataSizeLimitFromBytes(bytes int) types.String {
+	for label, b := range clipboardDataSizeLimitBytes {
+		if b == bytes {
+			return types.StringValue(label)
+		}
+	}
+	return types.StringNull()
 }
 
 func BuildHostnameOrIPJSON(h *HostnameOrIPModel) string {

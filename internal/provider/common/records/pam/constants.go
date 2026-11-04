@@ -107,6 +107,9 @@ const (
 	ConnectionDisablePasteDescription         = "Whether paste is disabled for the connection."
 	ConnectionDisablePasteMarkdownDescription = "Whether **paste** is disabled for the connection."
 
+	ConnectionClipboardDataSizeLimitDescription         = "Maximum clipboard data size allowed for copy/paste. To use default size don't set this field. Valid values are: `256KB`, `1MB`, `10MB`, `50MB`."
+	ConnectionClipboardDataSizeLimitMarkdownDescription = "Maximum **clipboard data size** allowed for copy/paste. To use default size don't set this field. Valid values are: `256KB`, `1MB`, `10MB`, `50MB`."
+
 	// --- Shared Rotate Attribute (ConnectionRotateFields) ---.
 	ConnectionRotateOnTerminationDescription         = "Rotate launch credentials upon session termination."
 	ConnectionRotateOnTerminationMarkdownDescription = "**Rotate** launch credentials upon session termination."
@@ -385,4 +388,11 @@ const (
 
 	PamSettingsTunnelLocalPortDescription         = "Local port for tunneling. Only applicable when tunneling is enabled."
 	PamSettingsTunnelLocalPortMarkdownDescription = "**Local port** for tunneling. Only applicable when tunneling is enabled."
+
+	// --- PAM Settings Keeper DB ---.
+	PamSettingsKeeperDbDescription         = "Keeper DB connection method for the PAM Database record. Valid values are: `both`, `cli`, `keeperDB`. Default is `both`."
+	PamSettingsKeeperDbMarkdownDescription = "**Keeper DB** connection method for the PAM Database record. Valid values are: `both`, `cli`, `keeperDB`. Default is `both`."
+
+	PamSettingsKeeperDbSessionPersistenceDescription         = "Session persistence settings for this PAM Database record. Valid values are: `none`, `user`, `resource`. Default is `none`."
+	PamSettingsKeeperDbSessionPersistenceMarkdownDescription = "**Session persistence** settings for this PAM Database record. Valid values are: `none`, `user`, `resource`. Default is `none`."
 )

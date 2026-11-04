@@ -169,3 +169,109 @@ func appendGcpFlags(parts *[]string, m *commonpamconfiguration.PamGcpModel) {
 func buildPamConfigRemoveCommand(uid string) string {
 	return strings.Join([]string{commonpamconfiguration.CmdPamConfig, commonpamconfiguration.CmdPamRemove, utils.QuoteShellSingle(strings.TrimSpace(uid))}, " ")
 }
+
+// ussConfigured reports whether universal_secrets_sync is set for data's active environment.
+func ussConfigured(data *commonpamconfiguration.PamConfigurationResourceModel) bool {
+	return ussCommonModel(data) != nil
+}
+
+// ussCommonModel returns the active environment's universal_secrets_sync common fields, or nil if not set.
+func ussCommonModel(data *commonpamconfiguration.PamConfigurationResourceModel) *commonpamconfiguration.PamCommonUniversalSecretsSyncModel {
+	switch data.Environment.ValueString() {
+	case commonpamconfiguration.EnvAWS:
+		if data.Aws != nil && data.Aws.UniversalSecretsSync != nil {
+			return &data.Aws.UniversalSecretsSync.PamCommonUniversalSecretsSyncModel
+		}
+	case commonpamconfiguration.EnvAzure:
+		if data.Azure != nil && data.Azure.UniversalSecretsSync != nil {
+			return &data.Azure.UniversalSecretsSync.PamCommonUniversalSecretsSyncModel
+		}
+	case commonpamconfiguration.EnvGCP:
+		if data.Gcp != nil && data.Gcp.UniversalSecretsSync != nil {
+			return &data.Gcp.UniversalSecretsSync.PamCommonUniversalSecretsSyncModel
+		}
+	}
+	return nil
+}
+
+// ussVaultName returns azure.universal_secrets_sync.vault_name, or null for any other environment.
+func ussVaultName(data *commonpamconfiguration.PamConfigurationResourceModel) types.String {
+	if data.Environment.ValueString() == commonpamconfiguration.EnvAzure && data.Azure != nil && data.Azure.UniversalSecretsSync != nil {
+		return data.Azure.UniversalSecretsSync.VaultName
+	}
+	return types.StringNull()
+}
+
+// ussChanged reports whether universal_secrets_sync differs between plan and state.
+func ussChanged(plan, state *commonpamconfiguration.PamConfigurationResourceModel) bool {
+	p, s := ussCommonModel(plan), ussCommonModel(state)
+	if p == nil || s == nil {
+		return p != s
+	}
+	return !p.Enabled.Equal(s.Enabled) ||
+		!p.DryRun.Equal(s.DryRun) ||
+		!p.SyncIdentity.Equal(s.SyncIdentity) ||
+		!p.FolderLocation.Equal(s.FolderLocation) ||
+		!ussVaultName(plan).Equal(ussVaultName(state))
+}
+
+// clearUssConfig removes universal_secrets_sync from every cloud environment block.
+func clearUssConfig(data *commonpamconfiguration.PamConfigurationResourceModel) {
+	if data.Aws != nil {
+		data.Aws.UniversalSecretsSync = nil
+	}
+	if data.Azure != nil {
+		data.Azure.UniversalSecretsSync = nil
+	}
+	if data.Gcp != nil {
+		data.Gcp.UniversalSecretsSync = nil
+	}
+}
+
+// appendPamUssConfigBodyFlags appends `pam universal-sync-config` body flags (enabled,
+// folder, sync-identity, vault-name, dry-run) for the active environment's
+// universal_secrets_sync block. Returns false (and appends nothing) if the environment
+// doesn't support Universal Secrets Sync, or the universal_secrets_sync block isn't
+// configured for it - callers should skip issuing the command entirely in that case.
+func appendPamUssConfigBodyFlags(parts *[]string, data *commonpamconfiguration.PamConfigurationResourceModel) bool {
+	common := ussCommonModel(data)
+	if common == nil {
+		return false
+	}
+
+	*parts = append(*parts, fmt.Sprintf("%s %s", commonpamconfiguration.FlagPamUssEnabled, boolToTrueFalse(common.Enabled)))
+	for _, f := range sortedSetStrings(common.FolderLocation) {
+		*parts = append(*parts, fmt.Sprintf("%s %s", commonpamconfiguration.FlagPamUssFolder, utils.QuoteShellSingle(f)))
+	}
+	appendFlagString(parts, commonpamconfiguration.FlagPamUssSyncIdentity, common.SyncIdentity)
+	appendFlagString(parts, commonpamconfiguration.FlagPamUssVaultName, ussVaultName(data))
+	*parts = append(*parts, fmt.Sprintf("%s %s", commonpamconfiguration.FlagPamUssDryRun, boolToTrueFalse(common.DryRun)))
+
+	return true
+}
+
+// buildPamNewUssConfigCommand builds `pam universal-sync-config add --network '<uid>' ...`
+// from the resource model. Returns "" if the environment doesn't support Universal Secrets
+// Sync, or the universal_secrets_sync block isn't configured for it.
+func buildPamNewUssConfigCommand(data *commonpamconfiguration.PamConfigurationResourceModel) string {
+	parts := []string{commonpamconfiguration.CmdPamUniversalSyncConfigNew}
+	appendFlagString(&parts, commonpamconfiguration.FlagPamUssNetwork, data.Id)
+
+	if !appendPamUssConfigBodyFlags(&parts, data) {
+		return ""
+	}
+	return strings.Join(parts, " ")
+}
+
+// buildPamEditUssConfigCommand builds `pam universal-sync-config edit --network '<uid>' ...`
+// from the resource model. Returns "" if the environment doesn't support Universal Secrets
+// Sync, or the universal_secrets_sync block isn't configured for it.
+func buildPamEditUssConfigCommand(data *commonpamconfiguration.PamConfigurationResourceModel) string {
+	parts := []string{commonpamconfiguration.CmdPamUniversalSyncConfigEdit}
+	appendFlagString(&parts, commonpamconfiguration.FlagPamUssNetwork, data.Id)
+
+	if !appendPamUssConfigBodyFlags(&parts, data) {
+		return ""
+	}
+	return strings.Join(parts, " ")
+}

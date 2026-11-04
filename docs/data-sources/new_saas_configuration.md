@@ -45,8 +45,10 @@ output "saas_configuration_share" {
 
 ### Read-Only
 
+- `configuration` (String) The PAM configuration UID used for rotation.
 - `custom` (Attributes List) Custom fields stored in the record's `custom` array. (see [below for nested schema](#nestedatt--custom))
 - `folder_location` (String) Folder `path` or `UID` where the record is to be stored.
+- `gateway` (String) The configured gateway `UID` or `name`
 - `id` (String) Unique identifier (UID) of the vault record.
 - `notes` (String) Note of the record.
 - `share` (Map of String) Mapping of share permissions for this folder or record. For folders, keys can identify either users (**UID** or **email**) or teams (**UID** or **name**). For records, keys can identify users only (**UID** or **email**). Values specify the permission level: `viewer`, `share-manager`, `content-manager`, `content-share-manager`, or `full-manager`. The owner is implicit and never present in this map; the API rejects owner entries.

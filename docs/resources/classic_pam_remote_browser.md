@@ -50,10 +50,12 @@ resource "commander_classic_pam_remote_browser" "intranet_app" {
     auto_fill_targets = toset([
       "_REPLACE_WITH_AUTOFILL_TARGET_RECORD_UID_",
     ])
+    allow_supply_user = true
 
-    allow_copy    = true
-    allow_paste   = true
-    disable_audio = false
+    allow_copy                = true
+    allow_paste               = true
+    clipboard_data_size_limit = "1MB"
+    disable_audio             = false
 
     audio_channels    = 2
     audio_bit_depth   = 16
@@ -120,6 +122,7 @@ Optional:
 - `audio_sample_rate` (Number) Audio **sample rate** in Hz (for example `48000`).
 - `auto_fill_credentials` (String) Record UID of **Credentials** attached to the PAM configuration.
 - `auto_fill_targets` (Set of String) **Browser autofill targets.**
+- `clipboard_data_size_limit` (String) Maximum **clipboard data size** allowed for copy/paste. To use default size don't set this field. Valid values are: `256KB`, `1MB`, `10MB`, `50MB`.
 - `connections_recording` (Boolean) **Manage graphical session recording**.
 - `disable_audio` (Boolean) **Disable audio**.
 - `ignore_server_cert` (Boolean) **Ignore Server Certificate**.

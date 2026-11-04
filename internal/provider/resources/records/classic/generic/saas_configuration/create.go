@@ -29,6 +29,28 @@ func (r *SaasConfigurationResource) Create(ctx context.Context, req resource.Cre
 		return
 	}
 
+	if saasType := commonrecordsaasconfiguration.SaasTypeFromCustom(data.Custom); saasType != "" {
+		entries, err := commonrecordsaasconfiguration.FetchSaasPluginList(ctx, r.ApiManager, data.Gateway.ValueString())
+		if err != nil {
+			resp.Diagnostics.AddError(commonrecordsaasconfiguration.ErrOpListSaasPluginsForGateway(data.Gateway.ValueString()), err.Error())
+			return
+		}
+		if err := commonrecordsaasconfiguration.ValidateSaasType(saasType, entries); err != nil {
+			resp.Diagnostics.AddError(commonrecordsaasconfiguration.ErrSummaryInvalidSaasType, err.Error())
+			return
+		}
+
+		specs, err := commonrecordsaasconfiguration.FetchSaasFieldSpecs(ctx, r.ApiManager, data.Gateway.ValueString(), saasType)
+		if err != nil {
+			resp.Diagnostics.AddError(commonrecordsaasconfiguration.ErrOpGetSaasPluginInfo, err.Error())
+			return
+		}
+		if err := commonrecordsaasconfiguration.ValidateSaasFields(saasType, data.Custom, specs); err != nil {
+			resp.Diagnostics.AddError(commonrecordsaasconfiguration.ErrSummaryInvalidSaasFields, err.Error())
+			return
+		}
+	}
+
 	cmd := commonrecordsaasconfiguration.BuildAddCommand(utils.CmdRecordAdd, data.SaasConfigurationModel)
 	apiResp, err := r.ApiManager.ExecuteCommand(ctx, cmd, ErrDetailCreateFailed)
 	if err != nil {
@@ -42,6 +64,12 @@ func (r *SaasConfigurationResource) Create(ctx context.Context, req resource.Cre
 		return
 	}
 	data.Id = types.StringValue(createdUID)
+
+	// Link the created SaaS configuration record to provided gateway, to complete the configuration process.
+	if err := commonrecordsaasconfiguration.LinkToGateway(ctx, r.ApiManager, data.Gateway.ValueString(), data.Configuration.ValueString(), createdUID); err != nil {
+		resp.Diagnostics.AddError(ErrSummaryCreateFailed, err.Error())
+		return
+	}
 
 	if err := classic_share.SyncSharePermissions(ctx, r.ApiManager, createdUID, data.Share, types.MapNull(classic_share.ShareEntryAttrType)); err != nil {
 		resp.Diagnostics.AddError(ErrSummaryCreateFailed, err.Error())

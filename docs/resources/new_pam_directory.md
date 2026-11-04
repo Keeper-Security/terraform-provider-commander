@@ -133,23 +133,24 @@ resource "commander_new_pam_directory" "full" {
       launch_credential = "_REPLACE_WITH_LAUNCH_CREDENTIAL_UID_"
 
       ssh {
-        session_recording      = true
-        typescript_recording   = true
-        recording_include_keys = true
-        allow_supply_user      = false
-        read_only              = false
-        color_scheme           = "black-white"
-        font_name              = "monospace"
-        font_size              = 12
-        scrollback             = 2000
-        backspace              = "127"
-        terminal_type          = "xterm-256color"
-        locale                 = "en_US.UTF-8"
-        timezone               = "America/New_York"
-        server_alive_interval  = 60
-        command                = "/bin/bash"
-        disable_copy           = false
-        disable_paste          = false
+        session_recording         = true
+        typescript_recording      = true
+        recording_include_keys    = true
+        allow_supply_user         = false
+        read_only                 = false
+        color_scheme              = "black-white"
+        font_name                 = "monospace"
+        font_size                 = 12
+        scrollback                = 2000
+        backspace                 = "127"
+        terminal_type             = "xterm-256color"
+        locale                    = "en_US.UTF-8"
+        timezone                  = "America/New_York"
+        server_alive_interval     = 60
+        command                   = "/bin/bash"
+        disable_copy              = false
+        disable_paste             = false
+        clipboard_data_size_limit = "10MB" # 256KB | 1MB | 10MB | 50MB
 
         sftp {
           enable_sftp = true
@@ -284,6 +285,7 @@ Optional:
 
 - `allow_supply_user` (Boolean) Allow users to **select credentials** from their vault.
 - `client_name` (String) **Client name** for the RDP connection.
+- `clipboard_data_size_limit` (String) Maximum **clipboard data size** allowed for copy/paste. To use default size don't set this field. Valid values are: `256KB`, `1MB`, `10MB`, `50MB`.
 - `color_depth` (Number) **Color depth** in bits per pixel for the RDP connection (`8`, `16`, `24`, or `32`).
 - `console` (Boolean) Use **console session** for the RDP connection.
 - `console_audio` (Boolean) Enable **console audio** for the RDP connection.
@@ -348,6 +350,7 @@ Optional:
 
 - `allow_supply_user` (Boolean) Allow users to **select credentials** from their vault.
 - `backspace` (String) ASCII code sent by the **backspace** key. Must be `127` (DEL, default) or `8` (Ctrl+H).
+- `clipboard_data_size_limit` (String) Maximum **clipboard data size** allowed for copy/paste. To use default size don't set this field. Valid values are: `256KB`, `1MB`, `10MB`, `50MB`.
 - `color_scheme` (String) **Color scheme** for the connection terminal. Accepts named presets (`black-white`, `gray-black`, `green-black`, `white-black`) or a Guacamole terminal color scheme string.
 - `command` (String) **Command** to execute on the SSH server after connecting.
 - `disable_copy` (Boolean) Whether **copy** is disabled for the connection.
@@ -383,6 +386,7 @@ Optional:
 
 - `allow_supply_user` (Boolean) Allow users to **select credentials** from their vault.
 - `backspace` (String) ASCII code sent by the **backspace** key. Must be `127` (DEL, default) or `8` (Ctrl+H).
+- `clipboard_data_size_limit` (String) Maximum **clipboard data size** allowed for copy/paste. To use default size don't set this field. Valid values are: `256KB`, `1MB`, `10MB`, `50MB`.
 - `color_scheme` (String) **Color scheme** for the connection terminal. Accepts named presets (`black-white`, `gray-black`, `green-black`, `white-black`) or a Guacamole terminal color scheme string.
 - `disable_copy` (Boolean) Whether **copy** is disabled for the connection.
 - `disable_paste` (Boolean) Whether **paste** is disabled for the connection.
@@ -408,6 +412,7 @@ Optional:
 
 - `allow_supply_user` (Boolean) Allow users to **select credentials** from their vault.
 - `audio_servername` (String) **PulseAudio server name** for VNC audio.
+- `clipboard_data_size_limit` (String) Maximum **clipboard data size** allowed for copy/paste. To use default size don't set this field. Valid values are: `256KB`, `1MB`, `10MB`, `50MB`.
 - `clipboard_encoding` (String) **Clipboard encoding** for the VNC connection. Must be one of: `UTF-8` (default), `UTF-16`, `ISO8859-1`, `CP1252`.
 - `color_depth` (Number) **Color depth** in bits per pixel for the VNC connection.
 - `cursor` (String) **Cursor rendering mode** for the VNC connection. Must be `local` or `remote`.

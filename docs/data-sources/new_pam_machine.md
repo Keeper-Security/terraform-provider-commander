@@ -163,6 +163,7 @@ Read-Only:
 
 - `allow_supply_user` (Boolean)
 - `client_name` (String)
+- `clipboard_data_size_limit` (String)
 - `color_depth` (Number)
 - `console` (Boolean)
 - `console_audio` (Boolean)
@@ -227,6 +228,7 @@ Read-Only:
 
 - `allow_supply_user` (Boolean)
 - `backspace` (String)
+- `clipboard_data_size_limit` (String)
 - `color_scheme` (String)
 - `command` (String)
 - `disable_copy` (Boolean)
@@ -262,6 +264,7 @@ Read-Only:
 
 - `allow_supply_user` (Boolean)
 - `backspace` (String)
+- `clipboard_data_size_limit` (String)
 - `color_scheme` (String)
 - `disable_copy` (Boolean)
 - `disable_paste` (Boolean)
@@ -287,6 +290,7 @@ Read-Only:
 
 - `allow_supply_user` (Boolean)
 - `audio_servername` (String)
+- `clipboard_data_size_limit` (String)
 - `clipboard_encoding` (String)
 - `color_depth` (Number)
 - `cursor` (String)

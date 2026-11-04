@@ -5,6 +5,7 @@ package pamconfiguration_test
 
 import (
 	"context"
+	"encoding/json"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -15,7 +16,9 @@ import (
 	"github.com/Keeper-Security/terraform-provider-commander/tests/helpers"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	dschema "github.com/hashicorp/terraform-plugin-framework/datasource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
+	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
@@ -264,5 +267,101 @@ func TestDSRead_GcpConfig(t *testing.T) {
 	d.Read(context.Background(), req, &resp)
 	if resp.Diagnostics.HasError() {
 		t.Fatalf("Read failed for GCP config: %v", resp.Diagnostics)
+	}
+}
+
+func dsGcpPamConfigListJSON() interface{} {
+	return map[string]interface{}{
+		"uid":          "cfg-gcp-001",
+		"name":         "GCP Config",
+		"config_type":  "pamGcpConfiguration",
+		"gateway_uid":  "gw-gcp",
+		"gateway_name": "GCP Gateway",
+		"shared_folder": map[string]interface{}{
+			"uid":  "sf-uid",
+			"name": "GCP Folder",
+		},
+		"allowed_settings": map[string]interface{}{},
+		"fields": map[string]interface{}{
+			"pamGcpId": []string{"my-project"},
+		},
+	}
+}
+
+func TestDSRead_GcpUssConfigured(t *testing.T) {
+	mock := &helpers.CommandServer{}
+	server := helpers.StartCommandServer(mock, func(cmd string, _ int) (string, interface{}) {
+		if strings.Contains(cmd, "universal-sync-config list") {
+			return "ok", map[string]interface{}{
+				"record_uid":      "cfg-gcp-001",
+				"record_type":     "pamGcpConfiguration",
+				"enabled":         true,
+				"dry_run_enabled": false,
+				"vault_name":      "N/A",
+				"sync_identity":   "abc",
+				"folders":         []map[string]interface{}{{"uid": "folder-1"}},
+			}
+		}
+		if strings.Contains(cmd, "pam config") && strings.Contains(cmd, "list") {
+			return "ok", dsGcpPamConfigListJSON()
+		}
+		return "ok", nil
+	})
+	defer server.Close()
+
+	d := newConfiguredDS(t, server)
+	sch := getDSSchema(t)
+	req := datasource.ReadRequest{Config: tfsdk.Config{Schema: sch, Raw: newDSConfigRaw(t, sch, "cfg-gcp-001")}}
+	resp := datasource.ReadResponse{State: tfsdk.State{Schema: sch, Raw: newDSEmptyState(t, sch)}}
+	d.Read(context.Background(), req, &resp)
+	if resp.Diagnostics.HasError() {
+		t.Fatalf("Read failed: %v", resp.Diagnostics)
+	}
+
+	var enabled types.Bool
+	resp.Diagnostics.Append(resp.State.GetAttribute(context.Background(), path.Root("gcp").AtName("universal_secrets_sync").AtName("enabled"), &enabled)...)
+	var syncIdentity types.String
+	resp.Diagnostics.Append(resp.State.GetAttribute(context.Background(), path.Root("gcp").AtName("universal_secrets_sync").AtName("sync_identity"), &syncIdentity)...)
+	if resp.Diagnostics.HasError() {
+		t.Fatalf("reading universal_secrets_sync from state: %v", resp.Diagnostics)
+	}
+	if !enabled.ValueBool() {
+		t.Errorf("expected gcp.universal_secrets_sync.enabled = true, got %v", enabled)
+	}
+	if syncIdentity.ValueString() != "abc" {
+		t.Errorf("expected gcp.universal_secrets_sync.sync_identity = abc, got %v", syncIdentity)
+	}
+}
+
+func TestDSRead_GcpUssNeverConfigured(t *testing.T) {
+	mock := &helpers.CommandServer{}
+	server := helpers.StartCommandServerWithResultHook(mock, nil, func(cmd string, _ int) (int, []byte) {
+		if strings.Contains(cmd, "universal-sync-config") {
+			return http.StatusInternalServerError, []byte(`{"error":"No USS configuration found for this network"}`)
+		}
+		if strings.Contains(cmd, "pam config") {
+			body, _ := json.Marshal(map[string]interface{}{"data": dsGcpPamConfigListJSON(), "status": "success"})
+			return http.StatusOK, body
+		}
+		return 0, nil
+	})
+	defer server.Close()
+
+	d := newConfiguredDS(t, server)
+	sch := getDSSchema(t)
+	req := datasource.ReadRequest{Config: tfsdk.Config{Schema: sch, Raw: newDSConfigRaw(t, sch, "cfg-gcp-001")}}
+	resp := datasource.ReadResponse{State: tfsdk.State{Schema: sch, Raw: newDSEmptyState(t, sch)}}
+	d.Read(context.Background(), req, &resp)
+	if resp.Diagnostics.HasError() {
+		t.Fatalf("expected no error when USS was never configured: %v", resp.Diagnostics)
+	}
+
+	var uss types.Object
+	resp.Diagnostics.Append(resp.State.GetAttribute(context.Background(), path.Root("gcp").AtName("universal_secrets_sync"), &uss)...)
+	if resp.Diagnostics.HasError() {
+		t.Fatalf("reading universal_secrets_sync from state: %v", resp.Diagnostics)
+	}
+	if !uss.IsNull() {
+		t.Errorf("expected gcp.universal_secrets_sync to be null, got %v", uss)
 	}
 }

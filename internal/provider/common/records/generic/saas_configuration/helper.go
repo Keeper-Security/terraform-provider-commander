@@ -4,6 +4,10 @@
 package saasconfiguration
 
 import (
+	"context"
+	"fmt"
+
+	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/api"
 	commonrecordsutils "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/utils"
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/utils"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
@@ -54,4 +58,23 @@ func MapVaultRecordGetResponseToSaasConfigurationModel(rec *utils.VaultRecordGet
 	commonrecordsutils.MapBaseVaultRecord(rec, stateFolder, &m.BaseVaultRecordModel)
 	m.Custom = commonrecordsutils.ParseCustomFields(rec.Custom)
 	return nil
+}
+
+// ErrOpListSaasPluginsForGateway formats ErrOpListSaasPlugins with the specific gateway name/UID.
+func ErrOpListSaasPluginsForGateway(gateway string) string {
+	return fmt.Sprintf("%s %q", ErrOpListSaasPlugins, gateway)
+}
+
+// LinkToGateway used to connect a just-created SaaS configuration record to the gateway and PAM configuration that will use it for rotation.
+// So it performs all configuration complete.
+func LinkToGateway(ctx context.Context, apiManager *api.ApiManager, gateway, configuration, recordUID string) error {
+	command := fmt.Sprintf(
+		"%s --gateway %s --configuration-uid %s --config-record-uid %s",
+		utils.CmdPamActionSaaSUpdate,
+		utils.QuoteShellSingle(gateway),
+		utils.QuoteShellSingle(configuration),
+		utils.QuoteShellSingle(recordUID),
+	)
+	_, err := apiManager.ExecuteCommand(ctx, command, ErrOpLinkSaasConfigToGateway)
+	return err
 }

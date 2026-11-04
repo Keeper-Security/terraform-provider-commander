@@ -148,6 +148,14 @@ func SharedAttributes() map[string]schema.Attribute {
 					Description:         SettingsAllowPasteDescription,
 					MarkdownDescription: SettingsAllowPasteMarkdownDescription,
 				},
+				"clipboard_data_size_limit": schema.StringAttribute{
+					Optional:            true,
+					Description:         pamrecords.ConnectionClipboardDataSizeLimitDescription,
+					MarkdownDescription: pamrecords.ConnectionClipboardDataSizeLimitMarkdownDescription,
+					Validators: []validator.String{
+						utils.StringOneOfValidator("Clipboard Data Size Limit", []string{"256KB", "1MB", "10MB", "50MB"}, true),
+					},
+				},
 				"disable_audio": schema.BoolAttribute{
 					Optional:            true,
 					Description:         SettingsDisableAudioDescription,
@@ -314,6 +322,11 @@ func remoteBrowserRBISettingsDataSourceAttributes() map[string]dschema.Attribute
 			Computed:            true,
 			Description:         SettingsAllowPasteDescription,
 			MarkdownDescription: SettingsAllowPasteMarkdownDescription,
+		},
+		"clipboard_data_size_limit": dschema.StringAttribute{
+			Computed:            true,
+			Description:         pamrecords.ConnectionClipboardDataSizeLimitDescription,
+			MarkdownDescription: pamrecords.ConnectionClipboardDataSizeLimitMarkdownDescription,
 		},
 		"disable_audio": dschema.BoolAttribute{
 			Computed:            true,

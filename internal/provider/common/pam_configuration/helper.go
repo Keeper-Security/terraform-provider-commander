@@ -4,9 +4,12 @@
 package pamconfiguration
 
 import (
+	"context"
+	"errors"
 	"fmt"
 	"strings"
 
+	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/api"
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/utils"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -20,6 +23,40 @@ func FetchPamConfigByUIDCommand(uid string) string {
 		utils.FlagFormatJSON,
 		utils.FlagVerbose,
 	}, " ")
+}
+
+// FetchPamUssConfigByNetworkUIDCommand builds
+// `pam universal-sync-config list --network '<uid>' --format json`.
+func FetchPamUssConfigByNetworkUIDCommand(uid string) string {
+	return strings.Join([]string{
+		CmdPamUniversalSyncConfigList,
+		FlagPamUssNetwork, utils.QuoteShellSingle(strings.TrimSpace(uid)),
+		utils.FlagFormatJSON,
+	}, " ")
+}
+
+// BuildPamRemoveUssConfigCommand builds `pam universal-sync-config remove --network '<uid>'`.
+func BuildPamRemoveUssConfigCommand(uid string) string {
+	return strings.Join([]string{
+		CmdPamUniversalSyncConfigRemove,
+		FlagPamUssNetwork, utils.QuoteShellSingle(strings.TrimSpace(uid)),
+	}, " ")
+}
+
+// ussConfigNotFoundPhrase is the substring (case-insensitive) Commander's
+// `pam universal-sync-config list` returns in its error when no Universal Secrets Sync
+// configuration has ever been created for the given network/PAM configuration. This is a
+// normal, expected condition - not an out-of-band deletion of the PAM configuration itself -
+// so callers must treat it as "leave UniversalSecretsSync nil", not as api.ErrResourceNotFound
+// (whose usual handler removes the whole resource from state) or a hard Read failure. It
+// doesn't contain "not found"/"cannot find", so the generic not-found classifier in the api
+// package doesn't catch it.
+const ussConfigNotFoundPhrase = "no uss configuration found"
+
+// IsUssConfigNotFoundError reports whether err is Commander's "no Universal Secrets Sync
+// configuration exists yet for this network" response.
+func IsUssConfigNotFoundError(err error) bool {
+	return err != nil && strings.Contains(strings.ToLower(err.Error()), ussConfigNotFoundPhrase)
 }
 
 // pamConfigTypeToEnvironment maps API config_type values to Terraform environment.
@@ -239,4 +276,113 @@ func MapPamConfigAPIResponseToModel(state *PamConfigurationResourceModel, api *u
 	}
 
 	return nil
+}
+
+// ussStringOrNull returns null for "" and the API's "N/A" placeholder (used when a field
+// doesn't apply to this record's type), else the trimmed value.
+func ussStringOrNull(s string) types.String {
+	s = strings.TrimSpace(s)
+	if s == "" || strings.EqualFold(s, "N/A") {
+		return types.StringNull()
+	}
+	return types.StringValue(s)
+}
+
+// ussFolderLocationSet converts the "folders" array from
+// `pam universal-sync-config list` into a set of folder UIDs.
+func ussFolderLocationSet(folders []utils.PamUniversalSyncConfigFolderResponse) types.Set {
+	elems := make([]attr.Value, 0, len(folders))
+	for _, f := range folders {
+		if uid := strings.TrimSpace(f.UID); uid != "" {
+			elems = append(elems, types.StringValue(uid))
+		}
+	}
+	if len(elems) == 0 {
+		return types.SetNull(types.StringType)
+	}
+	sv, _ := types.SetValue(types.StringType, elems)
+	return sv
+}
+
+// ussHasMaterialConfig reports whether api represents an actually-configured Universal
+// Secrets Sync setup, as opposed to Commander's placeholder response for a PAM
+// configuration that has never had one created: `pam universal-sync-config list` returns
+// "status":"success" with enabled/dry_run_enabled false, vault_name/sync_identity "N/A",
+// and no folders even when nothing was ever configured, rather than erroring - so that
+// shape must be treated the same as "not configured", not as real (if unusually blank)
+// config.
+func ussHasMaterialConfig(api *utils.PamUniversalSyncConfigResponse) bool {
+	if api.Enabled || api.DryRunEnabled || len(api.Folders) > 0 {
+		return true
+	}
+	return !ussStringOrNull(api.SyncIdentity).IsNull() || !ussStringOrNull(api.VaultName).IsNull()
+}
+
+// FetchAndMapUssConfig runs `pam universal-sync-config list` for networkUID and maps the result
+// into state's active environment block. No-op for environments without USS, and when Commander
+// reports no USS configuration exists. See MapUssConfigAPIResponseToModel for priorConfigured.
+func FetchAndMapUssConfig(ctx context.Context, am *api.ApiManager, state *PamConfigurationResourceModel, networkUID string, priorConfigured bool) error {
+	switch state.Environment.ValueString() {
+	case EnvAWS, EnvAzure, EnvGCP:
+	default:
+		return nil
+	}
+
+	resp, err := am.ExecuteCommand(ctx, FetchPamUssConfigByNetworkUIDCommand(networkUID), ErrOpFetchPamUssConfig)
+	if err != nil {
+		if IsUssConfigNotFoundError(err) || errors.Is(err, api.ErrResourceNotFound) {
+			return nil
+		}
+		return err
+	}
+	if resp == nil || resp.Data == nil {
+		return nil
+	}
+
+	var data utils.PamUniversalSyncConfigResponse
+	if err := utils.UnmarshalApiResponse(resp.Data, &data); err != nil {
+		return err
+	}
+	MapUssConfigAPIResponseToModel(state, &data, priorConfigured)
+	return nil
+}
+
+// MapUssConfigAPIResponseToModel sets the active environment's universal_secrets_sync block
+// from `pam universal-sync-config list --network <uid> --format json`. No-op (leaving
+// UniversalSecretsSync nil) if api is nil, state.Environment doesn't support USS (aws, azure,
+// gcp), or api lacks material config (see ussHasMaterialConfig) and priorConfigured is false.
+// priorConfigured must reflect prior state: an all-defaults response is indistinguishable
+// from a user-configured `enabled = false, dry_run = false` block, so prior state decides.
+func MapUssConfigAPIResponseToModel(state *PamConfigurationResourceModel, api *utils.PamUniversalSyncConfigResponse, priorConfigured bool) {
+	if api == nil || (!priorConfigured && !ussHasMaterialConfig(api)) {
+		return
+	}
+
+	common := PamCommonUniversalSecretsSyncModel{
+		Enabled:        types.BoolValue(api.Enabled),
+		DryRun:         types.BoolValue(api.DryRunEnabled),
+		SyncIdentity:   ussStringOrNull(api.SyncIdentity),
+		FolderLocation: ussFolderLocationSet(api.Folders),
+	}
+
+	switch state.Environment.ValueString() {
+	case EnvAWS:
+		if state.Aws == nil {
+			return
+		}
+		state.Aws.UniversalSecretsSync = &PamAwsUniversalSecretsSyncModel{PamCommonUniversalSecretsSyncModel: common}
+	case EnvAzure:
+		if state.Azure == nil {
+			return
+		}
+		state.Azure.UniversalSecretsSync = &PamAzureUniversalSecretsSyncModel{
+			PamCommonUniversalSecretsSyncModel: common,
+			VaultName:                          ussStringOrNull(api.VaultName),
+		}
+	case EnvGCP:
+		if state.Gcp == nil {
+			return
+		}
+		state.Gcp.UniversalSecretsSync = &PamGcpUniversalSecretsSyncModel{PamCommonUniversalSecretsSyncModel: common}
+	}
 }

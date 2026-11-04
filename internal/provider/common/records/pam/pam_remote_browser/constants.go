@@ -108,4 +108,6 @@ const (
 	FlagAudioBitDepth          = "--audio-bit-depth"
 	FlagAudioSampleRate        = "--audio-sample-rate"
 	FlagSessionPersistence     = "--session-persistence"
+	FlagAllowSupplyUser        = "--allow-supply-user"
+	FlagClipboardBufferSize    = "--clipboard-buffer-size"
 )

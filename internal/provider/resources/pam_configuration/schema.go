@@ -16,6 +16,45 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
+// commonUniversalSecretsSyncSchema returns the Universal Secrets Sync attributes shared by
+// aws, azure, and gcp. azure additionally adds vault_name on top of this set.
+func commonUniversalSecretsSyncSchema() map[string]schema.Attribute {
+	return map[string]schema.Attribute{
+		"enabled": schema.BoolAttribute{
+			Optional:            true,
+			Computed:            true,
+			Default:             booldefault.StaticBool(false),
+			Description:         DescUSSEnabled,
+			MarkdownDescription: DescUSSEnabledMD,
+		},
+		"folder_location": schema.SetAttribute{
+			Optional:            true,
+			ElementType:         types.StringType,
+			Description:         DescUSSFolderLocation,
+			MarkdownDescription: DescUSSFolderLocationMD,
+			Validators: []validator.Set{
+				utils.SetNotEmptyValidator("Folder location"),
+				utils.SetNoEmptyStringsValidator("Folder location"),
+			},
+		},
+		"dry_run": schema.BoolAttribute{
+			Optional:            true,
+			Computed:            true,
+			Default:             booldefault.StaticBool(false),
+			Description:         DescUSSDryRun,
+			MarkdownDescription: DescUSSDryRunMD,
+		},
+		"sync_identity": schema.StringAttribute{
+			Optional:            true,
+			Description:         DescUSSSyncIdentity,
+			MarkdownDescription: DescUSSSyncIdentityMD,
+			Validators: []validator.String{
+				utils.StringMinLengthValidator("Sync Identity", 1, true),
+			},
+		},
+	}
+}
+
 func (r *PamConfigurationResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		Description:         DescResource,
@@ -196,6 +235,16 @@ func (r *PamConfigurationResource) Schema(ctx context.Context, req resource.Sche
 						},
 					},
 				},
+				Blocks: map[string]schema.Block{
+					"universal_secrets_sync": schema.SingleNestedBlock{
+						Description:         DescUniversalSecretsSync,
+						MarkdownDescription: DescUniversalSecretsSyncMD,
+						Attributes:          commonUniversalSecretsSyncSchema(),
+						Validators: []validator.Object{
+							UniversalSecretsSyncNotEmptyValidator(),
+						},
+					},
+				},
 			},
 			"azure": schema.SingleNestedBlock{
 				Description:         DescAzure,
@@ -250,6 +299,29 @@ func (r *PamConfigurationResource) Schema(ctx context.Context, req resource.Sche
 						Validators: []validator.Set{
 							utils.SetNotEmptyValidator("Resource groups"),
 							utils.SetNoEmptyStringsValidator("Resource groups"),
+						},
+					},
+				},
+				Blocks: map[string]schema.Block{
+					"universal_secrets_sync": schema.SingleNestedBlock{
+						Description:         DescUniversalSecretsSync,
+						MarkdownDescription: DescUniversalSecretsSyncMD,
+						Attributes: utils.MergeResourceAttributes(
+							commonUniversalSecretsSyncSchema(),
+							map[string]schema.Attribute{
+								"vault_name": schema.StringAttribute{
+									Optional:            true,
+									Description:         DescUSSVaultName,
+									MarkdownDescription: DescUSSVaultNameMD,
+									Validators: []validator.String{
+										utils.StringMinLengthValidator("Vault Name", 1, true),
+									},
+								},
+							},
+						),
+						Validators: []validator.Object{
+							UniversalSecretsSyncNotEmptyValidator(),
+							AzureUniversalSecretsSyncRequiredFieldsValidator(),
 						},
 					},
 				},
@@ -357,6 +429,16 @@ func (r *PamConfigurationResource) Schema(ctx context.Context, req resource.Sche
 						MarkdownDescription: DescGcpRegionMD,
 						Validators: []validator.String{
 							utils.StringMinLengthValidator("GCP Region", 1, true),
+						},
+					},
+				},
+				Blocks: map[string]schema.Block{
+					"universal_secrets_sync": schema.SingleNestedBlock{
+						Description:         DescUniversalSecretsSync,
+						MarkdownDescription: DescUniversalSecretsSyncMD,
+						Attributes:          commonUniversalSecretsSyncSchema(),
+						Validators: []validator.Object{
+							UniversalSecretsSyncNotEmptyValidator(),
 						},
 					},
 				},

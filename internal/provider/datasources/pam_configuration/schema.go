@@ -6,10 +6,35 @@ package pamconfiguration
 import (
 	"context"
 
+	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/utils"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	dschema "github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
+
+// commonUniversalSecretsSyncDataSourceAttributes returns the Universal Secrets Sync
+// attributes shared by aws, azure, and gcp. azure additionally adds vault_name.
+func commonUniversalSecretsSyncDataSourceAttributes() map[string]dschema.Attribute {
+	return map[string]dschema.Attribute{
+		"enabled": dschema.BoolAttribute{
+			Computed:    true,
+			Description: "Whether Universal Secrets Sync is enabled.",
+		},
+		"folder_location": dschema.SetAttribute{
+			Computed:    true,
+			ElementType: types.StringType,
+			Description: "Folder path(s) or UID(s) whose records are synced to the cloud provider secret store.",
+		},
+		"dry_run": dschema.BoolAttribute{
+			Computed:    true,
+			Description: "Run Universal Secrets Sync without pushing any changes to the cloud provider secret store.",
+		},
+		"sync_identity": dschema.StringAttribute{
+			Computed:    true,
+			Description: "The identity (credential or role) Universal Secrets Sync uses to authenticate to the cloud provider.",
+		},
+	}
+}
 
 func (d *PamConfigurationDataSource) Schema(ctx context.Context, req datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = dschema.Schema{
@@ -124,6 +149,11 @@ func (d *PamConfigurationDataSource) Schema(ctx context.Context, req datasource.
 						ElementType: types.StringType,
 						Description: "AWS region names used for discovery.",
 					},
+					"universal_secrets_sync": dschema.SingleNestedAttribute{
+						Computed:    true,
+						Description: "Universal Secrets Sync configuration.",
+						Attributes:  commonUniversalSecretsSyncDataSourceAttributes(),
+					},
 				},
 			},
 			"azure": dschema.SingleNestedAttribute{
@@ -155,6 +185,19 @@ func (d *PamConfigurationDataSource) Schema(ctx context.Context, req datasource.
 						Computed:    true,
 						ElementType: types.StringType,
 						Description: "A list of resource groups to be checked.",
+					},
+					"universal_secrets_sync": dschema.SingleNestedAttribute{
+						Computed:    true,
+						Description: "Universal Secrets Sync configuration.",
+						Attributes: utils.MergeDataSourceAttributes(
+							commonUniversalSecretsSyncDataSourceAttributes(),
+							map[string]dschema.Attribute{
+								"vault_name": dschema.StringAttribute{
+									Computed:    true,
+									Description: "The Azure Key Vault name secrets are synced to.",
+								},
+							},
+						),
 					},
 				},
 			},
@@ -217,6 +260,11 @@ func (d *PamConfigurationDataSource) Schema(ctx context.Context, req datasource.
 					"gcp_region": dschema.StringAttribute{
 						Computed:    true,
 						Description: "GCP region names used for discovery.",
+					},
+					"universal_secrets_sync": dschema.SingleNestedAttribute{
+						Computed:    true,
+						Description: "Universal Secrets Sync configuration.",
+						Attributes:  commonUniversalSecretsSyncDataSourceAttributes(),
 					},
 				},
 			},

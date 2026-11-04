@@ -60,7 +60,15 @@ func (r *PamConfigurationResource) Read(ctx context.Context, req resource.ReadRe
 		return
 	}
 
+	// Captured before mapping, which rebuilds the aws/azure/gcp blocks and drops USS.
+	priorUssConfigured := ussConfigured(&state)
+
 	if err := commonpamconfiguration.MapPamConfigAPIResponseToModel(&state, &apiData); err != nil {
+		resp.Diagnostics.AddError(commonpamconfiguration.ErrSummaryReadFailed, err.Error())
+		return
+	}
+
+	if err := commonpamconfiguration.FetchAndMapUssConfig(ctx, r.ApiManager, &state, id, priorUssConfigured); err != nil {
 		resp.Diagnostics.AddError(commonpamconfiguration.ErrSummaryReadFailed, err.Error())
 		return
 	}

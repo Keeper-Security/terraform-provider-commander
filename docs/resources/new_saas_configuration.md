@@ -4,11 +4,17 @@ page_title: "commander_new_saas_configuration Resource - commander"
 subcategory: "New (NSF) Records"
 description: |-
   Creates and manages a New (NSF) SaaS configuration record in the vault.
+  The plugin to use must be set as the value of a custom field labeled SaaS Type. Because the list of available plugins is fetched from the gateway itself, gateway and configuration must both be set for Commander to look up and validate plugins for that gateway; see the SaaS Plugins https://docs.keeper.io/keeperpam/privileged-access-manager/password-rotation/rotation-use-cases/saas-plugins#keeperpam-saas-rotation-plugins documentation for the full list of supported plugins.
+  After importing an existing SaaS configuration record, gateway and configuration are not populated; set them manually so Commander can validate the SaaS Type against that gateway.
 ---
 
 # commander_new_saas_configuration (Resource)
 
-Creates and manages a **New (NSF) SaaS configuration** record in the vault.
+Creates and manages a **New (NSF) SaaS configuration** record in the vault. 
+
+The plugin to use must be set as the value of a custom field labeled `SaaS Type`. Because the list of available plugins is fetched from the gateway itself, `gateway` and `configuration` must both be set for Commander to look up and validate plugins for that gateway; see the [SaaS Plugins](https://docs.keeper.io/keeperpam/privileged-access-manager/password-rotation/rotation-use-cases/saas-plugins#keeperpam-saas-rotation-plugins) documentation for the full list of supported plugins. 
+
+After importing an existing SaaS configuration record, `gateway` and `configuration` are not populated; set them manually so Commander can validate the `SaaS Type` against that gateway.
 
 ## Example Usage
 
@@ -19,16 +25,19 @@ resource "commander_new_saas_configuration" "example" {
   notes           = "Configuration for SaaS account rotation."
   folder_location = "_REPLACE_WITH_FOLDER_PATH_OR_UID_"
 
+  configuration = "_REPLACE_WITH_CONFIGURATION_UID_"
+  gateway       = "_REPLACE_WITH_GATEWAY_UID_"
+
   custom = [
     {
       type  = "text"
       label = "SaaS Type"
-      value = "Okta"
+      value = "REST" // Valid values depend on the provided gateway and configuration.
     },
     {
       type  = "text"
-      label = "AppName"
-      value = "Example SaaS App"
+      label = "Active"
+      value = "TRUE" // Valid values are "TRUE" or "FALSE"
     },
   ]
 
@@ -43,7 +52,9 @@ resource "commander_new_saas_configuration" "example" {
 
 ### Required
 
+- `configuration` (String) The PAM configuration `UID`. Used at create time to validate the selected **SaaS Type** (plugin) and its fields against the given gateway and configuration. Not populated on import.
 - `custom` (Attributes List) Manage custom fields for the record. (see [below for nested schema](#nestedatt--custom))
+- `gateway` (String) The configured gateway `UID` or `name`. Used at create time to validate the selected **SaaS Type** (plugin) and its fields against the given gateway and configuration. Not populated on import.
 - `title` (String) Record title.
 
 ### Optional
