@@ -32,7 +32,7 @@ resource "commander_classic_saas_configuration" "example" {
     {
       type  = "text"
       label = "SaaS Type"
-      value = "REST" // Valid values changes based upon provied gateway and configuration.
+      value = "REST" // Valid values depend on the provided gateway and configuration.
     },
     {
       type  = "text"
