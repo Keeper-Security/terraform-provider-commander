@@ -62,6 +62,12 @@ func (d *PamConfigurationDataSource) Read(ctx context.Context, req datasource.Re
 		return
 	}
 
+	// No prior state for a data source, so Commander's all-false placeholder maps to null.
+	if err := commonpamconfiguration.FetchAndMapUssConfig(ctx, d.ApiManager, &state, strings.TrimSpace(apiData.UID), false); err != nil {
+		resp.Diagnostics.AddError(commonpamconfiguration.ErrSummaryReadFailed, err.Error())
+		return
+	}
+
 	data.PamConfiguration = types.StringValue(configUID)
 	data.Id = types.StringValue(strings.TrimSpace(apiData.UID))
 	data.Title = state.Title

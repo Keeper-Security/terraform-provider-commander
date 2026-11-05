@@ -5,6 +5,7 @@ package pamconfiguration_test
 
 import (
 	"context"
+	"encoding/json"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -206,6 +207,62 @@ func TestResRead_NilResponse_RemovesFromState(t *testing.T) {
 	r.Read(context.Background(), req, &resp)
 	if resp.Diagnostics.HasError() {
 		t.Errorf("expected no error for nil response (resource removed): %v", resp.Diagnostics)
+	}
+}
+
+// gcpPamConfigListJSON mirrors pamConfigListJSON but for a GCP config, so Read's
+// aws/azure/gcp switch branch fetches Universal Secrets Sync.
+func gcpPamConfigListJSON() interface{} {
+	return map[string]interface{}{
+		"uid":          "cfg-gcp-123",
+		"name":         "Test GCP Config",
+		"config_type":  "pamGcpConfiguration",
+		"gateway_uid":  "gw-uid",
+		"gateway_name": "My Gateway",
+		"shared_folder": map[string]interface{}{
+			"uid":  "folder-uid",
+			"name": "PAM Folder",
+		},
+		"allowed_settings": map[string]interface{}{},
+		"fields": map[string]interface{}{
+			"pamGcpId": []string{"GCP-1"},
+		},
+	}
+}
+
+// TestResRead_UssNeverConfigured_NotAHardFailure reproduces Commander's real response for
+// a PAM configuration that never had Universal Secrets Sync created: `pam
+// universal-sync-config list` fails with "No USS configuration found for this network"
+// (not literal "not found"/"cannot find", so the generic not-found classifier doesn't catch
+// it). Read must treat this as "leave universal_secrets_sync unset", not a hard failure.
+func TestResRead_UssNeverConfigured_NotAHardFailure(t *testing.T) {
+	mock := &helpers.CommandServer{}
+	server := helpers.StartCommandServerWithResultHook(mock, nil, func(cmd string, idx int) (int, []byte) {
+		if strings.Contains(cmd, "universal-sync-config") {
+			return http.StatusInternalServerError, []byte(`{"error":"No USS configuration found for this network"}`)
+		}
+		if strings.Contains(cmd, "pam config") {
+			body, _ := json.Marshal(map[string]interface{}{
+				"data":    gcpPamConfigListJSON(),
+				"status":  "success",
+				"message": "",
+				"error":   "",
+			})
+			return http.StatusOK, body
+		}
+		return 0, nil
+	})
+	defer server.Close()
+
+	r := newConfiguredRes(t, server)
+	sch := getResSchema(t)
+	rawState := newResStateRaw(t, sch, "cfg-gcp-123")
+
+	req := resource.ReadRequest{State: tfsdk.State{Schema: sch, Raw: rawState}}
+	resp := resource.ReadResponse{State: tfsdk.State{Schema: sch, Raw: rawState}}
+	r.Read(context.Background(), req, &resp)
+	if resp.Diagnostics.HasError() {
+		t.Fatalf("expected no error when USS was never configured: %v", resp.Diagnostics)
 	}
 }
 

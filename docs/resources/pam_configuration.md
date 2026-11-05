@@ -69,6 +69,13 @@ resource "commander_pam_configuration" "aws_example" {
     access_key_id     = "AKIAIOSFODNN7EXAMPLE"
     access_secret_key = "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY"
     region_names      = ["us-east-1", "us-west-2", "eu-west-1"]
+
+    universal_secrets_sync {
+      enabled         = true
+      dry_run         = false
+      folder_location = ["folder-uid-1", "folder-uid-2"]
+      sync_identity   = "arn:aws:iam::123456789012:role/KeeperUSS"
+    }
   }
 }
 
@@ -99,6 +106,14 @@ resource "commander_pam_configuration" "azure_example" {
     subscription_id = "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"
     tenant_id       = "ffffffff-0000-1111-2222-333333333333"
     resource_groups = ["rg-production", "rg-staging"]
+
+    universal_secrets_sync {
+      enabled         = true
+      dry_run         = false
+      folder_location = ["folder-uid-1"]
+      sync_identity   = "uss-sync@my-project.iam.gserviceaccount.com"
+      vault_name      = "kv-keeper-prod"
+    }
   }
 }
 
@@ -152,6 +167,13 @@ resource "commander_pam_configuration" "gcp_example" {
     service_account_key = file("${path.module}/gcp-service-account.json")
     google_admin_email  = "admin@example.com"
     gcp_region          = "us-central1"
+
+    universal_secrets_sync {
+      enabled         = true
+      dry_run         = true
+      folder_location = ["folder-uid-1"]
+      sync_identity   = "uss-sync@my-project.iam.gserviceaccount.com"
+    }
   }
 }
 ```
@@ -197,6 +219,22 @@ Optional:
 - `access_secret_key` (String, Sensitive) The `secret key` for the access key.
 - `aws_id` (String) A `Unique ID` for the instance of AWS. **Required**
 - `region_names` (Set of String) AWS region names used for discovery. Separate newline per region. Ex: `us-east-2`
+- `universal_secrets_sync` (Block, Optional) Use this block to configure `Universal Secrets Sync` for your PAM configuration environment.
+
+`Universal Secrets Sync` ("USS") automatically pushes secrets from the Keeper Vault to cloud provider secret stores. With USS, the Keeper Vault becomes the single source of truth for all cloud secrets. When a record changes in Keeper, the updated secret reaches every configured cloud provider without manual intervention.
+
+Only supported when `environment` is `aws`, `azure`, or `gcp`; `vault_name` is **required** when `environment` is `azure` and **not applicable** otherwise. When adding this block for the first time, `enabled` must be `true`. (see [below for nested schema](#nestedblock--aws--universal_secrets_sync))
+
+<a id="nestedblock--aws--universal_secrets_sync"></a>
+### Nested Schema for `aws.universal_secrets_sync`
+
+Optional:
+
+- `dry_run` (Boolean) Run Universal Secrets Sync **without pushing any changes** to the cloud provider secret store.
+- `enabled` (Boolean) Whether **Universal Secrets Sync** is enabled.
+- `folder_location` (Set of String) **Folder** `UID`(s) whose records are synced to the cloud provider secret store.
+- `sync_identity` (String) The **identity** (credential or role) Universal Secrets Sync uses to authenticate to the cloud provider.
+
 
 
 <a id="nestedblock--azure"></a>
@@ -210,6 +248,23 @@ Optional:
 - `resource_groups` (Set of String) A list of `resource groups` to be checked. If left blank, all resource groups will be checked.
 - `subscription_id` (String) The `UUID` of the subscription (i.e. Pay-As-You-GO). **Required**
 - `tenant_id` (String) The `UUID` of the Azure Active Directory. **Required**
+- `universal_secrets_sync` (Block, Optional) Use this block to configure `Universal Secrets Sync` for your PAM configuration environment.
+
+`Universal Secrets Sync` ("USS") automatically pushes secrets from the Keeper Vault to cloud provider secret stores. With USS, the Keeper Vault becomes the single source of truth for all cloud secrets. When a record changes in Keeper, the updated secret reaches every configured cloud provider without manual intervention.
+
+Only supported when `environment` is `aws`, `azure`, or `gcp`; `vault_name` is **required** when `environment` is `azure` and **not applicable** otherwise. When adding this block for the first time, `enabled` must be `true`. (see [below for nested schema](#nestedblock--azure--universal_secrets_sync))
+
+<a id="nestedblock--azure--universal_secrets_sync"></a>
+### Nested Schema for `azure.universal_secrets_sync`
+
+Optional:
+
+- `dry_run` (Boolean) Run Universal Secrets Sync **without pushing any changes** to the cloud provider secret store.
+- `enabled` (Boolean) Whether **Universal Secrets Sync** is enabled.
+- `folder_location` (Set of String) **Folder** `UID`(s) whose records are synced to the cloud provider secret store.
+- `sync_identity` (String) The **identity** (credential or role) Universal Secrets Sync uses to authenticate to the cloud provider.
+- `vault_name` (String) The **Azure Key Vault** name secrets are synced to. Required when `environment` is `azure`; not applicable otherwise.
+
 
 
 <a id="nestedblock--domain"></a>
@@ -236,6 +291,22 @@ Optional:
 - `gcp_region` (String) GCP region names used for discovery.
 - `google_admin_email` (String) The `email address` for a Google Workspace administrator account that can be *used to manage passwords for GCP Principals*. Omit if **no such account exists**, or if the **environment does not require Principal rotation**.
 - `service_account_key` (String, Sensitive) The *service account key* in `JSON String` format.
+- `universal_secrets_sync` (Block, Optional) Use this block to configure `Universal Secrets Sync` for your PAM configuration environment.
+
+`Universal Secrets Sync` ("USS") automatically pushes secrets from the Keeper Vault to cloud provider secret stores. With USS, the Keeper Vault becomes the single source of truth for all cloud secrets. When a record changes in Keeper, the updated secret reaches every configured cloud provider without manual intervention.
+
+Only supported when `environment` is `aws`, `azure`, or `gcp`; `vault_name` is **required** when `environment` is `azure` and **not applicable** otherwise. When adding this block for the first time, `enabled` must be `true`. (see [below for nested schema](#nestedblock--gcp--universal_secrets_sync))
+
+<a id="nestedblock--gcp--universal_secrets_sync"></a>
+### Nested Schema for `gcp.universal_secrets_sync`
+
+Optional:
+
+- `dry_run` (Boolean) Run Universal Secrets Sync **without pushing any changes** to the cloud provider secret store.
+- `enabled` (Boolean) Whether **Universal Secrets Sync** is enabled.
+- `folder_location` (Set of String) **Folder** `UID`(s) whose records are synced to the cloud provider secret store.
+- `sync_identity` (String) The **identity** (credential or role) Universal Secrets Sync uses to authenticate to the cloud provider.
+
 
 
 <a id="nestedblock--local_network"></a>

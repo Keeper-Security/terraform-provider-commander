@@ -11,6 +11,7 @@ import (
 	"sort"
 	"strings"
 
+	pamrecords "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/pam"
 	commonrecordsutils "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/records/utils"
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/utils"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
@@ -88,8 +89,6 @@ func AppendPamRbiEditSettingsFlags(parts *[]string, settings *PamRemoteBrowserSe
 		return
 	}
 
-	// TODO: Add allow supply user flag once its available in "pam rbi edit" command
-
 	appendPamRbiStringFlag(parts, FlagConfiguration, settings.Configuration)
 
 	appendPamRbiBoolOnOff(parts, FlagRemoteBrowserIsolation, settings.RemoteBrowserIsolation)
@@ -110,6 +109,8 @@ func AppendPamRbiEditSettingsFlags(parts *[]string, settings *PamRemoteBrowserSe
 	appendPamRbiBoolOnOff(parts, FlagAllowCopy, settings.AllowCopy)
 	appendPamRbiBoolOnOff(parts, FlagAllowPaste, settings.AllowPaste)
 	appendPamRbiBoolOnOff(parts, FlagDisableAudio, settings.DisableAudio)
+	appendPamRbiClipboardBufferSizeFlag(parts, settings.ClipboardDataSizeLimit)
+	appendPamRbiBoolOnOff(parts, FlagAllowSupplyUser, settings.AllowSupplyUser)
 
 	appendOptionalInt32(parts, FlagAudioChannels, settings.AudioChannels)
 	appendOptionalInt64(parts, FlagAudioBitDepth, settings.AudioBitDepth)
@@ -127,6 +128,19 @@ func appendPamRbiStringFlag(parts *[]string, flag string, v types.String) {
 		return
 	}
 	*parts = append(*parts, fmt.Sprintf("%s %s", flag, utils.QuoteShellSingle(v.ValueString())))
+}
+
+// appendPamRbiClipboardBufferSizeFlag appends `--clipboard-buffer-size <size>`, lowercased
+// as Commander expects (e.g. 1MB -> 1mb). Null sends `default`, which removes the limit.
+func appendPamRbiClipboardBufferSizeFlag(parts *[]string, v types.String) {
+	if v.IsUnknown() {
+		return
+	}
+	val := utils.ValueDefault
+	if !v.IsNull() {
+		val = strings.ToLower(v.ValueString())
+	}
+	*parts = append(*parts, fmt.Sprintf("%s %s", FlagClipboardBufferSize, val))
 }
 
 // appendPamRbiBoolOnOff appends `flag on|off`. Null (attribute removed from
@@ -235,7 +249,9 @@ func pamRemoteBrowserSettingsEqual(plan, state *PamRemoteBrowserSettingsModel) b
 		plan.AudioSampleRate.Equal(state.AudioSampleRate) &&
 		plan.SessionPersistence.Equal(state.SessionPersistence) &&
 		plan.AllowFileUploads.Equal(state.AllowFileUploads) &&
-		plan.AllowFileDownloads.Equal(state.AllowFileDownloads)
+		plan.AllowFileDownloads.Equal(state.AllowFileDownloads) &&
+		plan.AllowSupplyUser.Equal(state.AllowSupplyUser) &&
+		plan.ClipboardDataSizeLimit.Equal(state.ClipboardDataSizeLimit)
 }
 
 const (
@@ -324,6 +340,8 @@ func mapConnectionToPamRemoteBrowserSettingsModel(ctx context.Context, c *utils.
 		AllowFileUploads:   types.BoolValue(c.AllowFileUploads),
 		AllowFileDownloads: types.BoolValue(c.AllowFileDownloads),
 		AllowSupplyUser:    types.BoolValue(c.AllowSupplyUser),
+
+		ClipboardDataSizeLimit: pamrecords.ClipboardDataSizeLimitFromBytes(c.ClipboardBufferSize),
 
 		SessionPersistence: types.StringValue(c.SessionPersistence),
 	}

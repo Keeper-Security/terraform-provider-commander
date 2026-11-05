@@ -109,3 +109,68 @@ func TestRequiredSaasTypeCustomFieldValidator_RejectsNullCustom(t *testing.T) {
 		t.Fatal("expected error when custom is null")
 	}
 }
+
+func validateCustomListWith(t *testing.T, v validator.List, elems []attr.Value) validator.ListResponse {
+	t.Helper()
+	list, diags := types.ListValue(types.ObjectType{AttrTypes: customFieldAttrTypes}, elems)
+	if diags.HasError() {
+		t.Fatalf("building custom list: %v", diags)
+	}
+
+	var resp validator.ListResponse
+	req := validator.ListRequest{
+		Path:        path.Root("custom"),
+		ConfigValue: list,
+	}
+	v.ValidateList(context.Background(), req, &resp)
+	return resp
+}
+
+func TestRequiredActiveCustomFieldValidator_AcceptsTrueOrFalse(t *testing.T) {
+	t.Parallel()
+
+	for _, value := range []string{"TRUE", "FALSE"} {
+		resp := validateCustomListWith(t, commonrecordsaasconfiguration.RequiredActiveCustomFieldValidator(), []attr.Value{
+			customFieldObject(t, "text", "Active", value),
+		})
+		if resp.Diagnostics.HasError() {
+			t.Errorf("value %q: expected valid, got %v", value, resp.Diagnostics)
+		}
+	}
+}
+
+func TestRequiredActiveCustomFieldValidator_RejectsNonBooleanValue(t *testing.T) {
+	t.Parallel()
+
+	resp := validateCustomListWith(t, commonrecordsaasconfiguration.RequiredActiveCustomFieldValidator(), []attr.Value{
+		customFieldObject(t, "text", "Active", "yes"),
+	})
+	if !resp.Diagnostics.HasError() {
+		t.Fatal(`expected error when Active value is not "TRUE"/"FALSE"`)
+	}
+}
+
+func TestRequiredActiveCustomFieldValidator_RejectsMissingField(t *testing.T) {
+	t.Parallel()
+
+	resp := validateCustomListWith(t, commonrecordsaasconfiguration.RequiredActiveCustomFieldValidator(), []attr.Value{
+		customFieldObject(t, "text", "SaaS Type", "Okta"),
+	})
+	if !resp.Diagnostics.HasError() {
+		t.Fatal("expected error when Active custom field is missing")
+	}
+}
+
+func TestRequiredActiveCustomFieldValidator_RejectsNullCustom(t *testing.T) {
+	t.Parallel()
+
+	var resp validator.ListResponse
+	req := validator.ListRequest{
+		Path:        path.Root("custom"),
+		ConfigValue: types.ListNull(types.ObjectType{AttrTypes: customFieldAttrTypes}),
+	}
+	commonrecordsaasconfiguration.RequiredActiveCustomFieldValidator().ValidateList(context.Background(), req, &resp)
+	if !resp.Diagnostics.HasError() {
+		t.Fatal("expected error when custom is null")
+	}
+}

@@ -111,6 +111,7 @@ Read-Only:
 - `allow_supply_host` (Boolean)
 - `configuration` (String)
 - `connection` (Attributes) (see [below for nested schema](#nestedatt--pam_settings--connection))
+- `keeper_db` (Attributes) (see [below for nested schema](#nestedatt--pam_settings--keeper_db))
 - `tunnel` (Attributes) (see [below for nested schema](#nestedatt--pam_settings--tunnel))
 
 <a id="nestedatt--pam_settings--connection"></a>
@@ -134,6 +135,7 @@ Read-Only:
 Read-Only:
 
 - `allow_supply_user` (Boolean)
+- `clipboard_data_size_limit` (String)
 - `database` (String)
 - `disable_copy` (Boolean)
 - `disable_csv_export` (Boolean)
@@ -150,6 +152,7 @@ Read-Only:
 Read-Only:
 
 - `allow_supply_user` (Boolean)
+- `clipboard_data_size_limit` (String)
 - `color_scheme` (String)
 - `database` (String)
 - `disable_copy` (Boolean)
@@ -172,6 +175,7 @@ Read-Only:
 Read-Only:
 
 - `allow_supply_user` (Boolean)
+- `clipboard_data_size_limit` (String)
 - `database` (String)
 - `disable_copy` (Boolean)
 - `disable_csv_export` (Boolean)
@@ -188,6 +192,7 @@ Read-Only:
 Read-Only:
 
 - `allow_supply_user` (Boolean)
+- `clipboard_data_size_limit` (String)
 - `color_scheme` (String)
 - `database` (String)
 - `disable_copy` (Boolean)
@@ -210,6 +215,7 @@ Read-Only:
 Read-Only:
 
 - `allow_supply_user` (Boolean)
+- `clipboard_data_size_limit` (String)
 - `color_scheme` (String)
 - `database` (String)
 - `disable_copy` (Boolean)
@@ -225,6 +231,15 @@ Read-Only:
 - `session_recording` (Boolean)
 - `typescript_recording` (Boolean)
 
+
+
+<a id="nestedatt--pam_settings--keeper_db"></a>
+### Nested Schema for `pam_settings.keeper_db`
+
+Read-Only:
+
+- `db_connection_method` (String)
+- `session_persistence` (String)
 
 
 <a id="nestedatt--pam_settings--tunnel"></a>

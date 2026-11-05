@@ -66,8 +66,9 @@ type ConnectionTerminalFields struct {
 }
 
 type ConnectionClipboardFields struct {
-	DisableCopy  types.Bool `tfsdk:"disable_copy"`
-	DisablePaste types.Bool `tfsdk:"disable_paste"`
+	DisableCopy            types.Bool   `tfsdk:"disable_copy"`
+	DisablePaste           types.Bool   `tfsdk:"disable_paste"`
+	ClipboardDataSizeLimit types.String `tfsdk:"clipboard_data_size_limit"`
 }
 
 // ConnectionSftpModel is the shared SFTP nested block used by RDP and VNC.
@@ -271,6 +272,11 @@ type MachineDirectoryConnectionResourceModel struct {
 	Vnc        *ConnectionVncModel        `tfsdk:"vnc"`
 }
 
+type DatabaseKeeperDbResourceModel struct {
+	DbConnectionMethod types.String `tfsdk:"db_connection_method"`
+	SessionPersistence types.String `tfsdk:"session_persistence"`
+}
+
 // ---------------------------------------------------------------------------
 // pam_settings field models (one per record-type schema variant)
 // ---------------------------------------------------------------------------
@@ -280,6 +286,7 @@ type MachineDirectoryConnectionResourceModel struct {
 type CommonPamSettingsFieldResourceModel struct {
 	pamSettingsCommonModel
 	Connection *CommonPamSettingsConnectionResourceModel `tfsdk:"connection"`
+	KeeperDB   *DatabaseKeeperDbResourceModel            `tfsdk:"keeper_db"`
 }
 
 // DatabasePamSettingsFieldResourceModel is the pam_settings block model used
@@ -287,6 +294,7 @@ type CommonPamSettingsFieldResourceModel struct {
 type DatabasePamSettingsFieldResourceModel struct {
 	pamSettingsCommonModel
 	Connection *DatabaseConnectionResourceModel `tfsdk:"connection"`
+	KeeperDB   *DatabaseKeeperDbResourceModel   `tfsdk:"keeper_db"`
 }
 
 // MachineDirectoryPamSettingsFieldResourceModel is the pam_settings block

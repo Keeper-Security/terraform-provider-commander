@@ -86,17 +86,25 @@ resource "commander_new_pam_database" "with_pam_settings" {
       launch_credential = "_REPLACE_WITH_LAUNCH_CREDENTIAL_UID_"
 
       mysql {
-        session_recording      = true
-        typescript_recording   = true
-        recording_include_keys = true
-        allow_supply_user      = false
-        read_only              = false
-        database               = "app_production"
-        disable_csv_export     = true
-        disable_csv_import     = true
-        color_scheme           = "black-white"
-        font_size              = 12
+        session_recording         = true
+        typescript_recording      = true
+        recording_include_keys    = true
+        allow_supply_user         = false
+        read_only                 = false
+        database                  = "app_production"
+        disable_csv_export        = true
+        disable_csv_import        = true
+        disable_copy              = false
+        disable_paste             = false
+        clipboard_data_size_limit = "10MB" # 256KB | 1MB | 10MB | 50MB
+        color_scheme              = "black-white"
+        font_size                 = 12
       }
+    }
+
+    keeper_db {
+      db_connection_method = "both" # both (default) | cli | keeperDB
+      session_persistence  = "user" # none (default) | user | resource
     }
   }
 

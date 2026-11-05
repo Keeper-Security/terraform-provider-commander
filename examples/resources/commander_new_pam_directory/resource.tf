@@ -115,23 +115,24 @@ resource "commander_new_pam_directory" "full" {
       launch_credential = "_REPLACE_WITH_LAUNCH_CREDENTIAL_UID_"
 
       ssh {
-        session_recording      = true
-        typescript_recording   = true
-        recording_include_keys = true
-        allow_supply_user      = false
-        read_only              = false
-        color_scheme           = "black-white"
-        font_name              = "monospace"
-        font_size              = 12
-        scrollback             = 2000
-        backspace              = "127"
-        terminal_type          = "xterm-256color"
-        locale                 = "en_US.UTF-8"
-        timezone               = "America/New_York"
-        server_alive_interval  = 60
-        command                = "/bin/bash"
-        disable_copy           = false
-        disable_paste          = false
+        session_recording         = true
+        typescript_recording      = true
+        recording_include_keys    = true
+        allow_supply_user         = false
+        read_only                 = false
+        color_scheme              = "black-white"
+        font_name                 = "monospace"
+        font_size                 = 12
+        scrollback                = 2000
+        backspace                 = "127"
+        terminal_type             = "xterm-256color"
+        locale                    = "en_US.UTF-8"
+        timezone                  = "America/New_York"
+        server_alive_interval     = 60
+        command                   = "/bin/bash"
+        disable_copy              = false
+        disable_paste             = false
+        clipboard_data_size_limit = "10MB" # 256KB | 1MB | 10MB | 50MB
 
         sftp {
           enable_sftp = true

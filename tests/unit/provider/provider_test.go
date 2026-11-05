@@ -10,6 +10,8 @@ import (
 	commander "github.com/Keeper-Security/terraform-provider-commander/internal/provider"
 	"github.com/hashicorp/terraform-plugin-framework/provider"
 	"github.com/hashicorp/terraform-plugin-framework/provider/schema"
+	"github.com/hashicorp/terraform-plugin-framework/providerserver"
+	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 )
 
 func TestCommanderProvider_Metadata(t *testing.T) {
@@ -106,6 +108,23 @@ func TestCommanderProvider_Actions(t *testing.T) {
 	actions := cp.Actions(context.Background())
 	if len(actions) != 0 {
 		t.Errorf("expected 0 actions, got %d", len(actions))
+	}
+}
+
+// TestFullProviderSchemaIsValid calls the same GetProviderSchema RPC Terraform CLI uses
+// before any plan/apply/import - it independently catches schema issues (e.g. a camelCase
+// attribute name, or Default without Computed) that compile fine and pass ordinary unit
+// tests, but still make every resource of that type unusable until fixed.
+func TestFullProviderSchemaIsValid(t *testing.T) {
+	ctx := context.Background()
+	srv := providerserver.NewProtocol6(commander.New("test")())()
+
+	resp, err := srv.GetProviderSchema(ctx, &tfprotov6.GetProviderSchemaRequest{})
+	if err != nil {
+		t.Fatalf("GetProviderSchema RPC error: %v", err)
+	}
+	for _, d := range resp.Diagnostics {
+		t.Errorf("[%s] %s: %s", d.Severity, d.Summary, d.Detail)
 	}
 }
 

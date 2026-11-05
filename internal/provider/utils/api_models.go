@@ -282,6 +282,26 @@ type PamConfigAllowedSettingsResponse struct {
 	AITerminateSessionOnDetection bool `json:"ai_terminate_session_on_detection"`
 }
 
+// PamUniversalSyncConfigFolderResponse is one element of the "folders" array from
+// `pam universal-sync-config list --network <uid> --format json`.
+type PamUniversalSyncConfigFolderResponse struct {
+	UID string `json:"uid"`
+}
+
+// PamUniversalSyncConfigResponse is the data payload from
+// `pam universal-sync-config list --network <uid> --format json`. Fields that don't apply
+// to the record's type (e.g. vault_name for a GCP config) come back as the literal string
+// "N/A" rather than being omitted.
+type PamUniversalSyncConfigResponse struct {
+	RecordUID     string                                 `json:"record_uid"`
+	RecordType    string                                 `json:"record_type"`
+	Enabled       bool                                   `json:"enabled"`
+	DryRunEnabled bool                                   `json:"dry_run_enabled"`
+	VaultName     string                                 `json:"vault_name"`
+	SyncIdentity  string                                 `json:"sync_identity"`
+	Folders       []PamUniversalSyncConfigFolderResponse `json:"folders,omitempty"`
+}
+
 // VaultRecordGetResponse is the JSON payload from `get <record_uid> --format json` for a Keeper vault record.
 type VaultRecordGetResponse struct {
 	RecordUID                    string                                `json:"record_uid"`
@@ -501,6 +521,7 @@ type RdpConnectionResponse struct {
 	DisableCopy              *bool         `json:"disableCopy"`
 	DisablePaste             *bool         `json:"disablePaste"`
 	DriveRedirectionPath     string        `json:"driveRedirectionPath"`
+	ClipboardBufferSize      int           `json:"clipboardBufferSize"`
 }
 
 // SftpResponse is the shared SFTP nested block used by RDP and VNC.
@@ -522,6 +543,7 @@ type SshConnectionResponse struct {
 	ReadOnly             *bool            `json:"readOnly"`
 	DisableCopy          *bool            `json:"disableCopy"`
 	DisablePaste         *bool            `json:"disablePaste"`
+	ClipboardBufferSize  int              `json:"clipboardBufferSize"`
 	ColorScheme          string           `json:"colorScheme"`
 	FontName             string           `json:"fontName"`
 	FontSize             string           `json:"fontSize"`
@@ -550,6 +572,7 @@ type TelnetConnectionResponse struct {
 	ReadOnly             *bool  `json:"readOnly"`
 	DisableCopy          *bool  `json:"disableCopy"`
 	DisablePaste         *bool  `json:"disablePaste"`
+	ClipboardBufferSize  int    `json:"clipboardBufferSize"`
 	ColorScheme          string `json:"colorScheme"`
 	FontName             string `json:"fontName"`
 	FontSize             string `json:"fontSize"`
@@ -578,6 +601,7 @@ type VncConnectionResponse struct {
 	DestPort             string        `json:"destPort"`
 	DisableCopy          *bool         `json:"disableCopy"`
 	DisablePaste         *bool         `json:"disablePaste"`
+	ClipboardBufferSize  int           `json:"clipboardBufferSize"`
 	ClipboardEncoding    string        `json:"clipboardEncoding"`
 	Cursor               string        `json:"cursor"`
 	ColorDepth           string        `json:"colorDepth"`
@@ -594,6 +618,7 @@ type DatabaseConnectionResponse struct {
 	ReadOnly             *bool  `json:"readOnly"`
 	DisableCopy          *bool  `json:"disableCopy"`
 	DisablePaste         *bool  `json:"disablePaste"`
+	ClipboardBufferSize  int    `json:"clipboardBufferSize"`
 	DisableCsvExport     *bool  `json:"disableCsvExport"`
 	DisableCsvImport     *bool  `json:"disableCsvImport"`
 	Database             string `json:"database"`
@@ -608,6 +633,20 @@ type PamSettingsPortForwardResponse struct {
 	ReusePort             *bool  `json:"reusePort"`
 	UseSpecifiedLocalPort *bool  `json:"useSpecifiedLocalPort"`
 	LocalPort             string `json:"localPort"`
+}
+
+// DatabaseConnectionKeeperDbResponse peeks at the KeeperDB-specific fields nested inside
+// pamSettings.value[0].connection (dbConnectionMethod, rbiSettings.sessionPersistence) for
+// PAM Database records.
+type DatabaseConnectionKeeperDbResponse struct {
+	DbConnectionMethod string                                 `json:"dbConnectionMethod,omitempty"`
+	RbiSettings        *DatabaseConnectionRbiSettingsResponse `json:"rbiSettings,omitempty"`
+}
+
+// DatabaseConnectionRbiSettingsResponse is the "rbiSettings" object nested inside
+// pamSettings.value[0].connection for PAM Database records using KeeperDB.
+type DatabaseConnectionRbiSettingsResponse struct {
+	SessionPersistence string `json:"sessionPersistence,omitempty"`
 }
 
 // PamHostnameFieldValue is one element of the pamHostname field value array from `get <uid> --format json`.
@@ -639,6 +678,7 @@ type PamRemoteBrowserSettingsFieldConnectionResponse struct {
 	AllowFileUploads           bool   `json:"allowFileUploads"`
 	AllowFileDownloads         bool   `json:"allowFileDownloads"`
 	AllowSupplyUser            bool   `json:"allowSupplyUser"`
+	ClipboardBufferSize        int    `json:"clipboardBufferSize"`
 }
 
 // PamRemoteBrowserSettingsFieldResponse is one element of the pamRemoteBrowserSettings field value array.

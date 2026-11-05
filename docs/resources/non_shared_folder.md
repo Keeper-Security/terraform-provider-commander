@@ -92,7 +92,7 @@ output "full_folder_id" {
 ### Optional
 
 - `folder_location` (String) Parent folder path where the folder will be created. Leave empty for vault root.
-- `records` (Set of String) Set of record UIDs to link into this folder.
+- `records` (Set of String) Set of record UIDs to link into this folder. When set, Terraform enforces exactly this set. When omitted, this reflects whatever is actually linked without managing it.
 
 ### Read-Only
 

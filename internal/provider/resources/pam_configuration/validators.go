@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	commonpamconfiguration "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/pam_configuration"
+	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/utils"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -155,6 +156,75 @@ func (environmentBlocksValidator) ValidateResource(ctx context.Context, req reso
 	}
 
 	validateRequiredBlockFields(env, &config, resp)
+}
+
+// universalSecretsSyncNotEmptyValidator rejects an empty `universal_secrets_sync {}` block.
+type universalSecretsSyncNotEmptyValidator struct{}
+
+// UniversalSecretsSyncNotEmptyValidator returns the validator attached to every
+// universal_secrets_sync block; exported so it's directly testable.
+func UniversalSecretsSyncNotEmptyValidator() universalSecretsSyncNotEmptyValidator {
+	return universalSecretsSyncNotEmptyValidator{}
+}
+
+func (universalSecretsSyncNotEmptyValidator) Description(_ context.Context) string {
+	return "universal_secrets_sync must set at least one attribute."
+}
+
+func (v universalSecretsSyncNotEmptyValidator) MarkdownDescription(ctx context.Context) string {
+	return "`universal_secrets_sync` must set at least one attribute."
+}
+
+func (universalSecretsSyncNotEmptyValidator) ValidateObject(_ context.Context, req validator.ObjectRequest, resp *validator.ObjectResponse) {
+	if req.ConfigValue.IsNull() || req.ConfigValue.IsUnknown() {
+		return
+	}
+	for _, v := range req.ConfigValue.Attributes() {
+		if !v.IsNull() {
+			return
+		}
+	}
+	resp.Diagnostics.AddAttributeError(
+		req.Path,
+		ErrSummaryInvalidConfig,
+		ErrMsgUssEmptyBlock,
+	)
+}
+
+// azureUniversalSecretsSyncRequiredFieldsValidator requires vault_name when the
+// azure.universal_secrets_sync block is present. Azure Universal Secrets Sync needs a
+// target Key Vault to sync secrets into; aws/gcp have no such field, since their schema
+// (commonUniversalSecretsSyncSchema) doesn't include it in the first place.
+type azureUniversalSecretsSyncRequiredFieldsValidator struct{}
+
+// AzureUniversalSecretsSyncRequiredFieldsValidator returns the validator attached to
+// azure.universal_secrets_sync in the schema; exported so it's directly testable.
+func AzureUniversalSecretsSyncRequiredFieldsValidator() azureUniversalSecretsSyncRequiredFieldsValidator {
+	return azureUniversalSecretsSyncRequiredFieldsValidator{}
+}
+
+func (azureUniversalSecretsSyncRequiredFieldsValidator) Description(_ context.Context) string {
+	return "vault_name is required when the universal_secrets_sync block is provided."
+}
+
+func (azureUniversalSecretsSyncRequiredFieldsValidator) MarkdownDescription(ctx context.Context) string {
+	return "`vault_name` is required when the `universal_secrets_sync` block is provided."
+}
+
+func (azureUniversalSecretsSyncRequiredFieldsValidator) ValidateObject(_ context.Context, req validator.ObjectRequest, resp *validator.ObjectResponse) {
+	if req.ConfigValue.IsNull() || req.ConfigValue.IsUnknown() {
+		return
+	}
+
+	attrs := req.ConfigValue.Attributes()
+	vaultNameAttr, ok := attrs["vault_name"]
+	if !ok || utils.IsExplicitlyMissing(vaultNameAttr) {
+		resp.Diagnostics.AddAttributeError(
+			req.Path.AtName("vault_name"),
+			"Missing Required Attribute",
+			"vault_name is required when the universal_secrets_sync block is provided.",
+		)
+	}
 }
 
 func validateRequiredBlockFields(env string, config *commonpamconfiguration.PamConfigurationResourceModel, resp *resource.ValidateConfigResponse) {

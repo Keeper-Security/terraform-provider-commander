@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"strings"
 
+	commonnonsharedfolder "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/folders/classic_folders/non_shared_folder"
 	folderutils "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/folders/utils"
 	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/utils"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -52,6 +53,22 @@ func (r *NonSharedFolderResource) Create(ctx context.Context, req resource.Creat
 	if err := folderutils.LinkRecords(ctx, r.ApiManager, CmdLn, folderUID, data.Records); err != nil {
 		resp.Diagnostics.AddError(folderutils.ErrSummaryCreateFailed, err.Error())
 		return
+	}
+
+	// `records` is Optional+Computed: resolve it to the real, known value now
+	// (re-fetch rather than trust the plan) so an omitted `records` doesn't
+	// leave the attribute unknown after apply.
+	apiData, err := commonnonsharedfolder.FetchFolderByNameOrId(ctx, r.ApiManager, folderUID)
+	if err != nil {
+		resp.Diagnostics.AddError(folderutils.ErrSummaryCreateFailed, err.Error())
+		return
+	}
+	if err := commonnonsharedfolder.MapResponseToModel(ctx, apiData, &data); err != nil {
+		resp.Diagnostics.AddError(folderutils.ErrSummaryCreateFailed, err.Error())
+		return
+	}
+	if data.Records.IsUnknown() {
+		data.Records = types.SetNull(types.StringType)
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)

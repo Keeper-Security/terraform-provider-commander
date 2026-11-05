@@ -74,12 +74,23 @@ const (
 
 // Error summaries (first argument to AddError).
 const (
-	ErrSummaryCreateFailed   = "Create PAM Configuration Failed"
-	ErrSummaryUpdateFailed   = "Update PAM Configuration Failed"
-	ErrSummaryDeleteFailed   = "Delete PAM Configuration Failed"
+	ErrSummaryCreateFailed = "Create PAM Configuration Failed"
+	ErrSummaryUpdateFailed = "Update PAM Configuration Failed"
+	ErrSummaryDeleteFailed = "Delete PAM Configuration Failed"
+
+	ErrSummaryCreatePamUssConfigFailed = "Create PAM Universal Secrets Sync Configuration Failed"
+	ErrSummaryUpdatePamUssConfigFailed = "Update PAM Universal Secrets Sync Configuration Failed"
+	ErrSummaryDeletePamUssConfigFailed = "Delete PAM Universal Secrets Sync Configuration Failed"
+
 	ErrSummarySyncDownFailed = "Sync Down Failed"
 	ErrSummaryInvalidConfig  = "Invalid PAM Configuration"
 	ErrSummaryNotImplemented = "PAM Configuration Not Implemented"
+)
+
+// Error detail messages (second argument to AddError / AddAttributeError).
+const (
+	ErrMsgUssEmptyBlock        = "universal_secrets_sync cannot be empty. Set at least `enabled`, or remove the universal_secrets_sync block."
+	ErrMsgUssFirstTimeDisabled = "universal_secrets_sync cannot be added with enabled = false. Set enabled = true when configuring Universal Secrets Sync for the first time, or remove the universal_secrets_sync block."
 )
 
 // Error operation messages (second argument to ExecuteCommand; short description for logs).
@@ -88,6 +99,10 @@ const (
 	ErrOpGetPamConfig    = "Unable to get PAM configuration"
 	ErrOpEditPamConfig   = "Unable to update PAM configuration"
 	ErrOpDeletePamConfig = "Unable to delete PAM configuration"
+
+	ErrOpCreatePamUssConfig = "Unable to create PAM universal secrets sync configuration"
+	ErrOpEditPamUssConfig   = "Unable to update PAM universal secrets sync configuration"
+	ErrOpDeletePamUssConfig = "Unable to delete PAM universal secrets sync configuration"
 )
 
 // ValidEnvironments lists allowed `environment` values (CLI: --environment).
@@ -241,6 +256,25 @@ const (
 
 	DescGcpRegion   = "GCP region names used for discovery."
 	DescGcpRegionMD = "GCP region names used for discovery."
+
+	// Universal Secrets Sync.
+	DescUniversalSecretsSync   = "Use this block to configure Universal Secrets Sync for your PAM configuration environment. \n\n" + "Universal Secrets Sync (\"USS\") automatically pushes secrets from the Keeper Vault to cloud provider secret stores. With USS, the Keeper Vault becomes the single source of truth for all cloud secrets. When a record changes in Keeper, the updated secret reaches every configured cloud provider without manual intervention. \n\n" + "Only supported when environment is `aws`, `azure`, or `gcp`; `vault_name` is required when environment is `azure` and not applicable otherwise. When adding this block for the first time, `enabled` must be `true`."
+	DescUniversalSecretsSyncMD = "Use this block to configure `Universal Secrets Sync` for your PAM configuration environment.\n\n" + "`Universal Secrets Sync` (\"USS\") automatically pushes secrets from the Keeper Vault to cloud provider secret stores. With USS, the Keeper Vault becomes the single source of truth for all cloud secrets. When a record changes in Keeper, the updated secret reaches every configured cloud provider without manual intervention.\n\n" + "Only supported when `environment` is `aws`, `azure`, or `gcp`; `vault_name` is **required** when `environment` is `azure` and **not applicable** otherwise. When adding this block for the first time, `enabled` must be `true`."
+
+	DescUSSEnabled   = "Whether Universal Secrets Sync is enabled."
+	DescUSSEnabledMD = "Whether **Universal Secrets Sync** is enabled."
+
+	DescUSSFolderLocation   = "Folder UID(s) whose records are synced to the cloud provider secret store."
+	DescUSSFolderLocationMD = "**Folder** `UID`(s) whose records are synced to the cloud provider secret store."
+
+	DescUSSDryRun   = "Run Universal Secrets Sync without pushing any changes to the cloud provider secret store."
+	DescUSSDryRunMD = "Run Universal Secrets Sync **without pushing any changes** to the cloud provider secret store."
+
+	DescUSSSyncIdentity   = "The identity (credential or role) Universal Secrets Sync uses to authenticate to the cloud provider."
+	DescUSSSyncIdentityMD = "The **identity** (credential or role) Universal Secrets Sync uses to authenticate to the cloud provider."
+
+	DescUSSVaultName   = "The Azure Key Vault name secrets are synced to. Required when environment is `azure`; not applicable otherwise."
+	DescUSSVaultNameMD = "The **Azure Key Vault** name secrets are synced to. Required when `environment` is `azure`; not applicable otherwise."
 )
 
 // ValidEnvironmentsMarkdown formats environments for schema markdown.
