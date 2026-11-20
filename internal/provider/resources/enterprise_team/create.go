@@ -86,7 +86,7 @@ func addTeamBasicAttributes(ctx context.Context, apiManager *api.ApiManager, dat
 	parts = append(parts, "enterprise-team")
 
 	// Required parameters
-	parts = append(parts, fmt.Sprintf("--add '%s'", data.Name.ValueString()))
+	parts = append(parts, fmt.Sprintf("--add='%s'", data.Name.ValueString()))
 
 	// Optional parameters
 	if !data.RestrictEdit.IsNull() && data.RestrictEdit.ValueBool() {
@@ -102,7 +102,7 @@ func addTeamBasicAttributes(ctx context.Context, apiManager *api.ApiManager, dat
 	}
 
 	if !data.Node.IsNull() {
-		parts = append(parts, fmt.Sprintf("--node '%s'", data.Node.ValueString()))
+		parts = append(parts, fmt.Sprintf("--node='%s'", data.Node.ValueString()))
 	}
 
 	command := strings.Join(parts, " ")

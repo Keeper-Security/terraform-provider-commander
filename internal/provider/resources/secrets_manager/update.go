@@ -30,7 +30,7 @@ func (r *SecretsManagerAppResource) Update(ctx context.Context, req resource.Upd
 	appUID := state.Id.ValueString()
 
 	if plan.Name.ValueString() != state.Name.ValueString() {
-		command := fmt.Sprintf("%s update '%s' --name '%s'", CmdPrefix, appUID, plan.Name.ValueString())
+		command := fmt.Sprintf("%s update '%s' --name='%s'", CmdPrefix, appUID, plan.Name.ValueString())
 		if _, err := r.ApiManager.ExecuteCommand(ctx, command, "Unable to rename Secrets Manager application"); err != nil {
 			resp.Diagnostics.AddError("Update Secrets Manager App Failed", err.Error())
 			return

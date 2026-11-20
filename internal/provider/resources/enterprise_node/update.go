@@ -76,11 +76,11 @@ func updateEnterpriseNode(ctx context.Context, apiManager *api.ApiManager, plan 
 	parts = append(parts, "enterprise-node")
 
 	if !state.Name.Equal(plan.Name) {
-		parts = append(parts, fmt.Sprintf("--name '%s'", plan.Name.ValueString()))
+		parts = append(parts, fmt.Sprintf("--name='%s'", plan.Name.ValueString()))
 	}
 
 	if !state.Parent.Equal(plan.Parent) {
-		parts = append(parts, fmt.Sprintf("--parent '%s'", plan.Parent.ValueString()))
+		parts = append(parts, fmt.Sprintf("--parent='%s'", plan.Parent.ValueString()))
 	}
 
 	// --toggle-isolated toggles current state; it does not accept true/false.

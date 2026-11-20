@@ -19,7 +19,7 @@ import (
 func FetchPamConfigByUIDCommand(uid string) string {
 	return strings.Join([]string{
 		CmdPamConfig, CmdPamList,
-		FlagPamListConfig, utils.QuoteShellSingle(strings.TrimSpace(uid)),
+		utils.FlagArg(FlagPamListConfig, strings.TrimSpace(uid)),
 		utils.FlagFormatJSON,
 		utils.FlagVerbose,
 	}, " ")
@@ -30,7 +30,7 @@ func FetchPamConfigByUIDCommand(uid string) string {
 func FetchPamUssConfigByNetworkUIDCommand(uid string) string {
 	return strings.Join([]string{
 		CmdPamUniversalSyncConfigList,
-		FlagPamUssNetwork, utils.QuoteShellSingle(strings.TrimSpace(uid)),
+		utils.FlagArg(FlagPamUssNetwork, strings.TrimSpace(uid)),
 		utils.FlagFormatJSON,
 	}, " ")
 }
@@ -39,7 +39,7 @@ func FetchPamUssConfigByNetworkUIDCommand(uid string) string {
 func BuildPamRemoveUssConfigCommand(uid string) string {
 	return strings.Join([]string{
 		CmdPamUniversalSyncConfigRemove,
-		FlagPamUssNetwork, utils.QuoteShellSingle(strings.TrimSpace(uid)),
+		utils.FlagArg(FlagPamUssNetwork, strings.TrimSpace(uid)),
 	}, " ")
 }
 

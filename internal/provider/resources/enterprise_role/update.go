@@ -137,11 +137,11 @@ func updateRoleBasicAttributes(ctx context.Context, apiManager *api.ApiManager, 
 
 	// Check for changes and build update command
 	if !state.Name.Equal(plan.Name) {
-		parts = append(parts, fmt.Sprintf("--name '%s'", plan.Name.ValueString()))
+		parts = append(parts, fmt.Sprintf("--name='%s'", plan.Name.ValueString()))
 	}
 
 	if !state.Node.Equal(plan.Node) {
-		parts = append(parts, fmt.Sprintf("--node '%s'", plan.Node.ValueString()))
+		parts = append(parts, fmt.Sprintf("--node='%s'", plan.Node.ValueString()))
 	}
 
 	// Role to update
@@ -242,7 +242,7 @@ func buildRemoveManagingNodeCommand(roleId string, managingNodeNames []string) s
 
 	// Add each -ra flag for each node to remove
 	for _, nodeName := range managingNodeNames {
-		parts = append(parts, fmt.Sprintf("-ra '%s'", nodeName))
+		parts = append(parts, fmt.Sprintf("-ra='%s'", nodeName))
 	}
 
 	return strings.Join(parts, " ")
@@ -253,7 +253,7 @@ func buildRemoveManagingNodeCommand(roleId string, managingNodeNames []string) s
 func buildUpdateManagingNodeCascadeCommand(roleId string, managingNodeName string, cascade bool) string {
 	var parts []string
 
-	parts = append(parts, fmt.Sprintf("enterprise-role '%s' -aa '%s'", roleId, managingNodeName))
+	parts = append(parts, fmt.Sprintf("enterprise-role '%s' -aa='%s'", roleId, managingNodeName))
 
 	if cascade {
 		parts = append(parts, "--cascade on")

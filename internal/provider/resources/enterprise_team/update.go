@@ -76,7 +76,7 @@ func updateEnterpriseTeam(ctx context.Context, apiManager *api.ApiManager, plan 
 
 	// Required parameters
 	if !state.Name.Equal(plan.Name) {
-		parts = append(parts, fmt.Sprintf("--name '%s'", plan.Name.ValueString()))
+		parts = append(parts, fmt.Sprintf("--name='%s'", plan.Name.ValueString()))
 	}
 
 	// Optional parameters
@@ -107,7 +107,7 @@ func updateEnterpriseTeam(ctx context.Context, apiManager *api.ApiManager, plan 
 	}
 
 	if !state.Node.Equal(plan.Node) {
-		parts = append(parts, fmt.Sprintf("--node '%s'", plan.Node.ValueString()))
+		parts = append(parts, fmt.Sprintf("--node='%s'", plan.Node.ValueString()))
 	}
 
 	// Process users and roles changes

@@ -15,7 +15,7 @@ import (
 
 func TestFetchPamUssConfigByNetworkUIDCommand(t *testing.T) {
 	got := commonpamconfiguration.FetchPamUssConfigByNetworkUIDCommand("net-uid-1")
-	want := "pam universal-sync-config list --network 'net-uid-1' --format json"
+	want := "pam universal-sync-config list --network='net-uid-1' --format json"
 	if got != want {
 		t.Errorf("command = %q, want %q", got, want)
 	}

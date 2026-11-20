@@ -43,8 +43,8 @@ type saasPluginInfoResponse struct {
 
 // FetchSaasFieldSpecs runs `pam action saas config --gateway <gw> --plugin <saasType> --info
 // --format json`. Returns an empty slice (no error) if the plugin reports no fields.
-func FetchSaasFieldSpecs(ctx context.Context, apiManager *api.ApiManager, gateway, saasType string) ([]SaasFieldSpec, error) {
-	command := fmt.Sprintf("%s --gateway %s --plugin %s --info %s", utils.CmdPamActionSaaSConfig, utils.QuoteShellSingle(gateway), utils.QuoteShellSingle(saasType), utils.FlagFormatJSON)
+func FetchSaasFieldSpecs(ctx context.Context, apiManager *api.ApiManager, gateway, saasType, configurationUID string) ([]SaasFieldSpec, error) {
+	command := fmt.Sprintf("%s %s --plugin %s %s --info %s", utils.CmdPamActionSaaSConfig, utils.FlagArg("--gateway", gateway), utils.QuoteShellSingle(saasType), utils.FlagArg("--configuration-uid", configurationUID), utils.FlagFormatJSON)
 	apiResp, err := apiManager.ExecuteCommand(ctx, command, ErrOpGetSaasPluginInfo)
 	if err != nil {
 		return nil, err

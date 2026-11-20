@@ -45,8 +45,8 @@ type saasPluginListEntry struct {
 }
 
 // FetchSaasPluginList runs `pam action saas config --gateway <gw> --list --format json`.
-func FetchSaasPluginList(ctx context.Context, apiManager *api.ApiManager, gateway string) ([]SaasPluginEntry, error) {
-	command := fmt.Sprintf("%s --gateway %s --list %s", utils.CmdPamActionSaaSConfig, utils.QuoteShellSingle(gateway), utils.FlagFormatJSON)
+func FetchSaasPluginList(ctx context.Context, apiManager *api.ApiManager, gateway string, configuration string) ([]SaasPluginEntry, error) {
+	command := fmt.Sprintf("%s %s --list %s %s", utils.CmdPamActionSaaSConfig, utils.FlagArg("--gateway", gateway), utils.FlagArg("--configuration-uid", configuration), utils.FlagFormatJSON)
 	errSummary := ErrOpListSaasPluginsForGateway(gateway)
 	apiResp, err := apiManager.ExecuteCommand(ctx, command, errSummary)
 	if err != nil {

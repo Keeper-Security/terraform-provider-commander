@@ -21,7 +21,7 @@ func appendFlagString(parts *[]string, flag string, v types.String) {
 	if val == "" {
 		return
 	}
-	*parts = append(*parts, fmt.Sprintf("%s %s", flag, utils.QuoteShellSingle(val)))
+	*parts = append(*parts, utils.FlagArg(flag, val))
 }
 
 func boolToOnOff(b types.Bool) string {
@@ -57,15 +57,15 @@ func sortedSetStrings(set types.Set) []string {
 
 // appendPamConfigBodyFlags appends shared `pam config new|edit` flags (after the subcommand / UID).
 func appendPamConfigBodyFlags(parts *[]string, data *commonpamconfiguration.PamConfigurationResourceModel) {
-	*parts = append(*parts, fmt.Sprintf("%s %s", FlagEnvironment, utils.QuoteShellSingle(data.Environment.ValueString())))
-	*parts = append(*parts, fmt.Sprintf("%s %s", FlagTitle, utils.QuoteShellSingle(data.Title.ValueString())))
-	*parts = append(*parts, fmt.Sprintf("%s %s", FlagGateway, utils.QuoteShellSingle(data.Gateway.ValueString())))
-	*parts = append(*parts, fmt.Sprintf("%s %s", FlagSharedFolder, utils.QuoteShellSingle(data.ApplicationFolder.ValueString())))
+	*parts = append(*parts, utils.FlagArg(FlagEnvironment, data.Environment.ValueString()))
+	*parts = append(*parts, utils.FlagArg(FlagTitle, data.Title.ValueString()))
+	*parts = append(*parts, utils.FlagArg(FlagGateway, data.Gateway.ValueString()))
+	*parts = append(*parts, utils.FlagArg(FlagSharedFolder, data.ApplicationFolder.ValueString()))
 
 	appendFlagString(parts, FlagSchedule, data.Schedule)
 
 	for _, pm := range sortedSetStrings(data.PortMapping) {
-		*parts = append(*parts, fmt.Sprintf("%s %s", FlagPortMapping, utils.QuoteShellSingle(pm)))
+		*parts = append(*parts, utils.FlagArg(FlagPortMapping, pm))
 	}
 
 	*parts = append(*parts, fmt.Sprintf("%s %s", FlagConnections, boolToOnOff(data.Connections)))
@@ -123,7 +123,7 @@ func appendAwsFlags(parts *[]string, m *commonpamconfiguration.PamAwsModel) {
 	appendFlagString(parts, FlagAccessKeyId, m.AccessKeyId)
 	appendFlagString(parts, FlagAccessSecretKey, m.AccessSecretKey)
 	for _, r := range sortedSetStrings(m.RegionNames) {
-		*parts = append(*parts, fmt.Sprintf("%s %s", FlagRegionName, utils.QuoteShellSingle(r)))
+		*parts = append(*parts, utils.FlagArg(FlagRegionName, r))
 	}
 }
 
@@ -137,7 +137,7 @@ func appendAzureFlags(parts *[]string, m *commonpamconfiguration.PamAzureModel) 
 	appendFlagString(parts, FlagSubscriptionId, m.SubscriptionId)
 	appendFlagString(parts, FlagTenantId, m.TenantId)
 	for _, rg := range sortedSetStrings(m.ResourceGroups) {
-		*parts = append(*parts, fmt.Sprintf("%s %s", FlagResourceGroup, utils.QuoteShellSingle(rg)))
+		*parts = append(*parts, utils.FlagArg(FlagResourceGroup, rg))
 	}
 }
 
@@ -241,7 +241,7 @@ func appendPamUssConfigBodyFlags(parts *[]string, data *commonpamconfiguration.P
 
 	*parts = append(*parts, fmt.Sprintf("%s %s", commonpamconfiguration.FlagPamUssEnabled, boolToTrueFalse(common.Enabled)))
 	for _, f := range sortedSetStrings(common.FolderLocation) {
-		*parts = append(*parts, fmt.Sprintf("%s %s", commonpamconfiguration.FlagPamUssFolder, utils.QuoteShellSingle(f)))
+		*parts = append(*parts, utils.FlagArg(commonpamconfiguration.FlagPamUssFolder, f))
 	}
 	appendFlagString(parts, commonpamconfiguration.FlagPamUssSyncIdentity, common.SyncIdentity)
 	appendFlagString(parts, commonpamconfiguration.FlagPamUssVaultName, ussVaultName(data))

@@ -32,7 +32,7 @@ func epmModelForCommand(status string) *EpmPolicyResourceModel {
 
 func TestBuildCreateCommand_StatusOffUsesEnableFlag(t *testing.T) {
 	cmd := buildCreateCommand(epmModelForCommand(commonepm.StatusOff))
-	if !strings.Contains(cmd, commonepm.FlagEnable+" '"+commonepm.StatusOff+"'") {
+	if !strings.Contains(cmd, commonepm.FlagEnable+"='"+commonepm.StatusOff+"'") {
 		t.Fatalf("create with status off should use enable flag, got: %s", cmd)
 	}
 	if strings.Contains(cmd, commonepm.FlagStatus) {
@@ -42,7 +42,7 @@ func TestBuildCreateCommand_StatusOffUsesEnableFlag(t *testing.T) {
 
 func TestBuildCreateCommand_NonOffStatusUsesStatusFlag(t *testing.T) {
 	cmd := buildCreateCommand(epmModelForCommand(commonepm.StatusEnforce))
-	if !strings.Contains(cmd, commonepm.FlagStatus+" '"+commonepm.StatusEnforce+"'") {
+	if !strings.Contains(cmd, commonepm.FlagStatus+"='"+commonepm.StatusEnforce+"'") {
 		t.Fatalf("create with enforce should use status flag, got: %s", cmd)
 	}
 	if strings.Contains(cmd, commonepm.FlagEnable) {
@@ -52,14 +52,14 @@ func TestBuildCreateCommand_NonOffStatusUsesStatusFlag(t *testing.T) {
 
 func TestBuildUpdateCommand_StatusOffUsesEnableFlag(t *testing.T) {
 	cmd := buildUpdateCommand("42", epmModelForCommand(commonepm.StatusOff))
-	if !strings.Contains(cmd, commonepm.FlagEnable+" '"+commonepm.StatusOff+"'") {
+	if !strings.Contains(cmd, commonepm.FlagEnable+"='"+commonepm.StatusOff+"'") {
 		t.Fatalf("update with status off should use enable flag, got: %s", cmd)
 	}
 }
 
 func TestBuildUpdateCommand_NonOffStatusUsesStatusFlag(t *testing.T) {
 	cmd := buildUpdateCommand("42", epmModelForCommand(commonepm.StatusMonitor))
-	if !strings.Contains(cmd, commonepm.FlagStatus+" '"+commonepm.StatusMonitor+"'") {
+	if !strings.Contains(cmd, commonepm.FlagStatus+"='"+commonepm.StatusMonitor+"'") {
 		t.Fatalf("update with monitor should use status flag, got: %s", cmd)
 	}
 }
@@ -69,17 +69,17 @@ func TestBuildCreateCommand_MonitorAndNotifyIncludesNotificationFlags(t *testing
 	m.Message = types.StringValue("hello")
 	m.RequirePolicyAcknowledgement = types.BoolValue(true)
 	cmd := buildCreateCommand(m)
-	if !strings.Contains(cmd, commonepm.FlagMessage+" 'hello'") {
+	if !strings.Contains(cmd, commonepm.FlagMessage+"='hello'") {
 		t.Fatalf("want message flag, got: %s", cmd)
 	}
-	if !strings.Contains(cmd, commonepm.FlagRequireAcknowledgement+" '"+utils.ValueOn+"'") {
+	if !strings.Contains(cmd, commonepm.FlagRequireAcknowledgement+"='"+utils.ValueOn+"'") {
 		t.Fatalf("want require-acknowledgement on, got: %s", cmd)
 	}
 
 	m2 := epmModelForCommand(commonepm.StatusMonitorAndNotify)
 	m2.RequirePolicyAcknowledgement = types.BoolValue(false)
 	cmd2 := buildCreateCommand(m2)
-	if !strings.Contains(cmd2, commonepm.FlagRequireAcknowledgement+" '"+utils.ValueOff+"'") {
+	if !strings.Contains(cmd2, commonepm.FlagRequireAcknowledgement+"='"+utils.ValueOff+"'") {
 		t.Fatalf("want require-acknowledgement off, got: %s", cmd2)
 	}
 }

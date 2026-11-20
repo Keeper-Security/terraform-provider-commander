@@ -60,16 +60,16 @@ func updateManagedCompany(ctx context.Context, apiManager *api.ApiManager, plan 
 	parts = append(parts, fmt.Sprintf("'%s'", state.Id.ValueString()))
 
 	if !state.Name.Equal(plan.Name) {
-		parts = append(parts, fmt.Sprintf("--name '%s'", plan.Name.ValueString()))
+		parts = append(parts, fmt.Sprintf("--name='%s'", plan.Name.ValueString()))
 	}
 
 	// Required fields - no null check needed (validation ensures they exist)
 	if !state.Node.Equal(plan.Node) {
-		parts = append(parts, fmt.Sprintf("--node '%s'", plan.Node.ValueString()))
+		parts = append(parts, fmt.Sprintf("--node='%s'", plan.Node.ValueString()))
 	}
 
 	if !state.Plan.Equal(plan.Plan) {
-		parts = append(parts, fmt.Sprintf("--plan '%s'", plan.Plan.ValueString()))
+		parts = append(parts, fmt.Sprintf("--plan='%s'", plan.Plan.ValueString()))
 	}
 
 	// Optional fields
@@ -85,9 +85,9 @@ func updateManagedCompany(ctx context.Context, apiManager *api.ApiManager, plan 
 
 	if !state.FilePlan.Equal(plan.FilePlan) && !plan.FilePlan.IsNull() {
 		if plan.FilePlan.IsNull() {
-			parts = append(parts, fmt.Sprintf("--file-plan '%s'", FilePlan100GB))
+			parts = append(parts, fmt.Sprintf("--file-plan='%s'", FilePlan100GB))
 		} else {
-			parts = append(parts, fmt.Sprintf("--file-plan '%s'", plan.FilePlan.ValueString()))
+			parts = append(parts, fmt.Sprintf("--file-plan='%s'", plan.FilePlan.ValueString()))
 		}
 	}
 
@@ -166,12 +166,12 @@ func updateManagedCompany(ctx context.Context, apiManager *api.ApiManager, plan 
 
 	// Add remove-addon flag for each add-on to remove
 	for _, addOn := range addOnsToRemove {
-		parts = append(parts, fmt.Sprintf("--remove-addon '%s'", addOn))
+		parts = append(parts, fmt.Sprintf("--remove-addon='%s'", addOn))
 	}
 
 	// Add add-addon flag for each add-on to add
 	for _, addOn := range addOnsToAdd {
-		parts = append(parts, fmt.Sprintf("--add-addon '%s'", addOn))
+		parts = append(parts, fmt.Sprintf("--add-addon='%s'", addOn))
 	}
 
 	command := strings.Join(parts, " ")

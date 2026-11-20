@@ -258,3 +258,21 @@ func TestExtractFolderValue_ValidPathReturnsPath(t *testing.T) {
 		t.Errorf("expected NSF PAM/Resources, got %q", result.ValueString())
 	}
 }
+
+// TestFlagArg guards against UIDs beginning with '-' (about 1 in 64) being
+// parsed by Commander's argparse as an option when passed as `--flag 'value'`.
+func TestFlagArg(t *testing.T) {
+	tests := []struct {
+		flag, value, want string
+	}{
+		{"--shared-folder", "-gPdIYJUtSN_2t4kii88iA", "--shared-folder='-gPdIYJUtSN_2t4kii88iA'"},
+		{"-r", "abc", "-r='abc'"},
+		{"--title", "O'Brien", `--title='O'"'"'Brien'`},
+		{"--notes", "", "--notes=''"},
+	}
+	for _, tt := range tests {
+		if got := utils.FlagArg(tt.flag, tt.value); got != tt.want {
+			t.Errorf("FlagArg(%q, %q) = %q, want %q", tt.flag, tt.value, got, tt.want)
+		}
+	}
+}

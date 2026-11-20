@@ -4,7 +4,6 @@
 package epmpolicy
 
 import (
-	"fmt"
 	"strings"
 
 	commonepm "github.com/Keeper-Security/terraform-provider-commander/internal/provider/common/epm_policy"
@@ -49,28 +48,28 @@ func setToStrings(s types.Set) []string {
 // appendListFlags appends multiple flag arguments for each value (e.g. --user-filter "id1" --user-filter "id2").
 func appendListFlags(parts []string, flag string, values []string) []string {
 	for _, v := range values {
-		parts = append(parts, fmt.Sprintf("%s '%s'", flag, v))
+		parts = append(parts, utils.FlagArg(flag, v))
 	}
 	return parts
 }
 
 // appendEpmPolicyAttributeFlags appends policy name, type, status, and optional list flags (shared by add and update).
 func appendEpmPolicyAttributeFlags(parts []string, data *EpmPolicyResourceModel) []string {
-	parts = append(parts, fmt.Sprintf("%s '%s'", commonepm.FlagPolicyName, data.PolicyName.ValueString()))
-	parts = append(parts, fmt.Sprintf("%s '%s'", commonepm.FlagPolicyType, data.PolicyType.ValueString()))
+	parts = append(parts, utils.FlagArg(commonepm.FlagPolicyName, data.PolicyName.ValueString()))
+	parts = append(parts, utils.FlagArg(commonepm.FlagPolicyType, data.PolicyType.ValueString()))
 
 	// If status is off, set enable to off otherwise set status
 	if data.Status.ValueString() == commonepm.StatusOff {
-		parts = append(parts, fmt.Sprintf("%s '%s'", commonepm.FlagEnable, commonepm.StatusOff))
+		parts = append(parts, utils.FlagArg(commonepm.FlagEnable, commonepm.StatusOff))
 	} else {
-		parts = append(parts, fmt.Sprintf("%s '%s'", commonepm.FlagStatus, data.Status.ValueString()))
+		parts = append(parts, utils.FlagArg(commonepm.FlagStatus, data.Status.ValueString()))
 	}
 
 	if data.Status.ValueString() == commonepm.StatusMonitorAndNotify {
 		if !data.Message.IsNull() && !data.Message.IsUnknown() {
 			msg := strings.TrimSpace(data.Message.ValueString())
 			if msg != "" {
-				parts = append(parts, fmt.Sprintf("%s '%s'", commonepm.FlagMessage, msg))
+				parts = append(parts, utils.FlagArg(commonepm.FlagMessage, msg))
 			}
 		}
 		if !data.RequirePolicyAcknowledgement.IsNull() && !data.RequirePolicyAcknowledgement.IsUnknown() {
@@ -78,7 +77,7 @@ func appendEpmPolicyAttributeFlags(parts []string, data *EpmPolicyResourceModel)
 			if data.RequirePolicyAcknowledgement.ValueBool() {
 				ack = utils.ValueOn
 			}
-			parts = append(parts, fmt.Sprintf("%s '%s'", commonepm.FlagRequireAcknowledgement, ack))
+			parts = append(parts, utils.FlagArg(commonepm.FlagRequireAcknowledgement, ack))
 		}
 	}
 

@@ -137,14 +137,14 @@ func FetchAndProcessUsers(ctx context.Context, apiManager *api.ApiManager, state
 					return "", fmt.Errorf("user '%s' has status 'Invited'. Users must accept invitation before being added", userIdentifier)
 				}
 			}
-			parts = append(parts, fmt.Sprintf("%s '%s'", addUserFlagName, userId))
+			parts = append(parts, FlagArg(addUserFlagName, userId))
 		}
 	}
 
 	// Remove users that are in state but not in plan
 	for userId := range stateUserIdMap {
 		if _, exists := planUserIdMap[userId]; !exists {
-			parts = append(parts, fmt.Sprintf("%s '%s'", removeUserFlagName, userId))
+			parts = append(parts, FlagArg(removeUserFlagName, userId))
 		}
 	}
 

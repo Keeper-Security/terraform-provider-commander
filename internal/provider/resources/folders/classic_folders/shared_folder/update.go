@@ -67,7 +67,7 @@ func (r *ClassicSharedFolderResource) Update(ctx context.Context, req resource.U
 	// Rename via rndir (after move, so folder is already in the new location).
 	if nameChanged {
 		leaf := folderutils.EscapeDoubleQuotesForCLI(plan.Name.ValueString())
-		command := fmt.Sprintf("%s '%s' %s \"%s\"", CmdRndir, folderUID, FlagName, leaf)
+		command := fmt.Sprintf("%s '%s' %s=\"%s\"", CmdRndir, folderUID, FlagName, leaf)
 		if _, err := r.ApiManager.ExecuteCommand(ctx, command, folderutils.ErrOpRename); err != nil {
 			resp.Diagnostics.AddError(folderutils.ErrSummaryUpdateFailed, err.Error())
 			return
@@ -109,7 +109,7 @@ func BuildSharedFolderDefaultPermissionsCommand(folderUID string, f DefaultPermi
 		return ValueOff
 	}
 	parts := []string{
-		fmt.Sprintf("%s '%s' %s '%s' %s '%s'", CmdShareFolder, folderUID, FlagEmail, WildcardAll, FlagRecord, WildcardAll),
+		fmt.Sprintf("%s '%s' %s='%s' %s='%s'", CmdShareFolder, folderUID, FlagEmail, WildcardAll, FlagRecord, WildcardAll),
 		FlagManageUsers, onOff(f.ManageUsers),
 		FlagManageRecords, onOff(f.ManageRecords),
 		FlagCanShare, onOff(f.CanShare),

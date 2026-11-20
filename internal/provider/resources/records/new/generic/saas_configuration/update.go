@@ -73,7 +73,7 @@ func (r *SaasConfigurationResource) Update(ctx context.Context, req resource.Upd
 	needsFieldsValidation := needsSaasUpdate || customFieldsChanged
 	if saasType := commonrecordsaasconfiguration.SaasTypeFromCustom(plan.Custom); saasType != "" {
 		if needsSaasUpdate {
-			entries, err := commonrecordsaasconfiguration.FetchSaasPluginList(ctx, r.ApiManager, plan.Gateway.ValueString())
+			entries, err := commonrecordsaasconfiguration.FetchSaasPluginList(ctx, r.ApiManager, plan.Gateway.ValueString(), plan.Configuration.ValueString())
 			if err != nil {
 				resp.Diagnostics.AddError(commonrecordsaasconfiguration.ErrOpListSaasPluginsForGateway(plan.Gateway.ValueString()), err.Error())
 				return
@@ -85,7 +85,7 @@ func (r *SaasConfigurationResource) Update(ctx context.Context, req resource.Upd
 		}
 
 		if needsFieldsValidation {
-			specs, err := commonrecordsaasconfiguration.FetchSaasFieldSpecs(ctx, r.ApiManager, plan.Gateway.ValueString(), saasType)
+			specs, err := commonrecordsaasconfiguration.FetchSaasFieldSpecs(ctx, r.ApiManager, plan.Gateway.ValueString(), saasType, plan.Configuration.ValueString())
 			if err != nil {
 				resp.Diagnostics.AddError(commonrecordsaasconfiguration.ErrOpGetSaasPluginInfo, err.Error())
 				return

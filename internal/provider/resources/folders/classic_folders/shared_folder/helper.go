@@ -201,7 +201,7 @@ func getUserAttrs(obj types.Object) (manageUsers, manageRecords bool) {
 // buildSharedFolderRecordCommand builds share-folder --action grant|remove SF_ID --record RECORD_ID [--can-share on|off --can-edit on|off].
 // For remove, canShare/canEdit are ignored.
 func buildSharedFolderRecordCommand(action, folderUID, recordID string, canShare, canEdit bool) string {
-	base := fmt.Sprintf("%s %s %s '%s' %s '%s'", CmdShareFolder, FlagAction, action, folderUID, FlagRecord, recordID)
+	base := fmt.Sprintf("%s %s %s '%s' %s='%s'", CmdShareFolder, FlagAction, action, folderUID, FlagRecord, recordID)
 	if action != ActionGrant {
 		return base
 	}
@@ -220,7 +220,7 @@ func buildSharedFolderRecordCommand(action, folderUID, recordID string, canShare
 // USER_OR_TEAM_KEY is a user email/UID or a team name/UID; Commander's --email flag resolves either form.
 // For remove, permission args are ignored.
 func buildSharedFolderUserCommand(action, folderUID, userOrTeamKey string, manageUsers, manageRecords bool) string {
-	base := fmt.Sprintf("%s %s %s '%s' %s '%s'", CmdShareFolder, FlagAction, action, folderUID, FlagEmail, userOrTeamKey)
+	base := fmt.Sprintf("%s %s %s '%s' %s='%s'", CmdShareFolder, FlagAction, action, folderUID, FlagEmail, userOrTeamKey)
 	if action != ActionGrant {
 		return base
 	}

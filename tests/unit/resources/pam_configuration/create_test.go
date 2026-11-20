@@ -106,7 +106,7 @@ func TestCreate_SendsUssConfigWhenConfigured(t *testing.T) {
 	if ussCmd == "" {
 		t.Fatalf("expected a universal-sync-config add command, got: %v", captured)
 	}
-	if !strings.Contains(ussCmd, "--network 'network-uid-123'") {
+	if !strings.Contains(ussCmd, "--network='network-uid-123'") {
 		t.Errorf("expected --network flag with the created network uid, got: %s", ussCmd)
 	}
 	if !strings.Contains(ussCmd, "--enabled true") {

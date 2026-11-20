@@ -118,14 +118,14 @@ func FetchAndProcessTeams(ctx context.Context, apiManager *api.ApiManager, state
 	// Add teams that are in plan but not in state
 	for teamId := range planTeamIdMap {
 		if _, exists := stateTeamIdMap[teamId]; !exists {
-			parts = append(parts, fmt.Sprintf("%s '%s'", addTeamFlagName, teamId))
+			parts = append(parts, FlagArg(addTeamFlagName, teamId))
 		}
 	}
 
 	// Remove teams that are in state but not in plan
 	for teamId := range stateTeamIdMap {
 		if _, exists := planTeamIdMap[teamId]; !exists {
-			parts = append(parts, fmt.Sprintf("%s '%s'", removeTeamFlagName, teamId))
+			parts = append(parts, FlagArg(removeTeamFlagName, teamId))
 		}
 	}
 

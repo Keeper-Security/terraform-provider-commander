@@ -140,7 +140,7 @@ func buildUpdateEnforcementPoliciesCommand(roleId string, policies map[string]ty
 func buildAddManagingNodeCommand(roleId string, managingNodeName string, cascade bool) string {
 	var parts []string
 
-	parts = append(parts, fmt.Sprintf("enterprise-role '%s' -aa '%s'", roleId, managingNodeName))
+	parts = append(parts, fmt.Sprintf("enterprise-role '%s' -aa='%s'", roleId, managingNodeName))
 
 	if cascade {
 		parts = append(parts, "--cascade on")
@@ -156,16 +156,16 @@ func buildAddManagingNodeCommand(roleId string, managingNodeName string, cascade
 func buildAddRemoveManagingNodePrivilegesCommand(roleId string, managingNodeName string, addPrivileges []string, removePrivileges []string) string {
 	var parts []string
 
-	parts = append(parts, fmt.Sprintf("enterprise-role '%s' --node '%s'", roleId, managingNodeName))
+	parts = append(parts, fmt.Sprintf("enterprise-role '%s' --node='%s'", roleId, managingNodeName))
 
 	// Add privileges with -ap
 	for _, privilege := range addPrivileges {
-		parts = append(parts, fmt.Sprintf("-ap '%s'", privilege))
+		parts = append(parts, fmt.Sprintf("-ap='%s'", privilege))
 	}
 
 	// Remove privileges with -rp
 	for _, privilege := range removePrivileges {
-		parts = append(parts, fmt.Sprintf("-rp '%s'", privilege))
+		parts = append(parts, fmt.Sprintf("-rp='%s'", privilege))
 	}
 
 	return strings.Join(parts, " ")

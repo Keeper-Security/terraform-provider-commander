@@ -76,7 +76,7 @@ func TestUpdate_SendsUssEditWhenConfiguredInPlan(t *testing.T) {
 	if ussCmd == "" {
 		t.Fatalf("expected a universal-sync-config edit command, got: %v", captured)
 	}
-	if !strings.Contains(ussCmd, "--network 'network-uid-123'") {
+	if !strings.Contains(ussCmd, "--network='network-uid-123'") {
 		t.Errorf("expected --network flag with the state's network uid, got: %s", ussCmd)
 	}
 	if !strings.Contains(ussCmd, "--enabled true") {
@@ -119,7 +119,7 @@ func TestUpdate_CreatesUssConfigWhenConfiguredForFirstTime(t *testing.T) {
 	if newCmd == "" {
 		t.Fatalf("expected a universal-sync-config add command, got: %v", captured)
 	}
-	if !strings.Contains(newCmd, "--network 'network-uid-123'") {
+	if !strings.Contains(newCmd, "--network='network-uid-123'") {
 		t.Errorf("expected --network flag with the state's network uid, got: %s", newCmd)
 	}
 	if !strings.Contains(newCmd, "--enabled true") {
@@ -162,7 +162,7 @@ func TestUpdate_RemovesUssConfigWhenRemovedFromPlan(t *testing.T) {
 	if removeCmd == "" {
 		t.Fatalf("expected a universal-sync-config remove command, got: %v", captured)
 	}
-	if !strings.Contains(removeCmd, "--network 'network-uid-123'") {
+	if !strings.Contains(removeCmd, "--network='network-uid-123'") {
 		t.Errorf("expected --network flag with the state's network uid, got: %s", removeCmd)
 	}
 	// pam universal-sync-config remove doesn't support --format json, unlike list.

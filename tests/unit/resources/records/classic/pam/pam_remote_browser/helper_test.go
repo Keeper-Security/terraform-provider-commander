@@ -162,7 +162,7 @@ func startMockServer(mock *helpers.CommandServer, responseForCommand func(cmd st
 
 func TestBuildPamRbiEditCommand_NilSettings(t *testing.T) {
 	cmd := commonpamremotebrowser.BuildPamRbiEditCommand("rec-uid-123", nil)
-	if cmd != "pam rbi edit --record 'rec-uid-123'" {
+	if cmd != "pam rbi edit --record='rec-uid-123'" {
 		t.Errorf("unexpected command: %s", cmd)
 	}
 }
@@ -191,7 +191,7 @@ func TestBuildPamRbiEditCommand_WithSettings(t *testing.T) {
 		t.Fatal("expected non-empty command")
 	}
 	// --record must be present
-	if !contains(cmd, "--record 'uid-1'") {
+	if !contains(cmd, "--record='uid-1'") {
 		t.Errorf("command should contain --record: %s", cmd)
 	}
 	// on/off booleans
@@ -277,10 +277,10 @@ func TestAppendPamRbiEditSettingsFlags_WithNonNullSets(t *testing.T) {
 		t.Fatal("expected parts to have flags")
 	}
 	joined := joinParts(parts)
-	if !contains(joined, "--configuration 'cfg-uid'") {
+	if !contains(joined, "--configuration='cfg-uid'") {
 		t.Errorf("expected --configuration flag: %s", joined)
 	}
-	if !contains(joined, "--allowed-urls 'https://example.com'") {
+	if !contains(joined, "--allowed-urls='https://example.com'") {
 		t.Errorf("expected --allowed-urls flag: %s", joined)
 	}
 	if !contains(joined, "--audio-channels 1") {

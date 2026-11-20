@@ -153,7 +153,7 @@ func UnlinkRecord(ctx context.Context, apiManager *api.ApiManager, rmCmd, folder
 // folder UID via --folder (not a path), and requires --operation unlink to
 // distinguish unlinking from deleting the record outright.
 func UnlinkRecordNsf(ctx context.Context, apiManager *api.ApiManager, rmCmd, folderUID, record string) error {
-	cmd := fmt.Sprintf("%s '%s' %s '%s' %s %s unlink",
+	cmd := fmt.Sprintf("%s '%s' %s='%s' %s %s unlink",
 		rmCmd, record, utils.FlagFolder, folderUID, utils.FlagForce, utils.FlagOperation)
 	if _, err := apiManager.ExecuteCommand(ctx, cmd, ErrOpUnlinkRecord); err != nil {
 		return err

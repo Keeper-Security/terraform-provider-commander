@@ -44,7 +44,7 @@ func TestFetchSaasPluginList_ParsesReportedResponseShape(t *testing.T) {
 		HttpClient:        server.Client(),
 	}
 
-	entries, err := commonrecordsaasconfiguration.FetchSaasPluginList(context.Background(), apiManager, "gw-1")
+	entries, err := commonrecordsaasconfiguration.FetchSaasPluginList(context.Background(), apiManager, "gw-1", "abc")
 	if err != nil {
 		t.Fatalf("FetchSaasPluginList failed: %v", err)
 	}
@@ -88,7 +88,7 @@ func TestFetchSaasPluginList_NullDataReturnsNoEntries(t *testing.T) {
 		HttpClient:        server.Client(),
 	}
 
-	entries, err := commonrecordsaasconfiguration.FetchSaasPluginList(context.Background(), apiManager, "gw-1")
+	entries, err := commonrecordsaasconfiguration.FetchSaasPluginList(context.Background(), apiManager, "gw-1", "abc")
 	if err != nil {
 		t.Fatalf("FetchSaasPluginList failed: %v", err)
 	}
@@ -116,7 +116,7 @@ func TestFetchSaasPluginList_MalformedDataPropagatesError(t *testing.T) {
 	// Note: this specific failure path (a malformed data payload) doesn't itself embed the
 	// gateway name in the returned error - the gateway still reaches the practitioner via the
 	// diagnostic Summary at the call site (see TestErrOpListSaasPluginsForGateway).
-	if _, err := commonrecordsaasconfiguration.FetchSaasPluginList(context.Background(), apiManager, "gw-1"); err == nil {
+	if _, err := commonrecordsaasconfiguration.FetchSaasPluginList(context.Background(), apiManager, "gw-1", "abc"); err == nil {
 		t.Fatal("expected an error when the response data isn't shaped as a list of plugins")
 	}
 }
@@ -149,7 +149,7 @@ func TestFetchSaasPluginList_GatewayOfflineReturnsClearError(t *testing.T) {
 		HttpClient:        server.Client(),
 	}
 
-	entries, err := commonrecordsaasconfiguration.FetchSaasPluginList(context.Background(), apiManager, "gw-1")
+	entries, err := commonrecordsaasconfiguration.FetchSaasPluginList(context.Background(), apiManager, "gw-1", "abc")
 	if err == nil {
 		t.Fatal("expected an error when the gateway is offline, got none")
 	}

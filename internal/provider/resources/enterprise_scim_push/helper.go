@@ -6,8 +6,9 @@ package enterprisescimpush
 import (
 	"crypto/sha256"
 	"encoding/hex"
-	"fmt"
 	"strings"
+
+	"github.com/Keeper-Security/terraform-provider-commander/internal/provider/utils"
 )
 
 // buildScimPushCommand builds the scim push command from the model.
@@ -21,9 +22,9 @@ func buildScimPushCommand(data *EnterpriseScimPushResourceModel) string {
 	parts := []string{
 		CmdScimPush,
 		data.ScimId.ValueString(),
-		fmt.Sprintf("%s '%s'", FlagSource, source),
-		fmt.Sprintf("%s '%s'", FlagRecord, data.Record.ValueString()),
-		fmt.Sprintf("%s '%s'", FlagAutoApprove, autoApprove),
+		utils.FlagArg(FlagSource, source),
+		utils.FlagArg(FlagRecord, data.Record.ValueString()),
+		utils.FlagArg(FlagAutoApprove, autoApprove),
 	}
 	return strings.Join(parts, " ")
 }
