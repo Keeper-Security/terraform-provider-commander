@@ -26,10 +26,10 @@ func BuildAddCommand(cmd string, data PamUserSharedModel) string {
 	parts := []string{cmd}
 
 	if !data.FolderLocation.IsNull() && !data.FolderLocation.IsUnknown() && strings.TrimSpace(data.FolderLocation.ValueString()) != "" {
-		parts = append(parts, fmt.Sprintf("%s %s", utils.FlagFolder, utils.QuoteShellSingle(strings.TrimSpace(data.FolderLocation.ValueString()))))
+		parts = append(parts, utils.FlagArg(utils.FlagFolder, strings.TrimSpace(data.FolderLocation.ValueString())))
 	}
 
-	parts = append(parts, fmt.Sprintf("%s %s", utils.FlagTitle, utils.QuoteShellSingle(data.Title.ValueString())))
+	parts = append(parts, utils.FlagArg(utils.FlagTitle, data.Title.ValueString()))
 
 	parts = append(parts, fmt.Sprintf("%s %s", utils.FlagRecordType, utils.RecordTypePamUser))
 
@@ -46,7 +46,7 @@ func BuildAddCommand(cmd string, data PamUserSharedModel) string {
 	commonpamrecords.AppendOptionalCheckboxField(&parts, FieldManaged, data.Managed)
 
 	if !data.Notes.IsNull() && !data.Notes.IsUnknown() {
-		parts = append(parts, fmt.Sprintf("%s %s", utils.FlagNotes, utils.QuoteShellSingle(data.Notes.ValueString())))
+		parts = append(parts, utils.FlagArg(utils.FlagNotes, data.Notes.ValueString()))
 	}
 
 	return strings.Join(parts, " ")
@@ -76,11 +76,11 @@ func UpdateHasMutations(plan, state PamUserSharedModel) bool {
 func BuildUpdateCommand(cmd, recordUID string, plan, state PamUserSharedModel) string {
 	parts := []string{
 		cmd,
-		fmt.Sprintf("%s %s", utils.FlagRecord, utils.QuoteShellSingle(recordUID)),
+		utils.FlagArg(utils.FlagRecord, recordUID),
 	}
 
 	if !plan.Title.Equal(state.Title) {
-		parts = append(parts, fmt.Sprintf("%s %s", utils.FlagTitle, utils.QuoteShellSingle(plan.Title.ValueString())))
+		parts = append(parts, utils.FlagArg(utils.FlagTitle, plan.Title.ValueString()))
 	}
 
 	if !plan.Login.Equal(state.Login) {
@@ -107,7 +107,7 @@ func BuildUpdateCommand(cmd, recordUID string, plan, state PamUserSharedModel) s
 		if plan.Notes.IsNull() {
 			parts = append(parts, fmt.Sprintf("%s ''", utils.FlagNotes))
 		} else {
-			parts = append(parts, fmt.Sprintf("%s '%s'", utils.FlagNotes, plan.Notes.ValueString()))
+			parts = append(parts, utils.FlagArg(utils.FlagNotes, plan.Notes.ValueString()))
 		}
 	}
 
@@ -186,7 +186,7 @@ func firstBoolValue(raw json.RawMessage) types.Bool {
 func BuildPamRotationEditCommand(recordUID string, rs *PamUserRotationSettings) string {
 	parts := []string{
 		CmdPamRotationEdit,
-		fmt.Sprintf("%s %s", FlagRecordShort, utils.QuoteShellSingle(recordUID)),
+		utils.FlagArg(FlagRecordShort, recordUID),
 	}
 
 	if !rs.RotationProfile.IsNull() && !rs.RotationProfile.IsUnknown() {
@@ -200,15 +200,15 @@ func BuildPamRotationEditCommand(recordUID string, rs *PamUserRotationSettings) 
 		if rs.RotationProfile.ValueString() == RotProfileIAMUser {
 			flagToUse = FlagIamAadConfig
 		}
-		parts = append(parts, fmt.Sprintf("%s %s", flagToUse, utils.QuoteShellSingle(rs.Configuration.ValueString())))
+		parts = append(parts, utils.FlagArg(flagToUse, rs.Configuration.ValueString()))
 	}
 
 	if !rs.Resource.IsNull() && !rs.Resource.IsUnknown() {
-		parts = append(parts, fmt.Sprintf("%s %s", FlagResource, utils.QuoteShellSingle(rs.Resource.ValueString())))
+		parts = append(parts, utils.FlagArg(FlagResource, rs.Resource.ValueString()))
 	}
 
 	if !rs.SaaSConfig.IsNull() && !rs.SaaSConfig.IsUnknown() {
-		parts = append(parts, fmt.Sprintf("%s %s", FlagSaaSConfig, utils.QuoteShellSingle(rs.SaaSConfig.ValueString())))
+		parts = append(parts, utils.FlagArg(FlagSaaSConfig, rs.SaaSConfig.ValueString()))
 	}
 
 	if !rs.Enabled.IsNull() && !rs.Enabled.IsUnknown() {
@@ -224,13 +224,13 @@ func BuildPamRotationEditCommand(recordUID string, rs *PamUserRotationSettings) 
 	} else if !rs.UseDefaultRotationSchedule.IsNull() && !rs.UseDefaultRotationSchedule.IsUnknown() && rs.UseDefaultRotationSchedule.ValueBool() {
 		parts = append(parts, FlagScheduleConfig)
 	} else if !rs.ScheduleCron.IsNull() && !rs.ScheduleCron.IsUnknown() {
-		parts = append(parts, fmt.Sprintf("%s %s", FlagScheduleCron, utils.QuoteShellSingle(rs.ScheduleCron.ValueString())))
+		parts = append(parts, utils.FlagArg(FlagScheduleCron, rs.ScheduleCron.ValueString()))
 	} else if !rs.ScheduleJSON.IsNull() && !rs.ScheduleJSON.IsUnknown() {
-		parts = append(parts, fmt.Sprintf("%s %s", FlagScheduleJSON, utils.QuoteShellSingle(rs.ScheduleJSON.ValueString())))
+		parts = append(parts, utils.FlagArg(FlagScheduleJSON, rs.ScheduleJSON.ValueString()))
 	}
 
 	if !rs.Complexity.IsNull() && !rs.Complexity.IsUnknown() {
-		parts = append(parts, fmt.Sprintf("%s %s", FlagComplexity, utils.QuoteShellSingle(rs.Complexity.ValueString())))
+		parts = append(parts, utils.FlagArg(FlagComplexity, rs.Complexity.ValueString()))
 	}
 
 	parts = append(parts, FlagForce)

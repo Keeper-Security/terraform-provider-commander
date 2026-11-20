@@ -122,14 +122,14 @@ func FetchAndProcessRoles(ctx context.Context, apiManager *api.ApiManager, state
 	// Add roles that are in plan but not in state
 	for roleId := range planRoleIdMap {
 		if _, exists := stateRoleIdMap[roleId]; !exists {
-			parts = append(parts, fmt.Sprintf("%s '%s'", addRoleFlagName, roleId))
+			parts = append(parts, FlagArg(addRoleFlagName, roleId))
 		}
 	}
 
 	// Remove roles that are in state but not in plan
 	for roleId := range stateRoleIdMap {
 		if _, exists := planRoleIdMap[roleId]; !exists {
-			parts = append(parts, fmt.Sprintf("%s '%s'", removeRoleFlagName, roleId))
+			parts = append(parts, FlagArg(removeRoleFlagName, roleId))
 		}
 	}
 

@@ -454,7 +454,7 @@ func RestoreUserInputFormatFromApiResponse(
 func FetchEnterpriseNodeByNameOrId(ctx context.Context, apiManager *api.ApiManager, nodeNameOrId string) (*EnterpriseNodeResponse, error) {
 	// node can be id or name
 
-	command := fmt.Sprintf("enterprise-info -n -v --format json --node '%s' --columns='isolated,parent_node,parent_id'", nodeNameOrId)
+	command := fmt.Sprintf("enterprise-info -n -v --format json --node='%s' --columns='isolated,parent_node,parent_id'", nodeNameOrId)
 
 	apiResp, err := apiManager.ExecuteCommand(ctx, command, "Failed to retrieve enterprise node information")
 	if err != nil {
@@ -602,7 +602,7 @@ func FetchEnterpriseUserByEmailOrId(ctx context.Context, apiManager *api.ApiMana
 
 func FetchManagedCompanyByNameOrId(ctx context.Context, apiManager *api.ApiManager, nameOrId string) (*ManagedCompanyResponse, error) {
 	// Build command to get all companies info
-	command := fmt.Sprintf("msp-info -m '%s' --format json -v", nameOrId)
+	command := fmt.Sprintf("msp-info -m='%s' --format json -v", nameOrId)
 
 	apiResp, err := apiManager.ExecuteCommand(ctx, command, "Failed to retrieve managed company information")
 	if err != nil {
@@ -994,6 +994,16 @@ func MergeDataSourceAttributes(maps ...map[string]dschema.Attribute) map[string]
 // QuoteShellSingle wraps s for use as a single-quoted shell argument (bash-style escaping of ').
 func QuoteShellSingle(s string) string {
 	return `'` + strings.ReplaceAll(s, `'`, `'"'"'`) + `'`
+}
+
+// FlagArg renders an option and its value as a single `flag='value'` token.
+// Commander tokenizes with shlex and parses with argparse, which treats a
+// standalone token starting with '-' as another option even when quoted, so
+// `--shared-folder '-gPdIYJUkii88iA'` fails with "expected one argument"
+// (about 1 in 64 Keeper UIDs begin with '-'). The attached form is unambiguous
+// for long options, short options (-r='x') and repeatable options alike.
+func FlagArg(flag, value string) string {
+	return flag + "=" + QuoteShellSingle(value)
 }
 
 // MoveNsfFromSourceToDestination move's a nsf-record/nsf-folder when plan and state folder paths differ.

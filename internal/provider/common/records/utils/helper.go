@@ -33,14 +33,14 @@ func FormatFieldAssignment(key, value string, useJSON bool) string {
 func BuildRecordAdd(cmd, recordType, title string, folder types.String, extraParts []string, custom []CustomFieldModel, notes types.String) string {
 	parts := []string{cmd}
 	if !folder.IsNull() && !folder.IsUnknown() && strings.TrimSpace(folder.ValueString()) != "" {
-		parts = append(parts, fmt.Sprintf("%s %s", utils.FlagFolder, utils.QuoteShellSingle(strings.TrimSpace(folder.ValueString()))))
+		parts = append(parts, utils.FlagArg(utils.FlagFolder, strings.TrimSpace(folder.ValueString())))
 	}
-	parts = append(parts, fmt.Sprintf("%s %s", utils.FlagTitle, utils.QuoteShellSingle(strings.TrimSpace(title))))
+	parts = append(parts, utils.FlagArg(utils.FlagTitle, strings.TrimSpace(title)))
 	parts = append(parts, fmt.Sprintf("%s %s", utils.FlagRecordType, recordType))
 	parts = append(parts, extraParts...)
 	AppendCustomFieldsAdd(&parts, custom)
 	if !notes.IsNull() && !notes.IsUnknown() {
-		parts = append(parts, fmt.Sprintf("%s %s", utils.FlagNotes, utils.QuoteShellSingle(notes.ValueString())))
+		parts = append(parts, utils.FlagArg(utils.FlagNotes, notes.ValueString()))
 	}
 	parts = append(parts, utils.FlagForce)
 	return strings.Join(parts, " ")
@@ -51,15 +51,15 @@ func BuildRecordAdd(cmd, recordType, title string, folder types.String, extraPar
 func BuildRecordUpdate(cmd, recordUID string, titlePlan, titleState types.String, extraParts []string, customPlan, customState []CustomFieldModel, notesPlan, notesState types.String) string {
 	parts := []string{
 		cmd,
-		fmt.Sprintf("%s %s", utils.FlagRecord, utils.QuoteShellSingle(strings.TrimSpace(recordUID))),
+		utils.FlagArg(utils.FlagRecord, strings.TrimSpace(recordUID)),
 	}
 	if !titlePlan.Equal(titleState) && !titlePlan.IsNull() && !titlePlan.IsUnknown() {
-		parts = append(parts, fmt.Sprintf("%s %s", utils.FlagTitle, utils.QuoteShellSingle(titlePlan.ValueString())))
+		parts = append(parts, utils.FlagArg(utils.FlagTitle, titlePlan.ValueString()))
 	}
 	parts = append(parts, extraParts...)
 	AppendCustomFieldsUpdate(&parts, customPlan, customState)
 	if !notesPlan.Equal(notesState) && !notesPlan.IsNull() && !notesPlan.IsUnknown() {
-		parts = append(parts, fmt.Sprintf("%s %s", utils.FlagNotes, utils.QuoteShellSingle(notesPlan.ValueString())))
+		parts = append(parts, utils.FlagArg(utils.FlagNotes, notesPlan.ValueString()))
 	}
 
 	parts = append(parts, utils.FlagForce)

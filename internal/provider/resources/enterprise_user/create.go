@@ -68,18 +68,18 @@ func addUserBasicAttributes(ctx context.Context, apiManager *api.ApiManager, dat
 
 	parts = append(parts, "enterprise-user")
 
-	parts = append(parts, fmt.Sprintf("--add '%s'", data.Email.ValueString()))
+	parts = append(parts, fmt.Sprintf("--add='%s'", data.Email.ValueString()))
 
 	if !data.Node.IsNull() {
-		parts = append(parts, fmt.Sprintf("--node '%s'", data.Node.ValueString()))
+		parts = append(parts, fmt.Sprintf("--node='%s'", data.Node.ValueString()))
 	}
 
 	if !data.Name.IsNull() {
-		parts = append(parts, fmt.Sprintf("--name '%s'", data.Name.ValueString()))
+		parts = append(parts, fmt.Sprintf("--name='%s'", data.Name.ValueString()))
 	}
 
 	if !data.JobTitle.IsNull() {
-		parts = append(parts, fmt.Sprintf("--job-title '%s'", data.JobTitle.ValueString()))
+		parts = append(parts, fmt.Sprintf("--job-title='%s'", data.JobTitle.ValueString()))
 	}
 
 	command := strings.Join(parts, " ")

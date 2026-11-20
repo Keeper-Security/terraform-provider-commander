@@ -72,7 +72,7 @@ func (r *PamUserResource) Read(ctx context.Context, req resource.ReadRequest, re
 
 	commonpamuser.MapVaultRecordToState(&rec, &state.PamUserSharedModel)
 
-	rotCmd := fmt.Sprintf("%s %s '%s' %s", commonpamuser.CmdPamRotationInfo, commonpamuser.FlagRecordShort, id, utils.FlagFormatJSON)
+	rotCmd := fmt.Sprintf("%s %s='%s' %s", commonpamuser.CmdPamRotationInfo, commonpamuser.FlagRecordShort, id, utils.FlagFormatJSON)
 	rotResp, err2 := r.ApiManager.ExecuteCommand(ctx, rotCmd, commonpamuser.ErrDetailRotationInfoFailed)
 	if err2 == nil && rotResp.Data != nil {
 		var rotInfo commonpamuser.PamRotationInfoResponse

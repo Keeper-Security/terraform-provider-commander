@@ -50,8 +50,8 @@ func newApiManagerForPluginInfo(t *testing.T, gateway, plugin string, data inter
 		if !strings.Contains(gotCommand, "pam action saas config") || !strings.Contains(gotCommand, "--info") || !strings.Contains(gotCommand, "--format json") {
 			t.Errorf("expected command to fetch plugin info as JSON, got: %s", gotCommand)
 		}
-		if !strings.Contains(gotCommand, "--gateway '"+gateway+"'") {
-			t.Errorf("expected command to include --gateway '%s', got: %s", gateway, gotCommand)
+		if !strings.Contains(gotCommand, "--gateway='"+gateway+"'") {
+			t.Errorf("expected command to include --gateway='%s', got: %s", gateway, gotCommand)
 		}
 		if !strings.Contains(gotCommand, "--plugin '"+plugin+"'") {
 			t.Errorf("expected command to include --plugin '%s', got: %s", plugin, gotCommand)
@@ -70,7 +70,7 @@ func TestFetchSaasFieldSpecs_ParsesReportedResponseShape(t *testing.T) {
 
 	apiManager := newApiManagerForPluginInfo(t, "gw-1", "REST", reportedPluginInfoData)
 
-	specs, err := commonrecordsaasconfiguration.FetchSaasFieldSpecs(context.Background(), apiManager, "gw-1", "REST")
+	specs, err := commonrecordsaasconfiguration.FetchSaasFieldSpecs(context.Background(), apiManager, "gw-1", "REST", "")
 	if err != nil {
 		t.Fatalf("FetchSaasFieldSpecs failed: %v", err)
 	}
@@ -99,7 +99,7 @@ func TestFetchSaasFieldSpecs_NoFieldsReturnsEmpty(t *testing.T) {
 		"summary": "A plugin with no configurable fields.",
 	})
 
-	specs, err := commonrecordsaasconfiguration.FetchSaasFieldSpecs(context.Background(), apiManager, "gw-1", "NoFieldsPlugin")
+	specs, err := commonrecordsaasconfiguration.FetchSaasFieldSpecs(context.Background(), apiManager, "gw-1", "NoFieldsPlugin", "")
 	if err != nil {
 		t.Fatalf("FetchSaasFieldSpecs failed: %v", err)
 	}
@@ -123,7 +123,7 @@ func TestFetchSaasFieldSpecs_NullDataReturnsNoSpecs(t *testing.T) {
 		HttpClient:        server.Client(),
 	}
 
-	specs, err := commonrecordsaasconfiguration.FetchSaasFieldSpecs(context.Background(), apiManager, "gw-1", "REST")
+	specs, err := commonrecordsaasconfiguration.FetchSaasFieldSpecs(context.Background(), apiManager, "gw-1", "REST", "")
 	if err != nil {
 		t.Fatalf("FetchSaasFieldSpecs failed: %v", err)
 	}
@@ -148,7 +148,7 @@ func TestFetchSaasFieldSpecs_MalformedDataPropagatesError(t *testing.T) {
 		HttpClient:        server.Client(),
 	}
 
-	if _, err := commonrecordsaasconfiguration.FetchSaasFieldSpecs(context.Background(), apiManager, "gw-1", "REST"); err == nil {
+	if _, err := commonrecordsaasconfiguration.FetchSaasFieldSpecs(context.Background(), apiManager, "gw-1", "REST", ""); err == nil {
 		t.Fatal("expected an error when the response data isn't shaped as a plugin info object")
 	}
 }

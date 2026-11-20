@@ -106,7 +106,7 @@ func TestEnterpriseNodeResource_Create_NoApiManager(t *testing.T) {
 func TestEnterpriseNodeResource_Create_WithParentAndManagedCompany(t *testing.T) {
 	mock := &helpers.CommandServer{}
 	responseForCommand := func(cmd string, idx int) (string, interface{}) {
-		if strings.Contains(cmd, "enterprise-node --add") && strings.Contains(cmd, "--parent 'MyCompany'") {
+		if strings.Contains(cmd, "enterprise-node --add") && strings.Contains(cmd, "--parent='MyCompany'") {
 			return "Node ID: 456", nil
 		}
 		return "ok", nil

@@ -23,7 +23,7 @@ func BuildAddCommand(cmd string, data PamDirectoryResourceModel) string {
 	parts := []string{cmd}
 
 	parts = append(parts, fmt.Sprintf("%s %s", utils.FlagRecordType, utils.RecordTypePamDirectory))
-	parts = append(parts, fmt.Sprintf("%s '%s'", utils.FlagTitle, data.Title.ValueString()))
+	parts = append(parts, utils.FlagArg(utils.FlagTitle, data.Title.ValueString()))
 
 	commonpamrecords.AppendHostnameOrIPField(&parts, data.HostnameOrIP)
 	commonpamrecords.AppendOptionalCheckboxField(&parts, FlagUseSSL, data.UseSSL)
@@ -36,11 +36,11 @@ func BuildAddCommand(cmd string, data PamDirectoryResourceModel) string {
 	commonpamrecords.AppendOptionalTextField(&parts, FlagProviderRegion, data.ProviderRegion)
 
 	if !data.FolderLocation.IsNull() && !data.FolderLocation.IsUnknown() && strings.TrimSpace(data.FolderLocation.ValueString()) != "" {
-		parts = append(parts, fmt.Sprintf("%s '%s'", utils.FlagFolder, strings.TrimSpace(data.FolderLocation.ValueString())))
+		parts = append(parts, utils.FlagArg(utils.FlagFolder, strings.TrimSpace(data.FolderLocation.ValueString())))
 	}
 
 	if !data.Notes.IsNull() {
-		parts = append(parts, fmt.Sprintf("%s '%s'", utils.FlagNotes, data.Notes.ValueString()))
+		parts = append(parts, utils.FlagArg(utils.FlagNotes, data.Notes.ValueString()))
 	}
 
 	return strings.Join(parts, " ")
@@ -51,11 +51,11 @@ func BuildAddCommand(cmd string, data PamDirectoryResourceModel) string {
 func BuildUpdateCommand(cmd, recordUID string, plan, state PamDirectoryResourceModel) string {
 	parts := []string{
 		cmd,
-		fmt.Sprintf("%s '%s'", utils.FlagRecord, recordUID),
+		utils.FlagArg(utils.FlagRecord, recordUID),
 	}
 
 	if !plan.Title.Equal(state.Title) {
-		parts = append(parts, fmt.Sprintf("%s '%s'", utils.FlagTitle, plan.Title.ValueString()))
+		parts = append(parts, utils.FlagArg(utils.FlagTitle, plan.Title.ValueString()))
 	}
 
 	if !commonpamrecords.HostnameOrIPEqual(plan.HostnameOrIP, state.HostnameOrIP) {
@@ -83,7 +83,7 @@ func BuildUpdateCommand(cmd, recordUID string, plan, state PamDirectoryResourceM
 		if plan.Notes.IsNull() {
 			parts = append(parts, fmt.Sprintf("%s ''", utils.FlagNotes))
 		} else {
-			parts = append(parts, fmt.Sprintf("%s '%s'", utils.FlagNotes, plan.Notes.ValueString()))
+			parts = append(parts, utils.FlagArg(utils.FlagNotes, plan.Notes.ValueString()))
 		}
 	}
 

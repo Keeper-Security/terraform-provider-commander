@@ -13,7 +13,16 @@
 ### Changed
 
 - SaaS configuration documentation and examples now explain that the SaaS Type must be set, and that the gateway and configuration must be set manually after importing records.
-- Updated MinCommanderVersion to `18.1.9`
+- Updated MinCommanderVersion to `18.1.11`
+
+### Fixed
+
+- Option values are now passed to Commander in the attached `--flag='value'` form. Previously a UID beginning with `-` (about 1 in 64), for example in `--shared-folder`, `--network`, `--folder`, `--record`, `--configuration`, or `--app`, was parsed as a separate option, so the command failed with `expected one argument`.
+- **`commander_pam_configuration`:** Documented that `universal_secrets_sync` requires the `ALLOW_CONFIGURE_USS_SETTINGS` role enforcement. Without it, create fails with `RRC_NOT_ALLOWED_ENFORCEMENT_NOT_ENABLED`.
+
+### Known issues
+
+- **`commander_pam_configuration`:** For `aws`, `azure`, and `gcp`, do not combine `universal_secrets_sync` with `connections`, `tunneling`, or `rotation` set to `true`. Saving either one currently resets the other on the backend, so the plan never settles. Leave those three attributes at their default (`false`) when `universal_secrets_sync` is configured.
 
 ## 1.4.0 (2026-09-24)
 

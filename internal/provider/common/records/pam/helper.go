@@ -867,11 +867,11 @@ func applyPamConfiguration(ctx context.Context, apiManager *api.ApiManager, reco
 	parts := []string{
 		utils.CmdPamConnectionEdit,
 		fmt.Sprintf("'%s'", recordUID),
-		fmt.Sprintf("%s '%s'", utils.FlagConfiguration, configuration),
+		utils.FlagArg(utils.FlagConfiguration, configuration),
 	}
 
 	if adminCredential != "" {
-		parts = append(parts, fmt.Sprintf("%s '%s'", utils.FlagAdminCredential, adminCredential))
+		parts = append(parts, utils.FlagArg(utils.FlagAdminCredential, adminCredential))
 	}
 
 	command := strings.Join(parts, " ")
@@ -885,7 +885,7 @@ func disablePamTunneling(ctx context.Context, apiManager *api.ApiManager, record
 	command := strings.Join([]string{
 		utils.CmdPamTunnelEdit,
 		fmt.Sprintf("'%s'", recordUID),
-		fmt.Sprintf("%s '%s'", utils.FlagConfiguration, configuration),
+		utils.FlagArg(utils.FlagConfiguration, configuration),
 		utils.FlagDisableTunneling,
 	}, " ")
 	_, err := apiManager.ExecuteCommand(ctx, command, utils.ErrSummaryApplyPamTunnelSettingsFailed)
@@ -898,11 +898,11 @@ func disablePamConnection(ctx context.Context, apiManager *api.ApiManager, recor
 	parts := []string{
 		utils.CmdPamConnectionEdit,
 		fmt.Sprintf("'%s'", recordUID),
-		fmt.Sprintf("%s '%s'", utils.FlagConfiguration, configuration),
+		utils.FlagArg(utils.FlagConfiguration, configuration),
 		fmt.Sprintf("%s=%s", utils.FlagConnections, utils.ValueOff),
 	}
 	if !adminCredentials.IsNull() && !adminCredentials.IsUnknown() {
-		parts = append(parts, fmt.Sprintf("%s '%s'", utils.FlagAdminCredential, adminCredentials.ValueString()))
+		parts = append(parts, utils.FlagArg(utils.FlagAdminCredential, adminCredentials.ValueString()))
 	}
 	command := strings.Join(parts, " ")
 	_, err := apiManager.ExecuteCommand(ctx, command, utils.ErrSummaryApplyPamConnectionSettingsFailed)
@@ -920,7 +920,7 @@ func applyPamSettingsFieldUpdate(ctx context.Context, apiManager *api.ApiManager
 		return nil
 	}
 
-	command := fmt.Sprintf("%s %s '%s' '%s=$JSON:%s'",
+	command := fmt.Sprintf("%s %s='%s' '%s=$JSON:%s'",
 		recordUpdateCmd,
 		utils.FlagRecord,
 		recordUID,
@@ -942,7 +942,7 @@ func applyPamTunnelSettings(ctx context.Context, apiManager *api.ApiManager, rec
 	parts := []string{
 		utils.CmdPamTunnelEdit,
 		fmt.Sprintf("'%s'", recordUID),
-		fmt.Sprintf("%s '%s'", utils.FlagConfiguration, configuration),
+		utils.FlagArg(utils.FlagConfiguration, configuration),
 	}
 
 	if !tunnel.Enable.IsNull() && !tunnel.Enable.IsUnknown() && tunnel.Enable.ValueBool() {
@@ -972,7 +972,7 @@ func runPamConnectionEditCommand(ctx context.Context, apiManager *api.ApiManager
 	parts := []string{
 		utils.CmdPamConnectionEdit,
 		fmt.Sprintf("'%s'", recordUID),
-		fmt.Sprintf("%s '%s'", utils.FlagConfiguration, configuration),
+		utils.FlagArg(utils.FlagConfiguration, configuration),
 	}
 
 	parts = append(parts, fmt.Sprintf("%s=%s", utils.FlagConnections, boolToOnOff(connection.Enable)))
@@ -1039,11 +1039,11 @@ func runPamConnectionEditCommand(ctx context.Context, apiManager *api.ApiManager
 	}
 
 	if !connection.LaunchCredential.IsNull() && !connection.LaunchCredential.IsUnknown() {
-		parts = append(parts, fmt.Sprintf("%s '%s'", utils.FlagLaunchCredential, connection.LaunchCredential.ValueString()))
+		parts = append(parts, utils.FlagArg(utils.FlagLaunchCredential, connection.LaunchCredential.ValueString()))
 	}
 
 	if !adminCredentials.IsNull() && !adminCredentials.IsUnknown() {
-		parts = append(parts, fmt.Sprintf("%s '%s'", utils.FlagAdminCredential, adminCredentials.ValueString()))
+		parts = append(parts, utils.FlagArg(utils.FlagAdminCredential, adminCredentials.ValueString()))
 	}
 
 	command := strings.Join(parts, " ")

@@ -26,15 +26,15 @@ func BuildAddCommand(cmd string, data PamRemoteBrowserResourceModel) string {
 	parts := []string{cmd}
 
 	parts = append(parts, fmt.Sprintf("%s %s", utils.FlagRecordType, utils.RecordTypePamRemoteBrowser))
-	parts = append(parts, fmt.Sprintf("%s '%s'", utils.FlagTitle, data.Title.ValueString()))
+	parts = append(parts, utils.FlagArg(utils.FlagTitle, data.Title.ValueString()))
 	parts = append(parts, fmt.Sprintf("'%s=%s'", utils.FlagRbiUrl, data.Url.ValueString()))
 
 	if !data.FolderLocation.IsNull() && !data.FolderLocation.IsUnknown() && strings.TrimSpace(data.FolderLocation.ValueString()) != "" {
-		parts = append(parts, fmt.Sprintf("%s '%s'", utils.FlagFolder, strings.TrimSpace(data.FolderLocation.ValueString())))
+		parts = append(parts, utils.FlagArg(utils.FlagFolder, strings.TrimSpace(data.FolderLocation.ValueString())))
 	}
 
 	if !data.Notes.IsNull() {
-		parts = append(parts, fmt.Sprintf("%s '%s'", utils.FlagNotes, data.Notes.ValueString()))
+		parts = append(parts, utils.FlagArg(utils.FlagNotes, data.Notes.ValueString()))
 	}
 
 	return strings.Join(parts, " ")
@@ -46,16 +46,16 @@ func BuildAddCommand(cmd string, data PamRemoteBrowserResourceModel) string {
 func BuildUpdateCommand(cmd, recordUID string, plan, state PamRemoteBrowserResourceModel) string {
 	parts := []string{
 		cmd,
-		fmt.Sprintf("%s %s", utils.FlagRecord, utils.QuoteShellSingle(recordUID)),
+		utils.FlagArg(utils.FlagRecord, recordUID),
 	}
 	if !plan.Title.Equal(state.Title) {
-		parts = append(parts, fmt.Sprintf("%s %s", utils.FlagTitle, utils.QuoteShellSingle(plan.Title.ValueString())))
+		parts = append(parts, utils.FlagArg(utils.FlagTitle, plan.Title.ValueString()))
 	}
 	if !plan.Url.Equal(state.Url) {
 		parts = append(parts, fmt.Sprintf("'%s=%s'", utils.FlagRbiUrl, plan.Url.ValueString()))
 	}
 	if !plan.Notes.Equal(state.Notes) && !plan.Notes.IsNull() && !plan.Notes.IsUnknown() {
-		parts = append(parts, fmt.Sprintf("%s %s", utils.FlagNotes, utils.QuoteShellSingle(plan.Notes.ValueString())))
+		parts = append(parts, utils.FlagArg(utils.FlagNotes, plan.Notes.ValueString()))
 	}
 
 	return strings.Join(parts, " ")
@@ -76,7 +76,7 @@ func RecordUpdateHasMutations(plan, state PamRemoteBrowserResourceModel) bool {
 func BuildPamRbiEditCommand(recordUID string, settings *PamRemoteBrowserSettingsModel) string {
 	parts := []string{
 		CmdPamRbiEdit,
-		fmt.Sprintf("%s %s", FlagRecord, utils.QuoteShellSingle(recordUID)),
+		utils.FlagArg(FlagRecord, recordUID),
 	}
 	AppendPamRbiEditSettingsFlags(&parts, settings)
 	return strings.Join(parts, " ")
@@ -124,10 +124,10 @@ func appendPamRbiStringFlag(parts *[]string, flag string, v types.String) {
 		return
 	}
 	if v.IsNull() {
-		*parts = append(*parts, fmt.Sprintf("%s %s", flag, utils.QuoteShellSingle("")))
+		*parts = append(*parts, utils.FlagArg(flag, ""))
 		return
 	}
-	*parts = append(*parts, fmt.Sprintf("%s %s", flag, utils.QuoteShellSingle(v.ValueString())))
+	*parts = append(*parts, utils.FlagArg(flag, v.ValueString()))
 }
 
 // appendPamRbiClipboardBufferSizeFlag appends `--clipboard-buffer-size <size>`, lowercased
@@ -200,7 +200,7 @@ func appendPamRbiRepeatedStringFlags(parts *[]string, flag string, set types.Set
 		return
 	}
 	if set.IsNull() {
-		*parts = append(*parts, fmt.Sprintf("%s %s", flag, utils.QuoteShellSingle("")))
+		*parts = append(*parts, utils.FlagArg(flag, ""))
 		return
 	}
 	for _, s := range sortedSetStrings(set) {
@@ -208,7 +208,7 @@ func appendPamRbiRepeatedStringFlags(parts *[]string, flag string, set types.Set
 		if t == "" {
 			continue
 		}
-		*parts = append(*parts, fmt.Sprintf("%s %s", flag, utils.QuoteShellSingle(t)))
+		*parts = append(*parts, utils.FlagArg(flag, t))
 	}
 }
 

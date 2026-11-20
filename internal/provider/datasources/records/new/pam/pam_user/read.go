@@ -68,7 +68,7 @@ func (d *PamUserDataSource) Read(ctx context.Context, req datasource.ReadRequest
 	commonpamuser.MapVaultRecordToState(&rec, &data.PamUserSharedModel)
 
 	// Phase 2: fetch rotation info
-	rotCmd := fmt.Sprintf("%s %s '%s' %s", commonpamuser.CmdPamRotationInfo, commonpamuser.FlagRecordShort, recordUID, utils.FlagFormatJSON)
+	rotCmd := fmt.Sprintf("%s %s='%s' %s", commonpamuser.CmdPamRotationInfo, commonpamuser.FlagRecordShort, recordUID, utils.FlagFormatJSON)
 	if rotResp, err := d.ApiManager.ExecuteCommand(ctx, rotCmd, commonpamuser.ErrDetailRotationInfoFailed); err == nil && rotResp != nil {
 		var rotInfo commonpamuser.PamRotationInfoResponse
 		if err := utils.UnmarshalApiResponse(rotResp.Data, &rotInfo); err != nil {

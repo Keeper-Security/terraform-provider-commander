@@ -30,7 +30,7 @@ func (r *SaasConfigurationResource) Create(ctx context.Context, req resource.Cre
 	}
 
 	if saasType := commonrecordsaasconfiguration.SaasTypeFromCustom(data.Custom); saasType != "" {
-		entries, err := commonrecordsaasconfiguration.FetchSaasPluginList(ctx, r.ApiManager, data.Gateway.ValueString())
+		entries, err := commonrecordsaasconfiguration.FetchSaasPluginList(ctx, r.ApiManager, data.Gateway.ValueString(), data.Configuration.ValueString())
 		if err != nil {
 			resp.Diagnostics.AddError(commonrecordsaasconfiguration.ErrOpListSaasPluginsForGateway(data.Gateway.ValueString()), err.Error())
 			return
@@ -40,7 +40,7 @@ func (r *SaasConfigurationResource) Create(ctx context.Context, req resource.Cre
 			return
 		}
 
-		specs, err := commonrecordsaasconfiguration.FetchSaasFieldSpecs(ctx, r.ApiManager, data.Gateway.ValueString(), saasType)
+		specs, err := commonrecordsaasconfiguration.FetchSaasFieldSpecs(ctx, r.ApiManager, data.Gateway.ValueString(), saasType, data.Configuration.ValueString())
 		if err != nil {
 			resp.Diagnostics.AddError(commonrecordsaasconfiguration.ErrOpGetSaasPluginInfo, err.Error())
 			return

@@ -73,11 +73,11 @@ func addNodeBasicAttributes(ctx context.Context, apiManager *api.ApiManager, dat
 	parts = append(parts, "enterprise-node")
 
 	// Required parameters
-	parts = append(parts, fmt.Sprintf("--add '%s'", data.Name.ValueString()))
+	parts = append(parts, fmt.Sprintf("--add='%s'", data.Name.ValueString()))
 
 	// Optional parameters
 	if !data.Parent.IsNull() {
-		parts = append(parts, fmt.Sprintf("--parent '%s'", data.Parent.ValueString()))
+		parts = append(parts, fmt.Sprintf("--parent='%s'", data.Parent.ValueString()))
 	}
 
 	command := strings.Join(parts, " ")

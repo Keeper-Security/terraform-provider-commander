@@ -6,6 +6,7 @@ description: |-
   Manages a Keeper PAM configurations
   In Keeper, the PAM Configuration contains essential information of your target infrastructure, settings and associated Keeper Gateway. We recommend setting up one PAM Configuration for each Gateway and network being managed.
   For more information, see Keeper PAM Configuration documentation https://docs.keeper.io/en/keeperpam/privileged-access-manager/getting-started/pam-configuration.
+  ~> Known issue: For aws, azure, and gcp configurations, do not combine a universal_secrets_sync block with connections, tunneling, or rotation set to true. Saving the Universal Secrets Sync settings currently resets those three settings to false, and saving those settings resets Universal Secrets Sync enabled to false, so the plan never settles. When universal_secrets_sync is configured, leave connections, tunneling, and rotation at their default (false).
 ---
 
 # commander_pam_configuration (Resource)
@@ -15,6 +16,8 @@ Manages a Keeper PAM configurations
 In Keeper, the PAM Configuration contains essential information of your target infrastructure, settings and associated Keeper Gateway. We recommend setting up one PAM Configuration for each Gateway and network being managed.
 
 For more information, see [Keeper PAM Configuration documentation](https://docs.keeper.io/en/keeperpam/privileged-access-manager/getting-started/pam-configuration).
+
+~> **Known issue:** For `aws`, `azure`, and `gcp` configurations, do not combine a `universal_secrets_sync` block with `connections`, `tunneling`, or `rotation` set to `true`. Saving the Universal Secrets Sync settings currently resets those three settings to `false`, and saving those settings resets Universal Secrets Sync `enabled` to `false`, so the plan never settles. When `universal_secrets_sync` is configured, leave `connections`, `tunneling`, and `rotation` at their default (`false`).
 
 ## Example Usage
 
@@ -58,9 +61,8 @@ resource "commander_pam_configuration" "aws_example" {
   gateway            = "aws-gateway-uid"
   application_folder = "PAM Application Folder"
 
-  connections           = true
-  tunneling             = true
-  rotation              = true
+  # connections, tunneling and rotation are left at their default (false): combining
+  # them with universal_secrets_sync is a known issue (see the note above).
   connections_recording = true
   typescript_recording  = true
 
@@ -89,9 +91,8 @@ resource "commander_pam_configuration" "azure_example" {
   gateway            = "azure-gateway-uid"
   application_folder = "PAM Application Folder"
 
-  connections              = true
-  tunneling                = true
-  rotation                 = true
+  # connections, tunneling and rotation are left at their default (false): combining
+  # them with universal_secrets_sync is a known issue (see the note above).
   remote_browser_isolation = true
   connections_recording    = true
   typescript_recording     = true
@@ -156,9 +157,8 @@ resource "commander_pam_configuration" "gcp_example" {
   gateway            = "gcp-gateway-uid"
   application_folder = "PAM Application Folder"
 
-  connections           = true
-  tunneling             = true
-  rotation              = true
+  # connections, tunneling and rotation are left at their default (false): combining
+  # them with universal_secrets_sync is a known issue (see the note above).
   connections_recording = true
   typescript_recording  = true
 
@@ -223,7 +223,11 @@ Optional:
 
 `Universal Secrets Sync` ("USS") automatically pushes secrets from the Keeper Vault to cloud provider secret stores. With USS, the Keeper Vault becomes the single source of truth for all cloud secrets. When a record changes in Keeper, the updated secret reaches every configured cloud provider without manual intervention.
 
-Only supported when `environment` is `aws`, `azure`, or `gcp`; `vault_name` is **required** when `environment` is `azure` and **not applicable** otherwise. When adding this block for the first time, `enabled` must be `true`. (see [below for nested schema](#nestedblock--aws--universal_secrets_sync))
+Only supported when `environment` is `aws`, `azure`, or `gcp`; `vault_name` is **required** when `environment` is `azure` and **not applicable** otherwise. When adding this block for the first time, `enabled` must be `true`.
+
+-> **Note:** Configuring this block requires the `ALLOW_CONFIGURE_USS_SETTINGS` enforcement on a role assigned to the Commander user. Without it, create fails with `RRC_NOT_ALLOWED_ENFORCEMENT_NOT_ENABLED`.
+
+~> **Known issue:** Do not combine this block with `connections`, `tunneling`, or `rotation` set to `true`. Saving either one currently resets the other, so the plan never settles: one apply turns the three settings back on and switches USS `enabled` to `false`, and the next restores USS and turns the settings off. Leave those three attributes at their default (`false`) when this block is configured. (see [below for nested schema](#nestedblock--aws--universal_secrets_sync))
 
 <a id="nestedblock--aws--universal_secrets_sync"></a>
 ### Nested Schema for `aws.universal_secrets_sync`
@@ -252,7 +256,11 @@ Optional:
 
 `Universal Secrets Sync` ("USS") automatically pushes secrets from the Keeper Vault to cloud provider secret stores. With USS, the Keeper Vault becomes the single source of truth for all cloud secrets. When a record changes in Keeper, the updated secret reaches every configured cloud provider without manual intervention.
 
-Only supported when `environment` is `aws`, `azure`, or `gcp`; `vault_name` is **required** when `environment` is `azure` and **not applicable** otherwise. When adding this block for the first time, `enabled` must be `true`. (see [below for nested schema](#nestedblock--azure--universal_secrets_sync))
+Only supported when `environment` is `aws`, `azure`, or `gcp`; `vault_name` is **required** when `environment` is `azure` and **not applicable** otherwise. When adding this block for the first time, `enabled` must be `true`.
+
+-> **Note:** Configuring this block requires the `ALLOW_CONFIGURE_USS_SETTINGS` enforcement on a role assigned to the Commander user. Without it, create fails with `RRC_NOT_ALLOWED_ENFORCEMENT_NOT_ENABLED`.
+
+~> **Known issue:** Do not combine this block with `connections`, `tunneling`, or `rotation` set to `true`. Saving either one currently resets the other, so the plan never settles: one apply turns the three settings back on and switches USS `enabled` to `false`, and the next restores USS and turns the settings off. Leave those three attributes at their default (`false`) when this block is configured. (see [below for nested schema](#nestedblock--azure--universal_secrets_sync))
 
 <a id="nestedblock--azure--universal_secrets_sync"></a>
 ### Nested Schema for `azure.universal_secrets_sync`
@@ -295,7 +303,11 @@ Optional:
 
 `Universal Secrets Sync` ("USS") automatically pushes secrets from the Keeper Vault to cloud provider secret stores. With USS, the Keeper Vault becomes the single source of truth for all cloud secrets. When a record changes in Keeper, the updated secret reaches every configured cloud provider without manual intervention.
 
-Only supported when `environment` is `aws`, `azure`, or `gcp`; `vault_name` is **required** when `environment` is `azure` and **not applicable** otherwise. When adding this block for the first time, `enabled` must be `true`. (see [below for nested schema](#nestedblock--gcp--universal_secrets_sync))
+Only supported when `environment` is `aws`, `azure`, or `gcp`; `vault_name` is **required** when `environment` is `azure` and **not applicable** otherwise. When adding this block for the first time, `enabled` must be `true`.
+
+-> **Note:** Configuring this block requires the `ALLOW_CONFIGURE_USS_SETTINGS` enforcement on a role assigned to the Commander user. Without it, create fails with `RRC_NOT_ALLOWED_ENFORCEMENT_NOT_ENABLED`.
+
+~> **Known issue:** Do not combine this block with `connections`, `tunneling`, or `rotation` set to `true`. Saving either one currently resets the other, so the plan never settles: one apply turns the three settings back on and switches USS `enabled` to `false`, and the next restores USS and turns the settings off. Leave those three attributes at their default (`false`) when this block is configured. (see [below for nested schema](#nestedblock--gcp--universal_secrets_sync))
 
 <a id="nestedblock--gcp--universal_secrets_sync"></a>
 ### Nested Schema for `gcp.universal_secrets_sync`

@@ -108,11 +108,11 @@ func addRoleBasicAttributes(ctx context.Context, apiManager *api.ApiManager, dat
 	parts = append(parts, "enterprise-role")
 
 	// Required parameters
-	parts = append(parts, fmt.Sprintf("--add '%s'", data.Name.ValueString()))
+	parts = append(parts, fmt.Sprintf("--add='%s'", data.Name.ValueString()))
 
 	// Optional parameters
 	if !data.Node.IsNull() {
-		parts = append(parts, fmt.Sprintf("--node '%s'", data.Node.ValueString()))
+		parts = append(parts, fmt.Sprintf("--node='%s'", data.Node.ValueString()))
 	}
 
 	command := strings.Join(parts, " ")

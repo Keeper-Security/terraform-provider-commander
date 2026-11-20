@@ -77,7 +77,7 @@ func (r *SecretsManagerAppResource) Create(ctx context.Context, req resource.Cre
 }
 
 func addShareToApp(ctx context.Context, apiManager *api.ApiManager, appUID string, share ShareEntryModel) error {
-	command := fmt.Sprintf("%s add --app '%s' --secret '%s'", CmdSharePrefix, appUID, share.Secret.ValueString())
+	command := fmt.Sprintf("%s add --app='%s' --secret='%s'", CmdSharePrefix, appUID, share.Secret.ValueString())
 	if !share.Editable.IsNull() && share.Editable.ValueBool() {
 		command += " --editable"
 	}
@@ -86,7 +86,7 @@ func addShareToApp(ctx context.Context, apiManager *api.ApiManager, appUID strin
 }
 
 func removeShareFromApp(ctx context.Context, apiManager *api.ApiManager, appUID string, secretUID string) error {
-	command := fmt.Sprintf("%s remove --app '%s' --secret '%s'", CmdSharePrefix, appUID, secretUID)
+	command := fmt.Sprintf("%s remove --app='%s' --secret='%s'", CmdSharePrefix, appUID, secretUID)
 	_, err := apiManager.ExecuteCommand(ctx, command, "Unable to remove secret from application")
 	return err
 }
@@ -96,19 +96,19 @@ func updateSharePermission(ctx context.Context, apiManager *api.ApiManager, appU
 	if editable {
 		flag = "--editable"
 	}
-	command := fmt.Sprintf("%s update --app '%s' --secret '%s' %s", CmdSharePrefix, appUID, secretUID, flag)
+	command := fmt.Sprintf("%s update --app='%s' --secret='%s' %s", CmdSharePrefix, appUID, secretUID, flag)
 	_, err := apiManager.ExecuteCommand(ctx, command, "Unable to update secret permissions")
 	return err
 }
 
 func shareAppWithUser(ctx context.Context, apiManager *api.ApiManager, appUID string, email string) error {
-	command := fmt.Sprintf("%s share '%s' --email '%s'", CmdPrefix, appUID, email)
+	command := fmt.Sprintf("%s share '%s' --email='%s'", CmdPrefix, appUID, email)
 	_, err := apiManager.ExecuteCommand(ctx, command, "Unable to share application with user")
 	return err
 }
 
 func unshareAppFromUser(ctx context.Context, apiManager *api.ApiManager, appUID string, email string) error {
-	command := fmt.Sprintf("%s unshare '%s' --email '%s'", CmdPrefix, appUID, email)
+	command := fmt.Sprintf("%s unshare '%s' --email='%s'", CmdPrefix, appUID, email)
 	_, err := apiManager.ExecuteCommand(ctx, command, "Unable to unshare application from user")
 	return err
 }

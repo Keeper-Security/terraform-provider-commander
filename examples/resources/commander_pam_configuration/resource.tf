@@ -37,9 +37,8 @@ resource "commander_pam_configuration" "aws_example" {
   gateway            = "aws-gateway-uid"
   application_folder = "PAM Application Folder"
 
-  connections           = true
-  tunneling             = true
-  rotation              = true
+  # connections, tunneling and rotation are left at their default (false): combining
+  # them with universal_secrets_sync is a known issue (see the note above).
   connections_recording = true
   typescript_recording  = true
 
@@ -68,9 +67,8 @@ resource "commander_pam_configuration" "azure_example" {
   gateway            = "azure-gateway-uid"
   application_folder = "PAM Application Folder"
 
-  connections              = true
-  tunneling                = true
-  rotation                 = true
+  # connections, tunneling and rotation are left at their default (false): combining
+  # them with universal_secrets_sync is a known issue (see the note above).
   remote_browser_isolation = true
   connections_recording    = true
   typescript_recording     = true
@@ -135,9 +133,8 @@ resource "commander_pam_configuration" "gcp_example" {
   gateway            = "gcp-gateway-uid"
   application_folder = "PAM Application Folder"
 
-  connections           = true
-  tunneling             = true
-  rotation              = true
+  # connections, tunneling and rotation are left at their default (false): combining
+  # them with universal_secrets_sync is a known issue (see the note above).
   connections_recording = true
   typescript_recording  = true
 

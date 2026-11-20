@@ -87,15 +87,15 @@ func updateUserAttributes(ctx context.Context, apiManager *api.ApiManager, plan 
 	parts = append(parts, "enterprise-user")
 
 	if !state.Name.Equal(plan.Name) {
-		parts = append(parts, fmt.Sprintf("--name '%s'", plan.Name.ValueString()))
+		parts = append(parts, fmt.Sprintf("--name='%s'", plan.Name.ValueString()))
 	}
 
 	if !state.JobTitle.Equal(plan.JobTitle) {
-		parts = append(parts, fmt.Sprintf("--job-title '%s'", plan.JobTitle.ValueString()))
+		parts = append(parts, fmt.Sprintf("--job-title='%s'", plan.JobTitle.ValueString()))
 	}
 
 	if !state.Node.Equal(plan.Node) {
-		parts = append(parts, fmt.Sprintf("--node '%s'", plan.Node.ValueString()))
+		parts = append(parts, fmt.Sprintf("--node='%s'", plan.Node.ValueString()))
 	}
 
 	if !state.Roles.Equal(plan.Roles) {
