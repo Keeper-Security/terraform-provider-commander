@@ -100,6 +100,7 @@ import (
 	classicsshkeys "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/records/classic/generic/ssh_keys"
 	classicssncard "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/records/classic/generic/ssn_card"
 	classicwifi "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/records/classic/generic/wifi"
+	classicpamcloud "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/records/classic/pam/pam_cloud"
 	classicpamdatabase "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/records/classic/pam/pam_database"
 	classicpamdirectory "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/records/classic/pam/pam_directory"
 	classicpammachine "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/records/classic/pam/pam_machine"
@@ -285,6 +286,7 @@ func (p *CommanderProvider) Resources(ctx context.Context) []func() resource.Res
 		classicpamremotebrowser.NewPamRemoteBrowserResource,
 		classicpamuser.NewPamUserResource,
 		classicpamdatabase.NewPamDatabaseResource,
+		classicpamcloud.NewPamCloudResource,
 		classicpamdirectory.NewPamDirectoryResource,
 		classicpammachine.NewPamMachineResource,
 		classiclogin.NewLoginResource,

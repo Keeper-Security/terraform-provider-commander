@@ -23,8 +23,8 @@ const (
 	NotesMarkdownDescription = "**Notes** for this PAM cloud record."
 )
 
-// Commander CLI record field flags for pamCloud record type.
+// Commander CLI record field flags for pamCloudResource record type.
 const (
-	FlagURL               = "f.url"
-	FlagAccountIdentifier = "f.text.accountIdentifier"
+	FlagURL               = "f.rbiUrl"
+	FlagAccountIdentifier = "f.accountNumber"
 )

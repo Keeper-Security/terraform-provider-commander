@@ -70,7 +70,7 @@ const (
 	RecordTypePamMachine       = "pamMachine"
 	RecordTypePamUser          = "pamUser"
 	RecordTypePamRemoteBrowser = "pamRemoteBrowser"
-	RecordTypePamCloud         = "pamCloud"
+	RecordTypePamCloud         = "pamCloudResource"
 )
 
 // Common schema attribute descriptions.
