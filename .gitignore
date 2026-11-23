@@ -63,3 +63,5 @@ terraform-provider-commander
 
 # Cursor settings
 .cursor/
+# Local scratch/testing folder
+temp/
