@@ -71,6 +71,7 @@ categories:
       - classic_pam_database
       - classic_pam_directory
       - classic_pam_remote_browser
+      - classic_pam_cloud
     data_sources:
       - classic_pam_user
       - classic_pam_machine
@@ -85,6 +86,7 @@ categories:
       - new_pam_database
       - new_pam_directory
       - new_pam_remote_browser
+      - new_pam_cloud
     data_sources:
       - new_pam_user
       - new_pam_machine
