@@ -124,6 +124,7 @@ import (
 	newsshkeys "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/records/new/generic/ssh_keys"
 	newssncard "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/records/new/generic/ssn_card"
 	newwifi "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/records/new/generic/wifi"
+	newpamcloud "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/records/new/pam/pam_cloud"
 	newpamdatabase "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/records/new/pam/pam_database"
 	newpamdirectory "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/records/new/pam/pam_directory"
 	newpammachine "github.com/Keeper-Security/terraform-provider-commander/internal/provider/resources/records/new/pam/pam_machine"
@@ -317,6 +318,7 @@ func (p *CommanderProvider) Resources(ctx context.Context) []func() resource.Res
 		newpamremotebrowser.NewPamRemoteBrowserResource,
 		newpamuser.NewPamUserResource,
 		newpamdatabase.NewPamDatabaseResource,
+		newpamcloud.NewPamCloudResource,
 		newpamdirectory.NewPamDirectoryResource,
 		newpammachine.NewPamMachineResource,
 		newsaasconfiguration.NewSaasConfigurationResource,
