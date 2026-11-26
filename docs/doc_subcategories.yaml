@@ -78,6 +78,7 @@ categories:
       - classic_pam_database
       - classic_pam_directory
       - classic_pam_remote_browser
+      - classic_pam_cloud
 
   New (NSF) PAM Records:
     resources:

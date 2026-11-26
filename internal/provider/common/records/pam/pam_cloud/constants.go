@@ -23,6 +23,13 @@ const (
 	NotesMarkdownDescription = "**Notes** for this PAM cloud record."
 )
 
+// Vault field types of the pamCloudResource record type, as returned by
+// `get <uid> --format json`.
+const (
+	FieldTypeURL               = "rbiUrl"
+	FieldTypeAccountIdentifier = "accountNumber"
+)
+
 // Commander CLI record field flags for pamCloudResource record type.
 const (
 	FlagURL               = "f.rbiUrl"

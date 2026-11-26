@@ -40,6 +40,7 @@ import (
 	classicsshkeysdatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/records/classic/generic/ssh_keys"
 	classicssncarddatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/records/classic/generic/ssn_card"
 	classicwifidatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/records/classic/generic/wifi"
+	classicpamclouddatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/records/classic/pam/pam_cloud"
 	classicpamdatabasedatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/records/classic/pam/pam_database"
 	classicpamdirectorydatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/records/classic/pam/pam_directory"
 	classicpammachinedatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/records/classic/pam/pam_machine"
@@ -379,6 +380,7 @@ func (p *CommanderProvider) DataSources(ctx context.Context) []func() datasource
 		classicsecurenotedatasource.NewSecureNoteDataSource,
 		pamconfigurationdatasource.NewPamConfigurationDataSource,
 		classicpamdatabasedatasource.NewPamDatabaseDataSource,
+		classicpamclouddatasource.NewPamCloudDataSource,
 		classicpamdirectorydatasource.NewPamDirectoryDataSource,
 		classicpammachinedatasource.NewPamMachineDataSource,
 		classicsharedfolderdatasource.NewClassicSharedFolderDataSource,

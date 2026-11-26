@@ -78,17 +78,18 @@ func MapVaultRecordGetResponseToPamCloudModel(rec *utils.VaultRecordGetResponse,
 
 	commonrecordsutils.MapBaseVaultRecord(rec, state.FolderLocation, &state.BaseVaultRecordModel)
 
-	state.URL = extractURLFieldValue(rec.Fields)
-	state.AccountIdentifier = utils.StringOrNull(commonpamrecords.ExtractFirstTextFieldValue(rec.Fields, "accountIdentifier"))
+	state.URL = extractFirstFieldValueByType(rec.Fields, FieldTypeURL)
+	state.AccountIdentifier = extractFirstFieldValueByType(rec.Fields, FieldTypeAccountIdentifier)
 
 	return diags
 }
 
-// extractURLFieldValue extracts the first value of the url-type field.
-func extractURLFieldValue(fields []utils.VaultRecordFieldResponse) types.String {
+// extractFirstFieldValueByType extracts the first string value of the field
+// with the given type, or null when the field is absent or empty.
+func extractFirstFieldValueByType(fields []utils.VaultRecordFieldResponse, fieldType string) types.String {
 	for i := range fields {
 		f := &fields[i]
-		if f.Type != "url" {
+		if f.Type != fieldType {
 			continue
 		}
 		var vals []string
