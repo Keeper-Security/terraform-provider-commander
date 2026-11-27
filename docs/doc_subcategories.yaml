@@ -94,6 +94,7 @@ categories:
       - new_pam_database
       - new_pam_directory
       - new_pam_remote_browser
+      - new_pam_cloud
 
   Classic Records:
     resources:

@@ -64,6 +64,7 @@ import (
 	newsshkeysdatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/records/new/generic/ssh_keys"
 	newssncarddatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/records/new/generic/ssn_card"
 	newwifidatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/records/new/generic/wifi"
+	newpamclouddatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/records/new/pam/pam_cloud"
 	newpamdatabasedatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/records/new/pam/pam_database"
 	newpamdirectorydatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/records/new/pam/pam_directory"
 	newpammachinedatasource "github.com/Keeper-Security/terraform-provider-commander/internal/provider/datasources/records/new/pam/pam_machine"
@@ -389,6 +390,7 @@ func (p *CommanderProvider) DataSources(ctx context.Context) []func() datasource
 		newpamremotebrowserdatasource.NewPamRemoteBrowserDataSource,
 		newpamuserdatasource.NewPamUserDataSource,
 		newpamdatabasedatasource.NewPamDatabaseDataSource,
+		newpamclouddatasource.NewPamCloudDataSource,
 		newpamdirectorydatasource.NewPamDirectoryDataSource,
 		newpammachinedatasource.NewPamMachineDataSource,
 		newsaasconfigurationdatasource.NewSaasConfigurationDataSource,
